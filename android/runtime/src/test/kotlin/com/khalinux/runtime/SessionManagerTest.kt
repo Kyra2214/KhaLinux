@@ -160,14 +160,23 @@ class SessionManagerTest {
         try {
             managed.destroy()
             assertTrue("processo/grupo não encerrou no prazo", managed.waitFor(3, TimeUnit.SECONDS))
-            val descendantAlive = ProcessBuilder(kill.absolutePath, "-0", "--", descendantPid.toString())
-                .start()
-                .waitFor() == 0
-            assertTrue("processo descendente sobreviveu ao cancelamento", !descendantAlive)
+            fun descendantIsActive(): Boolean {
+                val stat = File("/proc/$descendantPid/stat")
+                if (!stat.isFile) return false
+                val state = stat.readText().substringAfterLast(") ").firstOrNull()
+                return state != null && state != 'Z' && state != 'X'
+            }
+            val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2)
+            while (descendantIsActive() && System.nanoTime() < deadline) {
+                Thread.sleep(25)
+            }
+            assertTrue("processo descendente sobreviveu ao cancelamento", !descendantIsActive())
         } finally {
-            ProcessBuilder(kill.absolutePath, "-KILL", "--", descendantPid.toString())
-                .start()
-                .waitFor()
+            if (descendantIsActive()) {
+                ProcessBuilder(kill.absolutePath, "-KILL", "--", descendantPid.toString())
+                    .start()
+                    .waitFor()
+            }
         }
     }
 
