@@ -15,7 +15,7 @@ Este roadmap é a referência oficial de evolução do projeto. Uma fase só pod
 
 ## Fase 1 — Linux Base
 
-**Estado:** build e smoke tests históricos passaram no sandbox x86_64 por emulação ARM64. A correção atual preserva as fontes APT e sincroniza o snapshot com o manifesto. O gerador empacota `rootfs-arm64.tar.gz` determinístico com SHA-256 próprio; workflow manual foi adicionado para reconstruir, validar e publicar RootFS/manifesto em release versionada. A primeira execução real desse workflow ainda precisa passar antes de considerar a fase validada novamente.
+**Estado:** primeira reconstrução real no GitHub Actions concluída com sucesso. Debian Bookworm ARM64 passou pela verificação de hash canônico, verificação do arquivo e smoke test ARM64 via QEMU/chroot. O pacote, manifesto e lock de pacotes foram publicados em [rootfs-bookworm-20261122-v1](https://github.com/Kyra2214/KhaLinux/releases/tag/rootfs-bookworm-20261122-v1). A base está entregue; reprodutibilidade bit-a-bit entre duas reconstruções independentes ainda não foi comprovada.
 
 - Preparar build ARM64.
 - Construir Debian ARM64 minimal e gerar RootFS.
@@ -28,7 +28,7 @@ Este roadmap é a referência oficial de evolução do projeto. Uma fase só pod
 
 ## Fase 2 — Runtime Android
 
-**Estado:** launcher por pipes e sessões Kotlin; PTY JNI; entrada/resize/cancelamento interativos; grupos de processos para comandos Android; testes host de sessão, concorrência, timeout, cancelamento de descendentes e JNI/PTy implementados. A suíte host, JNI/PTy e compilação Android Debug passaram no CI da integração anterior. A nova regressão do instalador, extração TAR/GZIP em Android e ciclo de vida pós-instalação ainda precisam passar no CI.
+**Estado:** launcher Kotlin, sessões, PTY JNI, entrada/resize/cancelamento e grupos de processos implementados. Testes host, JNI/PTy e APK Debug passaram no CI. O RootFS ARM64 agora está publicado. O build reproduzível do PRoot para Android ARM64 está em implementação, ainda sem binário aprovado ou release.
 
 - Implementar launcher PRoot, PTY, sessões e gerenciamento de processos.
 - Tratar stdout/stderr, timeout, cancelamento e erros.
@@ -38,7 +38,7 @@ Este roadmap é a referência oficial de evolução do projeto. Uma fase só pod
 
 ## Fase 3 — Aplicativo Android
 
-**Estado:** Activity/Service, Compose/MVVM, inicialização assíncrona de comandos/shell, PTY JNI e buffer de saída limitado implementados. Instalador RootFS com manifesto de release fixada, download HTTPS, hash, limites, extração segura e progresso na UI integrado ao Service. Workflow de publicação adicionado, ainda sem primeira execução real. Ainda falta publicar/verificar o RootFS, distribuir o binário PRoot compatível com Android, emulador VT/ANSI, persistência, configurações e testes físicos finais.
+**Estado:** Activity/Service, Compose/MVVM, PTY JNI, buffer limitado e instalador RootFS com progresso na UI implementados. RootFS publicado e smoke test ARM64 aprovado. Workflow para compilar PRoot com fontes fixadas, dependências estáticas e NDK está em validação de CI. Ainda faltam instalar o PRoot pelo app, emulador VT/ANSI, persistência, configurações, refinamento de ciclo de vida e testes físicos finais.
 
 - Concluir projeto Kotlin com Jetpack Compose, MVVM, Clean Architecture e Coroutines.
 - Implementar navegação, dashboard, instalação, terminal, configurações, Room e histórico.
