@@ -120,6 +120,9 @@ class SessionManagerTest {
             .firstOrNull { it.canExecute() }
         assumeTrue("setsid ausente no host", setsid != null)
 
+        val kill = File("/usr/bin/kill")
+        assumeTrue("utilitário kill ausente no host", kill.canExecute())
+
         val child = ProcessBuilder(
             setsid!!.absolutePath,
             "/bin/bash",
@@ -130,7 +133,7 @@ class SessionManagerTest {
         ).start()
         val managed = ProcessGroupManagedProcess(child) { pid, force ->
             val signal = if (force) "KILL" else "TERM"
-            ProcessBuilder("/bin/sh", "-c", "kill -$signal -- -$pid")
+            ProcessBuilder(kill.absolutePath, "-$signal", "--", "-$pid")
                 .start()
                 .waitFor() == 0
         }
