@@ -87,7 +87,7 @@ class RootfsInstaller(
                 }
                 throw failure
             }
-            deleteTree(backup)
+            runCatching { deleteTree(backup) }
             return Result(destination, actual, extracted)
         } finally {
             archive.delete()
