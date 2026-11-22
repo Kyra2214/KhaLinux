@@ -16,9 +16,9 @@ JUnit version 4.13.2
 OK (4 tests)
 ```
 
-Os testes cobrem: passagem do comando como argumento único do Bash convidado, rejeição de nomes inválidos de ambiente, captura de stdout e código de saída, timeout e cancelamento de sessão.
+Os quatro testes registrados nesta evidência são históricos e foram executados antes da introdução de recursos Kotlin mais recentes. A suíte atual também inclui testes para limite de sessões ativas e reutilização de capacidade. O script foi atualizado para usar o compilador e os jars da própria instalação Kotlin, exigindo Kotlin 1.9.24 ou superior, compatível com o plugin do projeto.
 
-Para repetir após instalar as dependências do host:
+Para repetir após instalar Kotlin 1.9.24 ou superior, JDK 17, JUnit 4, Hamcrest, PRoot e QEMU AArch64 no host:
 
 ```bash
 ./android/runtime/test.sh
