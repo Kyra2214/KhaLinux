@@ -54,11 +54,38 @@ SHMEM_SRC="$WORK_DIR/src/libandroid-shmem-${SHMEM_VERSION}"
 [[ -d "$PROOT_SRC/src" && -x "$TALLOC_SRC/configure" && -f "$SHMEM_SRC/Makefile" ]] || fail 'layout inesperado nos fontes fixados'
 
 PREFIX="$WORK_DIR/prefix"
-export CC AR RANLIB CFLAGS="-fPIC -O2" CPPFLAGS="-D__ANDROID_API__=${API_LEVEL}" LDFLAGS=""
+export CC AR RANLIB CFLAGS="-fPIC -O2" LDFLAGS=""
 
 # libandroid-shmem é compilada como arquivo estático e ligada ao PRoot.
 make -C "$SHMEM_SRC" clean
-make -C "$SHMEM_SRC" libandroid-shmem.a CC="$CC" AR="$AR" CFLAGS="-fPIC -O2 -std=c11 -Wall -Wextra -D__ANDROID_API__=${API_LEVEL}"
+# Bionic não define _PATH_TMP. O patch usa TMPDIR, que será apontado pelo app
+# para um diretório privado gravável antes de iniciar o PRoot.
+python3 - "$SHMEM_SRC/shmem.c" <<'PY'
+from pathlib import Path
+import sys
+
+source = Path(sys.argv[1])
+text = source.read_text()
+macro = '#define ASHV_KEY_SYMLINK_PATH _PATH_TMP "ashv_key_%d"'
+old = 'sprintf(symlink_path, ASHV_KEY_SYMLINK_PATH, key);'
+new = """const char *tmpdir = getenv("TMPDIR");
+        if (tmpdir == NULL || tmpdir[0] != '/') tmpdir = "/tmp";
+        size_t tmpdir_len = strlen(tmpdir);
+        int path_len = snprintf(symlink_path, sizeof(symlink_path), "%s%sashv_key_%d",
+                                tmpdir, (tmpdir_len > 0 && tmpdir[tmpdir_len - 1] == '/') ? "" : "/", key);
+        if (path_len < 0 || (size_t) path_len >= sizeof(symlink_path)) {
+            pthread_mutex_unlock(&mutex);
+            errno = ENAMETOOLONG;
+            return -1;
+        }"""
+if text.count(macro) != 1 or text.count(old) != 1:
+    raise SystemExit("libandroid-shmem source layout changed; refusing an unreviewed patch")
+text = text.replace(macro, "/* KhaLinux patch: temporary key paths are resolved from TMPDIR at runtime. */")
+text = text.replace(old, new)
+text = text.replace("#include <paths.h>\n", "")
+source.write_text(text)
+PY
+make -C "$SHMEM_SRC" libandroid-shmem.a CC="$CC" AR="$AR" CFLAGS="-fPIC -O2 -std=c11 -Wall -Wextra"
 "$RANLIB" "$SHMEM_SRC/libandroid-shmem.a"
 install -m 0644 "$SHMEM_SRC/libandroid-shmem.a" "$PREFIX/lib/libandroid-shmem.a"
 install -m 0644 "$SHMEM_SRC/shm.h" "$PREFIX/include/sys/shm.h"
