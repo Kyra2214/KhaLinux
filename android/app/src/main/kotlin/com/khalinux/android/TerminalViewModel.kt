@@ -274,7 +274,7 @@ class TerminalViewModel : ViewModel() {
             val current = mutableUiState.value
             val useCases = runtimeUseCases ?: return
             if (!current.runtimeInstalled || current.isRunning) return
-            appendOutputLocked("\n[shell interativo PTY iniciando; TERM=dumb]\n")
+            appendOutputLocked("\n[shell interativo PTY iniciando; TERM=ansi]\n")
             mutableUiState.update { it.copy(isStarting = true) }
             useCases
         }
