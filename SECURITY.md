@@ -31,3 +31,9 @@ Responderemos assim que possível, confirmaremos a triagem e coordenaremos corre
 ## Ferramentas ofensivas
 
 Integrações de pentest somente serão aceitas após validação de compatibilidade, licenciamento, risco e uso em laboratórios controlados. A presença futura de uma ferramenta não autoriza testes contra sistemas de terceiros.
+
+## Bind mounts Android
+
+O runtime expõe somente nós específicos de `/dev` necessários ao shell: `null`, `zero`, `random`, `urandom`, `tty`, `ptmx` e `pts`, quando disponíveis no host. Não monta `/dev` inteiro, `/proc` ou `/sys` do Android.
+
+O PRoot usa bind mounts de caminho, não uma fronteira de segurança. A opção `-b` não oferece modo read-only; o KhaLinux não acrescenta sufixos não suportados como `:ro`. Os caminhos expostos continuam sujeitos às permissões do UID do aplicativo e não devem ser apresentados como sandbox.
