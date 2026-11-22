@@ -33,9 +33,10 @@ data class TerminalSnapshot(
 ) {
     fun displayRange(): IntRange {
         val firstContent = lines.indexOfFirst { line -> line.any { it.text != " " || it.style != TerminalStyle() } }
-        val start = if (firstContent >= 0) firstContent else cursorRow.coerceIn(0, lines.lastIndex)
+        val cursor = cursorRow.coerceIn(0, lines.lastIndex)
+        val start = if (firstContent >= 0) min(firstContent, cursor) else cursor
         val lastContent = lines.indexOfLast { line -> line.any { it.text != " " || it.style != TerminalStyle() } }
-        val end = max(lastContent, cursorRow).coerceIn(start, lines.lastIndex)
+        val end = max(lastContent, cursor).coerceIn(start, lines.lastIndex)
         return start..end
     }
 
