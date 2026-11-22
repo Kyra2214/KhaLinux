@@ -30,6 +30,7 @@ require_cmd git
 [[ -n "${QEMU_BIN}" && -x "${QEMU_BIN}" ]] || fail 'qemu-aarch64-static é necessário para finalizar ARM64 em host não-ARM64'
 [[ -s "${PACKAGES_FILE}" ]] || fail "lista de pacotes ausente: ${PACKAGES_FILE}"
 [[ -s "${SOURCES_FILE}" ]] || fail "fontes Debian ausentes: ${SOURCES_FILE}"
+[[ "${DEBIAN_SNAPSHOT}" =~ ^[0-9]{8}T[0-9]{6}Z$ ]] || fail "snapshot Debian inválido: ${DEBIAN_SNAPSHOT}"
 
 HOST_ARCH="$(dpkg --print-architecture)"
 [[ "${HOST_ARCH}" == amd64 || "${HOST_ARCH}" == arm64 ]] || fail "arquitetura de host não suportada: ${HOST_ARCH}"
@@ -51,7 +52,9 @@ debootstrap --arch=arm64 --foreign --variant=minbase --include="${INCLUDE}" \
   "${DEBIAN_SUITE}" "${ROOTFS_DIR}" "${DEBIAN_MIRROR}"
 
 install -Dm755 "${QEMU_BIN}" "${ROOTFS_DIR}/usr/bin/qemu-aarch64-static"
-install -Dm644 "${SOURCES_FILE}" "${ROOTFS_DIR}/etc/apt/sources.list.d/debian.sources"
+install -d "${ROOTFS_DIR}/etc/apt/sources.list.d"
+sed "s/20251122T000000Z/${DEBIAN_SNAPSHOT}/g" "${SOURCES_FILE}" > "${ROOTFS_DIR}/etc/apt/sources.list.d/debian.sources"
+chmod 0644 "${ROOTFS_DIR}/etc/apt/sources.list.d/debian.sources"
 
 cat > "${ROOTFS_DIR}/root/khalinux-finalize.sh" <<'FINALIZE'
 #!/bin/sh
