@@ -4,6 +4,7 @@ plugins {
 }
 
 android {
+    ndkVersion = "26.1.10909125"
     namespace = "com.khalinux.runtime"
     compileSdk = 35
 
@@ -18,6 +19,11 @@ android {
             version = "3.22.1"
         }
     }
+}
+
+dependencies {
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.jetbrains.kotlin:kotlin-test:1.9.24")
 }
 
 kotlin {
