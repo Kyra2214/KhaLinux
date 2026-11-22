@@ -27,6 +27,6 @@ Essa validação estrutural não compila nem executa a UI Compose. O código da 
 
 ## Próximas etapas
 
-Ainda faltam PTY interativo e entrada contínua no terminal, navegação/dashboard, fluxo de instalação do RootFS, Room/histórico, configurações e notificações de foreground Service. O ciclo de vida do Service e de processos durante mudanças de configuração também precisa de testes e refinamento.
+O PTY interativo e a entrada por linhas foram integrados depois desta validação inicial. Foi adicionada uma base de instalador RootFS com download HTTPS, SHA-256 esperado, limites de download/extração, extração TAR/GZIP com bloqueio de path traversal e links que escapem do RootFS, e troca por diretório temporário com recuperação da instalação anterior. O Service expõe a operação em executor de background. Testes unitários de caminhos TAR foram adicionados, mas ainda aguardam execução CI.\n\nAinda faltam a publicação/seleção dos artefatos RootFS e PRoot, UI de instalação e progresso, validação da extração com um RootFS Debian real, emulador VT/ANSI, Room/histórico, configurações e notificações de foreground Service. O ciclo de vida do Service e de processos durante mudanças de configuração também precisa de testes e refinamento.
 
-A Fase 3 continua aberta. O código evolui em incrementos sem condicionar o trabalho ao empacotamento; a validação Android e em aparelho é uma etapa posterior de qualidade, não bloqueio para avançar na implementação.
+A Fase 3 continua aberta. O build Android integrado e os testes do instalador devem passar no CI antes de considerar a integração pronta. Testes em aparelho físico permanecem reservados para a etapa final, depois da implementação, auditoria, regressão e geração do APK.

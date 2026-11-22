@@ -86,6 +86,10 @@ rm -f "${ROOTFS_DIR}/etc/apt/sources.list.d/debian.sources.save"
 
 ROOTFS_BYTES="$(du -sb "${ROOTFS_DIR}" | awk '{print $1}')"
 ROOTFS_SHA256="$(tar --sort=name --mtime="@${SOURCE_DATE_EPOCH}" --owner=0 --group=0 --numeric-owner -C "${ROOTFS_DIR}" -cf - . | sha256sum | awk '{print $1}')"
+ARCHIVE_FILE="${OUTPUT_DIR}/rootfs-arm64.tar.gz"
+tar --sort=name --mtime="@${SOURCE_DATE_EPOCH}" --owner=0 --group=0 --numeric-owner -C "${ROOTFS_DIR}" -cf - . | gzip -n > "${ARCHIVE_FILE}"
+ARCHIVE_BYTES="$(stat -c %s "${ARCHIVE_FILE}")"
+ARCHIVE_SHA256="$(sha256sum "${ARCHIVE_FILE}" | awk '{print $1}')"
 GIT_COMMIT="$(git -C "${ROOT_DIR}" rev-parse HEAD 2>/dev/null || printf 'uncommitted')"
 PACKAGE_LOCK_FILE="${MANIFEST_DIR}/base-package-versions-arm64.txt"
 : > "${PACKAGE_LOCK_FILE}"
@@ -110,10 +114,15 @@ cat > "${MANIFEST_FILE}" <<MANIFEST
   "package_list": "distribution/configuration/base-packages.txt",
   "package_lock": "distribution/manifests/base-package-versions-arm64.txt",
   "rootfs_bytes": ${ROOTFS_BYTES},
-  "canonical_tar_sha256": "${ROOTFS_SHA256}"
+  "canonical_tar_sha256": "${ROOTFS_SHA256}",
+  "archive_name": "rootfs-arm64.tar.gz",
+  "archive_bytes": ${ARCHIVE_BYTES},
+  "archive_sha256": "${ARCHIVE_SHA256}"
 }
 MANIFEST
 
 log "RootFS concluído: ${ROOTFS_DIR}"
 log "manifesto: ${MANIFEST_FILE}"
 log "SHA-256 do tar canônico: ${ROOTFS_SHA256}"
+log "arquivo instalável: ${ARCHIVE_FILE} (${ARCHIVE_BYTES} bytes)"
+log "SHA-256 do arquivo: ${ARCHIVE_SHA256}"

@@ -2,7 +2,7 @@
 
 Ambiente Linux ARM64 para Android, executado localmente e sem root, voltado a aprendizado, diagnóstico, auditoria autorizada e prática de cibersegurança.
 
-> **Status:** Fase 3 — integração Activity/Service, tela Compose e ViewModel do terminal em implementação. PTY, persistência e validação em ambiente Android continuam pendentes.
+> **Status:** Fase 3 — Activity/Service, Compose/MVVM e PTY JNI integrados; base do instalador RootFS com verificação SHA-256 e extração protegida em implementação. Emulador VT/ANSI, publicação dos artefatos, persistência e validação Android continuam pendentes.
 
 ## Visão
 
@@ -50,7 +50,7 @@ Nenhuma funcionalidade é considerada implementada sem código, testes executado
 
 ## Próximo passo
 
-A próxima etapa continua a Fase 3 com terminal interativo via PTY, instalação do RootFS, persistência Room e refinamento do ciclo de vida. Consulte [`ROADMAP.md`](ROADMAP.md), [`ARCHITECTURE.md`](ARCHITECTURE.md), [`SECURITY.md`](SECURITY.md), [`docs/phase1-validation.md`](docs/phase1-validation.md), [`docs/phase2-validation.md`](docs/phase2-validation.md) e [`docs/phase3-validation.md`](docs/phase3-validation.md).
+A próxima etapa continua a Fase 3 fechando o fluxo de distribuição/instalação do RootFS e do binário PRoot, emulador VT/ANSI, persistência Room e refinamento do ciclo de vida. Consulte [`ROADMAP.md`](ROADMAP.md), [`ARCHITECTURE.md`](ARCHITECTURE.md), [`SECURITY.md`](SECURITY.md), [`docs/phase1-validation.md`](docs/phase1-validation.md), [`docs/phase2-validation.md`](docs/phase2-validation.md) e [`docs/phase3-validation.md`](docs/phase3-validation.md).
 
 ## Licença
 
