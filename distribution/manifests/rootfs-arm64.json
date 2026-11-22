@@ -7,7 +7,7 @@
   "architecture": "arm64",
   "mirror": "https://deb.debian.org/debian",
   "source_date_epoch": 1763769600,
-  "git_commit": "db87d2258d4d78cc6ca225aa6d08f2244808f5cc",
+  "git_commit": "5659930fcf14ee7e3668d6eeb9191abf53eaeeae",
   "package_list": "distribution/configuration/base-packages.txt",
   "rootfs_bytes": 350072661,
   "canonical_tar_sha256": "ecbfd3521fc9cf98af99874235b844d210fc1f6abeff0afb47b7abe481a4c684",
