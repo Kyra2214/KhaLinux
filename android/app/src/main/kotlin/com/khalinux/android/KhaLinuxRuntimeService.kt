@@ -61,6 +61,7 @@ class KhaLinuxRuntimeService : Service() {
     private val installerExecutor: ExecutorService = Executors.newSingleThreadExecutor()
     private var runtime: LinuxRuntime? = null
     @Volatile private var activeInteractiveSessionId: String? = null
+    @Volatile private var interactiveSessionStarting: Boolean = false
 
     override fun onCreate() {
         super.onCreate()
@@ -252,12 +253,15 @@ class KhaLinuxRuntimeService : Service() {
             initialRows = rows,
             initialColumns = columns
         )
+        interactiveSessionStarting = true
         requestInteractiveForeground()
         return try {
             val session = activeRuntime.start(request)
             activeInteractiveSessionId = session.id
+            interactiveSessionStarting = false
             observe(session, listener, foregroundSession = true)
         } catch (error: Throwable) {
+            interactiveSessionStarting = false
             stopInteractiveForeground()
             throw error
         }
@@ -291,7 +295,12 @@ class KhaLinuxRuntimeService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
-            ACTION_INTERACTIVE_SESSION -> startForeground(NOTIFICATION_ID, createSessionNotification())
+            ACTION_INTERACTIVE_SESSION -> {
+                startForeground(NOTIFICATION_ID, createSessionNotification())
+                if (!interactiveSessionStarting && activeInteractiveSessionId == null) {
+                    stopInteractiveForeground()
+                }
+            }
             ACTION_STOP_INTERACTIVE_SESSION -> {
                 activeInteractiveSessionId?.let { runtime?.cancel(it) }
                 stopInteractiveForeground()
