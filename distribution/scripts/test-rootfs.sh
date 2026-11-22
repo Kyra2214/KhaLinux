@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 ROOTFS_DIR="${ROOTFS_DIR:-${ROOT_DIR}/distribution/build/output/rootfs-arm64}"
-fail() { printf '[khalinux-rootfs-test] erro: %s\\n' "$*" >&2; exit 1; }
+fail() { printf '[khalinux-rootfs-test] erro: %s\n' "$*" >&2; exit 1; }
 [[ "${EUID}" -eq 0 ]] || fail 'execute como root para usar chroot'
 command -v file >/dev/null || fail 'file ausente'
 command -v qemu-aarch64-static >/dev/null || fail 'qemu-aarch64-static ausente'
@@ -28,5 +28,5 @@ apt-get --version >/dev/null
 [ -s /etc/apt/sources.list.d/debian.sources ]
 grep -q "snapshot.debian.org/archive/debian/20251122T000000Z" /etc/apt/sources.list.d/debian.sources
 [ "$(grep -c "Check-Valid-Until: no" /etc/apt/sources.list.d/debian.sources)" -eq 2 ]
-printf "rootfs_smoke_test=ok architecture=arm64 apt=sources-present\\n"
+printf "rootfs_smoke_test=ok architecture=arm64 apt=sources-present\n"
 '
