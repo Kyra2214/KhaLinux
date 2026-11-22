@@ -94,7 +94,11 @@ class TerminalViewModel : ViewModel() {
                 sessionId = null,
                 isInteractive = false,
                 isStarting = false,
-                isSendingInput = false
+                isSendingInput = false,
+                isInstallingRootfs = false,
+                rootfsInstallProgress = null,
+                isInstallingProot = false,
+                prootInstallProgress = null
             )
         }
     }
@@ -113,7 +117,11 @@ class TerminalViewModel : ViewModel() {
                 sessionId = null,
                 isInteractive = false,
                 isStarting = false,
-                isSendingInput = false
+                isSendingInput = false,
+                isInstallingRootfs = false,
+                rootfsInstallProgress = null,
+                isInstallingProot = false,
+                prootInstallProgress = null
             )
         }
     }
