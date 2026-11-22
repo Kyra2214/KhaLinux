@@ -14,8 +14,8 @@ data class ProotConfig(
         "HOME" to "/home/khalinux",
         "LANG" to "C.UTF-8",
         "LC_ALL" to "C.UTF-8",
-        // A interface ainda não emula ANSI/VT; não anunciar capacidades inexistentes.
-        "TERM" to "dumb",
+        // Emulador suporta o subconjunto ANSI/VT básico, não xterm completo.
+        "TERM" to "ansi",
         "PATH" to "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
     ),
     val preserveHostUid: Boolean = false
