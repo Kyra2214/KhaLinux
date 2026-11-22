@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -141,6 +142,20 @@ fun KhaLinuxApp(viewModel: TerminalViewModel) {
                         modifier = Modifier.weight(1f)
                     ) {
                         Text("Cancelar")
+                    }
+                }
+
+                if (state.commandHistory.isNotEmpty()) {
+                    Text("Histórico recente", color = Color(0xFF8A9AA0), style = MaterialTheme.typography.labelMedium)
+                    Row(
+                        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        state.commandHistory.take(8).forEach { entry ->
+                            OutlinedButton(onClick = { viewModel.restoreCommandFromHistory(entry.command) }) {
+                                Text(entry.command, maxLines = 1)
+                            }
+                        }
                     }
                 }
 
