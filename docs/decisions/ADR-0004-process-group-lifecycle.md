@@ -7,8 +7,9 @@
 ## Decision
 
 - Keep non-interactive command I/O on ordinary stdout/stderr pipes.
-- On Android, when `/system/bin/setsid` is executable, launch the command through `setsid` so the command becomes the leader of a dedicated session/process group.
-- Wrap the ProcessBuilder process in `ProcessGroupManagedProcess`.
+- On Android, when `/system/bin/setsid` is executable, launch the command through `setsid -w` so the command becomes the leader of a dedicated session/process group.
+- A short shell wrapper writes its PID to a private temporary file before `exec`; this avoids depending on `Process.pid()`, which is not part of the Android Process API used by this project.
+- Wrap the ProcessBuilder process in `ProcessGroupManagedProcess` with the resolved process-group ID.
 - Send normal and forced termination through the existing JNI signal bridge, which targets the negative process ID (the process group) and falls back to the direct PID when the group no longer exists.
 - Keep the direct ProcessBuilder fallback on hosts without Android's `/system/bin/setsid`; interactive shell sessions continue to use the native PTY launcher.
 
