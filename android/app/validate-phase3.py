@@ -79,6 +79,7 @@ assert "/system/bin/setsid" in launcher_text and "ProcessGroupManagedProcess" in
 assert "NativePty.signal" in launcher_text and "delegate.pid()" in process_group_text, "cancelamento de grupo não usa PID/ponte JNI"
 assert "process-group" in adr_process_group.read_text(), "ADR-0004 não registra o ciclo de vida do grupo de processos"
 assert "writeInput" in manager_text and "streamPumpsFinished.await()" in manager_text, "entrada/drenagem de streams ausentes"
+assert "maxRetainedSessions" in manager_text and "pruneCompletedSessions" in manager_text, "histórico de sessões sem limite"
 assert "ResizableProcess" in pty_process_text and "NativePty.resize" in pty_process_text, "controle de tamanho do PTY ausente"
 assert "externalNativeBuild" in pty_build_text and "minSdk = 35" in pty_build_text, "integração CMake/minSdk ausente"
 assert "forkpty" in adr.read_text() and "VT/ANSI" in adr.read_text(), "ADR-0003 ou limite VT/ANSI ausente"
