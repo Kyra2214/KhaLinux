@@ -92,6 +92,12 @@ assert 'include(":android:runtime")' in settings.read_text(), "módulo runtime a
 assert buffer.is_file(), "buffer limitado de saída ausente"
 assert "TerminalEmulator(" in view_model_text, "ViewModel não usa emulador VT/ANSI com scrollback limitado"
 assert "maxScrollbackLines" in terminal_emulator_text, "limite de scrollback do terminal ausente"
+assert "requestInteractiveForeground()" in service_text and "startForeground(" in service_text, "shell interativo não ativa foreground service"
+assert "NotificationCompat.Builder" in service_text and "Encerrar sessão" in service_text, "notificação persistente ou ação de encerramento ausente"
+assert "stopInteractiveForeground(session.id)" in service_text and "stopForeground(" in service_text, "foreground service não encerra ao fim da sessão"
+manifest_text = manifest.read_text()
+assert "FOREGROUND_SERVICE_SPECIAL_USE" in manifest_text and 'android:foregroundServiceType="specialUse"' in manifest_text, "declaração special-use foreground service ausente"
+assert "PROPERTY_SPECIAL_USE_FGS_SUBTYPE" in manifest_text, "subtipo do foreground service não documentado"
 assert "Room.databaseBuilder" in history_text and "command_history" in history_text, "banco Room do histórico ausente"
 assert "observeRecent" in history_text and "prune(maxEntries = 100)" in history_text, "histórico sem consulta reativa ou limite de 100 comandos"
 assert "historyRepository.observeRecent()" in view_model_text and "persistCommand(start.second)" in view_model_text, "ViewModel não conecta histórico persistente"
