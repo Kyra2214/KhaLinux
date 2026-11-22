@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.Semaphore
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
@@ -19,15 +20,26 @@ class SessionManager(
     private val clock: Clock = Clock.systemUTC()
 ) : LinuxRuntime {
     private val sessions = ConcurrentHashMap<String, ManagedSession>()
+    private val activeSessionPermits = Semaphore(maxSessions)
+    private val lifecycleLock = Any()
     private val scheduler = Executors.newScheduledThreadPool(1)
     private val ioPool = Executors.newCachedThreadPool()
     private val closed = AtomicBoolean(false)
 
+    init {
+        require(maxSessions > 0) { "maxSessions deve ser maior que zero" }
+    }
+
     override fun start(request: CommandRequest): RuntimeSession {
-        check(!closed.get()) { "runtime encerrado" }
-        check(sessions.size < maxSessions) { "limite de sessões atingido: $maxSessions" }
-        val session = ManagedSession(UUID.randomUUID().toString(), request)
-        check(sessions.putIfAbsent(session.id, session) == null) { "colisão de id de sessão" }
+        val session = synchronized(lifecycleLock) {
+            check(!closed.get()) { "runtime encerrado" }
+            check(activeSessionPermits.tryAcquire()) {
+                "limite de sessões ativas atingido: $maxSessions"
+            }
+            ManagedSession(UUID.randomUUID().toString(), request).also {
+                sessions[it.id] = it
+            }
+        }
         try {
             session.start()
             return session
@@ -51,11 +63,14 @@ class SessionManager(
     override fun sessions(): List<SessionSnapshot> = sessions.values.map { it.snapshot() }.sortedBy { it.id }
 
     override fun close() {
-        if (closed.compareAndSet(false, true)) {
-            sessions.values.forEach { it.cancel() }
-            scheduler.shutdownNow()
-            ioPool.shutdownNow()
+        val shouldClose = synchronized(lifecycleLock) {
+            closed.compareAndSet(false, true)
         }
+        if (!shouldClose) return
+
+        sessions.values.forEach { it.cancel() }
+        scheduler.shutdownNow()
+        ioPool.shutdownNow()
     }
 
     private inner class ManagedSession(
@@ -66,6 +81,7 @@ class SessionManager(
         private val lock = Any()
         private val inputLock = Any()
         private val streamPumpsFinished = CountDownLatch(2)
+        private val slotReleased = AtomicBoolean(false)
         private var process: Process? = null
         private var timeoutTask: ScheduledFuture<*>? = null
         private var current = SessionSnapshot(id, SessionState.CREATED, null, null, null, false, null)
@@ -74,6 +90,7 @@ class SessionManager(
             val launched = launcher.launch(request)
             try {
                 synchronized(lock) {
+                    check(!closed.get()) { "runtime encerrado durante inicialização da sessão" }
                     process = launched
                     current = current.copy(
                         state = SessionState.RUNNING,
@@ -137,10 +154,15 @@ class SessionManager(
                     )
                 }
                 timeoutTask?.cancel(false)
+                releaseSlotOnce()
                 queue.offer(RuntimeEvent.Exited(id, exitCode, timedOut))
             } catch (error: InterruptedException) {
                 Thread.currentThread().interrupt()
                 fail(error)
+            } catch (error: Throwable) {
+                fail(error)
+            } finally {
+                releaseSlotOnce()
             }
         }
 
@@ -200,7 +222,12 @@ class SessionManager(
                     errorMessage = message
                 )
             }
+            releaseSlotOnce()
             queue.offer(RuntimeEvent.Failed(id, message))
+        }
+
+        private fun releaseSlotOnce() {
+            if (slotReleased.compareAndSet(false, true)) activeSessionPermits.release()
         }
 
         override fun close() { cancel() }
