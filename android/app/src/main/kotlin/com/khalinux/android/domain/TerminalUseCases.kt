@@ -12,7 +12,10 @@ class StartTerminalCommandUseCase(private val gateway: TerminalRuntimeGateway) {
 }
 
 class StartInteractiveTerminalUseCase(private val gateway: TerminalRuntimeGateway) {
-    operator fun invoke(rows: Int, columns: Int, observer: RuntimeEventObserver): String {\n        require(rows in 1..200 && columns in 1..400) { "Dimensões de terminal inválidas" }\n        return gateway.startInteractive(rows, columns, observer)\n    }
+    operator fun invoke(rows: Int, columns: Int, observer: RuntimeEventObserver): String {
+        require(rows in 1..200 && columns in 1..400) { "Dimensões de terminal inválidas" }
+        return gateway.startInteractive(rows, columns, observer)
+    }
 }
 
 class WriteTerminalInputUseCase(private val gateway: TerminalRuntimeGateway) {
