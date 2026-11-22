@@ -195,7 +195,7 @@ class RootfsInstaller(
     internal fun resolveEntry(root: java.nio.file.Path, name: String): java.nio.file.Path {
         require(name.isNotBlank() && !name.startsWith("/")) { "Caminho TAR absoluto/vazio recusado: $name" }
         val resolved = root.resolve(name).normalize()
-        require(resolved.startsWith(root) && resolved != root) { "Path traversal recusado: $name" }
+        require(resolved.startsWith(root) && (resolved != root || name.trim('/') == ".")) { "Path traversal recusado: $name" }
         return resolved
     }
 
