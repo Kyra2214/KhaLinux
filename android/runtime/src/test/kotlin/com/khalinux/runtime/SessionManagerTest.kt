@@ -10,6 +10,8 @@ import org.junit.Assume.assumeTrue
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class SessionManagerTest {
@@ -110,6 +112,23 @@ class SessionManagerTest {
             val second = runtime.start(CommandRequest("true"))
             second.events().toList()
             assertEquals(SessionState.EXITED, second.snapshot().state)
+        } finally {
+            runtime.close()
+        }
+    }
+
+    @Test fun completedSessionHistoryRemainsBounded() {
+        val runtime = SessionManager(launcher(), maxSessions = 1, maxRetainedSessions = 1)
+        try {
+            val first = runtime.start(CommandRequest("true"))
+            first.events().toList()
+
+            val second = runtime.start(CommandRequest("true"))
+            second.events().toList()
+
+            assertNull(runtime.snapshot(first.id))
+            assertNotNull(runtime.snapshot(second.id))
+            assertEquals(1, runtime.sessions().size)
         } finally {
             runtime.close()
         }
