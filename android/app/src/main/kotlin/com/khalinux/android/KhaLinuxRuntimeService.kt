@@ -8,6 +8,8 @@ import com.khalinux.runtime.AndroidPtyProcessLauncher
 import com.khalinux.runtime.CommandRequest
 import com.khalinux.runtime.LinuxRuntime
 import com.khalinux.runtime.ProotConfig
+import com.khalinux.runtime.AndroidBindMountPolicy
+import com.khalinux.runtime.ProotBindMountPreparer
 import com.khalinux.runtime.ProotLauncher
 import com.khalinux.runtime.RuntimeEvent
 import com.khalinux.runtime.SessionManager
@@ -63,12 +65,16 @@ class KhaLinuxRuntimeService : Service() {
         val proot = File(runtimeDirectory, "proot")
         val rootfs = File(runtimeDirectory, "rootfs-arm64")
         if (!proot.isFile || !proot.canExecute() || !rootfs.isDirectory) return null
+        val bindMounts = AndroidBindMountPolicy.defaultMounts()
+        runCatching { ProotBindMountPreparer.prepare(rootfs, bindMounts) }
+            .getOrElse { return null }
         return SessionManager(
             ProotLauncher(
                 ProotConfig(
                     prootExecutable = proot,
                     rootfsDirectory = rootfs,
-                    qemuExecutable = null
+                    qemuExecutable = null,
+                    bindMounts = bindMounts
                 ),
                 interactiveProcessLauncher = AndroidPtyProcessLauncher()
             )
