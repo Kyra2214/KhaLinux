@@ -31,7 +31,7 @@ import json, sys
 print(json.load(open(sys.argv[1], encoding="utf-8"))["canonical_tar_sha256"])
 PY
 )"
-ACTUAL_SHA256="$(tar --sort=name --mtime="${SOURCE_DATE_EPOCH}" --owner=0 --group=0 --numeric-owner -C "${ROOTFS_DIR}" -cf - . | sha256sum | awk '{print $1}')"
+ACTUAL_SHA256="$(tar --sort=name --mtime="@${SOURCE_DATE_EPOCH}" --owner=0 --group=0 --numeric-owner -C "${ROOTFS_DIR}" -cf - . | sha256sum | awk '{print $1}')"
 [[ "${ACTUAL_SHA256}" == "${EXPECTED_SHA256}" ]] || fail "SHA-256 divergente: esperado ${EXPECTED_SHA256}, obtido ${ACTUAL_SHA256}"
 printf 'canonical_tar_sha256=%s\n' "${ACTUAL_SHA256}"
 python3 - "${ROOTFS_DIR}" <<'PY'
