@@ -13,7 +13,6 @@ object AndroidBindMountPolicy {
         "random",
         "urandom",
         "tty",
-        "ptmx",
         "pts"
     )
 
