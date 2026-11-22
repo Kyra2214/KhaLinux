@@ -8,10 +8,13 @@ import com.khalinux.android.domain.TerminalUseCases
 import com.khalinux.runtime.RuntimeEvent
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
@@ -130,13 +133,16 @@ class TerminalViewModel : ViewModel() {
         command: String? = null
     ) {
         startJob = viewModelScope.launch {
+            val createdSessionId = AtomicReference<String?>(null)
             try {
                 val sessionId = withContext(Dispatchers.IO) {
-                    if (interactive) {
+                    val id = if (interactive) {
                         useCases.startInteractive(observerFor(useCases))
                     } else {
                         useCases.startCommand(requireNotNull(command), observerFor(useCases))
                     }
+                    createdSessionId.set(id)
+                    id
                 }
                 synchronized(lock) {
                     val alreadyFinished = completedSessionsBeforeStartReturn.remove(sessionId)
@@ -149,6 +155,13 @@ class TerminalViewModel : ViewModel() {
                         )
                     }
                 }
+            } catch (cancelled: CancellationException) {
+                createdSessionId.get()?.let { sessionId ->
+                    withContext(NonCancellable + Dispatchers.IO) {
+                        runCatching { useCases.cancelSession(sessionId) }
+                    }
+                }
+                throw cancelled
             } catch (error: Exception) {
                 synchronized(lock) {
                     mutableUiState.update { it.copy(isStarting = false, sessionId = null, isInteractive = false) }
@@ -182,10 +195,15 @@ class TerminalViewModel : ViewModel() {
         if (mutableUiState.value.isInteractive) activeUseCases.resize(sessionId, rows, columns)
     }
 
-    fun cancelCommand() = synchronized(lock) {
-        val activeUseCases = runtimeUseCases ?: return
-        val sessionId = mutableUiState.value.sessionId ?: return
-        activeUseCases.cancelSession(sessionId)
+    fun cancelCommand() {
+        val (activeUseCases, sessionId) = synchronized(lock) {
+            val useCases = runtimeUseCases ?: return
+            val id = mutableUiState.value.sessionId ?: return
+            useCases to id
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching { activeUseCases.cancelSession(sessionId) }
+        }
     }
 
     private fun observerFor(activeUseCases: TerminalUseCases) = RuntimeEventObserver { event ->
@@ -212,12 +230,18 @@ class TerminalViewModel : ViewModel() {
                 if (event.sessionId == activeSessionId) {
                     val result = if (event.timedOut) "timeout" else "exit=${event.exitCode}"
                     appendOutputLocked("\n[$result]\n")
+                    if (mutableUiState.value.isStarting) {
+                        completedSessionsBeforeStartReturn.add(event.sessionId)
+                    }
                     mutableUiState.update { it.copy(sessionId = null, isInteractive = false) }
                 }
             }
             is RuntimeEvent.Failed -> {
                 if (activeSessionId == null || event.sessionId == activeSessionId) {
                     appendOutputLocked("\n[falha=${event.message}]\n")
+                    if (mutableUiState.value.isStarting) {
+                        completedSessionsBeforeStartReturn.add(event.sessionId)
+                    }
                     mutableUiState.update { it.copy(sessionId = null, isInteractive = false) }
                 }
             }
