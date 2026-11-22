@@ -48,6 +48,9 @@ class ProotInstaller(
     ): Result {
         requireSha256(request.expectedArchiveSha256, "SHA-256 do pacote")
         requireSha256(request.expectedBinarySha256, "SHA-256 do executável")
+        require(request.expectedBinaryBytes >= 64L && request.expectedBinaryBytes <= maxBinaryBytes) {
+            "Tamanho esperado do executável PRoot inválido"
+        }
         val url = URL(request.archiveUrl)
         require(url.protocol.equals("https", ignoreCase = true)) { "O download do PRoot exige HTTPS" }
         require(connectTimeoutMillis > 0 && readTimeoutMillis > 0) { "Timeout inválido" }
