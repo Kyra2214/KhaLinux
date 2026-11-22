@@ -2,7 +2,7 @@
 
 Ambiente Linux ARM64 para Android, executado localmente e sem root, voltado a aprendizado, diagnóstico, auditoria autorizada e prática de cibersegurança.
 
-> **Status:** Fase 3 — Activity/Service, Compose/MVVM e PTY JNI integrados; instalador RootFS com verificação SHA-256, extração protegida e tela de instalação em implementação. Emulador VT/ANSI, publicação dos artefatos, persistência e validação Android continuam pendentes.
+ > **Status:** Fase 3 — RootFS Debian Bookworm ARM64 construído, validado e publicado em release versionada. Instalador e UI de progresso integrados. Build reproduzível do PRoot Android ARM64 em implementação; emulador VT/ANSI, persistência e validação física final continuam pendentes.
 
 ## Visão
 
@@ -50,7 +50,7 @@ Nenhuma funcionalidade é considerada implementada sem código, testes executado
 
 ## Próximo passo
 
-A próxima etapa continua a Fase 3 validando a primeira publicação do RootFS, fechando a distribuição do binário PRoot, emulador VT/ANSI, persistência Room e refinamento do ciclo de vida. Consulte [`ROADMAP.md`](ROADMAP.md), [`ARCHITECTURE.md`](ARCHITECTURE.md), [`SECURITY.md`](SECURITY.md), [`docs/phase1-validation.md`](docs/phase1-validation.md), [`docs/phase2-validation.md`](docs/phase2-validation.md) e [`docs/phase3-validation.md`](docs/phase3-validation.md).
+A próxima etapa continua a Fase 3 fechando o build e a distribuição do PRoot para Android ARM64, integrando seu instalador ao app e validando a execução host/CI antes de avançar para VT/ANSI e persistência Room. Consulte [`ROADMAP.md`](ROADMAP.md), [`ARCHITECTURE.md`](ARCHITECTURE.md), [`SECURITY.md`](SECURITY.md), [`docs/phase1-validation.md`](docs/phase1-validation.md), [`docs/phase2-validation.md`](docs/phase2-validation.md) e [`docs/phase3-validation.md`](docs/phase3-validation.md).
 
 ## Licença
 
