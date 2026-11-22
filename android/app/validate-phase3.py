@@ -97,6 +97,10 @@ assert "observeRecent" in history_text and "prune(maxEntries = 100)" in history_
 assert "historyRepository.observeRecent()" in view_model_text and "persistCommand(start.second)" in view_model_text, "ViewModel não conecta histórico persistente"
 assert "if (sent) persistCommand(payload.third)" in view_model_text, "entrada interativa não é registrada no histórico"
 assert "state.commandHistory.take(8)" in screen_text and "restoreCommandFromHistory" in screen_text, "UI não permite reutilizar comandos recentes"
+assert "TerminalSettingsEntity" in history_text and "MIGRATION_1_2" in history_text, "migração Room de configurações ausente"
+assert "settingsRepository.observeSettings()" in view_model_text, "ViewModel não carrega configurações persistidas"
+assert "updateFontSize" in view_model_text and "adjustTerminalRows" in view_model_text and "adjustTerminalColumns" in view_model_text, "configurações do terminal incompletas"
+assert "onValueChangeFinished = viewModel::saveTerminalSettings" in screen_text, "UI não persiste alteração do tamanho da fonte"
 
 result = subprocess.run(["bash", str(test_script)], check=True, capture_output=True, text=True)
 assert "terminal_output_buffer=ok cases=6" in result.stdout, "testes do buffer não concluíram"
