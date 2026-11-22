@@ -18,7 +18,7 @@ settings = ROOT / "settings.gradle.kts"
 buffer = ROOT / "android/app/src/main/java/com/khalinux/android/TerminalOutputBuffer.java"
 test_script = ROOT / "android/app/test-output-buffer.sh"
 runtime_launcher = ROOT / "android/runtime/src/main/kotlin/com/khalinux/runtime/ProotLauncher.kt"
-runtime_config = ROOT / "android/runtime/src/main/kotlin/com/khalinux/runtime/ProotConfig.kt"
+runtime_config = ROOT / "android/runtime/src/main/kotlin/com/khalinux/runtime/ProotConfig.kt"\nemulator = ROOT / "android/runtime/src/main/kotlin/com/khalinux/runtime/TerminalEmulator.kt"
 runtime_manager = ROOT / "android/runtime/src/main/kotlin/com/khalinux/runtime/SessionManager.kt"
 pty_process = ROOT / "android/runtime/src/main/kotlin/com/khalinux/runtime/AndroidPtyProcess.kt"
 process_group = ROOT / "android/runtime/src/main/kotlin/com/khalinux/runtime/ProcessGroupManagedProcess.kt"
@@ -42,7 +42,7 @@ data_text = data_adapter.read_text()
 service_text = service.read_text()
 build_text = app_build.read_text()
 launcher_text = runtime_launcher.read_text()
-config_text = runtime_config.read_text()
+config_text = runtime_config.read_text()\nemulator_text = emulator.read_text()
 manager_text = runtime_manager.read_text()
 pty_text = pty_native.read_text()
 pty_process_text = pty_process.read_text()
