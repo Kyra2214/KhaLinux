@@ -130,6 +130,7 @@ class RootfsInstaller(
     internal fun extractSafely(archive: File, root: File): Long {
         val canonicalRoot = root.canonicalFile.toPath()
         var extractedBytes = 0L
+        val directoryModes = mutableListOf<Pair<java.nio.file.Path, Int>>()
         TarArchiveInputStream(GzipCompressorInputStream(BufferedInputStream(FileInputStream(archive)))).use { tar ->
             while (true) {
                 val entry = tar.nextTarEntry ?: break
@@ -142,7 +143,7 @@ class RootfsInstaller(
                             "Diretório TAR colide com entrada existente: " + entry.name
                         }
                         Files.createDirectories(target)
-                        applyMode(target, entry.mode)
+                        directoryModes += target to entry.mode
                     }
                     entry.isFile -> {
                         require(!alreadyExists) { "Entrada TAR duplicada: " + entry.name }
@@ -181,6 +182,7 @@ class RootfsInstaller(
                 }
             }
         }
+        directoryModes.sortedByDescending { it.first.nameCount }.forEach { (path, mode) -> applyMode(path, mode) }
         return extractedBytes
     }
 
