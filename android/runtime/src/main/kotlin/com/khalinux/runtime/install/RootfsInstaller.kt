@@ -1,6 +1,5 @@
 package com.khalinux.runtime.install
 
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
 import java.io.BufferedInputStream
@@ -9,7 +8,6 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
-import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
@@ -98,17 +96,8 @@ class RootfsInstaller(
     }
 
     private fun download(url: URL, output: File, onProgress: (Long, Long?) -> Unit): ByteArray {
-        val connection = (url.openConnection() as HttpURLConnection).apply {
-            connectTimeout = connectTimeoutMillis
-            readTimeout = readTimeoutMillis
-            instanceFollowRedirects = true
-            requestMethod = "GET"
-            setRequestProperty("Accept-Encoding", "identity")
-        }
+        val connection = GitHubHttpsConnection.open(url, connectTimeoutMillis, readTimeoutMillis)
         try {
-            connection.connect()
-            require(connection.responseCode in 200..299) { "Download falhou: HTTP ${connection.responseCode}" }
-            require(connection.url.protocol.equals("https", ignoreCase = true)) { "Redirecionamento para conexão não HTTPS recusado" }
             val total = connection.contentLengthLong.takeIf { it >= 0 }
             require(total == null || total <= maxDownloadBytes) { "Arquivo excede o limite de download" }
             val digest = MessageDigest.getInstance("SHA-256")
