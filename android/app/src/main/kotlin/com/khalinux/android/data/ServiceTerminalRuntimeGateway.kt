@@ -46,8 +46,8 @@ class ServiceTerminalRuntimeGateway(
             listener = observerListener(observer)
         )
 
-    override fun startInteractive(observer: RuntimeEventObserver): String =
-        service.startInteractiveShell(listener = observerListener(observer))
+    override fun startInteractive(rows: Int, columns: Int, observer: RuntimeEventObserver): String =
+        service.startInteractiveShell(rows = rows, columns = columns, listener = observerListener(observer))
 
     override fun writeInput(sessionId: String, text: String): Boolean = service.writeInput(sessionId, text)
 
