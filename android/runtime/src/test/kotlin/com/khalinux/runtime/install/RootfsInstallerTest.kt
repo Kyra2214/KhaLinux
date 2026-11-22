@@ -22,9 +22,11 @@ class RootfsInstallerTest {
         GzipCompressorOutputStream(FileOutputStream(archive)).use { gzip ->
             TarArchiveOutputStream(gzip).use { tar ->
                 val rootEntry = TarArchiveEntry("./")
+                rootEntry.mode = 0b111101101
                 tar.putArchiveEntry(rootEntry)
                 tar.closeArchiveEntry()
                 val dir = TarArchiveEntry("bin/")
+                dir.mode = 0b111101101
                 tar.putArchiveEntry(dir)
                 tar.closeArchiveEntry()
                 val bash = TarArchiveEntry("bin/bash")
