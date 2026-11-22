@@ -17,6 +17,7 @@ app_build = ROOT / "android/app/build.gradle.kts"
 settings = ROOT / "settings.gradle.kts"
 buffer = ROOT / "android/app/src/main/java/com/khalinux/android/TerminalOutputBuffer.java"
 terminal_emulator = ROOT / "android/runtime/src/main/kotlin/com/khalinux/runtime/TerminalEmulator.kt"
+history_store = ROOT / "android/app/src/main/kotlin/com/khalinux/android/data/CommandHistoryStore.kt"
 test_script = ROOT / "android/app/test-output-buffer.sh"
 runtime_launcher = ROOT / "android/runtime/src/main/kotlin/com/khalinux/runtime/ProotLauncher.kt"
 runtime_config = ROOT / "android/runtime/src/main/kotlin/com/khalinux/runtime/ProotConfig.kt"
@@ -45,6 +46,7 @@ build_text = app_build.read_text()
 launcher_text = runtime_launcher.read_text()
 config_text = runtime_config.read_text()
 terminal_emulator_text = terminal_emulator.read_text()
+history_text = history_store.read_text()
 manager_text = runtime_manager.read_text()
 pty_text = pty_native.read_text()
 pty_process_text = pty_process.read_text()
@@ -90,6 +92,11 @@ assert 'include(":android:runtime")' in settings.read_text(), "módulo runtime a
 assert buffer.is_file(), "buffer limitado de saída ausente"
 assert "TerminalEmulator(" in view_model_text, "ViewModel não usa emulador VT/ANSI com scrollback limitado"
 assert "maxScrollbackLines" in terminal_emulator_text, "limite de scrollback do terminal ausente"
+assert "Room.databaseBuilder" in history_text and "command_history" in history_text, "banco Room do histórico ausente"
+assert "observeRecent" in history_text and "prune(maxEntries = 100)" in history_text, "histórico sem consulta reativa ou limite de 100 comandos"
+assert "historyRepository.observeRecent()" in view_model_text and "persistCommand(start.second)" in view_model_text, "ViewModel não conecta histórico persistente"
+assert "if (sent) persistCommand(payload.third)" in view_model_text, "entrada interativa não é registrada no histórico"
+assert "state.commandHistory.take(8)" in screen_text and "restoreCommandFromHistory" in screen_text, "UI não permite reutilizar comandos recentes"
 
 result = subprocess.run(["bash", str(test_script)], check=True, capture_output=True, text=True)
 assert "terminal_output_buffer=ok cases=6" in result.stdout, "testes do buffer não concluíram"
