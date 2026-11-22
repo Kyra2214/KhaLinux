@@ -20,6 +20,8 @@ fun interface RuntimeEventObserver {
 
 /** Port used by terminal use cases; Android Service details stay in the data layer. */
 interface TerminalRuntimeGateway {
+    /** True when two adapters point to the same underlying runtime service. */
+    fun isSameRuntime(other: TerminalRuntimeGateway): Boolean = this === other
     fun isInstalled(): Boolean
     fun isRootfsInstalled(): Boolean
     fun isProotInstalled(): Boolean
