@@ -86,6 +86,7 @@ data class BindMount(val hostPath: File, val guestPath: String) {
         require(
             guestPath.startsWith("/") &&
                 guestPath != "/" &&
+                !guestPath.endsWith("/") &&
                 !guestPath.contains(':') &&
                 !guestPath.contains('\u0000') &&
                 !guestPath.contains("//") &&
