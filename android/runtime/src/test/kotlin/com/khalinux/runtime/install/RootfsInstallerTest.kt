@@ -25,7 +25,7 @@ class RootfsInstallerTest {
         val parent = root.resolve("usr/bin")
         val absoluteGuestTarget = installer.resolveLink(root, parent, "/usr/bin/bash.distrib")
         assertEquals(root.resolve("usr/bin/bash.distrib"), absoluteGuestTarget)
-        assertFalse(absoluteGuestTarget.startsWith(root.parent))
+        assertTrue(absoluteGuestTarget.startsWith(root))
     }
 
     @Test
