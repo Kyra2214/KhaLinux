@@ -1,5 +1,6 @@
 package com.khalinux.runtime
 
+import java.io.File
 interface ProcessLauncher {
     fun launch(arguments: List<String>, environment: Map<String, String>): Process
 }
