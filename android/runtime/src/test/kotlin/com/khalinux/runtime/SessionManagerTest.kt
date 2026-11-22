@@ -189,14 +189,14 @@ class SessionManagerTest {
             }
 
             managed.destroy()
-            assertTrue("processo/grupo não encerrou no prazo", managed.waitFor(3, TimeUnit.SECONDS))
+            assertTrue(managed.waitFor(3, TimeUnit.SECONDS), "processo/grupo não encerrou no prazo")
             val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2)
             while (descendantIsActive(resolvedDescendantPid) && System.nanoTime() < deadline) {
                 Thread.sleep(25)
             }
             assertTrue(
-                "processo descendente sobreviveu ao cancelamento",
-                !descendantIsActive(resolvedDescendantPid)
+                !descendantIsActive(resolvedDescendantPid),
+                "processo descendente sobreviveu ao cancelamento"
             )
         } finally {
             val cleanupPid = descendantPid ?: readPid(descendantPidFile)
