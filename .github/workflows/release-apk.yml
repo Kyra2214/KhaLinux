@@ -9,6 +9,10 @@ on:
       version_code:
         description: 'versionCode inteiro, maior que o da release anterior'
         required: true
+      minify:
+        description: 'Ativar R8/minificação (true/false)'
+        required: false
+        default: 'true'
 
 permissions:
   contents: write
@@ -26,6 +30,7 @@ jobs:
       # Entradas passam por variáveis de ambiente (nunca interpoladas direto em scripts).
       VERSION_NAME: ${{ inputs.version_name }}
       VERSION_CODE: ${{ inputs.version_code }}
+      MINIFY: ${{ inputs.minify }}
       APK_TAG: "v${{ inputs.version_name }}"
     steps:
       - name: Checkout
@@ -95,7 +100,8 @@ jobs:
         run: |
           ./gradlew --no-daemon :android:app:assembleRelease \
             -PkhalinuxVersionName="${VERSION_NAME}" \
-            -PkhalinuxVersionCode="${VERSION_CODE}"
+            -PkhalinuxVersionCode="${VERSION_CODE}" \
+            -PkhalinuxMinify="${MINIFY}"
 
       - name: Verify signature, name the artifact and hash it
         run: |
