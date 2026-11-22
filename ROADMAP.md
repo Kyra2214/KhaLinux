@@ -38,7 +38,7 @@ Este roadmap é a referência oficial de evolução do projeto. Uma fase só pod
 
 ## Fase 3 — Aplicativo Android
 
-**Estado:** Activity/Service, Compose/MVVM, PTY JNI, buffer limitado e instalador RootFS com progresso na UI implementados. RootFS publicado e smoke test ARM64 aprovado. Workflow para compilar PRoot com fontes fixadas, dependências estáticas e NDK passou no CI e publicou release versionada. Instaladores RootFS/PRoot e UI separada passaram no CI. A política de bind mounts mínimos para /dev passou em CI e no smoke host PRoot/QEMU; não monta /dev inteiro, /proc ou /sys. Emulador ANSI/VT básico foi integrado (UTF-8 incremental, cursor, SGR, cores 16/256/RGB, erase e scrollback) e está aguardando CI. Ainda faltam persistência, configurações, refinamento de ciclo de vida e testes físicos finais.
+**Estado:** Activity/Service, Compose/MVVM, PTY JNI, instaladores RootFS/PRoot, binds mínimos, emulador VT/ANSI básico, histórico local Room e configurações persistentes do terminal implementados. O emulador cobre UTF-8 incremental, cursor, SGR, cores 16/256/RGB, erase e scrollback, sem alegar compatibilidade xterm completa. Histórico mantém até 100 comandos e expõe os 12 mais recentes; fonte e dimensões do terminal são persistidas com migração Room. CI executa validação host, smoke PRoot/QEMU, testes unitários do runtime e do repositório de histórico, além da compilação APK Debug. Ainda faltam reforçar ciclo de vida em segundo plano com foreground service/notificação, auditoria final e testes físicos finais.
 
 - Concluir projeto Kotlin com Jetpack Compose, MVVM, Clean Architecture e Coroutines.
 - Implementar navegação, dashboard, instalação, terminal, configurações, Room e histórico.
