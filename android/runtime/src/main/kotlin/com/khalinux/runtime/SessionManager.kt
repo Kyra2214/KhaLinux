@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 class SessionManager(
     private val launcher: ProotLauncher,
     private val maxSessions: Int = 4,
+    private val maxRetainedSessions: Int = 100,
     private val clock: Clock = Clock.systemUTC()
 ) : LinuxRuntime {
     private val sessions = ConcurrentHashMap<String, ManagedSession>()
@@ -28,6 +29,7 @@ class SessionManager(
 
     init {
         require(maxSessions > 0) { "maxSessions deve ser maior que zero" }
+        require(maxRetainedSessions > 0) { "maxRetainedSessions deve ser maior que zero" }
     }
 
     override fun start(request: CommandRequest): RuntimeSession {
@@ -60,7 +62,22 @@ class SessionManager(
     override fun resize(sessionId: String, rows: Int, columns: Int): Boolean =
         sessions[sessionId]?.resize(rows, columns) ?: false
 
-    override fun sessions(): List<SessionSnapshot> = sessions.values.map { it.snapshot() }.sortedBy { it.id }
+    override fun sessions(): List<SessionSnapshot> = sessions.values.map { it.snapshot() }
+        .sortedBy { it.endedAtEpochMillis ?: it.startedAtEpochMillis ?: 0L }
+
+    private fun pruneCompletedSessions() {
+        val completed = sessions.values.map { it.snapshot() }
+            .filter {
+                it.state == SessionState.EXITED ||
+                    it.state == SessionState.CANCELLED ||
+                    it.state == SessionState.FAILED
+            }
+            .sortedBy { it.endedAtEpochMillis ?: 0L }
+        val excess = completed.size - maxRetainedSessions
+        if (excess > 0) {
+            completed.take(excess).forEach { sessions.remove(it.id) }
+        }
+    }
 
     override fun close() {
         val shouldClose = synchronized(lifecycleLock) {
@@ -162,6 +179,7 @@ class SessionManager(
                 if (publishExit) {
                     queue.offer(RuntimeEvent.Exited(id, exitCode, snapshot().timedOut))
                 }
+                pruneCompletedSessions()
             } catch (error: InterruptedException) {
                 Thread.currentThread().interrupt()
                 fail(error)
@@ -239,6 +257,7 @@ class SessionManager(
             if (changed) {
                 releaseSlotOnce()
                 queue.offer(RuntimeEvent.Failed(id, message))
+                pruneCompletedSessions()
             }
         }
 
