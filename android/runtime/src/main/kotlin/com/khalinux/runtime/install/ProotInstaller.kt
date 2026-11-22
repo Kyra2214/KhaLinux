@@ -193,7 +193,7 @@ class ProotInstaller(
                 if (programHeader.getInt(0) == 3) { // PT_INTERP
                     val stringOffset = programHeader.getLong(8)
                     val stringSize = programHeader.getLong(32)
-                    require(stringSize in 2..256) { "PT_INTERP inválido" }
+                    require(stringSize >= 2L && stringSize <= 256L) { "PT_INTERP inválido" }
                     val bytes = ByteArray(stringSize.toInt())
                     input.seek(stringOffset)
                     input.readFully(bytes)
