@@ -31,6 +31,7 @@ class ProotInstaller(
         val archiveUrl: String,
         val expectedArchiveSha256: String,
         val expectedBinarySha256: String,
+        val expectedBinaryBytes: Long,
         val destination: File
     )
 
@@ -73,6 +74,7 @@ class ProotInstaller(
             }
 
             val binaryBytes = extractBinarySafely(archive, staging)
+            require(binaryBytes == request.expectedBinaryBytes) { "Tamanho do executável PRoot divergente do manifesto" }
             val actualBinarySha = sha256(staging).toHex()
             require(actualBinarySha.equals(request.expectedBinarySha256, ignoreCase = true)) {
                 "SHA-256 do executável PRoot divergente"
