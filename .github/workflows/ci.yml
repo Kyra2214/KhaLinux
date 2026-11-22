@@ -38,6 +38,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential
 
+      - name: Validate RootFS configuration and shell syntax
+        run: |
+          python3 distribution/scripts/test-build-config.py
+          bash -n distribution/scripts/build-rootfs.sh
+          bash -n distribution/scripts/verify-rootfs.sh
+          bash -n distribution/scripts/test-rootfs.sh
+
       - name: Validate architecture, output buffer and JNI PTY
         run: python3 android/app/validate-phase3.py
 
