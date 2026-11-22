@@ -75,7 +75,7 @@ ARCHIVE_FILE="$(dirname "${ROOTFS_DIR}")/${ARCHIVE_NAME}"
 [[ -s "${ARCHIVE_FILE}" ]] || fail "arquivo RootFS não encontrado: ${ARCHIVE_FILE}"
 ACTUAL_ARCHIVE_SHA256="$(sha256sum "${ARCHIVE_FILE}" | awk '{print $1}')"
 [[ "${ACTUAL_ARCHIVE_SHA256}" == "${ARCHIVE_SHA256}" ]] || fail 'SHA-256 do arquivo RootFS divergente'
-printf 'archive_sha256=%s\\n' "${ACTUAL_ARCHIVE_SHA256}"
+printf 'archive_sha256=%s\n' "${ACTUAL_ARCHIVE_SHA256}"
 printf 'rootfs_directory=%s\n' "${ROOTFS_DIR}"
 printf 'manifest=%s\n' "${MANIFEST_FILE}"
 printf 'status=ok\n'
