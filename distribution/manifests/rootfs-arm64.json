@@ -10,7 +10,7 @@
   "source_date_epoch": 1763769600,
   "source_date_epoch_utc": "2025-11-22T00:00:00Z",
   "build_invocation_utc": "2026-11-22T13:31:30Z",
-  "git_commit": "2ffefbf4d1586bbe84da01b5cbbd2554912ebcc4",
+  "git_commit": "73ba88455375c6cf953322d9811cd944db9ae3cb",
   "package_list": "distribution/configuration/base-packages.txt",
   "package_lock": "distribution/manifests/base-package-versions-arm64.txt",
   "rootfs_bytes": 349637090,
