@@ -68,7 +68,7 @@ class SessionManagerTest {
     @Test(timeout = 15000) fun interactiveSessionUsesGuestBashAndConservativeTerminalEnvironment() {
         val args = config().commandFor(CommandRequest("", interactive = true))
         assertEquals(listOf("/bin/bash", "--noprofile", "--norc", "-i"), args.takeLast(4))
-        assertTrue(args.contains("TERM=dumb"))
+        assertTrue(args.contains("TERM=ansi"))
         assertTrue(args.contains("PS1=khalinux:\\w\\$ "))
     }
 
