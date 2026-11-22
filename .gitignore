@@ -1,0 +1,34 @@
+# Android / Gradle
+.gradle/
+**/build/
+local.properties
+*.iml
+.idea/
+.externalNativeBuild/
+.cxx/
+
+# Generated and local artifacts
+*.apk
+*.aab
+*.aar
+*.img
+*.tar
+*.tar.gz
+*.zip
+*.log
+coverage/
+
+# Secrets and local configuration
+.env
+.env.*
+*.keystore
+*.jks
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Local RootFS output (manifests and scripts remain versioned)
+distribution/build/output/
+distribution/build/cache/
