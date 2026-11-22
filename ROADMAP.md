@@ -15,6 +15,8 @@ Este roadmap é a referência oficial de evolução do projeto. Uma fase só pod
 
 ## Fase 1 — Linux Base
 
+**Estado:** build e smoke tests validados no sandbox x86_64 por emulação ARM64; validação em aparelho Android permanece pendente.
+
 - Preparar build ARM64.
 - Construir Debian ARM64 minimal e gerar RootFS.
 - Configurar Bash, coreutils, utilitários de rede, APT, usuários e diretórios.

@@ -23,7 +23,7 @@ distribution/
 └── manifests/       # manifestos e hashes versionados
 ```
 
-A base inicial prevista é Debian ARM64 minimal, com Bash, coreutils, utilitários de rede, OpenSSH client, Python 3, Git, SQLite e APT, sempre validando necessidade e compatibilidade.
+A base inicial implementada é Debian Bookworm ARM64 minimal, construída por `debootstrap --foreign` e finalizada por QEMU AArch64 quando o host não é ARM64. A seleção versionada inclui Bash, coreutils, utilitários de rede, OpenSSH client, Python 3, Git, SQLite e APT, sempre validando necessidade e compatibilidade.
 
 ### KhaLinux Android
 

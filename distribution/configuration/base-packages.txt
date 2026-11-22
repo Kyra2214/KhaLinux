@@ -1,0 +1,14 @@
+# Pacotes explícitos da base KhaLinux; um pacote por linha.
+# A lista é consumida por build-rootfs.sh.
+apt
+bash
+ca-certificates
+coreutils
+curl
+dnsutils
+git
+iproute2
+iputils-ping
+openssh-client
+python3
+sqlite3

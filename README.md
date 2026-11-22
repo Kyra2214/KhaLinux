@@ -2,7 +2,7 @@
 
 Ambiente Linux ARM64 para Android, executado localmente e sem root, voltado a aprendizado, diagnóstico, auditoria autorizada e prática de cibersegurança.
 
-> **Status:** Fase 0 — fundação do projeto. Este repositório contém documentação e estrutura inicial; ainda não há RootFS, aplicativo Android ou ferramentas funcionais implementados.
+> **Status:** Fase 1 — build do RootFS Debian ARM64 validado no sandbox por emulação. Ainda não há runtime PRoot, aplicativo Android ou toolkit de ferramentas implementados.
 
 ## Visão
 
@@ -10,12 +10,15 @@ O KhaLinux será composto por um **KhaLinux Core**, responsável por um RootFS D
 
 O primeiro runtime planejado é baseado em PRoot. PRoot não é uma fronteira de isolamento forte e o projeto não o apresentará como equivalente a uma máquina virtual.
 
-## Escopo da Fase 0
+## Escopo entregue até a Fase 1
 
 - Documentação de produto, arquitetura, segurança e contribuição.
 - Estrutura inicial para `distribution/` e `android/`.
 - Convenções e decisões arquiteturais iniciais.
 - Templates para issues e pull requests.
+- Scripts reproduzíveis para Debian Bookworm ARM64 via `debootstrap --foreign` e QEMU.
+- Manifesto versionado com SHA-256 canônico do RootFS gerado.
+- Verificações estruturais e smoke test em `chroot` ARM64 emulado.
 
 Nenhuma funcionalidade é considerada implementada sem código, testes executados, evidência e documentação correspondente.
 
@@ -44,7 +47,7 @@ Nenhuma funcionalidade é considerada implementada sem código, testes executado
 
 ## Próximo passo
 
-A Fase 1 começa pela definição do ambiente de build ARM64 e por um pipeline reproduzível para um RootFS Debian ARM64 minimal. Consulte [`ROADMAP.md`](ROADMAP.md), [`ARCHITECTURE.md`](ARCHITECTURE.md) e [`SECURITY.md`](SECURITY.md) antes de implementar.
+A Fase 2 começa pela implementação do runtime PRoot, PTY e gerenciamento de sessões no Android. A validação em aparelho Android 15+ ARM64 ainda é pendente. Consulte [`ROADMAP.md`](ROADMAP.md), [`ARCHITECTURE.md`](ARCHITECTURE.md), [`SECURITY.md`](SECURITY.md) e [`docs/phase1-validation.md`](docs/phase1-validation.md).
 
 ## Licença
 
