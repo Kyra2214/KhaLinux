@@ -13,6 +13,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
+import java.nio.file.LinkOption
 import java.security.MessageDigest
 import java.util.Locale
 
@@ -58,7 +59,7 @@ class RootfsInstaller(
 
         try {
             val digest = download(url, archive, onProgress)
-            val actual = digest.joinToString("") { "%02x".format(Locale.ROOT, it) }
+            val actual = digest.joinToString("") { "%02x".format(Locale.ROOT, it.toInt() and 0xff) }
             require(actual.equals(request.expectedSha256, ignoreCase = true)) {
                 "SHA-256 divergente: esperado ${request.expectedSha256}, recebido $actual"
             }
@@ -68,8 +69,13 @@ class RootfsInstaller(
                 "O arquivo não parece conter um RootFS Linux (bash ausente)"
             }
 
+            require(!Files.isSymbolicLink(destination.toPath())) { "Destino de instalação não pode ser link simbólico" }
             if (destination.exists()) {
-                Files.move(destination.toPath(), backup.toPath(), StandardCopyOption.ATOMIC_MOVE)
+                try {
+                    Files.move(destination.toPath(), backup.toPath(), StandardCopyOption.ATOMIC_MOVE)
+                } catch (_: java.nio.file.AtomicMoveNotSupportedException) {
+                    Files.move(destination.toPath(), backup.toPath())
+                }
             }
             try {
                 try {
@@ -138,9 +144,16 @@ class RootfsInstaller(
                 val entry = tar.nextTarEntry ?: break
                 val target = resolveEntry(canonicalRoot, entry.name)
                 ensureNoSymlinkParents(canonicalRoot, target.parent)
+                val alreadyExists = Files.exists(target, LinkOption.NOFOLLOW_LINKS)
                 when {
-                    entry.isDirectory -> Files.createDirectories(target)
+                    entry.isDirectory -> {
+                        require(!alreadyExists || (Files.isDirectory(target, LinkOption.NOFOLLOW_LINKS) && !Files.isSymbolicLink(target))) {
+                            "Diretório TAR colide com entrada existente: " + entry.name
+                        }
+                        Files.createDirectories(target)
+                    }
                     entry.isFile -> {
+                        require(!alreadyExists) { "Entrada TAR duplicada: " + entry.name }
                         require(entry.size >= 0) { "Tamanho de arquivo inválido no TAR" }
                         extractedBytes += entry.size
                         require(extractedBytes <= maxExtractedBytes) { "RootFS excede o limite de extração" }
@@ -160,11 +173,13 @@ class RootfsInstaller(
                         target.toFile().setWritable(entry.mode and 0b010010010 != 0, false)
                     }
                     entry.isSymbolicLink -> {
+                        require(!alreadyExists) { "Entrada TAR duplicada: " + entry.name }
                         val link = resolveLink(canonicalRoot, target.parent, entry.linkName)
                         Files.createDirectories(target.parent)
                         Files.createSymbolicLink(target, target.parent.relativize(link))
                     }
                     entry.isLink -> {
+                        require(!alreadyExists) { "Entrada TAR duplicada: " + entry.name }
                         val link = resolveEntry(canonicalRoot, entry.linkName)
                         require(Files.isRegularFile(link)) { "Hard link aponta para arquivo ausente ou não regular: ${entry.name}" }
                         Files.createDirectories(target.parent)
