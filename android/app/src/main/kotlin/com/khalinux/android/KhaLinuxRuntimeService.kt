@@ -12,12 +12,12 @@ import com.khalinux.runtime.ProotLauncher
 import com.khalinux.runtime.RuntimeEvent
 import com.khalinux.runtime.SessionManager
 import com.khalinux.runtime.install.RootfsInstaller
+import com.khalinux.runtime.install.GitHubHttpsConnection
 import com.khalinux.runtime.SessionSnapshot
 import java.io.File
 import java.time.Duration
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import java.net.HttpURLConnection
 import java.net.URL
 import org.json.JSONObject
 
@@ -81,15 +81,8 @@ class KhaLinuxRuntimeService : Service() {
                 val releaseTag = ROOTFS_RELEASE_TAG
                 val releaseBase = "https://github.com/Kyra2214/KhaLinux/releases/download/$releaseTag"
                 val manifestUrl = URL("$releaseBase/rootfs-arm64.json")
-                val connection = (manifestUrl.openConnection() as HttpURLConnection).apply {
-                    connectTimeout = 15_000
-                    readTimeout = 20_000
-                    instanceFollowRedirects = true
-                    setRequestProperty("Accept", "application/json")
-                }
+                val connection = GitHubHttpsConnection.open(manifestUrl, 15_000, 20_000)
                 val manifestText = try {
-                    require(connection.responseCode in 200..299) { "Manifesto RootFS indisponível: HTTP ${connection.responseCode}" }
-                    require(connection.url.protocol == "https") { "Redirecionamento de manifesto não HTTPS recusado" }
                     connection.inputStream.use { input ->
                         val bytes = input.readNBytes(64 * 1024 + 1)
                         require(bytes.size <= 64 * 1024) { "Manifesto RootFS excede 64 KiB" }
