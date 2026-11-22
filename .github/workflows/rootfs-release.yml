@@ -30,7 +30,7 @@ jobs:
       - name: Install Debian cross-build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y debootstrap qemu-user-static binfmt-support file
+          sudo apt-get install -y debootstrap qemu-user-static binfmt-support debian-archive-keyring file
           sudo update-binfmts --enable qemu-aarch64 || true
           command -v qemu-aarch64-static
 

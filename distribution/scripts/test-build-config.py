@@ -41,4 +41,5 @@ workflow_text = release_workflow.read_text()
 assert "workflow_dispatch:" in workflow_text, "publicação RootFS deve ser manual"
 assert "softprops/action-gh-release" in workflow_text, "workflow não publica a release RootFS"
 assert "test-rootfs.sh" in workflow_text and "verify-rootfs.sh" in workflow_text, "workflow publica sem validar o RootFS"
+assert "debian-archive-keyring" in workflow_text, "host de build sem chaveiro para validar assinaturas Debian"
 print(f"config_status=ok packages={len(package_names)}")
