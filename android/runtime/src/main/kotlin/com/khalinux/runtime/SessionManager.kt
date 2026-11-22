@@ -143,19 +143,25 @@ class SessionManager(
             try {
                 val exitCode = child.waitFor()
                 streamPumpsFinished.await()
-                val (timedOut, wasCancelling) = synchronized(lock) {
-                    current.timedOut to (current.state == SessionState.CANCELLING)
-                }
-                synchronized(lock) {
-                    current = current.copy(
-                        state = if (timedOut || wasCancelling) SessionState.CANCELLED else SessionState.EXITED,
-                        endedAtEpochMillis = clock.millis(),
-                        exitCode = exitCode
-                    )
+                val publishExit = synchronized(lock) {
+                    if (current.state == SessionState.FAILED) {
+                        false
+                    } else {
+                        val timedOut = current.timedOut
+                        val wasCancelling = current.state == SessionState.CANCELLING
+                        current = current.copy(
+                            state = if (timedOut || wasCancelling) SessionState.CANCELLED else SessionState.EXITED,
+                            endedAtEpochMillis = clock.millis(),
+                            exitCode = exitCode
+                        )
+                        true
+                    }
                 }
                 timeoutTask?.cancel(false)
                 releaseSlotOnce()
-                queue.offer(RuntimeEvent.Exited(id, exitCode, timedOut))
+                if (publishExit) {
+                    queue.offer(RuntimeEvent.Exited(id, exitCode, snapshot().timedOut))
+                }
             } catch (error: InterruptedException) {
                 Thread.currentThread().interrupt()
                 fail(error)
