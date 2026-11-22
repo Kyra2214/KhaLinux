@@ -21,6 +21,8 @@ runtime_launcher = ROOT / "android/runtime/src/main/kotlin/com/khalinux/runtime/
 runtime_config = ROOT / "android/runtime/src/main/kotlin/com/khalinux/runtime/ProotConfig.kt"
 runtime_manager = ROOT / "android/runtime/src/main/kotlin/com/khalinux/runtime/SessionManager.kt"
 pty_process = ROOT / "android/runtime/src/main/kotlin/com/khalinux/runtime/AndroidPtyProcess.kt"
+process_group = ROOT / "android/runtime/src/main/kotlin/com/khalinux/runtime/ProcessGroupManagedProcess.kt"
+adr_process_group = ROOT / "docs/decisions/ADR-0004-process-group-lifecycle.md"
 pty_native = ROOT / "android/runtime/src/main/cpp/native_pty.c"
 pty_build = ROOT / "android/runtime/build.gradle.kts"
 adr = ROOT / "docs/decisions/ADR-0003-native-pty.md"
@@ -44,6 +46,7 @@ config_text = runtime_config.read_text()
 manager_text = runtime_manager.read_text()
 pty_text = pty_native.read_text()
 pty_process_text = pty_process.read_text()
+process_group_text = process_group.read_text()
 pty_build_text = pty_build.read_text()
 assert "bindService" in activity_text and "unbindService" in activity_text, "Activity não gerencia binding do Service"
 assert "setContent" in activity_text and "ComponentActivity" in activity_text, "Activity Compose ausente"
@@ -72,6 +75,9 @@ assert "SessionManager" in service_text and "startShell" in service_text, "Servi
 assert "startInteractiveShell" in service_text and "AndroidPtyProcessLauncher" in service_text, "Service não seleciona PTY para shell"
 assert "TerminalProcessLauncher" in launcher_text and "interactiveProcessLauncher" in launcher_text, "launcher PTY não está separado dos pipes"
 assert "ProcessBuilder" in launcher_text and "execve(" in pty_text and "forkpty(" in pty_text, "execução estruturada/PTY ausentes"
+assert "/system/bin/setsid" in launcher_text and "ProcessGroupManagedProcess" in launcher_text, "comandos Android não isolam grupo de processos"
+assert "NativePty.signal" in launcher_text and "delegate.pid()" in process_group_text, "cancelamento de grupo não usa PID/ponte JNI"
+assert "process-group" in adr_process_group.read_text(), "ADR-0004 não registra o ciclo de vida do grupo de processos"
 assert "writeInput" in manager_text and "streamPumpsFinished.await()" in manager_text, "entrada/drenagem de streams ausentes"
 assert "ResizableProcess" in pty_process_text and "NativePty.resize" in pty_process_text, "controle de tamanho do PTY ausente"
 assert "externalNativeBuild" in pty_build_text and "minSdk = 35" in pty_build_text, "integração CMake/minSdk ausente"
