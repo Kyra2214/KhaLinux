@@ -7,8 +7,19 @@ fail() { printf '[khalinux-verify] erro: %s\n' "$*" >&2; exit 1; }
 command -v sha256sum >/dev/null || fail 'sha256sum ausente'
 command -v python3 >/dev/null || fail 'python3 ausente'
 command -v tar >/dev/null || fail 'tar ausente'
+command -v grep >/dev/null || fail 'grep ausente'
 [[ -d "${ROOTFS_DIR}" ]] || fail "RootFS não encontrado: ${ROOTFS_DIR}"
 [[ -s "${MANIFEST_FILE}" ]] || fail "manifesto não encontrado: ${MANIFEST_FILE}"
+APT_SOURCES_FILE="${ROOTFS_DIR}/etc/apt/sources.list.d/debian.sources"
+[[ -s "${APT_SOURCES_FILE}" ]] || fail "fontes APT ausentes no RootFS: ${APT_SOURCES_FILE}"
+EXPECTED_SNAPSHOT="$(python3 - "${MANIFEST_FILE}" <<'PY'
+import json, sys
+print(json.load(open(sys.argv[1], encoding="utf-8"))["snapshot"])
+PY
+)"
+grep -Fq "snapshot.debian.org/archive/debian/${EXPECTED_SNAPSHOT}" "${APT_SOURCES_FILE}" || fail "snapshot ${EXPECTED_SNAPSHOT} ausente nas fontes APT"
+[[ "$(grep -Fc "${EXPECTED_SNAPSHOT}" "${APT_SOURCES_FILE}")" -eq 2 ]] || fail 'as fontes APT precisam usar o mesmo snapshot do manifesto nos dois repositórios'
+[[ "$(grep -c '^Check-Valid-Until: no$' "${APT_SOURCES_FILE}")" -eq 2 ]] || fail 'fontes snapshot precisam desabilitar expiração nos dois repositórios'
 python3 -m json.tool "${MANIFEST_FILE}" >/dev/null || fail 'manifesto JSON inválido'
 SOURCE_DATE_EPOCH="$(python3 - "${MANIFEST_FILE}" <<'PY'
 import json, sys

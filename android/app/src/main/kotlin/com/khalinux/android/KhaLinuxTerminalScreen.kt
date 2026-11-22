@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -54,7 +53,11 @@ fun KhaLinuxApp(viewModel: TerminalViewModel) {
                         !state.serviceConnected -> state.connectionMessage ?: "Conectando ao Service local…"
                         state.runtimeInstalled -> "Runtime Linux instalado"
                         else -> "RootFS ainda não instalado"
-                    } + if (state.isRunning) " · sessão ${state.sessionId}" else "",
+                    } + when {
+                        state.isStarting -> " · iniciando sessão…"
+                        state.sessionId != null -> " · sessão ${state.sessionId}"
+                        else -> ""
+                    },
                     color = Color(0xFF80CBC4),
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -71,13 +74,13 @@ fun KhaLinuxApp(viewModel: TerminalViewModel) {
                     Button(
                         onClick = if (state.isInteractive) viewModel::sendInput else viewModel::runCommand,
                         enabled = if (state.isInteractive) {
-                            state.command.isNotEmpty()
+                            state.command.isNotEmpty() && !state.isSendingInput
                         } else {
                             state.serviceConnected && state.runtimeInstalled && !state.isRunning && state.command.isNotBlank()
                         },
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text(if (state.isInteractive) "Enviar" else "Executar")
+                        Text(if (state.isSendingInput) "Enviando…" else if (state.isInteractive) "Enviar" else "Executar")
                     }
                     OutlinedButton(
                         onClick = viewModel::openInteractiveShell,
@@ -88,7 +91,7 @@ fun KhaLinuxApp(viewModel: TerminalViewModel) {
                     }
                     OutlinedButton(
                         onClick = viewModel::cancelCommand,
-                        enabled = state.isRunning,
+                        enabled = state.sessionId != null,
                         modifier = Modifier.weight(1f)
                     ) {
                         Text("Cancelar")

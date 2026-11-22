@@ -21,6 +21,8 @@ runtime_launcher = ROOT / "android/runtime/src/main/kotlin/com/khalinux/runtime/
 runtime_config = ROOT / "android/runtime/src/main/kotlin/com/khalinux/runtime/ProotConfig.kt"
 runtime_manager = ROOT / "android/runtime/src/main/kotlin/com/khalinux/runtime/SessionManager.kt"
 pty_process = ROOT / "android/runtime/src/main/kotlin/com/khalinux/runtime/AndroidPtyProcess.kt"
+process_group = ROOT / "android/runtime/src/main/kotlin/com/khalinux/runtime/ProcessGroupManagedProcess.kt"
+adr_process_group = ROOT / "docs/decisions/ADR-0004-process-group-lifecycle.md"
 pty_native = ROOT / "android/runtime/src/main/cpp/native_pty.c"
 pty_build = ROOT / "android/runtime/build.gradle.kts"
 adr = ROOT / "docs/decisions/ADR-0003-native-pty.md"
@@ -44,12 +46,20 @@ config_text = runtime_config.read_text()
 manager_text = runtime_manager.read_text()
 pty_text = pty_native.read_text()
 pty_process_text = pty_process.read_text()
+process_group_text = process_group.read_text()
 pty_build_text = pty_build.read_text()
 assert "bindService" in activity_text and "unbindService" in activity_text, "Activity não gerencia binding do Service"
 assert "setContent" in activity_text and "ComponentActivity" in activity_text, "Activity Compose ausente"
 assert "ServiceTerminalRuntimeGateway" in activity_text, "Activity não usa o adaptador de dados"
 assert "ProcessBuilder" not in activity_text and "ProotLauncher" not in activity_text, "Activity acoplando execução ao runtime"
 assert "class TerminalViewModel" in view_model_text and "MutableStateFlow" in view_model_text, "ViewModel/StateFlow ausente"
+assert "withContext(Dispatchers.IO)" in view_model_text, "inicialização do processo deve sair da thread principal"
+assert "isStarting: Boolean" in view_model_text and "isStarting || sessionId != null" in view_model_text, "estado de inicialização não bloqueia comandos duplicados"
+assert "createdSessionId" in view_model_text and "completedSessionsBeforeStartReturn" in view_model_text, "corrida entre início e saída rápida da sessão não está protegida"
+assert "CancellationException" in view_model_text and "NonCancellable + Dispatchers.IO" in view_model_text, "cancelamento durante spawn pode deixar sessão órfã"
+send_input_text = view_model_text.split("fun sendInput()", 1)[1].split("fun resizeTerminal", 1)[0]
+assert "withContext(Dispatchers.IO)" in send_input_text, "escrita no PTY pode bloquear a thread principal"
+assert "isSendingInput" in view_model_text and "isSendingInput" in screen_text, "envio duplicado de linhas não é bloqueado"
 assert "KhaLinuxRuntimeService" not in view_model_text, "ViewModel acoplado ao Service Android"
 assert "TerminalRuntimeGateway" in view_model_text and "TerminalUseCases" in view_model_text, "ViewModel sem abstração/casos de uso"
 assert "interface TerminalRuntimeGateway" in domain_text, "porta de domínio ausente"
@@ -65,7 +75,11 @@ assert "SessionManager" in service_text and "startShell" in service_text, "Servi
 assert "startInteractiveShell" in service_text and "AndroidPtyProcessLauncher" in service_text, "Service não seleciona PTY para shell"
 assert "TerminalProcessLauncher" in launcher_text and "interactiveProcessLauncher" in launcher_text, "launcher PTY não está separado dos pipes"
 assert "ProcessBuilder" in launcher_text and "execve(" in pty_text and "forkpty(" in pty_text, "execução estruturada/PTY ausentes"
+assert "/system/bin/setsid" in launcher_text and "ProcessGroupManagedProcess" in launcher_text, "comandos Android não isolam grupo de processos"
+assert "NativePty.signal" in launcher_text and "processGroupId: Int" in process_group_text and "awaitProcessGroupId" in launcher_text, "cancelamento de grupo não usa PID/ponte JNI"
+assert "process-group" in adr_process_group.read_text(), "ADR-0004 não registra o ciclo de vida do grupo de processos"
 assert "writeInput" in manager_text and "streamPumpsFinished.await()" in manager_text, "entrada/drenagem de streams ausentes"
+assert "maxRetainedSessions" in manager_text and "pruneCompletedSessions" in manager_text, "histórico de sessões sem limite"
 assert "ResizableProcess" in pty_process_text and "NativePty.resize" in pty_process_text, "controle de tamanho do PTY ausente"
 assert "externalNativeBuild" in pty_build_text and "minSdk = 35" in pty_build_text, "integração CMake/minSdk ausente"
 assert "forkpty" in adr.read_text() and "VT/ANSI" in adr.read_text(), "ADR-0003 ou limite VT/ANSI ausente"

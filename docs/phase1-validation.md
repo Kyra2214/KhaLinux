@@ -10,9 +10,9 @@ O RootFS foi gerado em `distribution/build/output/rootfs-arm64/`. Esse diretóri
 
 ## Verificações executadas
 
-A validação estrutural passou com `distribution/scripts/verify-rootfs.sh`, incluindo comparação do SHA-256 canônico `98d12425f3852441a6ea9957bb97177e3bf3502d56cac2c06e18a9b055844b85`. O arquivo `/bin/bash` foi identificado como ELF 64-bit AArch64. O smoke test reproduzível `sudo distribution/scripts/test-rootfs.sh` confirmou `dpkg --print-architecture=arm64`, Bash, Python 3, Git, SQLite, APT, `/etc/hostname` e o usuário `khalinux`.
+A validação estrutural histórica passou com `distribution/scripts/verify-rootfs.sh`, incluindo comparação do SHA-256 canônico `98d12425f3852441a6ea9957bb97177e3bf3502d56cac2c06e18a9b055844b85`. O arquivo `/bin/bash` foi identificado como ELF 64-bit AArch64. O smoke test histórico confirmou a presença do binário APT, mas não executou `apt-get update`; a inspeção posterior identificou que o build removia as fontes APT do RootFS. Esta correção preserva a configuração versionada do snapshot e desabilita a expiração dos metadados desse snapshot antigo. O artefato existente precisa ser reconstruído e revalidado para incorporar a correção.
 
-A validação de configuração passou com `python3 distribution/scripts/test-build-config.py`. O build agora usa o snapshot fixo `https://snapshot.debian.org/archive/debian/20251122T000000Z`, verifica assinaturas com o keyring Debian e gera `distribution/manifests/base-package-versions-arm64.txt` com as versões dos pacotes solicitados.
+A validação de configuração histórica passou com `python3 distribution/scripts/test-build-config.py` antes desta correção; as novas asserções para retenção das fontes APT ainda precisam ser executadas. O build usa o snapshot fixo `https://snapshot.debian.org/archive/debian/20251122T000000Z`, verifica assinaturas com o keyring Debian e gera `distribution/manifests/base-package-versions-arm64.txt` com as versões dos pacotes solicitados.
 
 ## Limitações da evidência
 

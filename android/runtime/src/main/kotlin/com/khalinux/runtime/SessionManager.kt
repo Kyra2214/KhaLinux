@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.Semaphore
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
@@ -16,18 +17,31 @@ import java.util.concurrent.atomic.AtomicBoolean
 class SessionManager(
     private val launcher: ProotLauncher,
     private val maxSessions: Int = 4,
+    private val maxRetainedSessions: Int = 100,
     private val clock: Clock = Clock.systemUTC()
 ) : LinuxRuntime {
     private val sessions = ConcurrentHashMap<String, ManagedSession>()
+    private val activeSessionPermits = Semaphore(maxSessions)
+    private val lifecycleLock = Any()
     private val scheduler = Executors.newScheduledThreadPool(1)
     private val ioPool = Executors.newCachedThreadPool()
     private val closed = AtomicBoolean(false)
 
+    init {
+        require(maxSessions > 0) { "maxSessions deve ser maior que zero" }
+        require(maxRetainedSessions > 0) { "maxRetainedSessions deve ser maior que zero" }
+    }
+
     override fun start(request: CommandRequest): RuntimeSession {
-        check(!closed.get()) { "runtime encerrado" }
-        check(sessions.size < maxSessions) { "limite de sessões atingido: $maxSessions" }
-        val session = ManagedSession(UUID.randomUUID().toString(), request)
-        check(sessions.putIfAbsent(session.id, session) == null) { "colisão de id de sessão" }
+        val session = synchronized(lifecycleLock) {
+            check(!closed.get()) { "runtime encerrado" }
+            check(activeSessionPermits.tryAcquire()) {
+                "limite de sessões ativas atingido: $maxSessions"
+            }
+            ManagedSession(UUID.randomUUID().toString(), request).also {
+                sessions[it.id] = it
+            }
+        }
         try {
             session.start()
             return session
@@ -48,14 +62,32 @@ class SessionManager(
     override fun resize(sessionId: String, rows: Int, columns: Int): Boolean =
         sessions[sessionId]?.resize(rows, columns) ?: false
 
-    override fun sessions(): List<SessionSnapshot> = sessions.values.map { it.snapshot() }.sortedBy { it.id }
+    override fun sessions(): List<SessionSnapshot> = sessions.values.map { it.snapshot() }
+        .sortedBy { it.endedAtEpochMillis ?: it.startedAtEpochMillis ?: 0L }
+
+    private fun pruneCompletedSessions() {
+        val completed = sessions.values.map { it.snapshot() }
+            .filter {
+                it.state == SessionState.EXITED ||
+                    it.state == SessionState.CANCELLED ||
+                    it.state == SessionState.FAILED
+            }
+            .sortedBy { it.endedAtEpochMillis ?: 0L }
+        val excess = completed.size - maxRetainedSessions
+        if (excess > 0) {
+            completed.take(excess).forEach { sessions.remove(it.id) }
+        }
+    }
 
     override fun close() {
-        if (closed.compareAndSet(false, true)) {
-            sessions.values.forEach { it.cancel() }
-            scheduler.shutdownNow()
-            ioPool.shutdownNow()
+        val shouldClose = synchronized(lifecycleLock) {
+            closed.compareAndSet(false, true)
         }
+        if (!shouldClose) return
+
+        sessions.values.forEach { it.cancel() }
+        scheduler.shutdownNow()
+        ioPool.shutdownNow()
     }
 
     private inner class ManagedSession(
@@ -66,6 +98,7 @@ class SessionManager(
         private val lock = Any()
         private val inputLock = Any()
         private val streamPumpsFinished = CountDownLatch(2)
+        private val slotReleased = AtomicBoolean(false)
         private var process: Process? = null
         private var timeoutTask: ScheduledFuture<*>? = null
         private var current = SessionSnapshot(id, SessionState.CREATED, null, null, null, false, null)
@@ -74,6 +107,7 @@ class SessionManager(
             val launched = launcher.launch(request)
             try {
                 synchronized(lock) {
+                    check(!closed.get()) { "runtime encerrado durante inicialização da sessão" }
                     process = launched
                     current = current.copy(
                         state = SessionState.RUNNING,
@@ -126,21 +160,33 @@ class SessionManager(
             try {
                 val exitCode = child.waitFor()
                 streamPumpsFinished.await()
-                val (timedOut, wasCancelling) = synchronized(lock) {
-                    current.timedOut to (current.state == SessionState.CANCELLING)
-                }
-                synchronized(lock) {
-                    current = current.copy(
-                        state = if (timedOut || wasCancelling) SessionState.CANCELLED else SessionState.EXITED,
-                        endedAtEpochMillis = clock.millis(),
-                        exitCode = exitCode
-                    )
+                val publishExit = synchronized(lock) {
+                    if (current.state == SessionState.FAILED) {
+                        false
+                    } else {
+                        val timedOut = current.timedOut
+                        val wasCancelling = current.state == SessionState.CANCELLING
+                        current = current.copy(
+                            state = if (timedOut || wasCancelling) SessionState.CANCELLED else SessionState.EXITED,
+                            endedAtEpochMillis = clock.millis(),
+                            exitCode = exitCode
+                        )
+                        true
+                    }
                 }
                 timeoutTask?.cancel(false)
-                queue.offer(RuntimeEvent.Exited(id, exitCode, timedOut))
+                releaseSlotOnce()
+                pruneCompletedSessions()
+                if (publishExit) {
+                    queue.offer(RuntimeEvent.Exited(id, exitCode, snapshot().timedOut))
+                }
             } catch (error: InterruptedException) {
                 Thread.currentThread().interrupt()
                 fail(error)
+            } catch (error: Throwable) {
+                fail(error)
+            } finally {
+                releaseSlotOnce()
             }
         }
 
@@ -193,14 +239,30 @@ class SessionManager(
 
         fun fail(error: Throwable) {
             val message = error.message ?: error::class.java.simpleName
-            synchronized(lock) {
-                current = current.copy(
-                    state = SessionState.FAILED,
-                    endedAtEpochMillis = clock.millis(),
-                    errorMessage = message
-                )
+            val changed = synchronized(lock) {
+                if (current.state == SessionState.EXITED ||
+                    current.state == SessionState.CANCELLED ||
+                    current.state == SessionState.FAILED
+                ) {
+                    false
+                } else {
+                    current = current.copy(
+                        state = SessionState.FAILED,
+                        endedAtEpochMillis = clock.millis(),
+                        errorMessage = message
+                    )
+                    true
+                }
             }
-            queue.offer(RuntimeEvent.Failed(id, message))
+            if (changed) {
+                releaseSlotOnce()
+                pruneCompletedSessions()
+                queue.offer(RuntimeEvent.Failed(id, message))
+            }
+        }
+
+        private fun releaseSlotOnce() {
+            if (slotReleased.compareAndSet(false, true)) activeSessionPermits.release()
         }
 
         override fun close() { cancel() }

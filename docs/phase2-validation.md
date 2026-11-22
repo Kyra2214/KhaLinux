@@ -8,7 +8,7 @@ Em host x86_64, o launcher aceita um `qemu-aarch64-static` opcional por meio de 
 
 ## Testes executados
 
-A suíte foi compilada com Kotlin 1.3.31 e executada com JUnit 4 contra o RootFS Debian ARM64 da Fase 1, usando PRoot 5.1.0 e QEMU AArch64. Resultado real:
+A evidência abaixo registra a execução histórica de quatro testes com Kotlin 1.3.31, JUnit 4, PRoot 5.1.0 e QEMU AArch64 no RootFS Debian ARM64. A suíte atual foi ampliada para dez testes e usa um launcher de processo simulado nos testes unitários, sem depender do RootFS ou de QEMU.
 
 ```text
 JUnit version 4.13.2
@@ -16,9 +16,9 @@ JUnit version 4.13.2
 OK (4 tests)
 ```
 
-Os testes cobrem: passagem do comando como argumento único do Bash convidado, rejeição de nomes inválidos de ambiente, captura de stdout e código de saída, timeout e cancelamento de sessão.
+A suíte atual cobre montagem de argumentos estruturados, validação de ambiente, shell interativa conservadora, captura de stdout/código de saída, limite de sessões simultâneas, reutilização de capacidade após conclusão, falha de inicialização, cancelamento de grupo de processos, histórico limitado de sessões e timeout/cancelamento. O runner compila com Kotlin 1.9.24+ e JDK 17.
 
-Para repetir após instalar as dependências do host:
+Para repetir após instalar Kotlin 1.9.24 ou superior, JDK 17, JUnit 4 e Hamcrest no host:
 
 ```bash
 ./android/runtime/test.sh
@@ -26,4 +26,4 @@ Para repetir após instalar as dependências do host:
 
 ## Limitações
 
-Esta validação ocorreu em sandbox x86_64 com emulação. Ainda não há projeto Gradle/Android, integração com ciclo de vida de Activity/Service, PTY interativo, grupo de processos específico do Android, persistência Room ou teste em dispositivo Android 15+ ARM64. Portanto, a implementação da Fase 2 está validada como núcleo de processos e sessões, mas a integração de dispositivo permanece pendente.
+No registro original da Fase 2, a validação ocorreu em sandbox x86_64 com emulação e ainda não existiam integração Android, PTY interativo ou ciclo de vida de Service. Essas lacunas foram parcialmente tratadas nas fases posteriores: o projeto Gradle, o Service e o PTY nativo foram adicionados na Fase 3. Permanecem pendentes a validação da compilação Android, o instalador do RootFS/PRoot, a emulação VT/ANSI, confirmação final do gerenciamento de processos descendentes no Android, a persistência Room e os testes físicos finais em Android ARM64.
