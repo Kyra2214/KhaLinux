@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    ndkVersion = "26.1.10909125"
+    ndkVersion = "27.0.12077973"
     namespace = "com.khalinux.runtime"
     compileSdk = 35
 
