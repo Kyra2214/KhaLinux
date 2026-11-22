@@ -50,6 +50,22 @@ class SessionManagerTest {
         } finally { runtime.close() }
     }
 
+    @Test fun completedSessionsReleaseActiveSessionCapacity() {
+        val runtime = SessionManager(
+            ProotLauncher(ProotConfig(proot, rootfs, File("/usr/bin/qemu-aarch64-static"))),
+            maxSessions = 1
+        )
+        try {
+            val first = runtime.start(CommandRequest("true"))
+            first.events().toList()
+            assertEquals(SessionState.EXITED, first.snapshot().state)
+
+            val second = runtime.start(CommandRequest("true"))
+            second.events().toList()
+            assertEquals(SessionState.EXITED, second.snapshot().state)
+        } finally { runtime.close() }
+    }
+
     @Test fun timeoutCancelsLongRunningSession() {
         val runtime = runtime()
         try {
