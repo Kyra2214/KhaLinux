@@ -58,7 +58,8 @@ interface TerminalSettingsDao {
 
 @Database(entities = [CommandHistoryEntry::class, TerminalSettingsEntity::class], version = 2, exportSchema = false)
 abstract class CommandHistoryDatabase : RoomDatabase() {
-    abstract fun commandHistoryDao(): CommandHistoryDao\n    abstract fun terminalSettingsDao(): TerminalSettingsDao
+    abstract fun commandHistoryDao(): CommandHistoryDao
+    abstract fun terminalSettingsDao(): TerminalSettingsDao
 
     companion object {
         private val MIGRATION_1_2 = object : Migration(1, 2) {
