@@ -77,7 +77,8 @@ chmod 0755 "${ROOTFS_DIR}/root/khalinux-finalize.sh"
 log 'finalizando configuração dentro do RootFS ARM64'
 chroot "${ROOTFS_DIR}" /root/khalinux-finalize.sh
 
-rm -f "${ROOTFS_DIR}/etc/apt/sources.list.d/debian.sources"
+# Keep the pinned .sources file so APT remains usable after installation.
+# Only remove editor/backup artifacts; the repository definition is part of the RootFS.
 rm -f "${ROOTFS_DIR}/etc/apt/sources.list.d/debian.sources.save"
 
 ROOTFS_BYTES="$(du -sb "${ROOTFS_DIR}" | awk '{print $1}')"
