@@ -26,7 +26,7 @@ interface TerminalRuntimeGateway {
     fun installRootfs(observer: RootfsInstallObserver)
     fun installProot(observer: ProotInstallObserver)
     fun start(command: String, observer: RuntimeEventObserver): String
-    fun startInteractive(observer: RuntimeEventObserver): String
+    fun startInteractive(rows: Int, columns: Int, observer: RuntimeEventObserver): String
     fun writeInput(sessionId: String, text: String): Boolean
     fun resize(sessionId: String, rows: Int, columns: Int): Boolean
     fun cancel(sessionId: String): Boolean
