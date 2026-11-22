@@ -33,7 +33,10 @@ class SystemProcessLauncher : ProcessLauncher {
             ProcessGroupManagedProcess(child) { pid, force ->
                 try {
                     NativePty.signal(pid, force)
-                } catch (_: UnsatisfiedLinkError) {
+                } catch (_: LinkageError) {
+                    if (force) child.destroyForcibly() else child.destroy()
+                    false
+                } catch (_: java.io.IOException) {
                     if (force) child.destroyForcibly() else child.destroy()
                     false
                 }
