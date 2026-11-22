@@ -8,6 +8,8 @@ import com.khalinux.android.domain.ProotInstallObserver
 import com.khalinux.android.domain.TerminalRuntimeGateway
 import com.khalinux.android.domain.TerminalUseCases
 import com.khalinux.runtime.RuntimeEvent
+import com.khalinux.runtime.TerminalEmulator
+import com.khalinux.runtime.TerminalSnapshot
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.CancellationException
@@ -39,14 +41,15 @@ data class TerminalUiState(
     val prootInstalled: Boolean = false,
     val isInstallingProot: Boolean = false,
     val prootInstallProgress: String? = null,
-    val prootInstallMessage: String? = null
+    val prootInstallMessage: String? = null,
+    val terminalSnapshot: TerminalSnapshot = TerminalSnapshot.empty()
 ) {
     val isRunning: Boolean get() = isStarting || sessionId != null
 }
 
 class TerminalViewModel : ViewModel() {
     private val lock = Any()
-    private val transcript = TerminalOutputBuffer()
+    private val terminalEmulator = TerminalEmulator(rows = 24, columns = 80)
     private val mutableUiState = MutableStateFlow(TerminalUiState())
     val uiState: StateFlow<TerminalUiState> = mutableUiState.asStateFlow()
 
