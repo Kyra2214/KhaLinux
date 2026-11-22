@@ -1,12 +1,14 @@
 package com.khalinux.runtime.install
 
 import java.nio.file.Files
+import java.nio.file.attribute.PosixFilePermission
 import java.io.File
 import java.io.FileOutputStream
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -20,9 +22,11 @@ class RootfsInstallerTest {
         GzipCompressorOutputStream(FileOutputStream(archive)).use { gzip ->
             TarArchiveOutputStream(gzip).use { tar ->
                 val rootEntry = TarArchiveEntry("./")
+                rootEntry.mode = 0b111101101
                 tar.putArchiveEntry(rootEntry)
                 tar.closeArchiveEntry()
                 val dir = TarArchiveEntry("bin/")
+                dir.mode = 0b111101101
                 tar.putArchiveEntry(dir)
                 tar.closeArchiveEntry()
                 val bash = TarArchiveEntry("bin/bash")
@@ -38,6 +42,10 @@ class RootfsInstallerTest {
         assertEquals(3L, installer.extractSafely(archive, destination))
         assertTrue(File(destination, "bin/bash").isFile)
         assertTrue(File(destination, "bin/bash").canExecute())
+        val permissions = Files.getPosixFilePermissions(File(destination, "bin/bash").toPath())
+        assertTrue(permissions.contains(PosixFilePermission.GROUP_READ))
+        assertFalse(permissions.contains(PosixFilePermission.GROUP_WRITE))
+        assertFalse(permissions.contains(PosixFilePermission.OTHERS_WRITE))
     }
 
     @Test

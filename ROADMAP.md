@@ -15,7 +15,7 @@ Este roadmap é a referência oficial de evolução do projeto. Uma fase só pod
 
 ## Fase 1 — Linux Base
 
-**Estado:** build e smoke tests históricos passaram no sandbox x86_64 por emulação ARM64. A correção atual preserva as fontes APT e sincroniza o snapshot com o manifesto. O gerador agora também empacota `rootfs-arm64.tar.gz` com SHA-256 próprio; o RootFS ainda precisa ser reconstruído, ter manifesto/hash regenerados e repetir o smoke test antes de considerar a fase validada novamente.
+**Estado:** build e smoke tests históricos passaram no sandbox x86_64 por emulação ARM64. A correção atual preserva as fontes APT e sincroniza o snapshot com o manifesto. O gerador empacota `rootfs-arm64.tar.gz` determinístico com SHA-256 próprio; workflow manual foi adicionado para reconstruir, validar e publicar RootFS/manifesto em release versionada. A primeira execução real desse workflow ainda precisa passar antes de considerar a fase validada novamente.
 
 - Preparar build ARM64.
 - Construir Debian ARM64 minimal e gerar RootFS.
@@ -38,7 +38,7 @@ Este roadmap é a referência oficial de evolução do projeto. Uma fase só pod
 
 ## Fase 3 — Aplicativo Android
 
-**Estado:** Activity/Service, Compose/MVVM, inicialização assíncrona de comandos/shell, PTY JNI e buffer de saída limitado implementados. Base do instalador RootFS com download HTTPS, hash, limites e extração segura adicionada ao runtime e Service. Ainda faltam distribuição confiável dos artefatos RootFS/PRoot, interface de instalação, emulador VT/ANSI, persistência, configurações e testes físicos finais.
+**Estado:** Activity/Service, Compose/MVVM, inicialização assíncrona de comandos/shell, PTY JNI e buffer de saída limitado implementados. Instalador RootFS com manifesto de release fixada, download HTTPS, hash, limites, extração segura e progresso na UI integrado ao Service. Workflow de publicação adicionado, ainda sem primeira execução real. Ainda falta publicar/verificar o RootFS, distribuir o binário PRoot compatível com Android, emulador VT/ANSI, persistência, configurações e testes físicos finais.
 
 - Concluir projeto Kotlin com Jetpack Compose, MVVM, Clean Architecture e Coroutines.
 - Implementar navegação, dashboard, instalação, terminal, configurações, Room e histórico.

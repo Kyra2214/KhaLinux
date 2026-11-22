@@ -1,0 +1,70 @@
+name: Build and publish Debian ARM64 RootFS
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'distribution/**'
+      - '.github/workflows/rootfs-release.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: khalinux-rootfs-release
+  cancel-in-progress: false
+
+jobs:
+  build-rootfs:
+    name: Build, verify and publish RootFS
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      SOURCE_DATE_EPOCH: "1763769600"
+      ROOTFS_RELEASE_TAG: "rootfs-bookworm-20261122-v1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Debian cross-build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y debootstrap qemu-user-static binfmt-support file
+          sudo update-binfmts --enable qemu-aarch64 || true
+          command -v qemu-aarch64-static
+
+      - name: Build Debian Bookworm ARM64 RootFS and archive
+        run: |
+          sudo env SOURCE_DATE_EPOCH="$SOURCE_DATE_EPOCH" \
+            ROOTFS_RELEASE_TAG="$ROOTFS_RELEASE_TAG" \
+            bash distribution/scripts/build-rootfs.sh
+
+      - name: Verify canonical RootFS and archive
+        run: |
+          sudo bash distribution/scripts/verify-rootfs.sh
+          sudo bash distribution/scripts/test-rootfs.sh
+
+      - name: Upload reproducible build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: khalinux-rootfs-arm64
+          path: |
+            distribution/build/output/rootfs-arm64.tar.gz
+            distribution/manifests/rootfs-arm64.json
+            distribution/manifests/base-package-versions-arm64.txt
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish versioned RootFS release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: rootfs-bookworm-20261122-v1
+          name: KhaLinux Debian Bookworm ARM64 RootFS v1
+          prerelease: true
+          draft: false
+          overwrite_files: true
+          files: |
+            distribution/build/output/rootfs-arm64.tar.gz
+            distribution/manifests/rootfs-arm64.json
+            distribution/manifests/base-package-versions-arm64.txt

@@ -1,6 +1,5 @@
 package com.khalinux.runtime.install
 
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
 import java.io.BufferedInputStream
@@ -9,11 +8,12 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
-import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import java.nio.file.LinkOption
+import java.nio.file.attribute.PosixFilePermission
+import java.util.EnumSet
 import java.security.MessageDigest
 import java.util.Locale
 
@@ -89,7 +89,7 @@ class RootfsInstaller(
                 }
                 throw failure
             }
-            deleteTree(backup)
+            runCatching { deleteTree(backup) }
             return Result(destination, actual, extracted)
         } finally {
             archive.delete()
@@ -98,17 +98,8 @@ class RootfsInstaller(
     }
 
     private fun download(url: URL, output: File, onProgress: (Long, Long?) -> Unit): ByteArray {
-        val connection = (url.openConnection() as HttpURLConnection).apply {
-            connectTimeout = connectTimeoutMillis
-            readTimeout = readTimeoutMillis
-            instanceFollowRedirects = true
-            requestMethod = "GET"
-            setRequestProperty("Accept-Encoding", "identity")
-        }
+        val connection = GitHubHttpsConnection.open(url, connectTimeoutMillis, readTimeoutMillis)
         try {
-            connection.connect()
-            require(connection.responseCode in 200..299) { "Download falhou: HTTP ${connection.responseCode}" }
-            require(connection.url.protocol.equals("https", ignoreCase = true)) { "Redirecionamento para conexão não HTTPS recusado" }
             val total = connection.contentLengthLong.takeIf { it >= 0 }
             require(total == null || total <= maxDownloadBytes) { "Arquivo excede o limite de download" }
             val digest = MessageDigest.getInstance("SHA-256")
@@ -139,6 +130,7 @@ class RootfsInstaller(
     internal fun extractSafely(archive: File, root: File): Long {
         val canonicalRoot = root.canonicalFile.toPath()
         var extractedBytes = 0L
+        val directoryModes = mutableListOf<Pair<java.nio.file.Path, Int>>()
         TarArchiveInputStream(GzipCompressorInputStream(BufferedInputStream(FileInputStream(archive)))).use { tar ->
             while (true) {
                 val entry = tar.nextTarEntry ?: break
@@ -151,6 +143,7 @@ class RootfsInstaller(
                             "Diretório TAR colide com entrada existente: " + entry.name
                         }
                         Files.createDirectories(target)
+                        directoryModes += target to entry.mode
                     }
                     entry.isFile -> {
                         require(!alreadyExists) { "Entrada TAR duplicada: " + entry.name }
@@ -168,9 +161,7 @@ class RootfsInstaller(
                                 remaining -= read
                             }
                         }
-                        target.toFile().setExecutable(entry.mode and 0b001001001 != 0, false)
-                        target.toFile().setReadable(entry.mode and 0b100100100 != 0, false)
-                        target.toFile().setWritable(entry.mode and 0b010010010 != 0, false)
+                        applyMode(target, entry.mode)
                     }
                     entry.isSymbolicLink -> {
                         require(!alreadyExists) { "Entrada TAR duplicada: " + entry.name }
@@ -184,13 +175,29 @@ class RootfsInstaller(
                         require(Files.isRegularFile(link)) { "Hard link aponta para arquivo ausente ou não regular: ${entry.name}" }
                         Files.createDirectories(target.parent)
                         Files.copy(link, target)
+                        applyMode(target, entry.mode)
                     }
                     entry.isCharacterDevice || entry.isBlockDevice || entry.isFIFO -> Unit
                     else -> throw IOException("Tipo de entrada TAR não permitido: ${entry.name}")
                 }
             }
         }
+        directoryModes.sortedByDescending { it.first.nameCount }.forEach { (path, mode) -> applyMode(path, mode) }
         return extractedBytes
+    }
+
+    private fun applyMode(path: java.nio.file.Path, mode: Int) {
+        val permissions = EnumSet.noneOf(PosixFilePermission::class.java)
+        if (mode and 0b100000000 != 0) permissions.add(PosixFilePermission.OWNER_READ)
+        if (mode and 0b010000000 != 0) permissions.add(PosixFilePermission.OWNER_WRITE)
+        if (mode and 0b001000000 != 0) permissions.add(PosixFilePermission.OWNER_EXECUTE)
+        if (mode and 0b000100000 != 0) permissions.add(PosixFilePermission.GROUP_READ)
+        if (mode and 0b000010000 != 0) permissions.add(PosixFilePermission.GROUP_WRITE)
+        if (mode and 0b000001000 != 0) permissions.add(PosixFilePermission.GROUP_EXECUTE)
+        if (mode and 0b000000100 != 0) permissions.add(PosixFilePermission.OTHERS_READ)
+        if (mode and 0b000000010 != 0) permissions.add(PosixFilePermission.OTHERS_WRITE)
+        if (mode and 0b000000001 != 0) permissions.add(PosixFilePermission.OTHERS_EXECUTE)
+        Files.setPosixFilePermissions(path, permissions)
     }
 
     internal fun resolveEntry(root: java.nio.file.Path, name: String): java.nio.file.Path {

@@ -46,6 +46,36 @@ if os.path.islink(os.path.join(root, "etc/hostname")):
     raise SystemExit("hostname não deve ser symlink")
 print("required_paths=ok")
 PY
+ARCHIVE_NAME="$(python3 - "${MANIFEST_FILE}" <<'PY'
+import json, sys
+print(json.load(open(sys.argv[1], encoding="utf-8")).get("archive_name", ""))
+PY
+)"
+ARCHIVE_SHA256="$(python3 - "${MANIFEST_FILE}" <<'PY'
+import json, sys
+print(json.load(open(sys.argv[1], encoding="utf-8")).get("archive_sha256", ""))
+PY
+)"
+RELEASE_TAG="$(python3 - "${MANIFEST_FILE}" <<'PY'
+import json, sys
+print(json.load(open(sys.argv[1], encoding="utf-8")).get("release_tag", ""))
+PY
+)"
+ARCHIVE_URL="$(python3 - "${MANIFEST_FILE}" <<'PY'
+import json, sys
+print(json.load(open(sys.argv[1], encoding="utf-8")).get("archive_url", ""))
+PY
+)"
+[[ "${ARCHIVE_NAME}" == "rootfs-arm64.tar.gz" ]] || fail 'nome do arquivo RootFS inválido no manifesto'
+[[ "${ARCHIVE_SHA256}" =~ ^[a-fA-F0-9]{64}$ ]] || fail 'SHA-256 do arquivo RootFS inválido no manifesto'
+[[ "${RELEASE_TAG}" =~ ^[A-Za-z0-9._-]+$ ]] || fail 'tag de release inválida no manifesto'
+EXPECTED_ARCHIVE_URL="https://github.com/Kyra2214/KhaLinux/releases/download/${RELEASE_TAG}/${ARCHIVE_NAME}"
+[[ "${ARCHIVE_URL}" == "${EXPECTED_ARCHIVE_URL}" ]] || fail 'URL do arquivo não corresponde à release declarada'
+ARCHIVE_FILE="$(dirname "${ROOTFS_DIR}")/${ARCHIVE_NAME}"
+[[ -s "${ARCHIVE_FILE}" ]] || fail "arquivo RootFS não encontrado: ${ARCHIVE_FILE}"
+ACTUAL_ARCHIVE_SHA256="$(sha256sum "${ARCHIVE_FILE}" | awk '{print $1}')"
+[[ "${ACTUAL_ARCHIVE_SHA256}" == "${ARCHIVE_SHA256}" ]] || fail 'SHA-256 do arquivo RootFS divergente'
+printf 'archive_sha256=%s\n' "${ACTUAL_ARCHIVE_SHA256}"
 printf 'rootfs_directory=%s\n' "${ROOTFS_DIR}"
 printf 'manifest=%s\n' "${MANIFEST_FILE}"
 printf 'status=ok\n'
