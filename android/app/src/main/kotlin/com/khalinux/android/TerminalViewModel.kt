@@ -61,9 +61,9 @@ data class TerminalUiState(
 class TerminalViewModel(application: Application) : AndroidViewModel(application) {
     private val lock = Any()
     private val terminalEmulator = TerminalEmulator(rows = 24, columns = 80)
-    private val historyRepository = CommandHistoryRepository(
-        CommandHistoryDatabase.getInstance(application).commandHistoryDao()
-    )
+    private val database = CommandHistoryDatabase.getInstance(application)
+    private val historyRepository = CommandHistoryRepository(database.commandHistoryDao())
+    private val settingsRepository = TerminalSettingsRepository(database.terminalSettingsDao())
     private val mutableUiState = MutableStateFlow(TerminalUiState())
     val uiState: StateFlow<TerminalUiState> = mutableUiState.asStateFlow()
 
@@ -77,6 +77,28 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             historyRepository.observeRecent().collect { entries ->
                 mutableUiState.update { it.copy(commandHistory = entries) }
+            }
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            settingsRepository.observeSettings().collect { settings ->
+                if (settings == null) {
+                    settingsRepository.save(TerminalSettingsEntity())
+                } else {
+                    synchronized(lock) {
+                        val rows = settings.rows.coerceIn(12, 60)
+                        val columns = settings.columns.coerceIn(40, 160)
+                        terminalEmulator.resize(rows, columns)
+                        mutableUiState.update {
+                            it.copy(
+                                fontSizeSp = settings.fontSizeSp.coerceIn(10f, 22f),
+                                terminalRows = rows,
+                                terminalColumns = columns,
+                                terminalSnapshot = terminalEmulator.snapshot(),
+                                output = terminalEmulator.plainText()
+                            )
+                        }
+                    }
+                }
             }
         }
     }
