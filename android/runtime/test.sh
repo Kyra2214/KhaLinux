@@ -21,10 +21,10 @@ command -v qemu-aarch64-static >/dev/null || { echo 'qemu-aarch64-static ausente
 command -v javac >/dev/null || { echo 'javac ausente' >&2; exit 1; }
 command -v sort >/dev/null || { echo 'sort ausente' >&2; exit 1; }
 
-KOTLIN_VERSION="$(kotlinc -version 2>&1 | sed -n 's/.*kotlinc-jvm \\([^ ]*\\).*/\\1/p')"
+KOTLIN_VERSION="$(kotlinc -version 2>&1 | sed -n 's/.*kotlinc-jvm \([^ ]*\).*/\1/p')"
 [[ -n "${KOTLIN_VERSION}" ]] || { echo 'não foi possível identificar a versão do Kotlin' >&2; exit 1; }
 MIN_KOTLIN_VERSION="1.9.24"
-OLDEST_VERSION="$(printf '%s\\n' "${MIN_KOTLIN_VERSION}" "${KOTLIN_VERSION}" | sort -V | head -n 1)"
+OLDEST_VERSION="$(printf '%s\n' "${MIN_KOTLIN_VERSION}" "${KOTLIN_VERSION}" | sort -V | head -n 1)"
 [[ "${OLDEST_VERSION}" == "${MIN_KOTLIN_VERSION}" ]] || {
   echo "Kotlin ${KOTLIN_VERSION} incompatível; use ${MIN_KOTLIN_VERSION} ou superior" >&2
   exit 1
@@ -33,10 +33,10 @@ OLDEST_VERSION="$(printf '%s\\n' "${MIN_KOTLIN_VERSION}" "${KOTLIN_VERSION}" | s
 rm -rf "${BUILD_DIR}"
 mkdir -p "${BUILD_DIR}/classes" "${BUILD_DIR}/test-classes"
 javac -d "${BUILD_DIR}/classes" android/runtime/src/main/java/com/khalinux/runtime/NativePty.java
-kotlinc android/runtime/src/main/kotlin/com/khalinux/runtime/*.kt \\
+kotlinc android/runtime/src/main/kotlin/com/khalinux/runtime/*.kt \
   -jvm-target 17 -cp "${BUILD_DIR}/classes" -d "${BUILD_DIR}/classes"
-kotlinc -jvm-target 17 -cp "${BUILD_DIR}/classes:${KOTLIN_STDLIB}:${KOTLIN_TEST_JAR}:${JUNIT_JAR}:${HAMCREST_JAR}" \\
+kotlinc -jvm-target 17 -cp "${BUILD_DIR}/classes:${KOTLIN_STDLIB}:${KOTLIN_TEST_JAR}:${JUNIT_JAR}:${HAMCREST_JAR}" \
   android/runtime/src/test/kotlin/com/khalinux/runtime/*.kt -d "${BUILD_DIR}/test-classes"
-java -cp "${BUILD_DIR}/classes:${BUILD_DIR}/test-classes:${KOTLIN_STDLIB}:${KOTLIN_TEST_JAR}:${JUNIT_JAR}:${HAMCREST_JAR}" \\
+java -cp "${BUILD_DIR}/classes:${BUILD_DIR}/test-classes:${KOTLIN_STDLIB}:${KOTLIN_TEST_JAR}:${JUNIT_JAR}:${HAMCREST_JAR}" \
   org.junit.runner.JUnitCore com.khalinux.runtime.SessionManagerTest
 bash android/runtime/test-pty-native.sh
