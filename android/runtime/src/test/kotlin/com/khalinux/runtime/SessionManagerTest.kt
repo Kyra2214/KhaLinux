@@ -150,7 +150,8 @@ class SessionManagerTest {
             "sleep 10 & echo $!; wait"
         ).start()
         val descendantPid = child.inputStream.bufferedReader().readLine().trim().toInt()
-        val managed = ProcessGroupManagedProcess(child) { pid, force ->
+        val processGroupId = Math.toIntExact(child.pid())
+        val managed = ProcessGroupManagedProcess(child, processGroupId) { pid, force ->
             val signal = if (force) "KILL" else "TERM"
             ProcessBuilder(kill.absolutePath, "-$signal", "--", "-$pid")
                 .start()
