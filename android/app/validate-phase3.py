@@ -86,7 +86,7 @@ assert "forkpty" in adr.read_text() and "VT/ANSI" in adr.read_text(), "ADR-0003 
 assert 'include(":android:app")' in settings.read_text(), "módulo app ausente"
 assert 'include(":android:runtime")' in settings.read_text(), "módulo runtime ausente"
 assert buffer.is_file(), "buffer limitado de saída ausente"
-assert "TerminalOutputBuffer()" in view_model_text, "ViewModel não usa buffer limitado"
+assert "TerminalEmulator(" in view_model_text, "ViewModel não usa emulador VT/ANSI com scrollback limitado"\nassert "maxScrollbackLines" in emulator_text, "limite de scrollback do terminal ausente"
 
 result = subprocess.run(["bash", str(test_script)], check=True, capture_output=True, text=True)
 assert "terminal_output_buffer=ok cases=6" in result.stdout, "testes do buffer não concluíram"
