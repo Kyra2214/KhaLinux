@@ -315,15 +315,20 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun openInteractiveShell() {
-        val activeUseCases = synchronized(lock) {
+        val start = synchronized(lock) {
             val current = mutableUiState.value
             val useCases = runtimeUseCases ?: return
             if (!current.runtimeInstalled || current.isRunning) return
             appendOutputLocked("\n[shell interativo PTY iniciando; TERM=ansi]\n")
             mutableUiState.update { it.copy(isStarting = true) }
-            useCases
+            Triple(useCases, current.terminalRows, current.terminalColumns)
         }
-        launchSession(interactive = true, useCases = activeUseCases)
+        launchSession(
+            interactive = true,
+            useCases = start.first,
+            rows = start.second,
+            columns = start.third
+        )
     }
 
     private fun launchSession(
@@ -336,7 +341,7 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
             try {
                 val sessionId = withContext(Dispatchers.IO) {
                     val id = if (interactive) {
-                        useCases.startInteractive(observerFor(useCases))
+                        useCases.startInteractive(rows, columns, observerFor(useCases))
                     } else {
                         useCases.startCommand(requireNotNull(command), observerFor(useCases))
                     }
