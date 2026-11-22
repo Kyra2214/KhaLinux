@@ -214,9 +214,12 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
                             rootfsInstallMessage = if (runtimeReady) {
                                 "Ambiente Linux instalado e pronto."
                             } else {
-                                "RootFS instalado. O binário PRoot ainda precisa ser instalado."
+                                "Debian instalado. Preparando o PRoot automaticamente…"
                             }
                         )
+                    }
+                    if (!runtimeReady && !mutableUiState.value.prootInstalled) {
+                        installProot()
                     }
                 }
 
