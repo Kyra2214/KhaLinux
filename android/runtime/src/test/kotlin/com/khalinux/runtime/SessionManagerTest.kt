@@ -30,6 +30,14 @@ class SessionManagerTest {
         }
     }
 
+    @Test fun interactiveSessionUsesGuestBashAndConservativeTerminalEnvironment() {
+        val config = ProotConfig(proot, rootfs, File("/usr/bin/qemu-aarch64-static"))
+        val args = config.commandFor(CommandRequest("", interactive = true))
+        assertEquals(listOf("/bin/bash", "--noprofile", "--norc", "-i"), args.takeLast(4))
+        assertTrue(args.contains("TERM=dumb"))
+        assertTrue(args.contains("PS1=khalinux:\\w\\$ "))
+    }
+
     @Test fun sessionCapturesStdoutAndExitCode() {
         val runtime = runtime()
         try {

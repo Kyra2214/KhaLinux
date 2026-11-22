@@ -1,2 +1,2 @@
-# O runtime não possui regras de shrinking específicas nesta fase.
-# Adicionar regras apenas após validar um APK release.
+# Os nomes desta classe fazem parte dos símbolos JNI exportados por native_pty.c.
+-keep class com.khalinux.runtime.NativePty { *; }

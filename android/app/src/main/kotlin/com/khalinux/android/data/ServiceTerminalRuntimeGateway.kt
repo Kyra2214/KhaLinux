@@ -13,10 +13,21 @@ class ServiceTerminalRuntimeGateway(
     override fun start(command: String, observer: RuntimeEventObserver): String =
         service.startShell(
             shellCommand = command,
-            listener = object : KhaLinuxRuntimeService.EventListener {
-                override fun onEvent(event: RuntimeEvent) = observer.onEvent(event)
-            }
+            listener = observerListener(observer)
         )
 
+    override fun startInteractive(observer: RuntimeEventObserver): String =
+        service.startInteractiveShell(listener = observerListener(observer))
+
+    override fun writeInput(sessionId: String, text: String): Boolean = service.writeInput(sessionId, text)
+
+    override fun resize(sessionId: String, rows: Int, columns: Int): Boolean =
+        service.resize(sessionId, rows, columns)
+
     override fun cancel(sessionId: String): Boolean = service.cancel(sessionId)
+
+    private fun observerListener(observer: RuntimeEventObserver) =
+        object : KhaLinuxRuntimeService.EventListener {
+            override fun onEvent(event: RuntimeEvent) = observer.onEvent(event)
+        }
 }

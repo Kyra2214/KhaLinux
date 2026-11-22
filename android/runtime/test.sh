@@ -12,11 +12,15 @@ done
 command -v kotlinc >/dev/null || { echo 'kotlinc ausente' >&2; exit 1; }
 command -v proot >/dev/null || { echo 'proot ausente' >&2; exit 1; }
 command -v qemu-aarch64-static >/dev/null || { echo 'qemu-aarch64-static ausente' >&2; exit 1; }
+command -v javac >/dev/null || { echo 'javac ausente' >&2; exit 1; }
 rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR/classes" "$BUILD_DIR/test-classes"
-kotlinc android/runtime/src/main/kotlin/com/khalinux/runtime/*.kt -d "$BUILD_DIR/classes"
+javac -d "$BUILD_DIR/classes" android/runtime/src/main/java/com/khalinux/runtime/NativePty.java
+kotlinc android/runtime/src/main/kotlin/com/khalinux/runtime/*.kt \
+  -cp "$BUILD_DIR/classes" -d "$BUILD_DIR/classes"
 kotlinc -cp "$BUILD_DIR/classes:$KOTLIN_TEST_JAR:$JUNIT_JAR:$HAMCREST_JAR" \
   android/runtime/src/test/kotlin/com/khalinux/runtime/*.kt -d "$BUILD_DIR/test-classes"
 KOTLIN_STDLIB="$(find /usr/share/java -maxdepth 1 -name 'kotlin-stdlib*.jar' | head -1)"
 java -cp "$BUILD_DIR/classes:$BUILD_DIR/test-classes:$KOTLIN_STDLIB:$KOTLIN_TEST_JAR:$JUNIT_JAR:$HAMCREST_JAR" \
   org.junit.runner.JUnitCore com.khalinux.runtime.SessionManagerTest
+bash android/runtime/test-pty-native.sh

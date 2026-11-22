@@ -8,6 +8,8 @@ interface LinuxRuntime : Closeable {
     fun start(request: CommandRequest): RuntimeSession
     fun snapshot(sessionId: String): SessionSnapshot?
     fun cancel(sessionId: String): Boolean
+    fun writeInput(sessionId: String, bytes: ByteArray): Boolean
+    fun resize(sessionId: String, rows: Int, columns: Int): Boolean
     fun sessions(): List<SessionSnapshot>
 }
 
@@ -16,14 +18,21 @@ data class CommandRequest(
     val shellCommand: String,
     val workingDirectory: String = "/home/khalinux",
     val environment: Map<String, String> = emptyMap(),
-    val timeout: Duration? = null
+    val timeout: Duration? = null,
+    val interactive: Boolean = false,
+    val initialRows: Int = 24,
+    val initialColumns: Int = 80
 ) {
     init {
-        require(shellCommand.isNotBlank()) { "shellCommand não pode ser vazio" }
+        require(interactive || shellCommand.isNotBlank()) {
+            "shellCommand não pode ser vazio para uma execução não interativa"
+        }
         require(workingDirectory.startsWith("/")) { "workingDirectory deve ser absoluto no RootFS" }
         require(timeout == null || !timeout.isNegative && !timeout.isZero) {
             "timeout deve ser positivo"
         }
+        require(initialRows in 1..65535) { "initialRows fora do intervalo suportado" }
+        require(initialColumns in 1..65535) { "initialColumns fora do intervalo suportado" }
     }
 }
 
@@ -51,5 +60,7 @@ interface RuntimeSession : Closeable {
     val id: String
     fun events(): Sequence<RuntimeEvent>
     fun snapshot(): SessionSnapshot
+    fun writeInput(bytes: ByteArray): Boolean
+    fun resize(rows: Int, columns: Int): Boolean
     fun cancel(): Boolean
 }

@@ -1,19 +1,21 @@
 # Runtime PRoot — Fase 2
 
-Este módulo contém o núcleo Kotlin/JVM do runtime Linux. Ele não depende de Compose e não acessa Android UI. A futura camada Android poderá adaptar `LinuxRuntime` para Coroutines, WorkManager e ciclo de vida.
+Este módulo contém o núcleo Kotlin/JVM do runtime Linux. Ele não depende de Compose. `LinuxRuntime` expõe sessões, eventos, entrada interativa e redimensionamento sem acoplar a UI aos detalhes de processo.
 
-## Responsabilidades implementadas
+## Launchers e sessões
 
-`ProotConfig` valida o executável, o RootFS, diretórios de trabalho, bind mounts e nomes de variáveis de ambiente. `ProotLauncher` monta uma lista de argumentos estruturados e inicia `ProcessBuilder` sem concatenar um comando de host. A string de terminal é passada como um único argumento para o Bash **dentro** do RootFS.
+`ProotConfig` valida o executável, o RootFS, diretórios de trabalho, bind mounts e nomes de variáveis de ambiente. `ProotLauncher` monta uma lista de argumentos estruturados e nunca concatena comandos para um shell do host. Comandos individuais usam `SystemProcessLauncher` e pipes. Solicitações interativas usam um `TerminalProcessLauncher` independente.
 
-`SessionManager` limita sessões concorrentes, captura stdout e stderr em bytes, expõe eventos, registra estado, aplica timeout e permite cancelamento. O cancelamento usa `destroy()` e fallback para `destroyForcibly()`; a implementação Android deverá complementar isso com um grupo de processos quando a API disponível permitir.
+No Android, `AndroidPtyProcessLauncher` usa a ponte JNI em `src/main/cpp/native_pty.c`. O código C prepara argumentos e ambiente no processo pai, chama `forkpty` e executa o vetor sem shell intermediário via `execve`. O master do PTY transporta stdin/stdout/stderr combinados; resize aplica `TIOCSWINSZ`. O cancelamento sinaliza o grupo de processos da sessão. A biblioteca nativa só é carregada quando o launcher interativo é usado.
+
+`SessionManager` captura stdout/stderr como bytes, expõe estado e eventos, aplica timeout, encaminha entrada e aguarda o esvaziamento das saídas antes do evento final. A tela atual oferece entrada de linhas para um Bash interativo e mantém os comandos não interativos em pipes.
 
 ## Limitações explícitas
 
-PRoot não é isolamento forte. O runtime não promete equivalência a máquina virtual ou contêiner. A opção `-0` apenas apresenta identidade root dentro do ambiente PRoot e não concede privilégios ao processo no Android.
+PRoot não é isolamento forte. A opção `-0` apenas apresenta identidade root dentro do ambiente PRoot e não concede privilégios ao processo no Android.
 
-O módulo ainda não implementa PTY interativo; `ProcessBuilder` fornece streams pipe. O suporte a terminal interativo, teclado auxiliar, múltiplas sessões persistidas e integração com ciclo de vida Android será desenvolvido nas próximas etapas.
+O PTY implementado é o transporte de terminal, não um emulador VT/ANSI. A UI ainda não interpreta cores, controle de cursor, teclas especiais ou telas completas; o ambiente convidado mantém `TERM=dumb`. As dimensões iniciais são 24x80; a UI ainda não calcula e envia o tamanho real da área visível. Validação com NDK, aparelho Android ARM64, instalação do runtime e ciclo de vida Android continuam pendentes.
 
-## Execução local
+## Testes host-side
 
-Os testes usam `/usr/bin/proot`, `/usr/bin/qemu-aarch64-static` e o RootFS gerado na Fase 1 porque o sandbox é x86_64. Em Android ARM64, `qemuExecutable` deve ser nulo: o PRoot executará diretamente os binários ARM64 do RootFS. Em um projeto Gradle Android, estes arquivos devem ser incluídos como source set Kotlin e testados com JUnit.
+`test-pty-native.sh` compila a JNI com GCC/JDK e exercita spawn, entrada/saída, UTF-8, resize e sinalização em Linux. Isso valida o contrato POSIX/JNI no host, não substitui o build Android NDK. `test.sh` compila e executa os testes Kotlin existentes quando Kotlin, JUnit, PRoot, QEMU e o RootFS da Fase 1 estão disponíveis.

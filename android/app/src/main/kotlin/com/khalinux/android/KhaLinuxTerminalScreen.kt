@@ -1,6 +1,5 @@
 package com.khalinux.android
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,7 +21,6 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
@@ -64,21 +62,34 @@ fun KhaLinuxApp(viewModel: TerminalViewModel) {
                 OutlinedTextField(
                     value = state.command,
                     onValueChange = viewModel::updateCommand,
-                    label = { Text("Comando Bash") },
+                    label = { Text(if (state.isInteractive) "Entrada do shell" else "Comando Bash") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
 
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                     Button(
-                        onClick = viewModel::runCommand,
-                        enabled = state.serviceConnected && state.runtimeInstalled && !state.isRunning && state.command.isNotBlank()
+                        onClick = if (state.isInteractive) viewModel::sendInput else viewModel::runCommand,
+                        enabled = if (state.isInteractive) {
+                            state.command.isNotEmpty()
+                        } else {
+                            state.serviceConnected && state.runtimeInstalled && !state.isRunning && state.command.isNotBlank()
+                        },
+                        modifier = Modifier.weight(1f)
                     ) {
-                        Text("Executar")
+                        Text(if (state.isInteractive) "Enviar" else "Executar")
+                    }
+                    OutlinedButton(
+                        onClick = viewModel::openInteractiveShell,
+                        enabled = state.serviceConnected && state.runtimeInstalled && !state.isRunning,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Abrir shell")
                     }
                     OutlinedButton(
                         onClick = viewModel::cancelCommand,
-                        enabled = state.isRunning
+                        enabled = state.isRunning,
+                        modifier = Modifier.weight(1f)
                     ) {
                         Text("Cancelar")
                     }

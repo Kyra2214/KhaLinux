@@ -10,5 +10,8 @@ fun interface RuntimeEventObserver {
 interface TerminalRuntimeGateway {
     fun isInstalled(): Boolean
     fun start(command: String, observer: RuntimeEventObserver): String
+    fun startInteractive(observer: RuntimeEventObserver): String
+    fun writeInput(sessionId: String, text: String): Boolean
+    fun resize(sessionId: String, rows: Int, columns: Int): Boolean
     fun cancel(sessionId: String): Boolean
 }

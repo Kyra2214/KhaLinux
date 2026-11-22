@@ -28,7 +28,7 @@ Este roadmap é a referência oficial de evolução do projeto. Uma fase só pod
 
 ## Fase 2 — Runtime Android
 
-**Estado:** núcleo Kotlin de launcher PRoot e sessões validado no sandbox com quatro testes; integração Android/PTY e aparelho real pendentes.
+**Estado:** launcher por pipes e sessões Kotlin existentes; backend PTY por JNI e entrada interativa implementados; teste JNI executado no host; compilação Kotlin/NDK e validação em Android ARM64 pendentes.
 
 - Implementar launcher PRoot, PTY, sessões e gerenciamento de processos.
 - Tratar stdout/stderr, timeout, cancelamento e erros.
@@ -38,7 +38,7 @@ Este roadmap é a referência oficial de evolução do projeto. Uma fase só pod
 
 ## Fase 3 — Aplicativo Android
 
-**Estado:** Activity/Service integrado e primeiro código de tela Compose, ViewModel/StateFlow, casos de uso/porta de domínio e terminal com saída limitada implementados; PTY, instalação, persistência, configurações e validação Android continuam pendentes.
+**Estado:** Activity/Service, Compose/MVVM e entrada de linhas para shell interativo por PTY implementados no código; emulador VT/ANSI, instalação, persistência, configurações e compilação/validação Android continuam pendentes.
 
 - Concluir projeto Kotlin com Jetpack Compose, MVVM, Clean Architecture e Coroutines.
 - Implementar navegação, dashboard, instalação, terminal, configurações, Room e histórico.

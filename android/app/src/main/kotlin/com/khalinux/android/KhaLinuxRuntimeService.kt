@@ -4,6 +4,7 @@ import android.app.Service
 import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
+import com.khalinux.runtime.AndroidPtyProcessLauncher
 import com.khalinux.runtime.CommandRequest
 import com.khalinux.runtime.LinuxRuntime
 import com.khalinux.runtime.ProotConfig
@@ -49,7 +50,8 @@ class KhaLinuxRuntimeService : Service() {
                     prootExecutable = proot,
                     rootfsDirectory = rootfs,
                     qemuExecutable = null
-                )
+                ),
+                interactiveProcessLauncher = AndroidPtyProcessLauncher()
             )
         )
     }
@@ -68,7 +70,27 @@ class KhaLinuxRuntimeService : Service() {
             shellCommand = shellCommand,
             timeout = timeoutMillis?.let { Duration.ofMillis(it) }
         )
-        val session = activeRuntime.start(request)
+        return observe(activeRuntime.start(request), listener)
+    }
+
+    fun startInteractiveShell(
+        rows: Int = 24,
+        columns: Int = 80,
+        listener: EventListener
+    ): String {
+        val activeRuntime = requireNotNull(runtime) {
+            "Runtime Linux ainda não foi instalado neste dispositivo"
+        }
+        val request = CommandRequest(
+            shellCommand = "",
+            interactive = true,
+            initialRows = rows,
+            initialColumns = columns
+        )
+        return observe(activeRuntime.start(request), listener)
+    }
+
+    private fun observe(session: com.khalinux.runtime.RuntimeSession, listener: EventListener): String {
         callbacks.submit {
             try {
                 session.events().forEach(listener::onEvent)
@@ -78,6 +100,12 @@ class KhaLinuxRuntimeService : Service() {
         }
         return session.id
     }
+
+    fun writeInput(sessionId: String, text: String): Boolean =
+        runtime?.writeInput(sessionId, text.toByteArray(Charsets.UTF_8)) == true
+
+    fun resize(sessionId: String, rows: Int, columns: Int): Boolean =
+        runtime?.resize(sessionId, rows, columns) == true
 
     fun cancel(sessionId: String): Boolean = runtime?.cancel(sessionId) == true
 

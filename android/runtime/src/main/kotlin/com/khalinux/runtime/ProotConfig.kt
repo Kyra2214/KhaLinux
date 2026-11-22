@@ -14,7 +14,7 @@ data class ProotConfig(
         "HOME" to "/home/khalinux",
         "LANG" to "C.UTF-8",
         "LC_ALL" to "C.UTF-8",
-        // Pipes não são PTY; TERM=dumb evita sequências de controle espúrias.
+        // A interface ainda não emula ANSI/VT; não anunciar capacidades inexistentes.
         "TERM" to "dumb",
         "PATH" to "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
     ),
@@ -54,13 +54,22 @@ data class ProotConfig(
         args += "/usr/bin/env"
         args += "-i"
         val env = baseEnvironment + request.environment
-        env.toSortedMap().forEach { (key, value) ->
+        val effectiveEnvironment = if (request.interactive && "PS1" !in request.environment) {
+            env + ("PS1" to "khalinux:\\w\\$ ")
+        } else {
+            env
+        }
+        effectiveEnvironment.toSortedMap().forEach { (key, value) ->
             require(ENVIRONMENT_KEY.matches(key)) { "nome de variável inválido: $key" }
             args += "$key=$value"
         }
-        // O comando é um argumento único do Bash interno; não há shell intermediário no host.
-        args += listOf("/bin/bash", "--noprofile", "--norc", "-lc", request.shellCommand)
-        return args
+        return if (request.interactive) {
+            args += listOf("/bin/bash", "--noprofile", "--norc", "-i")
+            args
+        } else {
+            // O comando é um argumento único do Bash interno; não há shell intermediário no host.
+            args + listOf("/bin/bash", "--noprofile", "--norc", "-lc", request.shellCommand)
+        }
     }
 
     companion object {

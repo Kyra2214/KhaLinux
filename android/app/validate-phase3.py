@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Valida a separação Activity -> Compose/ViewModel -> domínio/dados -> Service."""
+"""Valida camadas do app e transporte PTY sem alegar build ou teste Android."""
 from pathlib import Path
 import subprocess
 import xml.etree.ElementTree as ET
@@ -17,6 +17,13 @@ app_build = ROOT / "android/app/build.gradle.kts"
 settings = ROOT / "settings.gradle.kts"
 buffer = ROOT / "android/app/src/main/java/com/khalinux/android/TerminalOutputBuffer.java"
 test_script = ROOT / "android/app/test-output-buffer.sh"
+runtime_launcher = ROOT / "android/runtime/src/main/kotlin/com/khalinux/runtime/ProotLauncher.kt"
+runtime_config = ROOT / "android/runtime/src/main/kotlin/com/khalinux/runtime/ProotConfig.kt"
+runtime_manager = ROOT / "android/runtime/src/main/kotlin/com/khalinux/runtime/SessionManager.kt"
+pty_process = ROOT / "android/runtime/src/main/kotlin/com/khalinux/runtime/AndroidPtyProcess.kt"
+pty_native = ROOT / "android/runtime/src/main/cpp/native_pty.c"
+pty_build = ROOT / "android/runtime/build.gradle.kts"
+adr = ROOT / "docs/decisions/ADR-0003-native-pty.md"
 
 root = ET.parse(manifest).getroot()
 ns = {"a": "http://schemas.android.com/apk/res/android"}
@@ -32,6 +39,12 @@ use_cases_text = use_cases.read_text()
 data_text = data_adapter.read_text()
 service_text = service.read_text()
 build_text = app_build.read_text()
+launcher_text = runtime_launcher.read_text()
+config_text = runtime_config.read_text()
+manager_text = runtime_manager.read_text()
+pty_text = pty_native.read_text()
+pty_process_text = pty_process.read_text()
+pty_build_text = pty_build.read_text()
 assert "bindService" in activity_text and "unbindService" in activity_text, "Activity não gerencia binding do Service"
 assert "setContent" in activity_text and "ComponentActivity" in activity_text, "Activity Compose ausente"
 assert "ServiceTerminalRuntimeGateway" in activity_text, "Activity não usa o adaptador de dados"
@@ -41,23 +54,35 @@ assert "KhaLinuxRuntimeService" not in view_model_text, "ViewModel acoplado ao S
 assert "TerminalRuntimeGateway" in view_model_text and "TerminalUseCases" in view_model_text, "ViewModel sem abstração/casos de uso"
 assert "interface TerminalRuntimeGateway" in domain_text, "porta de domínio ausente"
 assert "StartTerminalCommandUseCase" in use_cases_text and "CancelTerminalSessionUseCase" in use_cases_text, "casos de uso ausentes"
+assert "startInteractive" in domain_text and "writeInput" in domain_text and "resize" in domain_text, "porta interativa incompleta"
 assert "TerminalRuntimeGateway" in data_text and "KhaLinuxRuntimeService" in data_text, "adaptador Service/dados ausente"
 assert "collectAsStateWithLifecycle" in screen_text and "OutlinedTextField" in screen_text, "tela Compose lifecycle-aware ausente"
 assert "animateScrollTo" in screen_text, "saída do terminal não acompanha novos eventos"
+assert "Abrir shell" in screen_text and "Enviar" in screen_text, "ações de shell interativo ausentes"
 assert "compose = true" in build_text and "kotlinCompilerExtensionVersion" in build_text, "Compose não habilitado no Gradle"
 assert "class LocalBinder" in service_text and "onBind" in service_text, "Binder do Service ausente"
 assert "SessionManager" in service_text and "startShell" in service_text, "Service não hospeda runtime"
+assert "startInteractiveShell" in service_text and "AndroidPtyProcessLauncher" in service_text, "Service não seleciona PTY para shell"
+assert "TerminalProcessLauncher" in launcher_text and "interactiveProcessLauncher" in launcher_text, "launcher PTY não está separado dos pipes"
+assert "ProcessBuilder" in launcher_text and "execve(" in pty_text and "forkpty(" in pty_text, "execução estruturada/PTY ausentes"
+assert "writeInput" in manager_text and "streamPumpsFinished.await()" in manager_text, "entrada/drenagem de streams ausentes"
+assert "ResizableProcess" in pty_process_text and "NativePty.resize" in pty_process_text, "controle de tamanho do PTY ausente"
+assert "externalNativeBuild" in pty_build_text and "minSdk = 35" in pty_build_text, "integração CMake/minSdk ausente"
+assert "forkpty" in adr.read_text() and "VT/ANSI" in adr.read_text(), "ADR-0003 ou limite VT/ANSI ausente"
 assert 'include(":android:app")' in settings.read_text(), "módulo app ausente"
 assert 'include(":android:runtime")' in settings.read_text(), "módulo runtime ausente"
 assert buffer.is_file(), "buffer limitado de saída ausente"
 assert "TerminalOutputBuffer()" in view_model_text, "ViewModel não usa buffer limitado"
 
-result = subprocess.run(
-    ["bash", str(test_script)],
+result = subprocess.run(["bash", str(test_script)], check=True, capture_output=True, text=True)
+assert "terminal_output_buffer=ok cases=6" in result.stdout, "testes do buffer não concluíram"
+pty_result = subprocess.run(
+    ["bash", str(ROOT / "android/runtime/test-pty-native.sh")],
     check=True,
     capture_output=True,
     text=True,
 )
-assert "terminal_output_buffer=ok cases=6" in result.stdout, "testes do buffer não concluíram"
+assert "pty_native=ok" in pty_result.stdout, "teste JNI/PTy host-side não concluiu"
 print(result.stdout.strip())
-print("phase3_structure=ok compose_mvvm_domain_data_service_separated=true transcript_bounded=true")
+print(pty_result.stdout.strip())
+print("phase3_structure=ok compose_mvvm_domain_data_service_separated=true transcript_bounded=true interactive_pty=true")

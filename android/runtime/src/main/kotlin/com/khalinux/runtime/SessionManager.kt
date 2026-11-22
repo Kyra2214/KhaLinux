@@ -6,6 +6,7 @@ import java.time.Clock
 import java.util.UUID
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ScheduledFuture
@@ -41,6 +42,12 @@ class SessionManager(
 
     override fun cancel(sessionId: String): Boolean = sessions[sessionId]?.cancel() ?: false
 
+    override fun writeInput(sessionId: String, bytes: ByteArray): Boolean =
+        sessions[sessionId]?.writeInput(bytes) ?: false
+
+    override fun resize(sessionId: String, rows: Int, columns: Int): Boolean =
+        sessions[sessionId]?.resize(rows, columns) ?: false
+
     override fun sessions(): List<SessionSnapshot> = sessions.values.map { it.snapshot() }.sortedBy { it.id }
 
     override fun close() {
@@ -57,30 +64,46 @@ class SessionManager(
     ) : RuntimeSession {
         private val queue: BlockingQueue<RuntimeEvent> = LinkedBlockingQueue()
         private val lock = Any()
+        private val inputLock = Any()
+        private val streamPumpsFinished = CountDownLatch(2)
         private var process: Process? = null
         private var timeoutTask: ScheduledFuture<*>? = null
         private var current = SessionSnapshot(id, SessionState.CREATED, null, null, null, false, null)
 
         fun start() {
             val launched = launcher.launch(request)
-            synchronized(lock) {
-                process = launched
-                current = current.copy(
-                    state = SessionState.RUNNING,
-                    startedAtEpochMillis = clock.millis()
-                )
-            }
-            queue.offer(RuntimeEvent.Started(id))
-            ioPool.submit { pump(launched.inputStream, false) }
-            ioPool.submit { pump(launched.errorStream, true) }
-            ioPool.submit { awaitExit(launched) }
-            request.timeout?.let { timeout ->
-                timeoutTask = scheduler.schedule({
-                    synchronized(lock) {
-                        if (current.state == SessionState.RUNNING) current = current.copy(timedOut = true)
-                    }
-                    cancelInternal()
-                }, timeout.toMillis(), TimeUnit.MILLISECONDS)
+            try {
+                synchronized(lock) {
+                    process = launched
+                    current = current.copy(
+                        state = SessionState.RUNNING,
+                        startedAtEpochMillis = clock.millis()
+                    )
+                }
+                queue.offer(RuntimeEvent.Started(id))
+                ioPool.submit {
+                    try { pump(launched.inputStream, false) }
+                    finally { streamPumpsFinished.countDown() }
+                }
+                ioPool.submit {
+                    try { pump(launched.errorStream, true) }
+                    finally { streamPumpsFinished.countDown() }
+                }
+                ioPool.submit { awaitExit(launched) }
+                request.timeout?.let { timeout ->
+                    timeoutTask = scheduler.schedule({
+                        synchronized(lock) {
+                            if (current.state == SessionState.RUNNING) current = current.copy(timedOut = true)
+                        }
+                        cancelInternal()
+                    }, timeout.toMillis(), TimeUnit.MILLISECONDS)
+                }
+            } catch (error: Throwable) {
+                try { launched.destroyForcibly() } catch (_: Throwable) { }
+                try { launched.inputStream.close() } catch (_: Throwable) { }
+                try { launched.errorStream.close() } catch (_: Throwable) { }
+                try { launched.outputStream.close() } catch (_: Throwable) { }
+                throw error
             }
         }
 
@@ -102,10 +125,13 @@ class SessionManager(
         private fun awaitExit(child: Process) {
             try {
                 val exitCode = child.waitFor()
-                val timedOut = synchronized(lock) { current.timedOut }
+                streamPumpsFinished.await()
+                val (timedOut, wasCancelling) = synchronized(lock) {
+                    current.timedOut to (current.state == SessionState.CANCELLING)
+                }
                 synchronized(lock) {
                     current = current.copy(
-                        state = if (timedOut) SessionState.CANCELLED else SessionState.EXITED,
+                        state = if (timedOut || wasCancelling) SessionState.CANCELLED else SessionState.EXITED,
                         endedAtEpochMillis = clock.millis(),
                         exitCode = exitCode
                     )
@@ -127,6 +153,30 @@ class SessionManager(
             child.destroy()
             if (!child.waitFor(500, TimeUnit.MILLISECONDS)) child.destroyForcibly()
             return true
+        }
+
+        override fun writeInput(bytes: ByteArray): Boolean = synchronized(inputLock) {
+            if (!request.interactive || bytes.isEmpty()) return false
+            val child = synchronized(lock) {
+                if (current.state != SessionState.RUNNING) null else process
+            } ?: return false
+            try {
+                child.outputStream.write(bytes)
+                child.outputStream.flush()
+                true
+            } catch (_: java.io.IOException) {
+                false
+            }
+        }
+
+        override fun resize(rows: Int, columns: Int): Boolean {
+            require(rows in 1..65535) { "rows fora do intervalo suportado" }
+            require(columns in 1..65535) { "columns fora do intervalo suportado" }
+            if (!request.interactive) return false
+            val child = synchronized(lock) {
+                if (current.state != SessionState.RUNNING) null else process
+            } ?: return false
+            return (child as? ResizableProcess)?.resize(rows, columns) ?: false
         }
 
         override fun cancel(): Boolean = cancelInternal()
