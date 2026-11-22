@@ -52,6 +52,7 @@ fun KhaLinuxApp(viewModel: TerminalViewModel) {
                     text = when {
                         !state.serviceConnected -> state.connectionMessage ?: "Conectando ao Service local…"
                         state.runtimeInstalled -> "Runtime Linux instalado"
+                        state.rootfsInstalled -> "RootFS instalado; runtime PRoot pendente"
                         else -> "RootFS ainda não instalado"
                     } + when {
                         state.isStarting -> " · iniciando sessão…"
@@ -62,7 +63,7 @@ fun KhaLinuxApp(viewModel: TerminalViewModel) {
                     style = MaterialTheme.typography.bodyMedium
                 )
 
-                if (state.serviceConnected && !state.runtimeInstalled) {
+                if (state.serviceConnected && !state.rootfsInstalled) {
                     OutlinedButton(
                         onClick = viewModel::installRootfs,
                         enabled = !state.isInstallingRootfs,
