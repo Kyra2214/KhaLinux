@@ -88,7 +88,7 @@ fun KhaLinuxApp(viewModel: TerminalViewModel) {
                     }
                     OutlinedButton(
                         onClick = viewModel::cancelCommand,
-                        enabled = state.isRunning,
+                        enabled = state.sessionId != null,
                         modifier = Modifier.weight(1f)
                     ) {
                         Text("Cancelar")
