@@ -25,5 +25,11 @@ command -v apt-get >/dev/null
 [ -x /bin/bash ]
 id khalinux >/dev/null
 apt-get --version >/dev/null
+[ -s /etc/apt/sources.list.d/debian.sources ]
+grep -q 'snapshot.debian.org/archive/debian/20251122T000000Z' /etc/apt/sources.list.d/debian.sources
+grep -q '^Check-Valid-Until: no
+printf "rootfs_smoke_test=ok architecture=arm64 apt=binary-present\\n"
+'
+ /etc/apt/sources.list.d/debian.sources
 printf "rootfs_smoke_test=ok architecture=arm64 apt=binary-present\\n"
 '
