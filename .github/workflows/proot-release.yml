@@ -47,6 +47,11 @@ jobs:
       - name: Install build tools
         run: sudo apt-get update && sudo apt-get install -y build-essential curl unzip python3
 
+      - name: Validate build scripts
+        run: |
+          bash -n distribution/proot/build-proot-android.sh
+          bash -n distribution/proot/verify-proot.sh
+
       - name: Build official PRoot for Android ARM64
         run: bash distribution/proot/build-proot-android.sh
 
