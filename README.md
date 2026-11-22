@@ -2,7 +2,7 @@
 
 Ambiente Linux ARM64 para Android, executado localmente e sem root, voltado a aprendizado, diagnóstico, auditoria autorizada e prática de cibersegurança.
 
- > **Status:** Fase 3 — RootFS Debian Bookworm ARM64 e PRoot Android ARM64 publicados em releases versionadas. Instaladores separados, validação dos manifestos/ELF e UI de progresso integrados. Política de bind mounts mínimos integrada e testada em host; emulador ANSI/VT básico integrado em validação CI. Persistência e testes físicos finais continuam pendentes.
+ > **Status:** Fase 3 — RootFS Debian Bookworm ARM64 e PRoot Android ARM64 publicados em releases versionadas. Instaladores separados, validação dos manifestos/ELF e UI de progresso integrados. Binds mínimos, VT/ANSI básico, histórico Room, configurações persistentes e foreground service com notificação para sessões interativas integrados e compilados no CI. Auditoria final e testes físicos permanecem pendentes.
 
 ## Visão
 
