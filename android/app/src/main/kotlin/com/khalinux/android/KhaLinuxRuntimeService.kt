@@ -69,6 +69,11 @@ class KhaLinuxRuntimeService : Service() {
 
     fun isRuntimeInstalled(): Boolean = runtime != null
 
+    fun isRootfsInstalled(): Boolean {
+        val rootfs = File(filesDir, "runtime/rootfs-arm64")
+        return rootfs.isDirectory && (File(rootfs, "bin/bash").exists() || File(rootfs, "usr/bin/bash").exists())
+    }
+
     /** Busca o manifesto da release versionada e instala somente o artefato ARM64 declarado nela. */
     fun installLatestRootfs(listener: RootfsInstallListener) {
         installerExecutor.submit {
