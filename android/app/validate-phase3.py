@@ -76,7 +76,7 @@ assert "startInteractiveShell" in service_text and "AndroidPtyProcessLauncher" i
 assert "TerminalProcessLauncher" in launcher_text and "interactiveProcessLauncher" in launcher_text, "launcher PTY não está separado dos pipes"
 assert "ProcessBuilder" in launcher_text and "execve(" in pty_text and "forkpty(" in pty_text, "execução estruturada/PTY ausentes"
 assert "/system/bin/setsid" in launcher_text and "ProcessGroupManagedProcess" in launcher_text, "comandos Android não isolam grupo de processos"
-assert "NativePty.signal" in launcher_text and "delegate.pid()" in process_group_text, "cancelamento de grupo não usa PID/ponte JNI"
+assert "NativePty.signal" in launcher_text and "processGroupId: Int" in process_group_text and "awaitProcessGroupId" in launcher_text, "cancelamento de grupo não usa PID/ponte JNI"
 assert "process-group" in adr_process_group.read_text(), "ADR-0004 não registra o ciclo de vida do grupo de processos"
 assert "writeInput" in manager_text and "streamPumpsFinished.await()" in manager_text, "entrada/drenagem de streams ausentes"
 assert "maxRetainedSessions" in manager_text and "pruneCompletedSessions" in manager_text, "histórico de sessões sem limite"
