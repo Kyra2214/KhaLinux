@@ -137,7 +137,7 @@ class ProotInstaller(
             require(entry.name == "proot" && entry.isFile && !entry.isSymbolicLink && !entry.isLink) {
                 "Pacote PRoot deve conter somente um arquivo regular chamado proot"
             }
-            require(entry.size in 64..maxBinaryBytes) { "Tamanho do executável PRoot inválido" }
+            require(entry.size >= 64L && entry.size <= maxBinaryBytes) { "Tamanho do executável PRoot inválido" }
             extractedBytes = entry.size
             Files.newOutputStream(
                 output.toPath(),
@@ -169,8 +169,8 @@ class ProotInstaller(
                     header[2] == 'L'.code.toByte() &&
                     header[3] == 'F'.code.toByte()
             ) { "Executável PRoot não é ELF" }
-            require(header[4].toInt() == 2 && header[5].toInt() == 1) {
-                "Executável PRoot deve ser ELF64 little-endian"
+            require(header[4].toInt() == 2 && header[5].toInt() == 1 && header[6].toInt() == 1) {
+                "Executável PRoot deve ser ELF64 little-endian com versão ELF atual"
             }
             val elf = ByteBuffer.wrap(header).order(ByteOrder.LITTLE_ENDIAN)
             require((elf.getShort(16).toInt() and 0xffff) == 3) { "Executável PRoot deve ser PIE (ET_DYN)" }
@@ -179,7 +179,7 @@ class ProotInstaller(
             val programHeaderOffset = elf.getLong(32)
             val programHeaderSize = elf.getShort(54).toInt() and 0xffff
             val programHeaderCount = elf.getShort(56).toInt() and 0xffff
-            require(programHeaderOffset >= 64 && programHeaderSize >= 56 && programHeaderCount in 1..128) {
+            require(programHeaderOffset >= 64 && programHeaderSize in 56..128 && programHeaderCount in 1..128) {
                 "Tabela de segmentos ELF inválida"
             }
 
