@@ -492,8 +492,8 @@ class KhaLinuxRuntimeService : Service() {
             initialColumns = columns
         )
         interactiveSessionsStarting.incrementAndGet()
+        requestInteractiveForeground()
         return try {
-            requestInteractiveForeground()
             val session = activeRuntime.start(request)
             activeInteractiveSessionIds.add(session.id)
             interactiveSessionsStarting.decrementAndGet()
