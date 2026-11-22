@@ -38,9 +38,9 @@ Este roadmap é a referência oficial de evolução do projeto. Uma fase só pod
 
 ## Fase 3 — Aplicativo Android
 
-**Estado:** integração inicial Activity/Service e scaffold Gradle implementados; SDK Android, APK e dispositivo real ainda pendentes.
+**Estado:** Activity/Service integrado e primeiro código de tela Compose, ViewModel/StateFlow, casos de uso/porta de domínio e terminal com saída limitada implementados; PTY, instalação, persistência, configurações e validação Android continuam pendentes.
 
-- Criar projeto Kotlin com Jetpack Compose, MVVM, Clean Architecture e Coroutines.
+- Concluir projeto Kotlin com Jetpack Compose, MVVM, Clean Architecture e Coroutines.
 - Implementar navegação, dashboard, instalação, terminal, configurações, Room e histórico.
 
 **Critério:** APK funcional integrado ao ambiente Linux.

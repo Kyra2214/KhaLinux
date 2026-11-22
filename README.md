@@ -2,7 +2,7 @@
 
 Ambiente Linux ARM64 para Android, executado localmente e sem root, voltado a aprendizado, diagnóstico, auditoria autorizada e prática de cibersegurança.
 
-> **Status:** Fase 3 — integração inicial Activity/Service e scaffold Gradle implementados. APK, Compose completo, PTY e validação em aparelho ainda estão pendentes.
+> **Status:** Fase 3 — integração Activity/Service, tela Compose e ViewModel do terminal em implementação. PTY, persistência e validação em ambiente Android continuam pendentes.
 
 ## Visão
 
@@ -10,7 +10,7 @@ O KhaLinux será composto por um **KhaLinux Core**, responsável por um RootFS D
 
 O primeiro runtime planejado é baseado em PRoot. PRoot não é uma fronteira de isolamento forte e o projeto não o apresentará como equivalente a uma máquina virtual.
 
-## Escopo entregue até a Fase 1
+## Implementado no repositório
 
 - Documentação de produto, arquitetura, segurança e contribuição.
 - Estrutura inicial para `distribution/` e `android/`.
@@ -20,7 +20,8 @@ O primeiro runtime planejado é baseado em PRoot. PRoot não é uma fronteira de
 - Manifesto versionado com SHA-256 canônico do RootFS gerado.
 - Verificações estruturais e smoke test em `chroot` ARM64 emulado.
 - Runtime Kotlin com launcher PRoot, sessões, stdout/stderr, timeout e cancelamento.
-- `MainActivity` e `KhaLinuxRuntimeService` com Binder local e separação UI/runtime.
+- `KhaLinuxRuntimeService` com Binder local e separação UI/runtime.
+- Activity Compose, ViewModel com `StateFlow`, casos de uso de terminal, porta de domínio/adaptador do Service e transcript limitado em memória.
 
 Nenhuma funcionalidade é considerada implementada sem código, testes executados, evidência e documentação correspondente.
 
@@ -49,7 +50,7 @@ Nenhuma funcionalidade é considerada implementada sem código, testes executado
 
 ## Próximo passo
 
-A próxima etapa continua a Fase 3 com SDK Android disponível: Compose, ciclo de vida, PTY e persistência. A validação em aparelho Android 15+ ARM64 ainda é pendente. Consulte [`ROADMAP.md`](ROADMAP.md), [`ARCHITECTURE.md`](ARCHITECTURE.md), [`SECURITY.md`](SECURITY.md), [`docs/phase1-validation.md`](docs/phase1-validation.md), [`docs/phase2-validation.md`](docs/phase2-validation.md) e [`docs/phase3-validation.md`](docs/phase3-validation.md).
+A próxima etapa continua a Fase 3 com terminal interativo via PTY, instalação do RootFS, persistência Room e refinamento do ciclo de vida. Consulte [`ROADMAP.md`](ROADMAP.md), [`ARCHITECTURE.md`](ARCHITECTURE.md), [`SECURITY.md`](SECURITY.md), [`docs/phase1-validation.md`](docs/phase1-validation.md), [`docs/phase2-validation.md`](docs/phase2-validation.md) e [`docs/phase3-validation.md`](docs/phase3-validation.md).
 
 ## Licença
 
