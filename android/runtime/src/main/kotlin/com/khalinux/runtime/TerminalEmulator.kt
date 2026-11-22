@@ -295,18 +295,19 @@ class TerminalEmulator(
         val params = if (body.isEmpty()) listOf(0) else body.split(';').map { it.toIntOrNull() ?: 0 }
         fun param(index: Int, default: Int = 1): Int =
             params.getOrNull(index)?.let { if (it == 0) default else it } ?: default
+        fun amount(index: Int, limit: Int): Int = param(index).coerceIn(1, limit)
 
         when (final) {
-            'A' -> cursorRow = max(screenStart(), cursorRow - param(0))
-            'B' -> cursorRow = min(lines.lastIndex, cursorRow + param(0))
-            'C' -> cursorColumn = min(screenColumns - 1, cursorColumn + param(0))
-            'D' -> cursorColumn = max(0, cursorColumn - param(0))
+            'A' -> cursorRow = max(screenStart(), cursorRow - amount(0, screenRows))
+            'B' -> cursorRow = min(lines.lastIndex, cursorRow + amount(0, screenRows))
+            'C' -> cursorColumn = min(screenColumns - 1, cursorColumn + amount(0, screenColumns))
+            'D' -> cursorColumn = max(0, cursorColumn - amount(0, screenColumns))
             'E' -> {
-                cursorRow = min(lines.lastIndex, cursorRow + param(0))
+                cursorRow = min(lines.lastIndex, cursorRow + amount(0, screenRows))
                 cursorColumn = 0
             }
             'F' -> {
-                cursorRow = max(screenStart(), cursorRow - param(0))
+                cursorRow = max(screenStart(), cursorRow - amount(0, screenRows))
                 cursorColumn = 0
             }
             'G' -> cursorColumn = (param(0) - 1).coerceIn(0, screenColumns - 1)
@@ -322,8 +323,8 @@ class TerminalEmulator(
             'X' -> eraseCharacters(param(0))
             'L' -> insertLines(param(0))
             'M' -> deleteLines(param(0))
-            'S' -> repeat(param(0)) { scrollUp() }
-            'T' -> repeat(param(0)) { scrollDown() }
+            'S' -> repeat(amount(0, screenRows)) { scrollUp() }
+            'T' -> repeat(amount(0, screenRows)) { scrollDown() }
             'h', 'l' -> if (privateMode) {
                 if (25 in params) cursorVisible = final == 'h'
                 if (7 in params) autoWrap = final == 'h'
