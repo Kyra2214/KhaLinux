@@ -138,7 +138,6 @@ class SessionManagerTest {
         val setsid = listOf(File("/usr/bin/setsid"), File("/bin/setsid"))
             .firstOrNull { it.canExecute() }
         assumeTrue("setsid ausente no host", setsid != null)
-
         val kill = File("/usr/bin/kill")
         assumeTrue("utilitário kill ausente no host", kill.canExecute())
 
@@ -148,8 +147,9 @@ class SessionManagerTest {
             "--noprofile",
             "--norc",
             "-lc",
-            "sleep 30 & wait"
+            "sleep 10 & echo $!; wait"
         ).start()
+        val descendantPid = child.inputStream.bufferedReader().readLine().trim().toInt()
         val managed = ProcessGroupManagedProcess(child) { pid, force ->
             val signal = if (force) "KILL" else "TERM"
             ProcessBuilder(kill.absolutePath, "-$signal", "--", "-$pid")
@@ -157,8 +157,18 @@ class SessionManagerTest {
                 .waitFor() == 0
         }
 
-        managed.destroy()
-        assertTrue("processo/grupo não encerrou no prazo", managed.waitFor(3, TimeUnit.SECONDS))
+        try {
+            managed.destroy()
+            assertTrue("processo/grupo não encerrou no prazo", managed.waitFor(3, TimeUnit.SECONDS))
+            val descendantAlive = ProcessBuilder(kill.absolutePath, "-0", "--", descendantPid.toString())
+                .start()
+                .waitFor() == 0
+            assertTrue("processo descendente sobreviveu ao cancelamento", !descendantAlive)
+        } finally {
+            ProcessBuilder(kill.absolutePath, "-KILL", "--", descendantPid.toString())
+                .start()
+                .waitFor()
+        }
     }
 
     @Test fun launchFailureReleasesActiveSessionCapacity() {
