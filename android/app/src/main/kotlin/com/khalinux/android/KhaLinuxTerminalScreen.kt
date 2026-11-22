@@ -54,7 +54,11 @@ fun KhaLinuxApp(viewModel: TerminalViewModel) {
                         !state.serviceConnected -> state.connectionMessage ?: "Conectando ao Service local…"
                         state.runtimeInstalled -> "Runtime Linux instalado"
                         else -> "RootFS ainda não instalado"
-                    } + if (state.isRunning) " · sessão ${state.sessionId}" else "",
+                    } + when {
+                        state.isStarting -> " · iniciando sessão…"
+                        state.sessionId != null -> " · sessão ${state.sessionId}"
+                        else -> ""
+                    },
                     color = Color(0xFF80CBC4),
                     style = MaterialTheme.typography.bodyMedium
                 )
