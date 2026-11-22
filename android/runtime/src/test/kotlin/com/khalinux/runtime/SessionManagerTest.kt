@@ -29,12 +29,13 @@ class SessionManagerTest {
     private fun launcher(): ProotLauncher = ProotLauncher(
         config(),
         processLauncher = object : ProcessLauncher {
-            override fun launch(arguments: List<String>, environment: Map<String, String>): Process {
+            override fun launch(arguments: List<String>, processEnvironment: Map<String, String>): Process {
                 require(arguments.isNotEmpty())
                 return ProcessBuilder("/bin/bash", "--noprofile", "--norc", "-lc", arguments.last())
                     .apply {
                         environment().clear()
-                        environment().putAll(environment)
+                        environment().putAll(processEnvironment)
+                        environment().put("PATH", "/usr/bin:/bin")
                     }
                     .start()
             }
