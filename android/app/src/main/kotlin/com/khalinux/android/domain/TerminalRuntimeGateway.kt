@@ -15,6 +15,7 @@ fun interface RuntimeEventObserver {
 /** Port used by terminal use cases; Android Service details stay in the data layer. */
 interface TerminalRuntimeGateway {
     fun isInstalled(): Boolean
+    fun isRootfsInstalled(): Boolean
     fun installRootfs(observer: RootfsInstallObserver)
     fun start(command: String, observer: RuntimeEventObserver): String
     fun startInteractive(observer: RuntimeEventObserver): String
