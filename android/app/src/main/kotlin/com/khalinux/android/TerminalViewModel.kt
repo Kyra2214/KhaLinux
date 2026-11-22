@@ -334,7 +334,9 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
     private fun launchSession(
         interactive: Boolean,
         useCases: TerminalUseCases,
-        command: String? = null
+        command: String? = null,
+        rows: Int = 24,
+        columns: Int = 80
     ) {
         startJob = viewModelScope.launch {
             val createdSessionId = AtomicReference<String?>(null)
