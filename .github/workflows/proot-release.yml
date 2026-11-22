@@ -1,0 +1,83 @@
+name: Build and publish Android ARM64 PRoot
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'distribution/proot/**'
+      - '.github/workflows/proot-release.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'distribution/proot/**'
+      - '.github/workflows/proot-release.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: khalinux-proot-release
+  cancel-in-progress: false
+
+jobs:
+  build-proot:
+    name: Build and verify Android ARM64 PRoot
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      ANDROID_API_LEVEL: "35"
+      SOURCE_DATE_EPOCH: "1763769600"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+
+      - name: Install pinned Android NDK
+        run: |
+          set +o pipefail
+          yes | sdkmanager --licenses
+          set -o pipefail
+          sdkmanager --install "ndk;27.0.12077973"
+          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/27.0.12077973" >> "$GITHUB_ENV"
+
+      - name: Install build tools
+        run: sudo apt-get update && sudo apt-get install -y build-essential curl unzip python3
+
+      - name: Validate build scripts
+        run: |
+          bash -n distribution/proot/build-proot-android.sh
+          bash -n distribution/proot/verify-proot.sh
+
+      - name: Build official PRoot for Android ARM64
+        run: bash distribution/proot/build-proot-android.sh
+
+      - name: Verify binary, archive and manifest
+        run: bash distribution/proot/verify-proot.sh
+
+      - name: Upload PRoot build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: khalinux-proot-android-arm64
+          path: |
+            distribution/build/proot-output/proot
+            distribution/build/proot-output/proot-arm64.tar.gz
+            distribution/manifests/proot-arm64.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish versioned PRoot release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: proot-android-5.1.107.102-v1
+          name: KhaLinux Android ARM64 PRoot 5.1.107.102
+          prerelease: true
+          draft: false
+          overwrite_files: true
+          files: |
+            distribution/build/proot-output/proot-arm64.tar.gz
+            distribution/manifests/proot-arm64.json

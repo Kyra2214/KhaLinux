@@ -25,8 +25,14 @@ python3 android/app/validate-phase3.py
 
 Essa validação estrutural não compila nem executa a UI Compose. O código da Activity, tela e ViewModel ainda precisa de validação em toolchain Android.
 
-## Próximas etapas
+## Próximas etapas e estado atualizado
 
-O PTY interativo e a entrada por linhas foram integrados depois desta validação inicial. Foi adicionada uma base de instalador RootFS com manifesto de release versionada, download HTTPS com redirecionamentos restritos a hosts GitHub, SHA-256 esperado, limites de download/extração, extração TAR/GZIP com bloqueio de path traversal e links que escapem do RootFS, e troca por diretório temporário com recuperação da instalação anterior. O Service e a tela Compose expõem instalação assíncrona e progresso. Um workflow manual foi criado para reconstruir, validar e publicar o RootFS ARM64; a primeira execução real ainda está pendente. Testes unitários de caminhos TAR e extração foram adicionados e precisam passar no CI desta integração.\n\nAinda faltam a primeira publicação e validação da extração com um RootFS Debian real, distribuição de PRoot compilado para Android, emulador VT/ANSI, Room/histórico, configurações e notificações de foreground Service. O ciclo de vida do Service e de processos durante mudanças de configuração também precisa de testes e refinamento.
+O instalador RootFS usa manifesto de release fixada, download HTTPS com redirecionamentos restritos a hosts GitHub, SHA-256, limites de tamanho, extração TAR/GZIP protegida contra path traversal e links que escapem do diretório, preservação de permissões POSIX e troca por diretório temporário com recuperação da instalação anterior. O Service e a tela Compose expõem instalação assíncrona e progresso.
 
-A Fase 3 continua aberta. O build Android integrado e os testes do instalador devem passar no CI antes de considerar a integração pronta. Testes em aparelho físico permanecem reservados para a etapa final, depois da implementação, auditoria, regressão e geração do APK.
+A primeira construção real do RootFS ARM64 passou no GitHub Actions: debootstrap com verificação GPG, geração do arquivo, SHA-256 canônico, verificação do arquivo e smoke test ARM64 via QEMU/chroot. Os artefatos foram publicados em [KhaLinux Debian Bookworm ARM64 RootFS v1](https://github.com/Kyra2214/KhaLinux/releases/tag/rootfs-bookworm-20261122-v1). O arquivo publicado tem aproximadamente 126 MB compactados.
+
+O próximo trabalho é compilar PRoot para Android/Bionic ARM64 a partir de versões e hashes fixados de PRoot, talloc e libandroid-shmem, empacotar o executável e criar seu manifesto de release. O workflow dessa compilação está sendo adicionado e precisa passar no CI antes de ser considerado concluído.
+
+Depois da distribuição do PRoot, ainda faltam integrar sua instalação ao app, validar execução e bind mounts, implementar emulador VT/ANSI, persistência Room/histórico, configurações e refinar notificações/ciclo de vida do foreground Service.
+
+A Fase 3 continua aberta. Testes em aparelho físico permanecem reservados para a etapa final, depois da implementação, auditoria, regressão e geração do APK.

@@ -21,7 +21,11 @@ class SessionManagerTest {
             writeText("#!/bin/sh\\n")
         }
     }
-    private val proot = File("/bin/true")
+    private val proot = File(rootfs, "runtime/proot").apply {
+        parentFile.mkdirs()
+        writeText("#!/bin/sh\\n")
+        setExecutable(true)
+    }
 
     @After
     fun cleanup() {
