@@ -28,7 +28,8 @@ data class TerminalUiState(
     val output: String = "",
     val sessionId: String? = null,
     val isInteractive: Boolean = false,
-    val isStarting: Boolean = false
+    val isStarting: Boolean = false,
+    val isSendingInput: Boolean = false
 ) {
     val isRunning: Boolean get() = isStarting || sessionId != null
 }
@@ -173,21 +174,37 @@ class TerminalViewModel : ViewModel() {
         }
     }
 
-    fun sendInput() = synchronized(lock) {
-        val activeUseCases = runtimeUseCases ?: return
-        val current = mutableUiState.value
-        val sessionId = current.sessionId ?: return
-        if (!current.isInteractive || current.isStarting) return
-        val input = current.command
-        if (input.isEmpty()) return
-        try {
-            if (activeUseCases.writeInput(sessionId, "$input\n")) {
-                mutableUiState.update { it.copy(command = "") }
-            } else {
-                appendOutputLocked("\n[entrada não enviada: sessão PTY indisponível]\n")
+    fun sendInput() {
+        val payload = synchronized(lock) {
+            val activeUseCases = runtimeUseCases ?: return
+            val current = mutableUiState.value
+            val sessionId = current.sessionId ?: return
+            if (!current.isInteractive || current.isStarting || current.isSendingInput) return
+            val input = current.command
+            if (input.isEmpty()) return
+            mutableUiState.update { it.copy(isSendingInput = true) }
+            Triple(activeUseCases, sessionId, input)
+        }
+        viewModelScope.launch {
+            val result = runCatching {
+                withContext(Dispatchers.IO) {
+                    payload.first.writeInput(payload.second, "${payload.third}\n")
+                }
             }
-        } catch (error: Exception) {
-            appendOutputLocked("\n[erro de entrada: ${error.message ?: error.javaClass.simpleName}]\n")
+            synchronized(lock) {
+                mutableUiState.update { state ->
+                    state.copy(
+                        command = if (result.getOrNull() == true && state.command == payload.third) "" else state.command,
+                        isSendingInput = false
+                    )
+                }
+                if (result.getOrNull() != true) {
+                    appendOutputLocked("\n[entrada não enviada: sessão PTY indisponível]\n")
+                }
+                result.exceptionOrNull()?.let { error ->
+                    appendOutputLocked("\n[erro de entrada: ${error.message ?: error.javaClass.simpleName}]\n")
+                }
+            }
         }
     }
 
@@ -235,7 +252,7 @@ class TerminalViewModel : ViewModel() {
                     if (mutableUiState.value.isStarting) {
                         completedSessionsBeforeStartReturn.add(event.sessionId)
                     }
-                    mutableUiState.update { it.copy(sessionId = null, isInteractive = false) }
+                    mutableUiState.update { it.copy(sessionId = null, isInteractive = false, isSendingInput = false) }
                 }
             }
             is RuntimeEvent.Failed -> {
