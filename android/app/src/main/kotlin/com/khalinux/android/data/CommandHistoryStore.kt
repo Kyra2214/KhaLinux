@@ -10,6 +10,8 @@ import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.flow.Flow
 
 @Entity(
@@ -37,9 +39,26 @@ interface CommandHistoryDao {
     suspend fun prune(maxEntries: Int)
 }
 
-@Database(entities = [CommandHistoryEntry::class], version = 1, exportSchema = false)
+@Entity(tableName = "terminal_settings")
+data class TerminalSettingsEntity(
+    @PrimaryKey val id: Int = 1,
+    val fontSizeSp: Float = 12f,
+    val rows: Int = 24,
+    val columns: Int = 80
+)
+
+@Dao
+interface TerminalSettingsDao {
+    @Query("SELECT * FROM terminal_settings WHERE id = 1 LIMIT 1")
+    fun observeSettings(): Flow<TerminalSettingsEntity?>
+
+    @Insert(onConflict = androidx.room.OnConflictStrategy.REPLACE)
+    suspend fun save(settings: TerminalSettingsEntity)
+}
+
+@Database(entities = [CommandHistoryEntry::class, TerminalSettingsEntity::class], version = 2, exportSchema = false)
 abstract class CommandHistoryDatabase : RoomDatabase() {
-    abstract fun commandHistoryDao(): CommandHistoryDao
+    abstract fun commandHistoryDao(): CommandHistoryDao\n    abstract fun terminalSettingsDao(): TerminalSettingsDao
 
     companion object {
         @Volatile
@@ -51,7 +70,7 @@ abstract class CommandHistoryDatabase : RoomDatabase() {
                     context.applicationContext,
                     CommandHistoryDatabase::class.java,
                     "khalinux-local.db"
-                ).build().also { instance = it }
+                ).addMigrations(MIGRATION_1_2).build().also { instance = it }
             }
     }
 }
