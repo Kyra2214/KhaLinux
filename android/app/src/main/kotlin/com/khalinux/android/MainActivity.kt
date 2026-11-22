@@ -14,7 +14,9 @@ import com.khalinux.android.data.ServiceTerminalRuntimeGateway
 
 /** Activity de hospedagem da UI Compose; a execução continua encapsulada no Service. */
 class MainActivity : ComponentActivity() {
-    private val viewModel: TerminalViewModel by viewModels {\n        ViewModelProvider.AndroidViewModelFactory.getInstance(application)\n    }
+    private val viewModel: TerminalViewModel by viewModels {
+        ViewModelProvider.AndroidViewModelFactory.getInstance(application)
+    }
     private var bound = false
 
     private val connection = object : ServiceConnection {
