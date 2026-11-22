@@ -58,9 +58,11 @@ class TerminalViewModel : ViewModel() {
     }
 
     fun serviceDisconnected() = synchronized(lock) {
-        if (mutableUiState.value.sessionId != null) {
+        if (mutableUiState.value.sessionId != null || mutableUiState.value.isStarting) {
             appendOutputLocked("\n[Service desconectado; sessão não está mais vinculada]\n")
         }
+        startJob?.cancel()
+        completedSessionsBeforeStartReturn.clear()
         runtimeGateway = null
         runtimeUseCases = null
         mutableUiState.update {
@@ -69,12 +71,15 @@ class TerminalViewModel : ViewModel() {
                 runtimeInstalled = false,
                 connectionMessage = "Service local desconectado",
                 sessionId = null,
-                isInteractive = false
+                isInteractive = false,
+                isStarting = false
             )
         }
     }
 
     fun bindingUnavailable() = synchronized(lock) {
+        startJob?.cancel()
+        completedSessionsBeforeStartReturn.clear()
         runtimeGateway = null
         runtimeUseCases = null
         mutableUiState.update {
@@ -83,7 +88,8 @@ class TerminalViewModel : ViewModel() {
                 runtimeInstalled = false,
                 connectionMessage = "Não foi possível conectar ao Service local",
                 sessionId = null,
-                isInteractive = false
+                isInteractive = false,
+                isStarting = false
             )
         }
     }
