@@ -3,6 +3,7 @@ package com.khalinux.android
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.khalinux.android.domain.RuntimeEventObserver
+import com.khalinux.android.domain.RootfsInstallObserver
 import com.khalinux.android.domain.TerminalRuntimeGateway
 import com.khalinux.android.domain.TerminalUseCases
 import com.khalinux.runtime.RuntimeEvent
@@ -29,7 +30,10 @@ data class TerminalUiState(
     val sessionId: String? = null,
     val isInteractive: Boolean = false,
     val isStarting: Boolean = false,
-    val isSendingInput: Boolean = false
+    val isSendingInput: Boolean = false,
+    val isInstallingRootfs: Boolean = false,
+    val rootfsInstallProgress: String? = null,
+    val rootfsInstallMessage: String? = null
 ) {
     val isRunning: Boolean get() = isStarting || sessionId != null
 }
@@ -103,6 +107,62 @@ class TerminalViewModel : ViewModel() {
                 isStarting = false,
                 isSendingInput = false
             )
+        }
+    }
+
+    fun installRootfs() {
+        val gateway = synchronized(lock) {
+            val activeGateway = runtimeGateway ?: return
+            val current = mutableUiState.value
+            if (!current.serviceConnected || current.isInstallingRootfs || current.runtimeInstalled) return
+            mutableUiState.update { it.copy(isInstallingRootfs = true, rootfsInstallProgress = "Preparando download…", rootfsInstallMessage = null) }
+            activeGateway
+        }
+        try {
+            gateway.installRootfs(object : RootfsInstallObserver {
+                override fun onProgress(downloadedBytes: Long, totalBytes: Long?) {
+                    val downloadedMb = downloadedBytes / (1024 * 1024)
+                    val progress = if (totalBytes != null && totalBytes > 0) {
+                        "$downloadedMb / ${totalBytes / (1024 * 1024)} MB"
+                    } else {
+                        "$downloadedMb MB baixados"
+                    }
+                    mutableUiState.update { it.copy(rootfsInstallProgress = progress) }
+                }
+
+                override fun onInstalled(runtimeReady: Boolean) {
+                    mutableUiState.update {
+                        it.copy(
+                            isInstallingRootfs = false,
+                            runtimeInstalled = runtimeReady,
+                            rootfsInstallProgress = null,
+                            rootfsInstallMessage = if (runtimeReady) {
+                                "Ambiente Linux instalado e pronto."
+                            } else {
+                                "RootFS instalado. O binário PRoot ainda precisa ser instalado."
+                            }
+                        )
+                    }
+                }
+
+                override fun onError(message: String) {
+                    mutableUiState.update {
+                        it.copy(
+                            isInstallingRootfs = false,
+                            rootfsInstallProgress = null,
+                            rootfsInstallMessage = "Falha na instalação: $message"
+                        )
+                    }
+                }
+            })
+        } catch (error: Exception) {
+            mutableUiState.update {
+                it.copy(
+                    isInstallingRootfs = false,
+                    rootfsInstallProgress = null,
+                    rootfsInstallMessage = "Falha ao iniciar instalação: ${error.message ?: error.javaClass.simpleName}"
+                )
+            }
         }
     }
 
