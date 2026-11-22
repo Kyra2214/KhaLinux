@@ -28,6 +28,11 @@ require_cmd debootstrap
 require_cmd dpkg
 require_cmd sha256sum
 require_cmd git
+require_cmd tar
+require_cmd gzip
+require_cmd stat
+require_cmd awk
+require_cmd sed
 [[ -n "${QEMU_BIN}" && -x "${QEMU_BIN}" ]] || fail 'qemu-aarch64-static é necessário para finalizar ARM64 em host não-ARM64'
 [[ -s "${PACKAGES_FILE}" ]] || fail "lista de pacotes ausente: ${PACKAGES_FILE}"
 [[ -s "${SOURCES_FILE}" ]] || fail "fontes Debian ausentes: ${SOURCES_FILE}"
