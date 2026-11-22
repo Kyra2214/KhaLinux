@@ -1,7 +1,11 @@
 package com.khalinux.android
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.khalinux.android.data.CommandHistoryEntry
+import com.khalinux.android.data.CommandHistoryDatabase
+import com.khalinux.android.data.CommandHistoryRepository
 import com.khalinux.android.domain.RuntimeEventObserver
 import com.khalinux.android.domain.RootfsInstallObserver
 import com.khalinux.android.domain.ProotInstallObserver
@@ -42,14 +46,18 @@ data class TerminalUiState(
     val isInstallingProot: Boolean = false,
     val prootInstallProgress: String? = null,
     val prootInstallMessage: String? = null,
-    val terminalSnapshot: TerminalSnapshot = TerminalSnapshot.empty()
+    val terminalSnapshot: TerminalSnapshot = TerminalSnapshot.empty(),
+    val commandHistory: List<CommandHistoryEntry> = emptyList()
 ) {
     val isRunning: Boolean get() = isStarting || sessionId != null
 }
 
-class TerminalViewModel : ViewModel() {
+class TerminalViewModel(application: Application) : AndroidViewModel(application) {
     private val lock = Any()
     private val terminalEmulator = TerminalEmulator(rows = 24, columns = 80)
+    private val historyRepository = CommandHistoryRepository(
+        CommandHistoryDatabase.getInstance(application).commandHistoryDao()
+    )
     private val mutableUiState = MutableStateFlow(TerminalUiState())
     val uiState: StateFlow<TerminalUiState> = mutableUiState.asStateFlow()
 
@@ -58,6 +66,14 @@ class TerminalViewModel : ViewModel() {
     private var startJob: Job? = null
     private var inputJob: Job? = null
     private val completedSessionsBeforeStartReturn = mutableSetOf<String>()
+
+    init {
+        viewModelScope.launch {
+            historyRepository.observeRecent().collect { entries ->
+                mutableUiState.update { it.copy(commandHistory = entries) }
+            }
+        }
+    }
 
     fun attachRuntime(gateway: TerminalRuntimeGateway) = synchronized(lock) {
         if (runtimeGateway !== gateway && mutableUiState.value.isRunning) {
@@ -266,6 +282,7 @@ class TerminalViewModel : ViewModel() {
             mutableUiState.update { it.copy(isStarting = true) }
             activeUseCases to command
         }
+        persistCommand(start.second)
         launchSession(interactive = false, useCases = start.first, command = start.second)
     }
 
@@ -424,7 +441,7 @@ class TerminalViewModel : ViewModel() {
         }
     }
 
-    private fun appendOutputLocked(text: String) {
+    fun restoreCommandFromHistory(command: String) {\n        updateCommand(command)\n    }\n\n    private fun persistCommand(command: String) {\n        viewModelScope.launch(Dispatchers.IO) {\n            runCatching { historyRepository.record(command) }\n        }\n    }\n\n    private fun appendOutputLocked(text: String) {
         terminalEmulator.appendText(text)
         publishTerminalSnapshot()
     }
