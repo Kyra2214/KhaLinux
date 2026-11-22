@@ -16,6 +16,7 @@ service = ROOT / "android/app/src/main/kotlin/com/khalinux/android/KhaLinuxRunti
 app_build = ROOT / "android/app/build.gradle.kts"
 settings = ROOT / "settings.gradle.kts"
 buffer = ROOT / "android/app/src/main/java/com/khalinux/android/TerminalOutputBuffer.java"
+terminal_emulator = ROOT / "android/runtime/src/main/kotlin/com/khalinux/runtime/TerminalEmulator.kt"
 test_script = ROOT / "android/app/test-output-buffer.sh"
 runtime_launcher = ROOT / "android/runtime/src/main/kotlin/com/khalinux/runtime/ProotLauncher.kt"
 runtime_config = ROOT / "android/runtime/src/main/kotlin/com/khalinux/runtime/ProotConfig.kt"\nemulator = ROOT / "android/runtime/src/main/kotlin/com/khalinux/runtime/TerminalEmulator.kt"
