@@ -77,11 +77,24 @@ data class ProotConfig(
     }
 }
 
-data class BindMount(val hostPath: File, val guestPath: String, val readOnly: Boolean = true) {
+data class BindMount(val hostPath: File, val guestPath: String) {
     fun validate() {
-        require(hostPath.exists()) { "origem de bind inexistente: ${hostPath.path}" }
-        require(guestPath.startsWith("/")) { "destino de bind deve ser absoluto" }
+        require(hostPath.isAbsolute && hostPath.exists()) {
+            "origem de bind ausente ou não absoluta: ${hostPath.path}"
+        }
+        require(!hostPath.absolutePath.contains(':')) { "origem de bind contém separador inválido" }
+        require(
+            guestPath.startsWith("/") &&
+                guestPath != "/" &&
+                !guestPath.endsWith("/") &&
+                !guestPath.contains(':') &&
+                !guestPath.contains('\u0000') &&
+                !guestPath.contains("//") &&
+                guestPath.split('/').none { it == "." || it == ".." }
+        ) { "destino de bind deve ser absoluto e não pode escapar do RootFS" }
     }
 
-    fun asArgument(): String = "${hostPath.absolutePath}:${guestPath}${if (readOnly) ":ro" else ""}"
+    // PRoot -b não implementa montagem read-only. Não acrescentar sufixo :ro,
+    // pois ele seria interpretado como parte do caminho de destino no guest.
+    fun asArgument(): String = "${hostPath.absolutePath}:${guestPath}"
 }

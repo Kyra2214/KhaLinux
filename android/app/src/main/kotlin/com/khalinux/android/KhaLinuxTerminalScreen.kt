@@ -52,7 +52,7 @@ fun KhaLinuxApp(viewModel: TerminalViewModel) {
                     text = when {
                         !state.serviceConnected -> state.connectionMessage ?: "Conectando ao Service local…"
                         state.runtimeInstalled -> "Runtime Linux instalado"
-                        state.rootfsInstalled && state.prootInstalled -> "RootFS e PRoot instalados"
+                        state.rootfsInstalled && state.prootInstalled -> "RootFS e PRoot instalados; runtime pendente"
                         state.rootfsInstalled -> "RootFS instalado; PRoot pendente"
                         state.prootInstalled -> "PRoot instalado; RootFS pendente"
                         else -> "Ambiente Linux ainda não instalado"

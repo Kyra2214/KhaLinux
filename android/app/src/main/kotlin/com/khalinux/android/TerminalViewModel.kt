@@ -221,7 +221,7 @@ class TerminalViewModel : ViewModel() {
                             prootInstallMessage = if (runtimeReady) {
                                 "PRoot instalado. Ambiente Linux pronto."
                             } else {
-                                "PRoot instalado. O RootFS Debian ainda precisa ser instalado."
+                                "PRoot instalado, mas o runtime não iniciou. Verifique o RootFS e os pontos de montagem."
                             }
                         )
                     }
