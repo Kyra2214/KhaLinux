@@ -20,10 +20,6 @@ android {
         }
     }
 
-    // Este teste usa com.sun.net.httpserver, módulo JDK não exposto pelo
-    // classpath de testes Android. Ele permanece no checkpoint para execução
-    // em um source set JVM dedicado, mas não bloqueia o build Android.
-    sourceSets["test"].java.exclude("**/ResumableDownloaderTest.kt")
 }
 
 dependencies {
