@@ -74,13 +74,13 @@ fun KhaLinuxApp(viewModel: TerminalViewModel) {
                     Button(
                         onClick = if (state.isInteractive) viewModel::sendInput else viewModel::runCommand,
                         enabled = if (state.isInteractive) {
-                            state.command.isNotEmpty()
+                            state.command.isNotEmpty() && !state.isSendingInput
                         } else {
                             state.serviceConnected && state.runtimeInstalled && !state.isRunning && state.command.isNotBlank()
                         },
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text(if (state.isInteractive) "Enviar" else "Executar")
+                        Text(if (state.isSendingInput) "Enviando…" else if (state.isInteractive) "Enviar" else "Executar")
                     }
                     OutlinedButton(
                         onClick = viewModel::openInteractiveShell,
