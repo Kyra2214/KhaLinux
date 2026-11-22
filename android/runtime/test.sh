@@ -10,8 +10,6 @@ for file in "$KOTLIN_TEST_JAR" "$JUNIT_JAR" "$HAMCREST_JAR"; do
   [[ -s "$file" ]] || { echo "dependência ausente: $file" >&2; exit 1; }
 done
 command -v kotlinc >/dev/null || { echo 'kotlinc ausente' >&2; exit 1; }
-command -v proot >/dev/null || { echo 'proot ausente' >&2; exit 1; }
-command -v qemu-aarch64-static >/dev/null || { echo 'qemu-aarch64-static ausente' >&2; exit 1; }
 command -v javac >/dev/null || { echo 'javac ausente' >&2; exit 1; }
 rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR/classes" "$BUILD_DIR/test-classes"
