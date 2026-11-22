@@ -72,6 +72,9 @@ jobs:
             "ndk;26.1.10909125"
           yes | sdkmanager --licenses
 
+      - name: Run runtime unit tests
+        run: gradle --no-daemon :android:runtime:testDebugUnitTest
+
       - name: Compile debug APK
         run: gradle --no-daemon :android:app:assembleDebug
 
