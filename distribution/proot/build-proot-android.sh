@@ -28,8 +28,10 @@ CC="$TOOLCHAIN/aarch64-linux-android${API_LEVEL}-clang"
 AR="$TOOLCHAIN/llvm-ar"
 RANLIB="$TOOLCHAIN/llvm-ranlib"
 STRIP="$TOOLCHAIN/llvm-strip"
+OBJCOPY="$TOOLCHAIN/llvm-objcopy"
+OBJDUMP="$TOOLCHAIN/llvm-objdump"
 READELF="$TOOLCHAIN/llvm-readelf"
-for tool in "$CC" "$AR" "$RANLIB" "$STRIP" "$READELF"; do [[ -x "$tool" ]] || fail "ferramenta NDK ausente: $tool"; done
+for tool in "$CC" "$AR" "$RANLIB" "$STRIP" "$OBJCOPY" "$OBJDUMP" "$READELF"; do [[ -x "$tool" ]] || fail "ferramenta NDK ausente: $tool"; done
 
 rm -rf "$WORK_DIR" "$OUTPUT_DIR"
 mkdir -p "$WORK_DIR/src" "$WORK_DIR/prefix/lib" "$WORK_DIR/prefix/include/sys" "$OUTPUT_DIR" "$MANIFEST_DIR"
@@ -146,7 +148,7 @@ ANSWERS
 
 # Compila o PRoot oficial com loader embutido e dependências auxiliares estáticas.
 make -C "$PROOT_SRC/src" -j2 \
-  CC="$CC" AR="$AR" STRIP="$STRIP" \
+  CC="$CC" AR="$AR" STRIP="$STRIP" OBJCOPY="$OBJCOPY" OBJDUMP="$OBJDUMP" \
   CPPFLAGS="-D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DARG_MAX=131072 -I. -I$PROOT_SRC/src -I$PREFIX/include" \
   CFLAGS="-Wall -Wextra -O2 -DWITH_LIBANDROID_SHMEM" \
   LDFLAGS="-L$PREFIX/lib -Wl,-Bstatic -ltalloc -landroid-shmem -Wl,-Bdynamic -Wl,-z,noexecstack -llog -landroid"
