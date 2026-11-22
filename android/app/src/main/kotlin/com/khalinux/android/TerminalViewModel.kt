@@ -33,7 +33,8 @@ data class TerminalUiState(
     val isSendingInput: Boolean = false,
     val isInstallingRootfs: Boolean = false,
     val rootfsInstallProgress: String? = null,
-    val rootfsInstallMessage: String? = null
+    val rootfsInstallMessage: String? = null,
+    val rootfsInstalled: Boolean = false
 ) {
     val isRunning: Boolean get() = isStarting || sessionId != null
 }
@@ -64,6 +65,7 @@ class TerminalViewModel : ViewModel() {
             it.copy(
                 serviceConnected = true,
                 runtimeInstalled = runtimeUseCases?.isRuntimeInstalled?.invoke() == true,
+                rootfsInstalled = gateway.isRootfsInstalled(),
                 connectionMessage = null
             )
         }
@@ -135,6 +137,7 @@ class TerminalViewModel : ViewModel() {
                         it.copy(
                             isInstallingRootfs = false,
                             runtimeInstalled = runtimeReady,
+                            rootfsInstalled = true,
                             rootfsInstallProgress = null,
                             rootfsInstallMessage = if (runtimeReady) {
                                 "Ambiente Linux instalado e pronto."
