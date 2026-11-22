@@ -212,8 +212,8 @@ private fun TerminalSnapshot.toAnnotatedString(): AnnotatedString = buildAnnotat
 private fun TerminalStyle.toComposeSpanStyle(): SpanStyle {
     val defaultForeground = Color(0xFFE8F0F2)
     val defaultBackground = Color(0xFF0B0F12)
-    var foreground = this.foreground?.let(::Color) ?: defaultForeground
-    var background = this.background?.let(::Color) ?: Color.Transparent
+    var foreground = this.foreground?.let { Color(it) } ?: defaultForeground
+    var background = this.background?.let { Color(it) } ?: Color.Transparent
     if (inverse) {
         val swappedForeground = this.background?.let(::Color) ?: defaultBackground
         val swappedBackground = this.foreground?.let(::Color) ?: defaultForeground
