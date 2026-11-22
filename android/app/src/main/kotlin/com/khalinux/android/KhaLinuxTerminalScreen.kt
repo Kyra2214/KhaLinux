@@ -163,15 +163,17 @@ fun KhaLinuxApp(viewModel: TerminalViewModel) {
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Text(
-                            "Tela ${state.terminalRows} × ${state.terminalColumns}",
-                            color = Color(0xFF8A9AA0),
-                            modifier = Modifier.weight(1f)
-                        )
-                        OutlinedButton(onClick = { viewModel.adjustTerminalRows(-1) }) { Text("− linha") }
-                        OutlinedButton(onClick = { viewModel.adjustTerminalRows(1) }) { Text("+ linha") }
-                        OutlinedButton(onClick = { viewModel.adjustTerminalColumns(-8) }) { Text("− col.") }
-                        OutlinedButton(onClick = { viewModel.adjustTerminalColumns(8) }) { Text("+ col.") }
+                        Text("Linhas: ${state.terminalRows}", color = Color(0xFF8A9AA0), modifier = Modifier.weight(1f))
+                        OutlinedButton(onClick = { viewModel.adjustTerminalRows(-1) }) { Text("−") }
+                        OutlinedButton(onClick = { viewModel.adjustTerminalRows(1) }) { Text("+") }
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text("Colunas: ${state.terminalColumns}", color = Color(0xFF8A9AA0), modifier = Modifier.weight(1f))
+                        OutlinedButton(onClick = { viewModel.adjustTerminalColumns(-8) }) { Text("− 8") }
+                        OutlinedButton(onClick = { viewModel.adjustTerminalColumns(8) }) { Text("+ 8") }
                     }
                 }
 
