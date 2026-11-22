@@ -9,6 +9,7 @@ OUTPUT_DIR="${OUTPUT_DIR:-${ROOT_DIR}/distribution/build/output}"
 ROOTFS_DIR="${ROOTFS_DIR:-${OUTPUT_DIR}/rootfs-arm64}"
 DEBIAN_SUITE="${DEBIAN_SUITE:-bookworm}"
 DEBIAN_SNAPSHOT="${DEBIAN_SNAPSHOT:-20251122T000000Z}"
+ROOTFS_RELEASE_TAG="${ROOTFS_RELEASE_TAG:-rootfs-bookworm-20261122-v1}"
 DEBIAN_MIRROR="${DEBIAN_MIRROR:-https://snapshot.debian.org/archive/debian/${DEBIAN_SNAPSHOT}}"
 SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-$(git -C "${ROOT_DIR}" log -1 --format=%ct 2>/dev/null || date +%s)}"
 BUILD_INVOCATION_UTC="${BUILD_INVOCATION_UTC:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"
@@ -31,6 +32,7 @@ require_cmd git
 [[ -s "${PACKAGES_FILE}" ]] || fail "lista de pacotes ausente: ${PACKAGES_FILE}"
 [[ -s "${SOURCES_FILE}" ]] || fail "fontes Debian ausentes: ${SOURCES_FILE}"
 [[ "${DEBIAN_SNAPSHOT}" =~ ^[0-9]{8}T[0-9]{6}Z$ ]] || fail "snapshot Debian inválido: ${DEBIAN_SNAPSHOT}"
+[[ "${ROOTFS_RELEASE_TAG}" =~ ^[A-Za-z0-9._-]+$ ]] || fail "tag de release inválida: ${ROOTFS_RELEASE_TAG}"
 
 HOST_ARCH="$(dpkg --print-architecture)"
 [[ "${HOST_ARCH}" == amd64 || "${HOST_ARCH}" == arm64 ]] || fail "arquitetura de host não suportada: ${HOST_ARCH}"
@@ -116,6 +118,8 @@ cat > "${MANIFEST_FILE}" <<MANIFEST
   "rootfs_bytes": ${ROOTFS_BYTES},
   "canonical_tar_sha256": "${ROOTFS_SHA256}",
   "archive_name": "rootfs-arm64.tar.gz",
+  "release_tag": "${ROOTFS_RELEASE_TAG}",
+  "archive_url": "https://github.com/Kyra2214/KhaLinux/releases/download/${ROOTFS_RELEASE_TAG}/rootfs-arm64.tar.gz",
   "archive_bytes": ${ARCHIVE_BYTES},
   "archive_sha256": "${ARCHIVE_SHA256}"
 }
