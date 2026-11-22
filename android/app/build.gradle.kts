@@ -30,6 +30,12 @@ android {
         versionName = khalinuxVersionName
     }
 
+    lint {
+        // Este APK é distribuição direta/sideload; não é destinado à Google Play.
+        // O target 28 é necessário para o runtime proot funcionar no dispositivo.
+        disable += "ExpiredTargetSdkVersion"
+    }
+
     signingConfigs {
         if (assinaturaConfigurada) {
             create("release") {
