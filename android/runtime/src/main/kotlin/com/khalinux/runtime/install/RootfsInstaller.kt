@@ -192,14 +192,14 @@ class RootfsInstaller(
         return extractedBytes
     }
 
-    private fun resolveEntry(root: java.nio.file.Path, name: String): java.nio.file.Path {
+    internal fun resolveEntry(root: java.nio.file.Path, name: String): java.nio.file.Path {
         require(name.isNotBlank() && !name.startsWith("/")) { "Caminho TAR absoluto/vazio recusado: $name" }
         val resolved = root.resolve(name).normalize()
         require(resolved.startsWith(root) && resolved != root) { "Path traversal recusado: $name" }
         return resolved
     }
 
-    private fun resolveLink(root: java.nio.file.Path, parent: java.nio.file.Path, name: String): java.nio.file.Path {
+    internal fun resolveLink(root: java.nio.file.Path, parent: java.nio.file.Path, name: String): java.nio.file.Path {
         require(name.isNotBlank()) { "Link simbólico vazio" }
         val raw = if (name.startsWith("/")) root.resolve(name.removePrefix("/")) else parent.resolve(name)
         val resolved = raw.normalize()
