@@ -155,22 +155,24 @@ class KhaLinuxRuntimeService : Service() {
                 val releaseBase = "https://github.com/Kyra2214/KhaLinux/releases/download/$releaseTag"
                 val manifestUrl = URL("$releaseBase/rootfs-arm64.json")
                 val connection = GitHubHttpsConnection.open(manifestUrl, 15_000, 20_000)
-                val manifestText = try {
-                    connection.inputStream.use { input ->
-                        val bytes = input.readNBytes(64 * 1024 + 1)
-                        require(bytes.size <= 64 * 1024) { "Manifesto RootFS excede 64 KiB" }
-                        String(bytes, Charsets.UTF_8)
-                    }
+                val manifestBytes = try {
+                    connection.inputStream.use { input -> input.readNBytes(64 * 1024 + 1) }
                 } finally {
                     connection.disconnect()
                 }
-                val manifest = JSONObject(manifestText)
+                require(manifestBytes.size <= 64 * 1024) { "Manifesto RootFS excede 64 KiB" }
+                val manifestSha = MessageDigest.getInstance("SHA-256").digest(manifestBytes)
+                    .joinToString("") { "%02x".format(java.util.Locale.ROOT, it.toInt() and 0xff) }
+                require(manifestSha == ROOTFS_MANIFEST_SHA256) { "SHA-256 do manifesto RootFS não confere" }
+                val manifest = JSONObject(String(manifestBytes, Charsets.UTF_8))
                 require(manifest.getInt("schema") == 1) { "Versão de manifesto RootFS não suportada" }
                 require(manifest.getString("architecture") == "arm64") { "Este RootFS não é ARM64" }
                 require(manifest.getString("release_tag") == releaseTag) { "Tag do manifesto não corresponde à release fixada" }
                 require(manifest.getString("archive_name") == "rootfs-arm64.tar.gz") { "Nome de arquivo RootFS inesperado" }
                 val expectedUrl = "$releaseBase/rootfs-arm64.tar.gz"
                 require(manifest.getString("archive_url") == expectedUrl) { "URL do arquivo não corresponde à release fixada" }
+                val archiveSha = manifest.getString("archive_sha256")
+                require(archiveSha == ROOTFS_ARCHIVE_SHA256) { "Hash do arquivo RootFS não corresponde à release aprovada" }
                 val expectedBytes = manifest.getLong("archive_bytes")
                 require(expectedBytes in 1..1_500_000_000L) { "Tamanho do arquivo RootFS inválido" }
                 val expectedRootfsBytes = manifest.getLong("rootfs_bytes")
@@ -181,7 +183,7 @@ class KhaLinuxRuntimeService : Service() {
                 }
                 val target = File(filesDir, "runtime/rootfs-arm64")
                 val result = RootfsInstaller().install(
-                    RootfsInstaller.Request(expectedUrl, manifest.getString("archive_sha256"), target)
+                    RootfsInstaller.Request(expectedUrl, archiveSha, target)
                 ) { downloaded, total -> listener.onProgress(downloaded, total ?: expectedBytes) }
                 runtime?.close()
                 runtime = createRuntimeIfInstalled()
@@ -276,6 +278,8 @@ class KhaLinuxRuntimeService : Service() {
 
     companion object {
         private const val ROOTFS_RELEASE_TAG = "rootfs-bookworm-20261122-v1"
+        private const val ROOTFS_MANIFEST_SHA256 = "9c9c167894ca958a627b607062d2b0b2cb61cc0edd57ed8dc17e611125ce9db2"
+        private const val ROOTFS_ARCHIVE_SHA256 = "bcd272a77f6f081408e1b60d9e9ed65ad9c23678b8892d334b5e051bf61613e8"
         private const val PROOT_RELEASE_TAG = "proot-android-5.1.107.102-v1"
         private const val PROOT_VERSION = "5.1.107.102"
         private const val PROOT_MANIFEST_SHA256 = "dafb56b19bc015c7c7bbc397b570a7c1192073eb2adfc59d0ec19e89acec06e9"
