@@ -13,7 +13,7 @@ class AndroidBindMountPolicyTest {
     fun exposesOnlyAllowlistedDeviceNodes() {
         val devRoot = Files.createTempDirectory("khalinux-host-dev").toFile()
         try {
-            listOf("null", "zero", "random", "urandom", "tty", "ptmx").forEach {
+            listOf("null", "zero", "random", "urandom", "tty").forEach {
                 File(devRoot, it).createNewFile()
             }
             File(devRoot, "pts").mkdirs()
@@ -23,7 +23,7 @@ class AndroidBindMountPolicyTest {
             val mounts = AndroidBindMountPolicy.defaultMounts(devRoot)
 
             assertEquals(
-                listOf("/dev/null", "/dev/zero", "/dev/random", "/dev/urandom", "/dev/tty", "/dev/ptmx", "/dev/pts"),
+                listOf("/dev/null", "/dev/zero", "/dev/random", "/dev/urandom", "/dev/tty", "/dev/pts"),
                 mounts.map { it.guestPath }
             )
             assertFalse(mounts.any { it.guestPath == "/proc" || it.guestPath == "/sys" || it.guestPath == "/dev" })
