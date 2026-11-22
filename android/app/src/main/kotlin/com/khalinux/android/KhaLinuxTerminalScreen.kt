@@ -215,8 +215,8 @@ private fun TerminalStyle.toComposeSpanStyle(): SpanStyle {
     var foreground = this.foreground?.let { Color(it) } ?: defaultForeground
     var background = this.background?.let { Color(it) } ?: Color.Transparent
     if (inverse) {
-        val swappedForeground = this.background?.let(::Color) ?: defaultBackground
-        val swappedBackground = this.foreground?.let(::Color) ?: defaultForeground
+        val swappedForeground = this.background?.let { Color(it) } ?: defaultBackground
+        val swappedBackground = this.foreground?.let { Color(it) } ?: defaultForeground
         foreground = swappedForeground
         background = swappedBackground
     }
