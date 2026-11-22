@@ -1,0 +1,12 @@
+apt=2.6.1
+bash=5.2.15-2+b9
+ca-certificates=20230311+deb12u1
+coreutils=9.1-1
+curl=7.88.1-10+deb12u14
+dnsutils=1:9.18.33-1~deb12u2
+git=1:2.39.5-0+deb12u2
+iproute2=6.1.0-3
+iputils-ping=3:20221126-1+deb12u1
+openssh-client=1:9.2p1-2+deb12u7
+python3=3.11.2-1+b1
+sqlite3=3.40.1-2+deb12u2

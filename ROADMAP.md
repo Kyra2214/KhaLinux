@@ -15,7 +15,7 @@ Este roadmap é a referência oficial de evolução do projeto. Uma fase só pod
 
 ## Fase 1 — Linux Base
 
-**Estado:** build e smoke tests validados no sandbox x86_64 por emulação ARM64; validação em aparelho Android permanece pendente.
+**Estado:** build e smoke tests validados no sandbox x86_64 por emulação ARM64, usando snapshot Debian fixo e lock de pacotes; validação em aparelho Android permanece pendente.
 
 - Preparar build ARM64.
 - Construir Debian ARM64 minimal e gerar RootFS.
@@ -37,6 +37,8 @@ Este roadmap é a referência oficial de evolução do projeto. Uma fase só pod
 **Critério:** executar Linux real no Android sem root, dentro das limitações documentadas.
 
 ## Fase 3 — Aplicativo Android
+
+**Estado:** integração inicial Activity/Service e scaffold Gradle implementados; SDK Android, APK e dispositivo real ainda pendentes.
 
 - Criar projeto Kotlin com Jetpack Compose, MVVM, Clean Architecture e Coroutines.
 - Implementar navegação, dashboard, instalação, terminal, configurações, Room e histórico.

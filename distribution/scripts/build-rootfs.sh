@@ -8,8 +8,10 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 OUTPUT_DIR="${OUTPUT_DIR:-${ROOT_DIR}/distribution/build/output}"
 ROOTFS_DIR="${ROOTFS_DIR:-${OUTPUT_DIR}/rootfs-arm64}"
 DEBIAN_SUITE="${DEBIAN_SUITE:-bookworm}"
-DEBIAN_MIRROR="${DEBIAN_MIRROR:-https://deb.debian.org/debian}"
+DEBIAN_SNAPSHOT="${DEBIAN_SNAPSHOT:-20251122T000000Z}"
+DEBIAN_MIRROR="${DEBIAN_MIRROR:-https://snapshot.debian.org/archive/debian/${DEBIAN_SNAPSHOT}}"
 SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-$(git -C "${ROOT_DIR}" log -1 --format=%ct 2>/dev/null || date +%s)}"
+BUILD_INVOCATION_UTC="${BUILD_INVOCATION_UTC:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"
 PACKAGES_FILE="${ROOT_DIR}/distribution/configuration/base-packages.txt"
 SOURCES_FILE="${ROOT_DIR}/distribution/repositories/debian-bookworm.sources"
 MANIFEST_DIR="${ROOT_DIR}/distribution/manifests"
@@ -45,6 +47,7 @@ INCLUDE="$(IFS=,; echo "${PACKAGES[*]}")"
 log "criando Debian ${DEBIAN_SUITE} ARM64 com debootstrap"
 # shellcheck disable=SC2086
 debootstrap --arch=arm64 --foreign --variant=minbase --include="${INCLUDE}" \
+  --force-check-gpg \
   "${DEBIAN_SUITE}" "${ROOTFS_DIR}" "${DEBIAN_MIRROR}"
 
 install -Dm755 "${QEMU_BIN}" "${ROOTFS_DIR}/usr/bin/qemu-aarch64-static"
@@ -80,6 +83,12 @@ rm -f "${ROOTFS_DIR}/etc/apt/sources.list.d/debian.sources.save"
 ROOTFS_BYTES="$(du -sb "${ROOTFS_DIR}" | awk '{print $1}')"
 ROOTFS_SHA256="$(tar --sort=name --mtime="@${SOURCE_DATE_EPOCH}" --owner=0 --group=0 --numeric-owner -C "${ROOTFS_DIR}" -cf - . | sha256sum | awk '{print $1}')"
 GIT_COMMIT="$(git -C "${ROOT_DIR}" rev-parse HEAD 2>/dev/null || printf 'uncommitted')"
+PACKAGE_LOCK_FILE="${MANIFEST_DIR}/base-package-versions-arm64.txt"
+: > "${PACKAGE_LOCK_FILE}"
+for package in "${PACKAGES[@]}"; do
+  dpkg_version="$(chroot "${ROOTFS_DIR}" dpkg-query -W -f='${Version}' "${package}" 2>/dev/null || true)"
+  [[ -n "${dpkg_version}" ]] && printf '%s=%s\n' "${package}" "${dpkg_version}" >> "${PACKAGE_LOCK_FILE}"
+done
 cat > "${MANIFEST_FILE}" <<MANIFEST
 {
   "schema": 1,
@@ -89,12 +98,15 @@ cat > "${MANIFEST_FILE}" <<MANIFEST
   "suite": "${DEBIAN_SUITE}",
   "architecture": "arm64",
   "mirror": "${DEBIAN_MIRROR}",
+  "snapshot": "${DEBIAN_SNAPSHOT}",
   "source_date_epoch": ${SOURCE_DATE_EPOCH},
+  "source_date_epoch_utc": "$(date -u -d "@${SOURCE_DATE_EPOCH}" +%Y-%m-%dT%H:%M:%SZ)",
+  "build_invocation_utc": "${BUILD_INVOCATION_UTC}",
   "git_commit": "${GIT_COMMIT}",
   "package_list": "distribution/configuration/base-packages.txt",
+  "package_lock": "distribution/manifests/base-package-versions-arm64.txt",
   "rootfs_bytes": ${ROOTFS_BYTES},
-  "canonical_tar_sha256": "${ROOTFS_SHA256}",
-  "generated_at_utc": "$(date -u -d "@${SOURCE_DATE_EPOCH}" +%Y-%m-%dT%H:%M:%SZ)"
+  "canonical_tar_sha256": "${ROOTFS_SHA256}"
 }
 MANIFEST
 

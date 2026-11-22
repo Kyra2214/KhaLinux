@@ -5,11 +5,14 @@
   "distribution": "Debian",
   "suite": "bookworm",
   "architecture": "arm64",
-  "mirror": "https://deb.debian.org/debian",
+  "mirror": "https://snapshot.debian.org/archive/debian/20251122T000000Z",
+  "snapshot": "20251122T000000Z",
   "source_date_epoch": 1763769600,
-  "git_commit": "5659930fcf14ee7e3668d6eeb9191abf53eaeeae",
+  "source_date_epoch_utc": "2025-11-22T00:00:00Z",
+  "build_invocation_utc": "2026-11-22T13:31:30Z",
+  "git_commit": "2ffefbf4d1586bbe84da01b5cbbd2554912ebcc4",
   "package_list": "distribution/configuration/base-packages.txt",
-  "rootfs_bytes": 350072661,
-  "canonical_tar_sha256": "ecbfd3521fc9cf98af99874235b844d210fc1f6abeff0afb47b7abe481a4c684",
-  "generated_at_utc": "2025-11-22T00:00:00Z"
+  "package_lock": "distribution/manifests/base-package-versions-arm64.txt",
+  "rootfs_bytes": 349637090,
+  "canonical_tar_sha256": "98d12425f3852441a6ea9957bb97177e3bf3502d56cac2c06e18a9b055844b85"
 }

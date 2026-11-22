@@ -1,6 +1,6 @@
 # KhaLinux Core — Fase 1
 
-A Fase 1 constrói uma base Debian Bookworm ARM64 minimal. O build usa `debootstrap --foreign` para permitir host x86_64 e finaliza o segundo estágio com `qemu-aarch64-static`.
+A Fase 1 constrói uma base Debian Bookworm ARM64 minimal. O build usa o snapshot fixo `20251122T000000Z` do snapshot.debian.org, `debootstrap --foreign` para permitir host x86_64 e finaliza o segundo estágio com `qemu-aarch64-static`. O snapshot fixa os índices e versões transitivas disponíveis nessa data; não usar o mirror móvel de Bookworm para reproduções de auditoria.
 
 ## Dependências do host
 
@@ -33,7 +33,13 @@ Após um build real:
 sudo ./distribution/scripts/verify-rootfs.sh
 ```
 
-A verificação confirma JSON válido, caminhos essenciais e presença dos componentes mínimos. Ela não substitui testes em aparelho ARM64 nem prova isolamento de segurança.
+A verificação confirma JSON válido, compara o SHA-256 do tar canônico, verifica caminhos essenciais e presença dos componentes mínimos. Para executar o smoke test funcional completo, incluindo ELF AArch64, `dpkg --print-architecture`, Bash, Python, Git, SQLite e APT:
+
+```bash
+sudo ./distribution/scripts/test-rootfs.sh
+```
+
+Esses testes não substituem testes em aparelho ARM64 nem provam isolamento de segurança.
 
 ## Limitações conhecidas
 

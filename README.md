@@ -2,7 +2,7 @@
 
 Ambiente Linux ARM64 para Android, executado localmente e sem root, voltado a aprendizado, diagnóstico, auditoria autorizada e prática de cibersegurança.
 
-> **Status:** Fase 2 — núcleo PRoot e gerenciamento de sessões validados no sandbox por emulação. Ainda não há integração Android/PTY, aplicativo completo ou toolkit de ferramentas.
+> **Status:** Fase 3 — integração inicial Activity/Service e scaffold Gradle implementados. APK, Compose completo, PTY e validação em aparelho ainda estão pendentes.
 
 ## Visão
 
@@ -20,6 +20,7 @@ O primeiro runtime planejado é baseado em PRoot. PRoot não é uma fronteira de
 - Manifesto versionado com SHA-256 canônico do RootFS gerado.
 - Verificações estruturais e smoke test em `chroot` ARM64 emulado.
 - Runtime Kotlin com launcher PRoot, sessões, stdout/stderr, timeout e cancelamento.
+- `MainActivity` e `KhaLinuxRuntimeService` com Binder local e separação UI/runtime.
 
 Nenhuma funcionalidade é considerada implementada sem código, testes executados, evidência e documentação correspondente.
 
@@ -48,7 +49,7 @@ Nenhuma funcionalidade é considerada implementada sem código, testes executado
 
 ## Próximo passo
 
-A Fase 3 começa pela criação do projeto Android e pela integração do runtime com ciclo de vida, PTY e persistência. A validação em aparelho Android 15+ ARM64 ainda é pendente. Consulte [`ROADMAP.md`](ROADMAP.md), [`ARCHITECTURE.md`](ARCHITECTURE.md), [`SECURITY.md`](SECURITY.md), [`docs/phase1-validation.md`](docs/phase1-validation.md) e [`docs/phase2-validation.md`](docs/phase2-validation.md).
+A próxima etapa continua a Fase 3 com SDK Android disponível: Compose, ciclo de vida, PTY e persistência. A validação em aparelho Android 15+ ARM64 ainda é pendente. Consulte [`ROADMAP.md`](ROADMAP.md), [`ARCHITECTURE.md`](ARCHITECTURE.md), [`SECURITY.md`](SECURITY.md), [`docs/phase1-validation.md`](docs/phase1-validation.md), [`docs/phase2-validation.md`](docs/phase2-validation.md) e [`docs/phase3-validation.md`](docs/phase3-validation.md).
 
 ## Licença
 
