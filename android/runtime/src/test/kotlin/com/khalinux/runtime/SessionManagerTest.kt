@@ -4,7 +4,9 @@ import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.time.Duration
+import java.util.concurrent.TimeUnit
 import org.junit.After
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -111,6 +113,30 @@ class SessionManagerTest {
         } finally {
             runtime.close()
         }
+    }
+
+    @Test fun processGroupCancellationTerminatesShellDescendants() {
+        val setsid = listOf(File("/usr/bin/setsid"), File("/bin/setsid"))
+            .firstOrNull { it.canExecute() }
+        assumeTrue("setsid ausente no host", setsid != null)
+
+        val child = ProcessBuilder(
+            setsid!!.absolutePath,
+            "/bin/bash",
+            "--noprofile",
+            "--norc",
+            "-lc",
+            "sleep 30 & wait"
+        ).start()
+        val managed = ProcessGroupManagedProcess(child) { pid, force ->
+            val signal = if (force) "KILL" else "TERM"
+            ProcessBuilder("/bin/sh", "-c", "kill -$signal -- -$pid")
+                .start()
+                .waitFor() == 0
+        }
+
+        managed.destroy()
+        assertTrue("processo/grupo não encerrou no prazo", managed.waitFor(3, TimeUnit.SECONDS))
     }
 
     @Test fun launchFailureReleasesActiveSessionCapacity() {
