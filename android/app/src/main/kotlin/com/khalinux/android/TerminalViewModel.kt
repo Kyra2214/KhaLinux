@@ -358,6 +358,7 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
                 val sent = withContext(Dispatchers.IO) {
                     payload.first.writeInput(payload.second, "${payload.third}\n")
                 }
+                if (sent) persistCommand(payload.third)
                 synchronized(lock) {
                     mutableUiState.update { state ->
                         state.copy(
@@ -441,7 +442,17 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    fun restoreCommandFromHistory(command: String) {\n        updateCommand(command)\n    }\n\n    private fun persistCommand(command: String) {\n        viewModelScope.launch(Dispatchers.IO) {\n            runCatching { historyRepository.record(command) }\n        }\n    }\n\n    private fun appendOutputLocked(text: String) {
+    fun restoreCommandFromHistory(command: String) {
+        updateCommand(command)
+    }
+
+    private fun persistCommand(command: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching { historyRepository.record(command) }
+        }
+    }
+
+    private fun appendOutputLocked(text: String) {
         terminalEmulator.appendText(text)
         publishTerminalSnapshot()
     }
