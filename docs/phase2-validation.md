@@ -8,7 +8,7 @@ Em host x86_64, o launcher aceita um `qemu-aarch64-static` opcional por meio de 
 
 ## Testes executados
 
-A suíte foi compilada com Kotlin 1.3.31 e executada com JUnit 4 contra o RootFS Debian ARM64 da Fase 1, usando PRoot 5.1.0 e QEMU AArch64. Resultado real:
+A evidência abaixo registra a execução histórica de quatro testes com Kotlin 1.3.31, JUnit 4, PRoot 5.1.0 e QEMU AArch64 no RootFS Debian ARM64. A suíte atual foi ampliada para sete testes e usa um launcher de processo simulado nos testes unitários, sem depender do RootFS ou de QEMU.
 
 ```text
 JUnit version 4.13.2
@@ -16,9 +16,9 @@ JUnit version 4.13.2
 OK (4 tests)
 ```
 
-Os testes cobrem: passagem do comando como argumento único do Bash convidado, rejeição de nomes inválidos de ambiente, captura de stdout e código de saída, timeout e cancelamento de sessão.
+A suíte atual cobre montagem de argumentos estruturados, validação de ambiente, shell interativa conservadora, captura de stdout/código de saída, limite de sessões simultâneas, reutilização de capacidade após conclusão e timeout/cancelamento. O runner compila com Kotlin 1.9.24+ e JDK 17.
 
-Para repetir após instalar as dependências do host:
+Para repetir após instalar Kotlin 1.9.24 ou superior, JDK 17, JUnit 4 e Hamcrest no host:
 
 ```bash
 ./android/runtime/test.sh
