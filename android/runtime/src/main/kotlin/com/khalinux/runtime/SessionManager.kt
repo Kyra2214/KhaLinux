@@ -1,0 +1,158 @@
+package com.khalinux.runtime
+
+import java.io.Closeable
+import java.io.InputStream
+import java.time.Clock
+import java.util.UUID
+import java.util.concurrent.BlockingQueue
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executors
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.ScheduledFuture
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
+
+class SessionManager(
+    private val launcher: ProotLauncher,
+    private val maxSessions: Int = 4,
+    private val clock: Clock = Clock.systemUTC()
+) : LinuxRuntime {
+    private val sessions = ConcurrentHashMap<String, ManagedSession>()
+    private val scheduler = Executors.newScheduledThreadPool(1)
+    private val ioPool = Executors.newCachedThreadPool()
+    private val closed = AtomicBoolean(false)
+
+    override fun start(request: CommandRequest): RuntimeSession {
+        check(!closed.get()) { "runtime encerrado" }
+        check(sessions.size < maxSessions) { "limite de sessões atingido: $maxSessions" }
+        val session = ManagedSession(UUID.randomUUID().toString(), request)
+        check(sessions.putIfAbsent(session.id, session) == null) { "colisão de id de sessão" }
+        try {
+            session.start()
+            return session
+        } catch (error: Throwable) {
+            sessions.remove(session.id)
+            session.fail(error)
+            throw error
+        }
+    }
+
+    override fun snapshot(sessionId: String): SessionSnapshot? = sessions[sessionId]?.snapshot()
+
+    override fun cancel(sessionId: String): Boolean = sessions[sessionId]?.cancel() ?: false
+
+    override fun sessions(): List<SessionSnapshot> = sessions.values.map { it.snapshot() }.sortedBy { it.id }
+
+    override fun close() {
+        if (closed.compareAndSet(false, true)) {
+            sessions.values.forEach { it.cancel() }
+            scheduler.shutdownNow()
+            ioPool.shutdownNow()
+        }
+    }
+
+    private inner class ManagedSession(
+        override val id: String,
+        private val request: CommandRequest
+    ) : RuntimeSession {
+        private val queue: BlockingQueue<RuntimeEvent> = LinkedBlockingQueue()
+        private val lock = Any()
+        private var process: Process? = null
+        private var timeoutTask: ScheduledFuture<*>? = null
+        private var current = SessionSnapshot(id, SessionState.CREATED, null, null, null, false, null)
+
+        fun start() {
+            val launched = launcher.launch(request)
+            synchronized(lock) {
+                process = launched
+                current = current.copy(
+                    state = SessionState.RUNNING,
+                    startedAtEpochMillis = clock.millis()
+                )
+            }
+            queue.offer(RuntimeEvent.Started(id))
+            ioPool.submit { pump(launched.inputStream, false) }
+            ioPool.submit { pump(launched.errorStream, true) }
+            ioPool.submit { awaitExit(launched) }
+            request.timeout?.let { timeout ->
+                timeoutTask = scheduler.schedule({
+                    synchronized(lock) {
+                        if (current.state == SessionState.RUNNING) current = current.copy(timedOut = true)
+                    }
+                    cancelInternal()
+                }, timeout.toMillis(), TimeUnit.MILLISECONDS)
+            }
+        }
+
+        private fun pump(stream: InputStream, stderr: Boolean) {
+            stream.use { input ->
+                val buffer = ByteArray(8192)
+                while (true) {
+                    val count = input.read(buffer)
+                    if (count < 0) break
+                    if (count > 0) {
+                        val bytes = buffer.copyOf(count)
+                        if (stderr) queue.offer(RuntimeEvent.Stderr(id, bytes))
+                        else queue.offer(RuntimeEvent.Stdout(id, bytes))
+                    }
+                }
+            }
+        }
+
+        private fun awaitExit(child: Process) {
+            try {
+                val exitCode = child.waitFor()
+                val timedOut = synchronized(lock) { current.timedOut }
+                synchronized(lock) {
+                    current = current.copy(
+                        state = if (timedOut) SessionState.CANCELLED else SessionState.EXITED,
+                        endedAtEpochMillis = clock.millis(),
+                        exitCode = exitCode
+                    )
+                }
+                timeoutTask?.cancel(false)
+                queue.offer(RuntimeEvent.Exited(id, exitCode, timedOut))
+            } catch (error: InterruptedException) {
+                Thread.currentThread().interrupt()
+                fail(error)
+            }
+        }
+
+        private fun cancelInternal(): Boolean {
+            val child = synchronized(lock) {
+                if (current.state != SessionState.RUNNING && current.state != SessionState.CANCELLING) return false
+                current = current.copy(state = SessionState.CANCELLING)
+                process
+            } ?: return false
+            child.destroy()
+            if (!child.waitFor(500, TimeUnit.MILLISECONDS)) child.destroyForcibly()
+            return true
+        }
+
+        override fun cancel(): Boolean = cancelInternal()
+
+        override fun events(): Sequence<RuntimeEvent> = sequence {
+            while (true) {
+                val event = queue.take()
+                yield(event)
+                if (event is RuntimeEvent.Exited || event is RuntimeEvent.Failed) break
+            }
+        }
+
+        override fun snapshot(): SessionSnapshot = synchronized(lock) { current }
+
+        fun fail(error: Throwable) {
+            val message = error.message ?: error::class.java.simpleName
+            synchronized(lock) {
+                current = current.copy(
+                    state = SessionState.FAILED,
+                    endedAtEpochMillis = clock.millis(),
+                    errorMessage = message
+                )
+            }
+            queue.offer(RuntimeEvent.Failed(id, message))
+        }
+
+        override fun close() { cancel() }
+    }
+}

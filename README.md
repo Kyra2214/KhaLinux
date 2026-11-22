@@ -2,7 +2,7 @@
 
 Ambiente Linux ARM64 para Android, executado localmente e sem root, voltado a aprendizado, diagnóstico, auditoria autorizada e prática de cibersegurança.
 
-> **Status:** Fase 1 — build do RootFS Debian ARM64 validado no sandbox por emulação. Ainda não há runtime PRoot, aplicativo Android ou toolkit de ferramentas implementados.
+> **Status:** Fase 2 — núcleo PRoot e gerenciamento de sessões validados no sandbox por emulação. Ainda não há integração Android/PTY, aplicativo completo ou toolkit de ferramentas.
 
 ## Visão
 
@@ -19,6 +19,7 @@ O primeiro runtime planejado é baseado em PRoot. PRoot não é uma fronteira de
 - Scripts reproduzíveis para Debian Bookworm ARM64 via `debootstrap --foreign` e QEMU.
 - Manifesto versionado com SHA-256 canônico do RootFS gerado.
 - Verificações estruturais e smoke test em `chroot` ARM64 emulado.
+- Runtime Kotlin com launcher PRoot, sessões, stdout/stderr, timeout e cancelamento.
 
 Nenhuma funcionalidade é considerada implementada sem código, testes executados, evidência e documentação correspondente.
 
@@ -26,8 +27,8 @@ Nenhuma funcionalidade é considerada implementada sem código, testes executado
 
 ```text
 .
-├── android/          # Aplicativo Android; scaffold da Fase 0
-├── distribution/     # Construção e metadados do Linux; scaffold da Fase 0
+├── android/          # Aplicativo Android e runtime Kotlin
+├── distribution/     # Construção e metadados do Linux
 ├── docs/decisions/   # Registros de decisões arquiteturais
 ├── .github/          # Templates e automações futuras
 ├── ARCHITECTURE.md
@@ -47,7 +48,7 @@ Nenhuma funcionalidade é considerada implementada sem código, testes executado
 
 ## Próximo passo
 
-A Fase 2 começa pela implementação do runtime PRoot, PTY e gerenciamento de sessões no Android. A validação em aparelho Android 15+ ARM64 ainda é pendente. Consulte [`ROADMAP.md`](ROADMAP.md), [`ARCHITECTURE.md`](ARCHITECTURE.md), [`SECURITY.md`](SECURITY.md) e [`docs/phase1-validation.md`](docs/phase1-validation.md).
+A Fase 3 começa pela criação do projeto Android e pela integração do runtime com ciclo de vida, PTY e persistência. A validação em aparelho Android 15+ ARM64 ainda é pendente. Consulte [`ROADMAP.md`](ROADMAP.md), [`ARCHITECTURE.md`](ARCHITECTURE.md), [`SECURITY.md`](SECURITY.md), [`docs/phase1-validation.md`](docs/phase1-validation.md) e [`docs/phase2-validation.md`](docs/phase2-validation.md).
 
 ## Licença
 

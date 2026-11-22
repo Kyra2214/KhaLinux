@@ -28,6 +28,8 @@ Este roadmap é a referência oficial de evolução do projeto. Uma fase só pod
 
 ## Fase 2 — Runtime Android
 
+**Estado:** núcleo Kotlin de launcher PRoot e sessões validado no sandbox com quatro testes; integração Android/PTY e aparelho real pendentes.
+
 - Implementar launcher PRoot, PTY, sessões e gerenciamento de processos.
 - Tratar stdout/stderr, timeout, cancelamento e erros.
 - Validar Android 15+, ARM64, armazenamento privado e ciclo de vida.

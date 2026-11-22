@@ -40,7 +40,7 @@ A camada de UI não executará comandos diretamente. Casos de uso e interfaces d
 
 ## Runtime
 
-A primeira implementação utilizará PRoot para execução sem root, com uma abstração `LinuxRuntime` para permitir evolução futura. O runtime deverá separar launcher, PTY, sessões, processos, stdout/stderr, timeout, cancelamento e persistência.
+A primeira implementação utiliza PRoot para execução sem root, com a abstração `LinuxRuntime`, `ProotLauncher` e `SessionManager` em `android/runtime/`. O núcleo separa launcher, sessões, processos, stdout/stderr, timeout e cancelamento. Pipes estão implementados; PTY e persistência continuam pendentes.
 
 PRoot não fornece isolamento forte. O produto deverá comunicar essa limitação e não prometer segurança equivalente a VM ou contêiner privilegiado.
 
