@@ -45,9 +45,11 @@ class TerminalViewModel : ViewModel() {
     private val completedSessionsBeforeStartReturn = mutableSetOf<String>()
 
     fun attachRuntime(gateway: TerminalRuntimeGateway) = synchronized(lock) {
-        if (runtimeGateway !== gateway && mutableUiState.value.sessionId != null) {
+        if (runtimeGateway !== gateway && mutableUiState.value.isRunning) {
             appendOutputLocked("\n[sessão interrompida após reconexão do Service]\n")
-            mutableUiState.update { it.copy(sessionId = null, isInteractive = false) }
+            startJob?.cancel()
+            completedSessionsBeforeStartReturn.clear()
+            mutableUiState.update { it.copy(sessionId = null, isInteractive = false, isStarting = false) }
         }
         runtimeGateway = gateway
         runtimeUseCases = TerminalUseCases(gateway)
