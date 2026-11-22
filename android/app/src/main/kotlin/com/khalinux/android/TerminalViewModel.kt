@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.khalinux.android.data.CommandHistoryEntry
 import com.khalinux.android.data.CommandHistoryDatabase
 import com.khalinux.android.data.CommandHistoryRepository
+import com.khalinux.android.data.TerminalSettingsEntity
+import com.khalinux.android.data.TerminalSettingsRepository
 import com.khalinux.android.domain.RuntimeEventObserver
 import com.khalinux.android.domain.RootfsInstallObserver
 import com.khalinux.android.domain.ProotInstallObserver
@@ -48,7 +50,10 @@ data class TerminalUiState(
     val prootInstallProgress: String? = null,
     val prootInstallMessage: String? = null,
     val terminalSnapshot: TerminalSnapshot = TerminalSnapshot.empty(),
-    val commandHistory: List<CommandHistoryEntry> = emptyList()
+    val commandHistory: List<CommandHistoryEntry> = emptyList(),
+    val fontSizeSp: Float = 12f,
+    val terminalRows: Int = 24,
+    val terminalColumns: Int = 80
 ) {
     val isRunning: Boolean get() = isStarting || sessionId != null
 }
@@ -378,6 +383,56 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
                 }
             }
         }
+    }
+
+    fun updateFontSize(fontSizeSp: Float) {
+        mutableUiState.update { it.copy(fontSizeSp = fontSizeSp.coerceIn(10f, 22f)) }
+    }
+
+    fun saveTerminalSettings() {
+        val state = mutableUiState.value
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                settingsRepository.save(
+                    TerminalSettingsEntity(
+                        fontSizeSp = state.fontSizeSp,
+                        rows = state.terminalRows,
+                        columns = state.terminalColumns
+                    )
+                )
+            }
+        }
+    }
+
+    fun adjustTerminalRows(delta: Int) {
+        val state = mutableUiState.value
+        updateTerminalDimensions((state.terminalRows + delta).coerceIn(12, 60), state.terminalColumns)
+    }
+
+    fun adjustTerminalColumns(delta: Int) {
+        val state = mutableUiState.value
+        updateTerminalDimensions(state.terminalRows, (state.terminalColumns + delta).coerceIn(40, 160))
+    }
+
+    private fun updateTerminalDimensions(rows: Int, columns: Int) {
+        synchronized(lock) {
+            terminalEmulator.resize(rows, columns)
+            mutableUiState.update {
+                it.copy(
+                    terminalRows = rows,
+                    terminalColumns = columns,
+                    terminalSnapshot = terminalEmulator.snapshot(),
+                    output = terminalEmulator.plainText()
+                )
+            }
+            val state = mutableUiState.value
+            val gateway = runtimeGateway
+            val sessionId = state.sessionId
+            if (gateway != null && sessionId != null && state.isInteractive) {
+                gateway.resize(sessionId, rows, columns)
+            }
+        }
+        saveTerminalSettings()
     }
 
     fun resizeTerminal(rows: Int, columns: Int) = synchronized(lock) {
