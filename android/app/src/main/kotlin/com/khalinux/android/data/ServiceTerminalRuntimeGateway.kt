@@ -11,6 +11,8 @@ class ServiceTerminalRuntimeGateway(
 ) : TerminalRuntimeGateway {
     override fun isInstalled(): Boolean = service.isRuntimeInstalled()
 
+    override fun isRootfsInstalled(): Boolean = service.isRootfsInstalled()
+
     override fun installRootfs(observer: RootfsInstallObserver) {
         service.installLatestRootfs(object : KhaLinuxRuntimeService.RootfsInstallListener {
             override fun onProgress(downloadedBytes: Long, totalBytes: Long?) =
