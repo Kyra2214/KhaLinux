@@ -185,6 +185,7 @@ class RootfsInstaller(
                         Files.createDirectories(target.parent)
                         Files.copy(link, target)
                     }
+                    entry.isCharacterDevice || entry.isBlockDevice || entry.isFIFO -> Unit
                     else -> throw IOException("Tipo de entrada TAR não permitido: ${entry.name}")
                 }
             }
