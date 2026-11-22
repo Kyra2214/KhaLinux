@@ -27,8 +27,12 @@ assert 'rm -f "${ROOTFS_DIR}/etc/apt/sources.list.d/debian.sources"' not in buil
 assert "DEBIAN_SNAPSHOT" in builder_text, "build sem snapshot configurável"
 assert "--foreign" in builder_text, "build não está preparado para cross-build"
 assert "sha256sum" in builder_text, "build não gera SHA-256"
+assert 'ARCHIVE_FILE="${OUTPUT_DIR}/rootfs-arm64.tar.gz"' in builder_text, "build não gera arquivo TAR/GZIP para instalação"
+assert "ARCHIVE_SHA256" in builder_text and "archive_sha256" in builder_text, "manifesto não registra hash do arquivo instalável"
+assert "ROOTFS_RELEASE_TAG" in builder_text and "archive_url" in builder_text, "manifesto não identifica a release do RootFS"
 
 assert "EXPECTED_SNAPSHOT" in verifier.read_text(), "verificador não compara fontes com o manifesto"
+assert "ARCHIVE_SHA256" in verifier.read_text(), "verificador não valida o arquivo RootFS publicado"
 assert builder.stat().st_mode & 0o111, "builder sem bit executável"
 assert verifier.stat().st_mode & 0o111, "verificador sem bit executável"
 assert rootfs_test.stat().st_mode & 0o111, "teste do RootFS sem bit executável"
