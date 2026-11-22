@@ -1,12 +1,17 @@
 package com.khalinux.android
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.khalinux.android.domain.RuntimeEventObserver
 import com.khalinux.android.domain.TerminalRuntimeGateway
 import com.khalinux.android.domain.TerminalUseCases
 import com.khalinux.runtime.RuntimeEvent
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
@@ -19,9 +24,10 @@ data class TerminalUiState(
     val command: String = DEFAULT_COMMAND,
     val output: String = "",
     val sessionId: String? = null,
-    val isInteractive: Boolean = false
+    val isInteractive: Boolean = false,
+    val isStarting: Boolean = false
 ) {
-    val isRunning: Boolean get() = sessionId != null
+    val isRunning: Boolean get() = isStarting || sessionId != null
 }
 
 class TerminalViewModel : ViewModel() {
@@ -32,6 +38,8 @@ class TerminalViewModel : ViewModel() {
 
     private var runtimeGateway: TerminalRuntimeGateway? = null
     private var runtimeUseCases: TerminalUseCases? = null
+    private var startJob: Job? = null
+    private val completedSessionsBeforeStartReturn = mutableSetOf<String>()
 
     fun attachRuntime(gateway: TerminalRuntimeGateway) = synchronized(lock) {
         if (runtimeGateway !== gateway && mutableUiState.value.sessionId != null) {
@@ -84,33 +92,63 @@ class TerminalViewModel : ViewModel() {
         mutableUiState.update { it.copy(command = command) }
     }
 
-    fun runCommand() = synchronized(lock) {
-        val activeUseCases = runtimeUseCases ?: return
-        val current = mutableUiState.value
-        if (!current.runtimeInstalled || current.isRunning || current.isInteractive) return
-        val command = current.command.trim()
-        if (command.isEmpty()) return
-
-        appendOutputLocked("\n$ $command\n")
-        try {
-            val sessionId = activeUseCases.startCommand(command, observerFor(activeUseCases))
-            mutableUiState.update { it.copy(sessionId = sessionId, isInteractive = false) }
-        } catch (error: Exception) {
-            appendOutputLocked("erro: ${error.message ?: error.javaClass.simpleName}\n")
+    fun runCommand() {
+        val start = synchronized(lock) {
+            val activeUseCases = runtimeUseCases ?: return
+            val current = mutableUiState.value
+            if (!current.runtimeInstalled || current.isRunning || current.isInteractive) return
+            val command = current.command.trim()
+            if (command.isEmpty()) return
+            appendOutputLocked("\\n$ $command\\n")
+            mutableUiState.update { it.copy(isStarting = true) }
+            activeUseCases to command
         }
+        launchSession(interactive = false, useCases = start.first, command = start.second)
     }
 
-    fun openInteractiveShell() = synchronized(lock) {
-        val activeUseCases = runtimeUseCases ?: return
-        val current = mutableUiState.value
-        if (!current.runtimeInstalled || current.isRunning) return
+    fun openInteractiveShell() {
+        val activeUseCases = synchronized(lock) {
+            val current = mutableUiState.value
+            val useCases = runtimeUseCases ?: return
+            if (!current.runtimeInstalled || current.isRunning) return
+            appendOutputLocked("\\n[shell interativo PTY iniciando; TERM=dumb]\\n")
+            mutableUiState.update { it.copy(isStarting = true) }
+            useCases
+        }
+        launchSession(interactive = true, useCases = activeUseCases)
+    }
 
-        appendOutputLocked("\n[shell interativo PTY iniciado; TERM=dumb]\n")
-        try {
-            val sessionId = activeUseCases.startInteractive(observerFor(activeUseCases))
-            mutableUiState.update { it.copy(sessionId = sessionId, isInteractive = true, command = "") }
-        } catch (error: Exception) {
-            appendOutputLocked("erro ao abrir shell: ${error.message ?: error.javaClass.simpleName}\n")
+    private fun launchSession(
+        interactive: Boolean,
+        useCases: TerminalUseCases,
+        command: String? = null
+    ) {
+        startJob = viewModelScope.launch {
+            try {
+                val sessionId = withContext(Dispatchers.IO) {
+                    if (interactive) {
+                        useCases.startInteractive(observerFor(useCases))
+                    } else {
+                        useCases.startCommand(requireNotNull(command), observerFor(useCases))
+                    }
+                }
+                synchronized(lock) {
+                    val alreadyFinished = completedSessionsBeforeStartReturn.remove(sessionId)
+                    mutableUiState.update { state ->
+                        state.copy(
+                            sessionId = if (alreadyFinished) null else sessionId,
+                            isStarting = false,
+                            isInteractive = interactive && !alreadyFinished,
+                            command = if (interactive) "" else state.command
+                        )
+                    }
+                }
+            } catch (error: Exception) {
+                synchronized(lock) {
+                    mutableUiState.update { it.copy(isStarting = false, sessionId = null, isInteractive = false) }
+                    appendOutputLocked("erro ao iniciar sessão: ${error.message ?: error.javaClass.simpleName}\\n")
+                }
+            }
         }
     }
 
@@ -118,17 +156,17 @@ class TerminalViewModel : ViewModel() {
         val activeUseCases = runtimeUseCases ?: return
         val current = mutableUiState.value
         val sessionId = current.sessionId ?: return
-        if (!current.isInteractive) return
+        if (!current.isInteractive || current.isStarting) return
         val input = current.command
         if (input.isEmpty()) return
         try {
-            if (activeUseCases.writeInput(sessionId, "$input\n")) {
+            if (activeUseCases.writeInput(sessionId, "$input\\n")) {
                 mutableUiState.update { it.copy(command = "") }
             } else {
-                appendOutputLocked("\n[entrada não enviada: sessão PTY indisponível]\n")
+                appendOutputLocked("\\n[entrada não enviada: sessão PTY indisponível]\\n")
             }
         } catch (error: Exception) {
-            appendOutputLocked("\n[erro de entrada: ${error.message ?: error.javaClass.simpleName}]\n")
+            appendOutputLocked("\\n[erro de entrada: ${error.message ?: error.javaClass.simpleName}]\\n")
         }
     }
 
@@ -197,6 +235,8 @@ class TerminalViewModel : ViewModel() {
                     // The service may already have been destroyed with the Activity.
                 }
             }
+            startJob?.cancel()
+            completedSessionsBeforeStartReturn.clear()
             runtimeGateway = null
             runtimeUseCases = null
         }
