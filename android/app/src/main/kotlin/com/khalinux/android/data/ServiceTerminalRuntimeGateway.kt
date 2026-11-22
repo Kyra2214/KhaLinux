@@ -3,6 +3,7 @@ package com.khalinux.android.data
 import com.khalinux.android.KhaLinuxRuntimeService
 import com.khalinux.android.domain.RuntimeEventObserver
 import com.khalinux.android.domain.RootfsInstallObserver
+import com.khalinux.android.domain.ProotInstallObserver
 import com.khalinux.android.domain.TerminalRuntimeGateway
 import com.khalinux.runtime.RuntimeEvent
 
@@ -12,6 +13,20 @@ class ServiceTerminalRuntimeGateway(
     override fun isInstalled(): Boolean = service.isRuntimeInstalled()
 
     override fun isRootfsInstalled(): Boolean = service.isRootfsInstalled()
+
+    override fun isProotInstalled(): Boolean = service.isProotInstalled()
+
+    override fun installProot(observer: ProotInstallObserver) {
+        service.installLatestProot(object : KhaLinuxRuntimeService.ProotInstallListener {
+            override fun onProgress(downloadedBytes: Long, totalBytes: Long?) =
+                observer.onProgress(downloadedBytes, totalBytes)
+
+            override fun onInstalled(prootExecutable: java.io.File, runtimeReady: Boolean) =
+                observer.onInstalled(runtimeReady)
+
+            override fun onError(message: String) = observer.onError(message)
+        })
+    }
 
     override fun installRootfs(observer: RootfsInstallObserver) {
         service.installLatestRootfs(object : KhaLinuxRuntimeService.RootfsInstallListener {
