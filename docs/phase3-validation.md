@@ -31,8 +31,8 @@ O instalador RootFS usa manifesto de release fixada, download HTTPS com redireci
 
 A primeira construção real do RootFS ARM64 passou no GitHub Actions: debootstrap com verificação GPG, geração do arquivo, SHA-256 canônico, verificação do arquivo e smoke test ARM64 via QEMU/chroot. Os artefatos foram publicados em [KhaLinux Debian Bookworm ARM64 RootFS v1](https://github.com/Kyra2214/KhaLinux/releases/tag/rootfs-bookworm-20261122-v1). O arquivo publicado tem aproximadamente 126 MB compactados.
 
-O próximo trabalho é compilar PRoot para Android/Bionic ARM64 a partir de versões e hashes fixados de PRoot, talloc e libandroid-shmem, empacotar o executável e criar seu manifesto de release. O workflow dessa compilação está sendo adicionado e precisa passar no CI antes de ser considerado concluído.
+O PRoot 5.1.107.102 foi compilado para Android/Bionic ARM64 a partir de versões e hashes fixados de PRoot, talloc e libandroid-shmem, validado como ELF AArch64 com linker `/system/bin/linker64` e publicado em [release PRoot v1](https://github.com/Kyra2214/KhaLinux/releases/tag/proot-android-5.1.107.102-v1). O workflow de build passou no CI. O instalador dentro do app agora valida o hash fixado do manifesto, hashes do pacote/binário, ELF ARM64/Bionic e extração de arquivo único; sua integração e testes CI ainda estão em andamento.
 
-Depois da distribuição do PRoot, ainda faltam integrar sua instalação ao app, validar execução e bind mounts, implementar emulador VT/ANSI, persistência Room/histórico, configurações e refinar notificações/ciclo de vida do foreground Service.
+Ainda faltam concluir e validar a instalação PRoot pelo app, validar execução e bind mounts, implementar emulador VT/ANSI, persistência Room/histórico, configurações e refinar notificações/ciclo de vida do foreground Service.
 
 A Fase 3 continua aberta. Testes em aparelho físico permanecem reservados para a etapa final, depois da implementação, auditoria, regressão e geração do APK.

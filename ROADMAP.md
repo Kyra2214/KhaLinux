@@ -28,7 +28,7 @@ Este roadmap é a referência oficial de evolução do projeto. Uma fase só pod
 
 ## Fase 2 — Runtime Android
 
-**Estado:** launcher Kotlin, sessões, PTY JNI, entrada/resize/cancelamento e grupos de processos implementados. Testes host, JNI/PTy e APK Debug passaram no CI. O RootFS ARM64 agora está publicado. O build reproduzível do PRoot para Android ARM64 está em implementação, ainda sem binário aprovado ou release.
+**Estado:** launcher Kotlin, sessões, PTY JNI, entrada/resize/cancelamento e grupos de processos implementados. Testes host, JNI/PTy e APK Debug passaram no CI. O RootFS ARM64 agora está publicado. PRoot 5.1.107.102 foi compilado com Android NDK 27/API 35, validado como ELF AArch64/Bionic e publicado em [release v1](https://github.com/Kyra2214/KhaLinux/releases/tag/proot-android-5.1.107.102-v1). O instalador no app está em integração e ainda precisa passar no CI.
 
 - Implementar launcher PRoot, PTY, sessões e gerenciamento de processos.
 - Tratar stdout/stderr, timeout, cancelamento e erros.
@@ -38,7 +38,7 @@ Este roadmap é a referência oficial de evolução do projeto. Uma fase só pod
 
 ## Fase 3 — Aplicativo Android
 
-**Estado:** Activity/Service, Compose/MVVM, PTY JNI, buffer limitado e instalador RootFS com progresso na UI implementados. RootFS publicado e smoke test ARM64 aprovado. Workflow para compilar PRoot com fontes fixadas, dependências estáticas e NDK está em validação de CI. Ainda faltam instalar o PRoot pelo app, emulador VT/ANSI, persistência, configurações, refinamento de ciclo de vida e testes físicos finais.
+**Estado:** Activity/Service, Compose/MVVM, PTY JNI, buffer limitado e instalador RootFS com progresso na UI implementados. RootFS publicado e smoke test ARM64 aprovado. Workflow para compilar PRoot com fontes fixadas, dependências estáticas e NDK passou no CI e publicou release versionada. Instalador PRoot com manifesto/hash fixados e validação ELF ARM64/Bionic está em integração. Ainda faltam concluir CI do instalador, emulador VT/ANSI, persistência, configurações, refinamento de ciclo de vida e testes físicos finais.
 
 - Concluir projeto Kotlin com Jetpack Compose, MVVM, Clean Architecture e Coroutines.
 - Implementar navegação, dashboard, instalação, terminal, configurações, Room e histórico.

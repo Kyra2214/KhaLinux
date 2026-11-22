@@ -8,6 +8,12 @@ interface RootfsInstallObserver {
     fun onError(message: String)
 }
 
+interface ProotInstallObserver {
+    fun onProgress(downloadedBytes: Long, totalBytes: Long?)
+    fun onInstalled(runtimeReady: Boolean)
+    fun onError(message: String)
+}
+
 fun interface RuntimeEventObserver {
     fun onEvent(event: RuntimeEvent)
 }
@@ -16,7 +22,9 @@ fun interface RuntimeEventObserver {
 interface TerminalRuntimeGateway {
     fun isInstalled(): Boolean
     fun isRootfsInstalled(): Boolean
+    fun isProotInstalled(): Boolean
     fun installRootfs(observer: RootfsInstallObserver)
+    fun installProot(observer: ProotInstallObserver)
     fun start(command: String, observer: RuntimeEventObserver): String
     fun startInteractive(observer: RuntimeEventObserver): String
     fun writeInput(sessionId: String, text: String): Boolean
