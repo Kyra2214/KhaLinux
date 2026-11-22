@@ -362,6 +362,8 @@ class TerminalViewModel : ViewModel() {
     }
 
     fun resizeTerminal(rows: Int, columns: Int) = synchronized(lock) {
+        terminalEmulator.resize(rows, columns)
+        publishTerminalSnapshot()
         val activeUseCases = runtimeUseCases ?: return
         val sessionId = mutableUiState.value.sessionId ?: return
         if (mutableUiState.value.isInteractive) activeUseCases.resize(sessionId, rows, columns)
@@ -393,10 +395,10 @@ class TerminalViewModel : ViewModel() {
                 }
             }
             is RuntimeEvent.Stdout -> {
-                if (event.sessionId == activeSessionId) appendOutputLocked(String(event.bytes, Charsets.UTF_8))
+                if (event.sessionId == activeSessionId) appendOutputBytesLocked(event.bytes)
             }
             is RuntimeEvent.Stderr -> {
-                if (event.sessionId == activeSessionId) appendOutputLocked(String(event.bytes, Charsets.UTF_8))
+                if (event.sessionId == activeSessionId) appendOutputBytesLocked(event.bytes)
             }
             is RuntimeEvent.Exited -> {
                 if (event.sessionId == activeSessionId) {
@@ -423,9 +425,23 @@ class TerminalViewModel : ViewModel() {
     }
 
     private fun appendOutputLocked(text: String) {
-        transcript.append(text)
-        val output = transcript.toString()
-        mutableUiState.update { it.copy(output = output) }
+        terminalEmulator.appendText(text)
+        publishTerminalSnapshot()
+    }
+
+    private fun appendOutputBytesLocked(bytes: ByteArray) {
+        terminalEmulator.append(bytes)
+        publishTerminalSnapshot()
+    }
+
+    private fun publishTerminalSnapshot() {
+        val snapshot = terminalEmulator.snapshot()
+        mutableUiState.update {
+            it.copy(
+                output = snapshot.plainText(),
+                terminalSnapshot = snapshot
+            )
+        }
     }
 
     override fun onCleared() {
