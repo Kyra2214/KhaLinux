@@ -143,7 +143,7 @@ class RootfsInstaller(
             while (true) {
                 val entry = tar.nextTarEntry ?: break
                 val target = resolveEntry(canonicalRoot, entry.name)
-                ensureNoSymlinkParents(canonicalRoot, target.parent)
+                ensureNoSymlinkParents(canonicalRoot, if (target == canonicalRoot) canonicalRoot else target.parent)
                 val alreadyExists = Files.exists(target, LinkOption.NOFOLLOW_LINKS)
                 when {
                     entry.isDirectory -> {
