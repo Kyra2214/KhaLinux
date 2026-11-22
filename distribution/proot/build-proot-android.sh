@@ -59,6 +59,7 @@ export CC AR RANLIB CFLAGS="-fPIC -O2" CPPFLAGS="-D__ANDROID_API__=${API_LEVEL}"
 # libandroid-shmem é compilada como arquivo estático e ligada ao PRoot.
 make -C "$SHMEM_SRC" clean
 make -C "$SHMEM_SRC" libandroid-shmem.a CC="$CC" AR="$AR" CFLAGS="-fPIC -O2 -std=c11 -Wall -Wextra -D__ANDROID_API__=${API_LEVEL}"
+"$RANLIB" "$SHMEM_SRC/libandroid-shmem.a"
 install -m 0644 "$SHMEM_SRC/libandroid-shmem.a" "$PREFIX/lib/libandroid-shmem.a"
 install -m 0644 "$SHMEM_SRC/shm.h" "$PREFIX/include/sys/shm.h"
 
@@ -97,6 +98,7 @@ ANSWERS
   make install
   cd bin/default
   "$AR" rcu libtalloc.a talloc*.o
+  "$RANLIB" libtalloc.a
   install -m 0644 libtalloc.a "$PREFIX/lib/libtalloc.a"
 )
 
