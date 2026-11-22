@@ -30,6 +30,7 @@ class ProotConfigBindTest {
             assertTrue(bindIndex >= 0)
             assertEquals("${hostNull.absolutePath}:/dev/null", command[bindIndex + 1])
             assertFalse(command[bindIndex + 1].endsWith(":ro"))
+            assertTrue(command.contains("TERM=ansi"))
         } finally {
             directory.deleteRecursively()
         }

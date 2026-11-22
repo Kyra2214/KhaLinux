@@ -19,10 +19,19 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
+import com.khalinux.runtime.TerminalSnapshot
+import com.khalinux.runtime.TerminalStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
@@ -30,6 +39,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 fun KhaLinuxApp(viewModel: TerminalViewModel) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val outputScroll = rememberScrollState()
+    val terminalText = remember(state.terminalSnapshot) { state.terminalSnapshot.toAnnotatedString() }
 
     LaunchedEffect(state.output) {
         outputScroll.animateScrollTo(outputScroll.maxValue)
@@ -151,7 +161,7 @@ fun KhaLinuxApp(viewModel: TerminalViewModel) {
                             )
                         } else {
                             Text(
-                                text = state.output,
+                                text = terminalText,
                                 color = Color(0xFFE8F0F2),
                                 fontFamily = FontFamily.Monospace,
                                 style = MaterialTheme.typography.bodySmall
@@ -163,4 +173,68 @@ fun KhaLinuxApp(viewModel: TerminalViewModel) {
             }
         }
     }
+}
+
+
+private fun TerminalSnapshot.toAnnotatedString(): AnnotatedString = buildAnnotatedString {
+    val range = displayRange()
+    range.forEach { rowIndex ->
+        val line = lines[rowIndex]
+        val lastContent = line.indexOfLast { it.text != " " || it.style != TerminalStyle() }
+        val cursorColumnInLine = if (cursorVisible && rowIndex == cursorRow && cursorColumn < columns) {
+            cursorColumn
+        } else {
+            -1
+        }
+        val end = maxOf(lastContent + 1, cursorColumnInLine + 1).coerceIn(0, columns)
+        var column = 0
+        while (column < end) {
+            fun styleAt(index: Int): TerminalStyle {
+                val cellStyle = line[index].style
+                return if (rowIndex == cursorRow && index == cursorColumnInLine) {
+                    cellStyle.copy(inverse = !cellStyle.inverse)
+                } else {
+                    cellStyle
+                }
+            }
+            val style = styleAt(column)
+            var runEnd = column + 1
+            while (runEnd < end && styleAt(runEnd) == style) runEnd++
+            pushStyle(style.toComposeSpanStyle())
+            for (index in column until runEnd) append(line[index].text)
+            pop()
+            column = runEnd
+        }
+        if (rowIndex != range.last) append('\n')
+    }
+}
+
+private fun TerminalStyle.toComposeSpanStyle(): SpanStyle {
+    val defaultForeground = Color(0xFFE8F0F2)
+    val defaultBackground = Color(0xFF0B0F12)
+    var foreground = this.foreground?.let { Color(it) } ?: defaultForeground
+    var background = this.background?.let { Color(it) } ?: Color.Transparent
+    if (inverse) {
+        val swappedForeground = this.background?.let { Color(it) } ?: defaultBackground
+        val swappedBackground = this.foreground?.let { Color(it) } ?: defaultForeground
+        foreground = swappedForeground
+        background = swappedBackground
+    }
+    if (dim) foreground = foreground.copy(alpha = foreground.alpha * 0.65f)
+    val decorations = buildList {
+        if (underline) add(TextDecoration.Underline)
+        if (strikeThrough) add(TextDecoration.LineThrough)
+    }
+    val decoration = when (decorations.size) {
+        0 -> null
+        1 -> decorations.first()
+        else -> TextDecoration.combine(decorations)
+    }
+    return SpanStyle(
+        color = foreground,
+        background = background,
+        fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal,
+        fontStyle = if (italic) FontStyle.Italic else null,
+        textDecoration = decoration
+    )
 }

@@ -8,6 +8,8 @@ import com.khalinux.android.domain.ProotInstallObserver
 import com.khalinux.android.domain.TerminalRuntimeGateway
 import com.khalinux.android.domain.TerminalUseCases
 import com.khalinux.runtime.RuntimeEvent
+import com.khalinux.runtime.TerminalEmulator
+import com.khalinux.runtime.TerminalSnapshot
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.CancellationException
@@ -39,14 +41,15 @@ data class TerminalUiState(
     val prootInstalled: Boolean = false,
     val isInstallingProot: Boolean = false,
     val prootInstallProgress: String? = null,
-    val prootInstallMessage: String? = null
+    val prootInstallMessage: String? = null,
+    val terminalSnapshot: TerminalSnapshot = TerminalSnapshot.empty()
 ) {
     val isRunning: Boolean get() = isStarting || sessionId != null
 }
 
 class TerminalViewModel : ViewModel() {
     private val lock = Any()
-    private val transcript = TerminalOutputBuffer()
+    private val terminalEmulator = TerminalEmulator(rows = 24, columns = 80)
     private val mutableUiState = MutableStateFlow(TerminalUiState())
     val uiState: StateFlow<TerminalUiState> = mutableUiState.asStateFlow()
 
@@ -271,7 +274,7 @@ class TerminalViewModel : ViewModel() {
             val current = mutableUiState.value
             val useCases = runtimeUseCases ?: return
             if (!current.runtimeInstalled || current.isRunning) return
-            appendOutputLocked("\n[shell interativo PTY iniciando; TERM=dumb]\n")
+            appendOutputLocked("\n[shell interativo PTY iniciando; TERM=ansi]\n")
             mutableUiState.update { it.copy(isStarting = true) }
             useCases
         }
@@ -359,6 +362,8 @@ class TerminalViewModel : ViewModel() {
     }
 
     fun resizeTerminal(rows: Int, columns: Int) = synchronized(lock) {
+        terminalEmulator.resize(rows, columns)
+        publishTerminalSnapshot()
         val activeUseCases = runtimeUseCases ?: return
         val sessionId = mutableUiState.value.sessionId ?: return
         if (mutableUiState.value.isInteractive) activeUseCases.resize(sessionId, rows, columns)
@@ -390,10 +395,10 @@ class TerminalViewModel : ViewModel() {
                 }
             }
             is RuntimeEvent.Stdout -> {
-                if (event.sessionId == activeSessionId) appendOutputLocked(String(event.bytes, Charsets.UTF_8))
+                if (event.sessionId == activeSessionId) appendOutputBytesLocked(event.bytes)
             }
             is RuntimeEvent.Stderr -> {
-                if (event.sessionId == activeSessionId) appendOutputLocked(String(event.bytes, Charsets.UTF_8))
+                if (event.sessionId == activeSessionId) appendOutputBytesLocked(event.bytes)
             }
             is RuntimeEvent.Exited -> {
                 if (event.sessionId == activeSessionId) {
@@ -420,9 +425,23 @@ class TerminalViewModel : ViewModel() {
     }
 
     private fun appendOutputLocked(text: String) {
-        transcript.append(text)
-        val output = transcript.toString()
-        mutableUiState.update { it.copy(output = output) }
+        terminalEmulator.appendText(text)
+        publishTerminalSnapshot()
+    }
+
+    private fun appendOutputBytesLocked(bytes: ByteArray) {
+        terminalEmulator.append(bytes)
+        publishTerminalSnapshot()
+    }
+
+    private fun publishTerminalSnapshot() {
+        val snapshot = terminalEmulator.snapshot()
+        mutableUiState.update {
+            it.copy(
+                output = snapshot.plainText(),
+                terminalSnapshot = snapshot
+            )
+        }
     }
 
     override fun onCleared() {
