@@ -70,7 +70,7 @@ jobs:
             "platforms;android-35" \
             "build-tools;35.0.0" \
             "cmake;3.22.1" \
-            "ndk;26.1.10909125"
+            "ndk;27.0.12077973"
           yes | sdkmanager --licenses
 
       - name: Run runtime unit tests
