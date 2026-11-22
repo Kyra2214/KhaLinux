@@ -176,10 +176,10 @@ class SessionManager(
                 }
                 timeoutTask?.cancel(false)
                 releaseSlotOnce()
+                pruneCompletedSessions()
                 if (publishExit) {
                     queue.offer(RuntimeEvent.Exited(id, exitCode, snapshot().timedOut))
                 }
-                pruneCompletedSessions()
             } catch (error: InterruptedException) {
                 Thread.currentThread().interrupt()
                 fail(error)
@@ -256,8 +256,8 @@ class SessionManager(
             }
             if (changed) {
                 releaseSlotOnce()
-                queue.offer(RuntimeEvent.Failed(id, message))
                 pruneCompletedSessions()
+                queue.offer(RuntimeEvent.Failed(id, message))
             }
         }
 
