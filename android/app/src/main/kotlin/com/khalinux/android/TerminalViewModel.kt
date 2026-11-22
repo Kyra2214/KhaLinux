@@ -52,7 +52,7 @@ class TerminalViewModel : ViewModel() {
             startJob?.cancel()
             inputJob?.cancel()
             completedSessionsBeforeStartReturn.clear()
-            mutableUiState.update { it.copy(sessionId = null, isInteractive = false, isStarting = false) }
+            mutableUiState.update { it.copy(sessionId = null, isInteractive = false, isStarting = false, isSendingInput = false) }
         }
         runtimeGateway = gateway
         runtimeUseCases = TerminalUseCases(gateway)
@@ -89,6 +89,7 @@ class TerminalViewModel : ViewModel() {
 
     fun bindingUnavailable() = synchronized(lock) {
         startJob?.cancel()
+        inputJob?.cancel()
         completedSessionsBeforeStartReturn.clear()
         runtimeGateway = null
         runtimeUseCases = null
@@ -99,7 +100,8 @@ class TerminalViewModel : ViewModel() {
                 connectionMessage = "Não foi possível conectar ao Service local",
                 sessionId = null,
                 isInteractive = false,
-                isStarting = false
+                isStarting = false,
+                isSendingInput = false
             )
         }
     }
@@ -253,6 +255,7 @@ class TerminalViewModel : ViewModel() {
             }
             is RuntimeEvent.Exited -> {
                 if (event.sessionId == activeSessionId) {
+                    inputJob?.cancel()
                     val result = if (event.timedOut) "timeout" else "exit=${event.exitCode}"
                     appendOutputLocked("\n[$result]\n")
                     if (mutableUiState.value.isStarting) {
