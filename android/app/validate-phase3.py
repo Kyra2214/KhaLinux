@@ -54,6 +54,9 @@ assert "withContext(Dispatchers.IO)" in view_model_text, "inicialização do pro
 assert "isStarting: Boolean" in view_model_text and "isStarting || sessionId != null" in view_model_text, "estado de inicialização não bloqueia comandos duplicados"
 assert "createdSessionId" in view_model_text and "completedSessionsBeforeStartReturn" in view_model_text, "corrida entre início e saída rápida da sessão não está protegida"
 assert "CancellationException" in view_model_text and "NonCancellable + Dispatchers.IO" in view_model_text, "cancelamento durante spawn pode deixar sessão órfã"
+send_input_text = view_model_text.split("fun sendInput()", 1)[1].split("fun resizeTerminal", 1)[0]
+assert "withContext(Dispatchers.IO)" in send_input_text, "escrita no PTY pode bloquear a thread principal"
+assert "isSendingInput" in view_model_text and "isSendingInput" in screen_text, "envio duplicado de linhas não é bloqueado"
 assert "KhaLinuxRuntimeService" not in view_model_text, "ViewModel acoplado ao Service Android"
 assert "TerminalRuntimeGateway" in view_model_text and "TerminalUseCases" in view_model_text, "ViewModel sem abstração/casos de uso"
 assert "interface TerminalRuntimeGateway" in domain_text, "porta de domínio ausente"
