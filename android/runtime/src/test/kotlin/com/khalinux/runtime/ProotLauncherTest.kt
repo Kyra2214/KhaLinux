@@ -18,12 +18,16 @@ class ProotLauncherTest {
         File(rootfs, "bin").mkdirs()
         File(rootfs, "bin/bash").writeText("test shell placeholder")
 
-        val launcher = ProotLauncher(ProotConfig(prootExecutable = proot, rootfsDirectory = rootfs))
-        val environment = launcher.hostEnvironment()
-        val expectedTmp = File(appFiles, "tmp")
+        try {
+            val launcher = ProotLauncher(ProotConfig(prootExecutable = proot, rootfsDirectory = rootfs))
+            val environment = launcher.hostEnvironment()
+            val expectedTmp = File(appFiles, "tmp")
 
-        assertEquals(expectedTmp.absolutePath, environment["TMPDIR"])
-        assertTrue(expectedTmp.isDirectory)
-        assertTrue(expectedTmp.canWrite())
+            assertEquals(expectedTmp.absolutePath, environment["TMPDIR"])
+            assertTrue(expectedTmp.isDirectory)
+            assertTrue(expectedTmp.canWrite())
+        } finally {
+            appFiles.deleteRecursively()
+        }
     }
 }
