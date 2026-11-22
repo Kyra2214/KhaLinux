@@ -21,11 +21,26 @@ interface TerminalProcessLauncher : ProcessLauncher {
 class SystemProcessLauncher : ProcessLauncher {
     override fun launch(arguments: List<String>, environment: Map<String, String>): Process {
         require(arguments.isNotEmpty()) { "lista de argumentos vazia" }
-        val process = ProcessBuilder(arguments)
+        val setsid = java.io.File("/system/bin/setsid")
+        val usesProcessGroup = setsid.canExecute()
+        val command = if (usesProcessGroup) listOf(setsid.absolutePath) + arguments else arguments
+        val process = ProcessBuilder(command)
             .redirectErrorStream(false)
         process.environment().clear()
         process.environment().putAll(environment)
-        return process.start()
+        val child = process.start()
+        return if (usesProcessGroup) {
+            ProcessGroupManagedProcess(child) { pid, force ->
+                try {
+                    NativePty.signal(pid, force)
+                } catch (_: UnsatisfiedLinkError) {
+                    if (force) child.destroyForcibly() else child.destroy()
+                    false
+                }
+            }
+        } else {
+            child
+        }
     }
 }
 
