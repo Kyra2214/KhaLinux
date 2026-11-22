@@ -34,7 +34,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import com.khalinux.runtime.TerminalSnapshot
 import com.khalinux.runtime.TerminalStyle
-import androidx.compose.ui.unit.dp\nimport androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp\nimport androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
@@ -211,6 +212,7 @@ fun KhaLinuxApp(viewModel: TerminalViewModel) {
                                 text = terminalText,
                                 color = Color(0xFFE8F0F2),
                                 fontFamily = FontFamily.Monospace,
+                                fontSize = state.fontSizeSp.sp,
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }
