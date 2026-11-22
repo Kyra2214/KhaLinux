@@ -6,11 +6,11 @@ O aplicativo agora usa uma Activity hospedeira baseada em `ComponentActivity`, u
 
 A tela coleta o estado com `collectAsStateWithLifecycle`, permite editar e executar um comando, cancelar uma sessão ativa, mostra o estado de conexão/runtime e rola para a saída mais recente. Activity e composables não criam `ProcessBuilder`, não montam argumentos PRoot nem executam comandos diretamente.
 
-O transcript do terminal usa `TerminalOutputBuffer`, limitado a 64 Ki caracteres em memória. Quando o limite é ultrapassado, o trecho mais antigo é descartado e um marcador informa a truncagem. O buffer é volátil: não adiciona histórico em disco nem persiste comandos ou tokens.
+A tela usa o emulador VT/ANSI do runtime, com parser incremental UTF-8, cursor, SGR, cores ANSI 16/256/RGB, erase, scrollback limitado e renderização de estilos Compose. O subconjunto implementado não é um emulador xterm completo. O histórico de comandos é persistido localmente em Room, limitado a 100 entradas; a tela oferece os 12 mais recentes para reutilização. A saída do terminal não é persistida.
 
 ## Validação executada
 
-O validador estrutural confere Activity/Compose/ViewModel/domínio/dados/Service e executa seis testes host-side do buffer: transcript curto, truncagem incremental, chunk maior que o limite, limite padrão, limpeza e configuração inválida. Os testes compilam o buffer com `javac`, sem depender do Android SDK:
+O validador estrutural confere Activity/Compose/ViewModel/domínio/dados/Service, emulador VT/ANSI, Room, migração de configurações e controles de histórico. Os testes unitários do runtime exercitam o parser; os testes unitários do app cobrem o repositório de histórico, limite de 100 comandos, consulta dos 12 mais recentes e descarte de entradas vazias. Os testes compilam o buffer com `javac`, sem depender do Android SDK:
 
 ```text
 terminal_output_buffer=ok cases=6
@@ -33,6 +33,6 @@ A primeira construção real do RootFS ARM64 passou no GitHub Actions: debootstr
 
 O PRoot 5.1.107.102 foi compilado para Android/Bionic ARM64 a partir de versões e hashes fixados de PRoot, talloc e libandroid-shmem, validado como ELF AArch64 com linker `/system/bin/linker64` e publicado em [release PRoot v1](https://github.com/Kyra2214/KhaLinux/releases/tag/proot-android-5.1.107.102-v1). O workflow de build passou no CI. O instalador dentro do app valida o hash fixado do manifesto, hashes do pacote/binário, ELF ARM64/Bionic e extração de arquivo único. A UI oferece instalação separada de Debian e PRoot, com progresso. O runtime prepara binds mínimos e allowlisted para nós de dispositivo, sem expor /dev inteiro, /proc ou /sys.
 
-O smoke host executa Bash ARM64 pelo PRoot/QEMU com os binds mínimos e confirma UID simulado, arquitetura e dispositivos. O emulador ANSI/VT básico agora processa UTF-8 incremental, SGR/cores, cursor, erase e scrollback, e a UI renderiza atributos. Ele anuncia TERM=ansi e não promete xterm completo. Ainda faltam CI dessa integração, persistência Room/histórico, configurações e refinamentos de notificações/ciclo de vida do foreground Service. Os binds PRoot não são read-only nem uma fronteira de isolamento.
+O smoke host executa Bash ARM64 pelo PRoot/QEMU com os binds mínimos e confirma UID simulado, arquitetura e dispositivos. O emulador ANSI/VT básico agora processa UTF-8 incremental, SGR/cores, cursor, erase e scrollback, e a UI renderiza atributos. Ele anuncia TERM=ansi e não promete xterm completo. Ainda faltam foreground service e notificação persistente para manter sessões interativas ao sair da Activity, refinamentos de recuperação/ciclo de vida, auditoria geral e testes físicos finais. Os binds PRoot não são read-only nem uma fronteira de isolamento.
 
 A Fase 3 continua aberta. Testes em aparelho físico permanecem reservados para a etapa final, depois da implementação, auditoria, regressão e geração do APK.
