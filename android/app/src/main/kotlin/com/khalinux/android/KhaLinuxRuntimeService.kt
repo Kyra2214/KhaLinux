@@ -370,6 +370,10 @@ class KhaLinuxRuntimeService : Service() {
     }
 
     companion object {
+        private const val ACTION_INTERACTIVE_SESSION = "com.khalinux.android.action.INTERACTIVE_SESSION"
+        private const val ACTION_STOP_INTERACTIVE_SESSION = "com.khalinux.android.action.STOP_INTERACTIVE_SESSION"
+        private const val NOTIFICATION_CHANNEL_ID = "khalinux_terminal_session"
+        private const val NOTIFICATION_ID = 35
         private const val ROOTFS_RELEASE_TAG = "rootfs-bookworm-20261122-v1"
         private const val ROOTFS_MANIFEST_SHA256 = "9c9c167894ca958a627b607062d2b0b2cb61cc0edd57ed8dc17e611125ce9db2"
         private const val ROOTFS_ARCHIVE_SHA256 = "bcd272a77f6f081408e1b60d9e9ed65ad9c23678b8892d334b5e051bf61613e8"
