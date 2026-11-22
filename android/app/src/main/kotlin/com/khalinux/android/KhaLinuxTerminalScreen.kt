@@ -62,6 +62,22 @@ fun KhaLinuxApp(viewModel: TerminalViewModel) {
                     style = MaterialTheme.typography.bodyMedium
                 )
 
+                if (state.serviceConnected && !state.runtimeInstalled) {
+                    OutlinedButton(
+                        onClick = viewModel::installRootfs,
+                        enabled = !state.isInstallingRootfs,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(if (state.isInstallingRootfs) "Instalando Debian…" else "Instalar ambiente Linux")
+                    }
+                    state.rootfsInstallProgress?.let { progress ->
+                        Text(progress, color = Color(0xFF80CBC4), style = MaterialTheme.typography.bodySmall)
+                    }
+                    state.rootfsInstallMessage?.let { message ->
+                        Text(message, color = Color(0xFFE8F0F2), style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+
                 OutlinedTextField(
                     value = state.command,
                     onValueChange = viewModel::updateCommand,
