@@ -61,6 +61,19 @@ abstract class CommandHistoryDatabase : RoomDatabase() {
     abstract fun commandHistoryDao(): CommandHistoryDao\n    abstract fun terminalSettingsDao(): TerminalSettingsDao
 
     companion object {
+        private val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    "CREATE TABLE IF NOT EXISTS terminal_settings (" +
+                        "id INTEGER NOT NULL PRIMARY KEY, fontSizeSp REAL NOT NULL, " +
+                        "rows INTEGER NOT NULL, columns INTEGER NOT NULL)"
+                )
+                database.execSQL(
+                    "INSERT INTO terminal_settings (id, fontSizeSp, rows, columns) VALUES (1, 12.0, 24, 80)"
+                )
+            }
+        }
+
         @Volatile
         private var instance: CommandHistoryDatabase? = null
 
@@ -84,4 +97,10 @@ class CommandHistoryRepository(private val dao: CommandHistoryDao) {
     }
 
     fun observeRecent(): Flow<List<CommandHistoryEntry>> = dao.observeRecent()
+}
+
+class TerminalSettingsRepository(private val dao: TerminalSettingsDao) {
+    fun observeSettings(): Flow<TerminalSettingsEntity?> = dao.observeSettings()
+
+    suspend fun save(settings: TerminalSettingsEntity) = dao.save(settings)
 }
