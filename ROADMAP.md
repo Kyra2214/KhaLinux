@@ -28,7 +28,7 @@ Este roadmap é a referência oficial de evolução do projeto. Uma fase só pod
 
 ## Fase 2 — Runtime Android
 
-**Estado:** launcher por pipes e sessões Kotlin; PTY JNI; entrada/resize/cancelamento interativos; grupos de processos para comandos Android; testes host de sessão, concorrência, timeout, cancelamento de descendentes e JNI/PTy implementados. A suíte host e a configuração RootFS já passaram em ciclos CI; compilação Android integrada ainda está em validação.
+**Estado:** launcher por pipes e sessões Kotlin; PTY JNI; entrada/resize/cancelamento interativos; grupos de processos para comandos Android; testes host de sessão, concorrência, timeout, cancelamento de descendentes e JNI/PTy implementados. A suíte host e a configuração RootFS passaram em ciclos CI anteriores; a nova regressão de grupos de processos e a compilação Android integrada estão em validação.
 
 - Implementar launcher PRoot, PTY, sessões e gerenciamento de processos.
 - Tratar stdout/stderr, timeout, cancelamento e erros.
