@@ -49,26 +49,26 @@ class SessionManagerTest {
 
     private fun runtime(): SessionManager = SessionManager(launcher(), maxSessions = 2)
 
-    @Test fun commandIsPassedAsSingleGuestShellArgument() {
+    @Test(timeout = 15000) fun commandIsPassedAsSingleGuestShellArgument() {
         val args = config().commandFor(CommandRequest("printf '%s' 'hello;not-host'"))
         assertEquals("printf '%s' 'hello;not-host'", args.last())
         assertEquals("/bin/bash", args[args.size - 5])
     }
 
-    @Test fun invalidEnvironmentNameIsRejected() {
+    @Test(timeout = 15000) fun invalidEnvironmentNameIsRejected() {
         assertFailsWith<IllegalArgumentException> {
             config().commandFor(CommandRequest("true", environment = mapOf("BAD=KEY" to "x")))
         }
     }
 
-    @Test fun interactiveSessionUsesGuestBashAndConservativeTerminalEnvironment() {
+    @Test(timeout = 15000) fun interactiveSessionUsesGuestBashAndConservativeTerminalEnvironment() {
         val args = config().commandFor(CommandRequest("", interactive = true))
         assertEquals(listOf("/bin/bash", "--noprofile", "--norc", "-i"), args.takeLast(4))
         assertTrue(args.contains("TERM=dumb"))
         assertTrue(args.contains("PS1=khalinux:\\w\\$ "))
     }
 
-    @Test fun sessionCapturesStdoutAndExitCode() {
+    @Test(timeout = 15000) fun sessionCapturesStdoutAndExitCode() {
         val runtime = runtime()
         try {
             val session = runtime.start(CommandRequest("printf 'hello'; exit 7"))
@@ -83,7 +83,7 @@ class SessionManagerTest {
         }
     }
 
-    @Test fun activeSessionLimitRejectsAdditionalWorkUntilCompletion() {
+    @Test(timeout = 15000) fun activeSessionLimitRejectsAdditionalWorkUntilCompletion() {
         val runtime = SessionManager(launcher(), maxSessions = 1)
         try {
             val first = runtime.start(CommandRequest("exec sleep 5"))
@@ -102,7 +102,7 @@ class SessionManagerTest {
         }
     }
 
-    @Test fun completedSessionsReleaseActiveSessionCapacity() {
+    @Test(timeout = 15000) fun completedSessionsReleaseActiveSessionCapacity() {
         val runtime = SessionManager(launcher(), maxSessions = 1)
         try {
             val first = runtime.start(CommandRequest("true"))
@@ -117,7 +117,7 @@ class SessionManagerTest {
         }
     }
 
-    @Test fun completedSessionHistoryRemainsBounded() {
+    @Test(timeout = 15000) fun completedSessionHistoryRemainsBounded() {
         val runtime = SessionManager(launcher(), maxSessions = 1, maxRetainedSessions = 1)
         try {
             val first = runtime.start(CommandRequest("true"))
@@ -211,7 +211,7 @@ class SessionManagerTest {
         }
     }
 
-    @Test fun launchFailureReleasesActiveSessionCapacity() {
+    @Test(timeout = 15000) fun launchFailureReleasesActiveSessionCapacity() {
         val brokenLauncher = ProotLauncher(
             config(),
             processLauncher = object : ProcessLauncher {
@@ -232,7 +232,7 @@ class SessionManagerTest {
         }
     }
 
-    @Test fun timeoutCancelsLongRunningSession() {
+    @Test(timeout = 15000) fun timeoutCancelsLongRunningSession() {
         val runtime = runtime()
         try {
             val session = runtime.start(CommandRequest("exec sleep 5", timeout = Duration.ofMillis(100)))
