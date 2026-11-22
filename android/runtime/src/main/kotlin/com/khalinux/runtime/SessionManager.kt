@@ -159,6 +159,8 @@ class SessionManager(
             } catch (error: InterruptedException) {
                 Thread.currentThread().interrupt()
                 fail(error)
+            } catch (error: Throwable) {
+                fail(error)
             } finally {
                 releaseSlotOnce()
             }
