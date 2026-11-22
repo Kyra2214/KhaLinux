@@ -105,7 +105,7 @@ make -C "$PROOT_SRC/src" -j2 \
   CC="$CC" AR="$AR" STRIP="$STRIP" \
   CPPFLAGS="-D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DARG_MAX=131072 -I. -I$PROOT_SRC/src -I$PREFIX/include" \
   CFLAGS="-Wall -Wextra -O2 -DWITH_LIBANDROID_SHMEM" \
-  LDFLAGS="-L$PREFIX/lib -ltalloc -Wl,-z,noexecstack -landroid-shmem -llog -landroid"
+  LDFLAGS="-L$PREFIX/lib -Wl,-Bstatic -ltalloc -landroid-shmem -Wl,-Bdynamic -Wl,-z,noexecstack -llog -landroid"
 
 PROOT_BIN="$PROOT_SRC/src/proot"
 [[ -s "$PROOT_BIN" ]] || fail 'binário PRoot não foi gerado'
