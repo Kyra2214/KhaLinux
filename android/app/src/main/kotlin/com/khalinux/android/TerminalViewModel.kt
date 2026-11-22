@@ -239,7 +239,7 @@ class TerminalViewModel : ViewModel() {
                 }
             }
             is RuntimeEvent.Failed -> {
-                if (activeSessionId == null || event.sessionId == activeSessionId) {
+                if (event.sessionId == activeSessionId) {
                     appendOutputLocked("\n[falha=${event.message}]\n")
                     if (mutableUiState.value.isStarting) {
                         completedSessionsBeforeStartReturn.add(event.sessionId)
