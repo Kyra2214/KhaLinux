@@ -135,9 +135,8 @@ class KhaLinuxRuntimeService : Service() {
 
                 val target = File(filesDir, "runtime/proot")
                 val result = ProotInstaller().install(
-                    ProotInstaller.Request(expectedUrl, archiveSha, binarySha, target)
+                    ProotInstaller.Request(expectedUrl, archiveSha, binarySha, binaryBytes, target)
                 ) { downloaded, total -> listener.onProgress(downloaded, total ?: archiveBytes) }
-                require(result.binaryBytes == binaryBytes) { "Tamanho do executável PRoot divergente do manifesto" }
                 runtime?.close()
                 runtime = createRuntimeIfInstalled()
                 listener.onInstalled(result.installedFile, runtime != null)
