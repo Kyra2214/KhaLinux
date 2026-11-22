@@ -43,9 +43,9 @@ download_verified() {
   printf '%s  %s\n' "$expected" "$output" | sha256sum --check --status || fail "SHA-256 inválido: $url"
 }
 
-download_verified "https://github.com/termux/proot/archive/refs/tags/v${PROOT_VERSION}.zip" proot.zip "$PROOT_SHA256"
+download_verified "https://codeload.github.com/termux/proot/zip/refs/tags/v${PROOT_VERSION}" proot.zip "$PROOT_SHA256"
 download_verified "https://www.samba.org/ftp/talloc/talloc-${TALLOC_VERSION}.tar.gz" talloc.tar.gz "$TALLOC_SHA256"
-download_verified "https://github.com/termux/libandroid-shmem/archive/refs/tags/v${SHMEM_VERSION}.tar.gz" libandroid-shmem.tar.gz "$SHMEM_SHA256"
+download_verified "https://codeload.github.com/termux/libandroid-shmem/tar.gz/refs/tags/v${SHMEM_VERSION}" libandroid-shmem.tar.gz "$SHMEM_SHA256"
 
 unzip -q proot.zip
 tar -xzf talloc.tar.gz
