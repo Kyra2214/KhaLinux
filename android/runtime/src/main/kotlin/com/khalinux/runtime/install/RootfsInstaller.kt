@@ -12,6 +12,8 @@ import java.net.URL
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import java.nio.file.LinkOption
+import java.nio.file.attribute.PosixFilePermission
+import java.util.EnumSet
 import java.security.MessageDigest
 import java.util.Locale
 
@@ -140,6 +142,7 @@ class RootfsInstaller(
                             "Diretório TAR colide com entrada existente: " + entry.name
                         }
                         Files.createDirectories(target)
+                        applyMode(target, entry.mode)
                     }
                     entry.isFile -> {
                         require(!alreadyExists) { "Entrada TAR duplicada: " + entry.name }
@@ -157,9 +160,7 @@ class RootfsInstaller(
                                 remaining -= read
                             }
                         }
-                        target.toFile().setExecutable(entry.mode and 0b001001001 != 0, false)
-                        target.toFile().setReadable(entry.mode and 0b100100100 != 0, false)
-                        target.toFile().setWritable(entry.mode and 0b010010010 != 0, false)
+                        applyMode(target, entry.mode)
                     }
                     entry.isSymbolicLink -> {
                         require(!alreadyExists) { "Entrada TAR duplicada: " + entry.name }
@@ -173,6 +174,7 @@ class RootfsInstaller(
                         require(Files.isRegularFile(link)) { "Hard link aponta para arquivo ausente ou não regular: ${entry.name}" }
                         Files.createDirectories(target.parent)
                         Files.copy(link, target)
+                        applyMode(target, entry.mode)
                     }
                     entry.isCharacterDevice || entry.isBlockDevice || entry.isFIFO -> Unit
                     else -> throw IOException("Tipo de entrada TAR não permitido: ${entry.name}")
@@ -180,6 +182,20 @@ class RootfsInstaller(
             }
         }
         return extractedBytes
+    }
+
+    private fun applyMode(path: java.nio.file.Path, mode: Int) {
+        val permissions = EnumSet.noneOf(PosixFilePermission::class.java)
+        if (mode and 0b100000000 != 0) permissions.add(PosixFilePermission.OWNER_READ)
+        if (mode and 0b010000000 != 0) permissions.add(PosixFilePermission.OWNER_WRITE)
+        if (mode and 0b001000000 != 0) permissions.add(PosixFilePermission.OWNER_EXECUTE)
+        if (mode and 0b000100000 != 0) permissions.add(PosixFilePermission.GROUP_READ)
+        if (mode and 0b000010000 != 0) permissions.add(PosixFilePermission.GROUP_WRITE)
+        if (mode and 0b000001000 != 0) permissions.add(PosixFilePermission.GROUP_EXECUTE)
+        if (mode and 0b000000100 != 0) permissions.add(PosixFilePermission.OTHERS_READ)
+        if (mode and 0b000000010 != 0) permissions.add(PosixFilePermission.OTHERS_WRITE)
+        if (mode and 0b000000001 != 0) permissions.add(PosixFilePermission.OTHERS_EXECUTE)
+        Files.setPosixFilePermissions(path, permissions)
     }
 
     internal fun resolveEntry(root: java.nio.file.Path, name: String): java.nio.file.Path {
