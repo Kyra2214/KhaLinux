@@ -59,7 +59,7 @@ class KhaLinuxRuntimeService : Service() {
     private val binder = LocalBinder()
     private val callbacks: ExecutorService = Executors.newCachedThreadPool()
     private val installerExecutor: ExecutorService = Executors.newSingleThreadExecutor()
-    private var runtime: LinuxRuntime? = null
+    @Volatile private var runtime: LinuxRuntime? = null
     @Volatile private var activeInteractiveSessionId: String? = null
     @Volatile private var interactiveSessionStarting: Boolean = false
 
@@ -207,22 +207,6 @@ class KhaLinuxRuntimeService : Service() {
         }
     }
 
-    /** Instala o RootFS verificado em diretório privado; não executa comandos durante a extração. */
-    fun installRootfs(archiveUrl: String, expectedSha256: String, listener: RootfsInstallListener) {
-        installerExecutor.submit {
-            try {
-                val target = File(filesDir, "runtime/rootfs-arm64")
-                val result = RootfsInstaller().install(
-                    RootfsInstaller.Request(archiveUrl, expectedSha256, target)
-                ) { downloaded, total -> listener.onProgress(downloaded, total) }
-                runtime?.close()
-                runtime = createRuntimeIfInstalled()
-                listener.onInstalled(result.installedDirectory, runtime != null)
-            } catch (error: Throwable) {
-                listener.onError(error.message ?: "Falha ao instalar RootFS")
-            }
-        }
-    }
 
     fun startShell(
         shellCommand: String,

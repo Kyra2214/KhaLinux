@@ -8,8 +8,11 @@ import com.khalinux.android.domain.TerminalRuntimeGateway
 import com.khalinux.runtime.RuntimeEvent
 
 class ServiceTerminalRuntimeGateway(
-    private val service: KhaLinuxRuntimeService
+    internal val service: KhaLinuxRuntimeService
 ) : TerminalRuntimeGateway {
+    override fun isSameRuntime(other: TerminalRuntimeGateway): Boolean =
+        other is ServiceTerminalRuntimeGateway && service === other.service
+
     override fun isInstalled(): Boolean = service.isRuntimeInstalled()
 
     override fun isRootfsInstalled(): Boolean = service.isRootfsInstalled()
