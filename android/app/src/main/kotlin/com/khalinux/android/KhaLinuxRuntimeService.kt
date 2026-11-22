@@ -100,6 +100,12 @@ class KhaLinuxRuntimeService : Service() {
                 require(manifest.getString("archive_url") == expectedUrl) { "URL do arquivo não corresponde à release fixada" }
                 val expectedBytes = manifest.getLong("archive_bytes")
                 require(expectedBytes in 1..1_500_000_000L) { "Tamanho do arquivo RootFS inválido" }
+                val expectedRootfsBytes = manifest.getLong("rootfs_bytes")
+                require(expectedRootfsBytes in 1..4_000_000_000L) { "Tamanho descompactado do RootFS inválido" }
+                val requiredSpace = expectedBytes + expectedRootfsBytes + 32L * 1024 * 1024
+                require(filesDir.usableSpace >= requiredSpace) {
+                    "Espaço insuficiente: necessários aproximadamente ${requiredSpace / (1024 * 1024)} MB"
+                }
                 val target = File(filesDir, "runtime/rootfs-arm64")
                 val result = RootfsInstaller().install(
                     RootfsInstaller.Request(expectedUrl, manifest.getString("archive_sha256"), target)
