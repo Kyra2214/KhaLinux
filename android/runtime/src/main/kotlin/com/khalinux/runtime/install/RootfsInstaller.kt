@@ -136,7 +136,7 @@ class RootfsInstaller(
         }
     }
 
-    private fun extractSafely(archive: File, root: File): Long {
+    internal fun extractSafely(archive: File, root: File): Long {
         val canonicalRoot = root.canonicalFile.toPath()
         var extractedBytes = 0L
         TarArchiveInputStream(GzipCompressorInputStream(BufferedInputStream(FileInputStream(archive)))).use { tar ->
