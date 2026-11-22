@@ -50,6 +50,26 @@ class SessionManagerTest {
         } finally { runtime.close() }
     }
 
+    @Test fun activeSessionLimitRejectsAdditionalWorkUntilCompletion() {
+        val runtime = SessionManager(
+            ProotLauncher(ProotConfig(proot, rootfs, File("/usr/bin/qemu-aarch64-static"))),
+            maxSessions = 1
+        )
+        try {
+            val first = runtime.start(CommandRequest("sleep 5"))
+            assertFailsWith<IllegalStateException> {
+                runtime.start(CommandRequest("true"))
+            }
+
+            assertTrue(first.cancel())
+            first.events().toList()
+
+            val next = runtime.start(CommandRequest("true"))
+            next.events().toList()
+            assertEquals(SessionState.EXITED, next.snapshot().state)
+        } finally { runtime.close() }
+    }
+
     @Test fun completedSessionsReleaseActiveSessionCapacity() {
         val runtime = SessionManager(
             ProotLauncher(ProotConfig(proot, rootfs, File("/usr/bin/qemu-aarch64-static"))),
