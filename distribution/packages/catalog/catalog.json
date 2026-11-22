@@ -1,0 +1,492 @@
+{
+  "schema": 1,
+  "catalog_version": "2026.11.22-5",
+  "description": "Catálogo: pacotes do RootFS base e ferramentas do Cyber Toolkit (5.2–5.5). Versões do Debian bookworm lidas em packages.debian.org/sources.debian.org (a conferir no snapshot fixo do APT em 5.6); tamanhos aproximados quando informados; nenhuma compatibilidade em PRoot presumida.",
+  "packages": [
+    {
+      "schema": 1,
+      "name": "binwalk",
+      "version": "2.3.4+dfsg1-1",
+      "title": "binwalk",
+      "description": "Análise de firmware e blobs binários: detecção de assinaturas e entropia. Use só em arquivos próprios ou autorizados.",
+      "category": "forense",
+      "architecture": "arm64",
+      "source": {
+        "type": "debian-apt",
+        "apt_name": "binwalk"
+      },
+      "verification": {},
+      "validation": "unverified",
+      "limitations": [
+        "Extração automática (-e) pode depender de utilitários externos ausentes e deve ser evitada em arquivos não confiáveis (há CVEs de extração sem correção registradas para o bookworm no rastreador de segurança do Debian).",
+        "Funcionamento em ARM64/PRoot sem root não verificado."
+      ],
+      "requires_network": false,
+      "tags": [
+        "firmware",
+        "assinaturas"
+      ]
+    },
+    {
+      "schema": 1,
+      "name": "chkrootkit",
+      "version": "0.57-2",
+      "title": "chkrootkit",
+      "description": "Verificação local de sinais de rootkits conhecidos no sistema em que roda.",
+      "category": "auditoria",
+      "architecture": "arm64",
+      "source": {
+        "type": "debian-apt",
+        "apt_name": "chkrootkit"
+      },
+      "verification": {},
+      "validation": "known-limited",
+      "limitations": [
+        "/proc não está montado no RootFS (ADR-0005) e não há acesso ao kernel nem ao Android hospedeiro; verificações que dependem de /proc, módulos do kernel ou processos do sistema falham ou não se aplicam.",
+        "Sem acesso ao kernel e a interfaces de rede em modo promíscuo; vários testes não se aplicam; resultados não são prova de ausência de comprometimento.",
+        "Funcionamento em ARM64/PRoot sem root não verificado."
+      ],
+      "requires_network": false,
+      "tags": [
+        "rootkit",
+        "verificacao"
+      ]
+    },
+    {
+      "schema": 1,
+      "name": "curl",
+      "version": "7.88.1-10+deb12u14",
+      "title": "cURL",
+      "description": "Cliente de transferência de dados por URL (HTTP/HTTPS e outros).",
+      "category": "rede",
+      "architecture": "arm64",
+      "source": {
+        "type": "debian-apt",
+        "apt_name": "curl"
+      },
+      "verification": {},
+      "validation": "unverified",
+      "requires_network": true,
+      "tags": [
+        "http",
+        "download"
+      ]
+    },
+    {
+      "schema": 1,
+      "name": "dnsutils",
+      "version": "1:9.18.33-1~deb12u2",
+      "title": "DNS Utils",
+      "description": "Ferramentas de consulta DNS (dig, nslookup, host).",
+      "category": "rede",
+      "architecture": "arm64",
+      "source": {
+        "type": "debian-apt",
+        "apt_name": "dnsutils"
+      },
+      "verification": {},
+      "validation": "unverified",
+      "requires_network": true,
+      "tags": [
+        "dns",
+        "diagnostico"
+      ]
+    },
+    {
+      "schema": 1,
+      "name": "git",
+      "version": "1:2.39.5-0+deb12u2",
+      "title": "Git",
+      "description": "Sistema de controle de versão distribuído.",
+      "category": "desenvolvimento",
+      "architecture": "arm64",
+      "source": {
+        "type": "debian-apt",
+        "apt_name": "git"
+      },
+      "verification": {},
+      "validation": "unverified",
+      "requires_network": false,
+      "tags": [
+        "vcs"
+      ]
+    },
+    {
+      "schema": 1,
+      "name": "hashdeep",
+      "version": "4.4-7.1",
+      "title": "hashdeep",
+      "description": "Cálculo recursivo de hashes (MD5, SHA-1, SHA-256 e outros) e auditoria contra listas de hashes conhecidos (hashdeep, md5deep, sha256deep).",
+      "category": "forense",
+      "architecture": "arm64",
+      "source": {
+        "type": "debian-apt",
+        "apt_name": "hashdeep"
+      },
+      "verification": {},
+      "validation": "unverified",
+      "limitations": [
+        "Funcionamento em ARM64/PRoot sem root não verificado."
+      ],
+      "requires_network": false,
+      "tags": [
+        "hash",
+        "integridade"
+      ]
+    },
+    {
+      "schema": 1,
+      "name": "iproute2",
+      "version": "6.1.0-3",
+      "title": "iproute2",
+      "description": "Utilitários de rede do Linux (ip, ss).",
+      "category": "rede",
+      "architecture": "arm64",
+      "source": {
+        "type": "debian-apt",
+        "apt_name": "iproute2"
+      },
+      "verification": {},
+      "validation": "unverified",
+      "requires_network": false,
+      "tags": [
+        "interfaces",
+        "diagnostico"
+      ],
+      "limitations": [
+        "Operações que alteram interfaces exigem privilégios indisponíveis sem root; /proc não está montado (ADR-0005)."
+      ]
+    },
+    {
+      "schema": 1,
+      "name": "iputils-ping",
+      "version": "3:20221126-1+deb12u1",
+      "title": "iputils-ping",
+      "description": "Teste de alcance de rede com ICMP echo (ping).",
+      "category": "rede",
+      "architecture": "arm64",
+      "source": {
+        "type": "debian-apt",
+        "apt_name": "iputils-ping"
+      },
+      "verification": {},
+      "validation": "unverified",
+      "requires_network": true,
+      "tags": [
+        "icmp",
+        "diagnostico"
+      ],
+      "limitations": [
+        "ICMP pode ser bloqueado sem privilégios no Android/PRoot; resultado não verificado."
+      ]
+    },
+    {
+      "schema": 1,
+      "name": "libimage-exiftool-perl",
+      "version": "12.57+dfsg-1",
+      "title": "ExifTool",
+      "description": "Leitura e edição de metadados de imagens, documentos e mídia (comando exiftool).",
+      "category": "forense",
+      "architecture": "arm64",
+      "source": {
+        "type": "debian-apt",
+        "apt_name": "libimage-exiftool-perl"
+      },
+      "verification": {},
+      "validation": "unverified",
+      "limitations": [
+        "Pacote Perl (arquitetura all); a versão do bookworm é antiga (12.57) e pode não reconhecer formatos novos.",
+        "Funcionamento em ARM64/PRoot sem root não verificado."
+      ],
+      "requires_network": false,
+      "tags": [
+        "metadados",
+        "exif"
+      ]
+    },
+    {
+      "schema": 1,
+      "name": "lynis",
+      "version": "3.0.8-1.1",
+      "title": "Lynis",
+      "description": "Auditoria de segurança e hardening do sistema Linux em que roda (aqui, o RootFS do KhaLinux, não o Android).",
+      "category": "auditoria",
+      "architecture": "arm64",
+      "source": {
+        "type": "debian-apt",
+        "apt_name": "lynis"
+      },
+      "verification": {},
+      "validation": "known-limited",
+      "limitations": [
+        "/proc não está montado no RootFS (ADR-0005) e não há acesso ao kernel nem ao Android hospedeiro; verificações que dependem de /proc, módulos do kernel ou processos do sistema falham ou não se aplicam.",
+        "Audita apenas o RootFS do KhaLinux; resultados não descrevem a segurança do aparelho Android.",
+        "Funcionamento em ARM64/PRoot sem root não verificado."
+      ],
+      "requires_network": false,
+      "tags": [
+        "hardening",
+        "auditoria"
+      ]
+    },
+    {
+      "schema": 1,
+      "name": "nmap",
+      "version": "7.93+dfsg1-1",
+      "title": "Nmap",
+      "description": "Mapeamento de rede: descoberta de hosts, varredura de portas e detecção de serviços. Use somente em alvos que você possui ou tem autorização explícita para avaliar.",
+      "category": "reconhecimento",
+      "architecture": "arm64",
+      "source": {
+        "type": "debian-apt",
+        "apt_name": "nmap"
+      },
+      "download_bytes": 1796500,
+      "installed_bytes": 4422000,
+      "verification": {},
+      "validation": "known-limited",
+      "limitations": [
+        "Varreduras que usam raw sockets (-sS, -O, ARP, ICMP raw) exigem privilégios indisponíveis sem root; usar -sT (connect scan) e -Pn.",
+        "Exige o pacote nmap-common (resolvido pelo APT)."
+      ],
+      "requires_network": true,
+      "tags": [
+        "scanner",
+        "portas",
+        "servicos"
+      ]
+    },
+    {
+      "schema": 1,
+      "name": "openssh-client",
+      "version": "1:9.2p1-2+deb12u7",
+      "title": "OpenSSH Client",
+      "description": "Cliente SSH para acesso remoto autorizado.",
+      "category": "rede",
+      "architecture": "arm64",
+      "source": {
+        "type": "debian-apt",
+        "apt_name": "openssh-client"
+      },
+      "verification": {},
+      "validation": "unverified",
+      "requires_network": true,
+      "tags": [
+        "ssh"
+      ]
+    },
+    {
+      "schema": 1,
+      "name": "python3",
+      "version": "3.11.2-1+b1",
+      "title": "Python 3",
+      "description": "Interpretador Python 3.",
+      "category": "desenvolvimento",
+      "architecture": "arm64",
+      "source": {
+        "type": "debian-apt",
+        "apt_name": "python3"
+      },
+      "verification": {},
+      "validation": "unverified",
+      "requires_network": false,
+      "tags": [
+        "python",
+        "script"
+      ]
+    },
+    {
+      "schema": 1,
+      "name": "rkhunter",
+      "version": "1.4.6-11",
+      "title": "Rootkit Hunter",
+      "description": "Verificação local de rootkits, backdoors e alterações de arquivos do sistema (propriedades/hashes).",
+      "category": "auditoria",
+      "architecture": "arm64",
+      "source": {
+        "type": "debian-apt",
+        "apt_name": "rkhunter"
+      },
+      "verification": {},
+      "validation": "known-limited",
+      "limitations": [
+        "/proc não está montado no RootFS (ADR-0005) e não há acesso ao kernel nem ao Android hospedeiro; verificações que dependem de /proc, módulos do kernel ou processos do sistema falham ou não se aplicam.",
+        "Atualização de dados e verificações de rede dependem de configuração; resultados não são prova de ausência de comprometimento.",
+        "Funcionamento em ARM64/PRoot sem root não verificado."
+      ],
+      "requires_network": false,
+      "tags": [
+        "rootkit",
+        "integridade"
+      ]
+    },
+    {
+      "schema": 1,
+      "name": "sleuthkit",
+      "version": "4.11.1+dfsg-1",
+      "title": "The Sleuth Kit",
+      "description": "Análise forense de volumes e sistemas de arquivos em imagens de disco (mmls, fls, icat, fsstat, istat). Use só em evidências que você possui ou tem autorização para examinar.",
+      "category": "forense",
+      "architecture": "arm64",
+      "source": {
+        "type": "debian-apt",
+        "apt_name": "sleuthkit"
+      },
+      "verification": {},
+      "validation": "unverified",
+      "limitations": [
+        "Opera sobre arquivos de imagem; acesso a dispositivos de bloco brutos não existe sem root no Android.",
+        "Pode gerar uso considerável de armazenamento e memória em imagens grandes.",
+        "Funcionamento em ARM64/PRoot sem root não verificado."
+      ],
+      "requires_network": false,
+      "tags": [
+        "disco",
+        "sistema-de-arquivos"
+      ]
+    },
+    {
+      "schema": 1,
+      "name": "sqlite3",
+      "version": "3.40.1-2+deb12u2",
+      "title": "SQLite 3",
+      "description": "Cliente de linha de comando do SQLite.",
+      "category": "desenvolvimento",
+      "architecture": "arm64",
+      "source": {
+        "type": "debian-apt",
+        "apt_name": "sqlite3"
+      },
+      "verification": {},
+      "validation": "unverified",
+      "requires_network": false,
+      "tags": [
+        "banco-de-dados"
+      ]
+    },
+    {
+      "schema": 1,
+      "name": "sqlmap",
+      "version": "1.7.2-1",
+      "title": "sqlmap",
+      "description": "Detecção e exploração automatizada de injeção de SQL. Uso restrito a alvos próprios ou com autorização explícita e escopo definido.",
+      "category": "web",
+      "architecture": "arm64",
+      "source": {
+        "type": "debian-apt",
+        "apt_name": "sqlmap"
+      },
+      "verification": {},
+      "validation": "unverified",
+      "limitations": [
+        "Pacote Python (arquitetura all); depende de python3, resolvido pelo APT.",
+        "Ferramenta intrusiva: exige confirmação de escopo; funcionamento em ARM64/PRoot sem root não verificado."
+      ],
+      "requires_network": true,
+      "tags": [
+        "sql",
+        "injecao"
+      ]
+    },
+    {
+      "schema": 1,
+      "name": "traceroute",
+      "version": "1:2.1.2-1",
+      "title": "traceroute",
+      "description": "Mostra o caminho de pacotes IP até um host, para diagnóstico de conectividade.",
+      "category": "rede",
+      "architecture": "arm64",
+      "source": {
+        "type": "debian-apt",
+        "apt_name": "traceroute"
+      },
+      "download_bytes": 49100,
+      "installed_bytes": 156000,
+      "verification": {},
+      "validation": "unverified",
+      "limitations": [
+        "Modos ICMP (-I) e TCP (-T) podem exigir privilégios indisponíveis sem root; o modo padrão não foi verificado em aparelho."
+      ],
+      "requires_network": true,
+      "tags": [
+        "rota",
+        "diagnostico"
+      ]
+    },
+    {
+      "schema": 1,
+      "name": "wfuzz",
+      "version": "3.1.0-2",
+      "title": "wfuzz",
+      "description": "Fuzzing de aplicações Web: descoberta de recursos e teste de parâmetros por substituição de FUZZ. Uso restrito a alvos autorizados.",
+      "category": "web",
+      "architecture": "arm64",
+      "source": {
+        "type": "debian-apt",
+        "apt_name": "wfuzz"
+      },
+      "verification": {},
+      "validation": "unverified",
+      "limitations": [
+        "Pacote Python que depende de python3-pycurl (libcurl) e outras bibliotecas Python, resolvidas pelo APT.",
+        "Ferramenta intrusiva: exige confirmação de escopo; wordlists não acompanham o pacote; funcionamento em ARM64/PRoot sem root não verificado."
+      ],
+      "requires_network": true,
+      "tags": [
+        "fuzzing",
+        "forca-bruta"
+      ]
+    },
+    {
+      "schema": 1,
+      "name": "whatweb",
+      "version": "0.5.5-1",
+      "title": "WhatWeb",
+      "description": "Identifica tecnologias de sites (CMS, servidores, bibliotecas JavaScript). Use somente em alvos que você possui ou tem autorização para avaliar.",
+      "category": "web",
+      "architecture": "arm64",
+      "source": {
+        "type": "debian-apt",
+        "apt_name": "whatweb"
+      },
+      "download_bytes": 2252100,
+      "installed_bytes": 19039000,
+      "verification": {},
+      "validation": "unverified",
+      "limitations": [
+        "Pacote Ruby (arquitetura all); depende do interpretador Ruby e de bibliotecas Ruby, resolvidos pelo APT, o que aumenta o espaço usado.",
+        "Funcionamento em ARM64/PRoot sem root não verificado."
+      ],
+      "requires_network": true,
+      "tags": [
+        "fingerprint",
+        "web"
+      ]
+    },
+    {
+      "schema": 1,
+      "name": "whois",
+      "version": "5.5.17",
+      "title": "whois",
+      "description": "Cliente WHOIS (RFC 3912) para consultar registro de domínios e alocações de IP em servidores públicos.",
+      "category": "reconhecimento",
+      "architecture": "arm64",
+      "source": {
+        "type": "debian-apt",
+        "apt_name": "whois"
+      },
+      "download_bytes": 67500,
+      "installed_bytes": 481000,
+      "verification": {},
+      "validation": "unverified",
+      "limitations": [
+        "Depende de rede; servidores WHOIS aplicam limites de consulta."
+      ],
+      "requires_network": true,
+      "tags": [
+        "dominio",
+        "registro"
+      ]
+    }
+  ]
+}

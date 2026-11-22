@@ -32,6 +32,10 @@ class AndroidPtyProcessLauncher : TerminalProcessLauncher {
 
 private class AndroidPtyProcess(masterFd: Int, private val processId: Int) : Process(), ResizableProcess {
     private val descriptor = AtomicInteger(masterFd)
+    // O fd só é fechado quando nenhuma leitura/escrita/resize o está usando (evita reuso do número do fd).
+    private val fdLock = Any()
+    private var fdUsers = 0
+    private var closeRequested = false
     private val exited = CountDownLatch(1)
     @Volatile private var result: Int? = null
     @Volatile private var waitFailure: IOException? = null
@@ -51,9 +55,13 @@ private class AndroidPtyProcess(masterFd: Int, private val processId: Int) : Pro
             }
             if (length == 0) return 0
             if (streamClosed.get()) return -1
-            val fd = descriptor.get()
+            val fd = acquireFd()
             if (fd < 0) return -1
-            val count = NativePty.read(fd, buffer, offset, length)
+            val count = try {
+                NativePty.read(fd, buffer, offset, length)
+            } finally {
+                releaseFd()
+            }
             if (count < 0) closeMaster()
             return count
         }
@@ -76,9 +84,13 @@ private class AndroidPtyProcess(masterFd: Int, private val processId: Int) : Pro
             }
             if (length == 0) return
             check(!streamClosed.get()) { "stream de entrada fechado" }
-            val fd = descriptor.get()
+            val fd = acquireFd()
             if (fd < 0) throw IOException("PTY encerrado")
-            val written = NativePty.write(fd, buffer, offset, length)
+            val written = try {
+                NativePty.write(fd, buffer, offset, length)
+            } finally {
+                releaseFd()
+            }
             if (written != length) throw IOException("escrita parcial no PTY: $written/$length")
         }
 
@@ -147,13 +159,42 @@ private class AndroidPtyProcess(masterFd: Int, private val processId: Int) : Pro
     override fun resize(rows: Int, columns: Int): Boolean {
         require(rows in 1..65535) { "rows fora do intervalo suportado" }
         require(columns in 1..65535) { "columns fora do intervalo suportado" }
-        val fd = descriptor.get()
-        return fd >= 0 && isAlive() && NativePty.resize(fd, rows, columns)
+        if (!isAlive()) return false
+        val fd = acquireFd()
+        if (fd < 0) return false
+        return try {
+            NativePty.resize(fd, rows, columns)
+        } finally {
+            releaseFd()
+        }
     }
 
+    /** Reserva o fd para uma operação; devolve -1 se já foi (ou está sendo) fechado. */
+    private fun acquireFd(): Int = synchronized(fdLock) {
+        val fd = descriptor.get()
+        if (fd < 0 || closeRequested) {
+            -1
+        } else {
+            fdUsers++
+            fd
+        }
+    }
+
+    private fun releaseFd() {
+        val toClose = synchronized(fdLock) {
+            fdUsers--
+            if (closeRequested && fdUsers == 0) descriptor.getAndSet(-1) else -1
+        }
+        if (toClose >= 0) NativePty.close(toClose)
+    }
+
+    /** Pede o fechamento; se houver operação em curso, o último usuário fecha o fd ao terminar. */
     private fun closeMaster() {
-        val fd = descriptor.getAndSet(-1)
-        if (fd >= 0) NativePty.close(fd)
+        val toClose = synchronized(fdLock) {
+            closeRequested = true
+            if (fdUsers == 0) descriptor.getAndSet(-1) else -1
+        }
+        if (toClose >= 0) NativePty.close(toClose)
     }
 
     private fun exitResult(): Int {

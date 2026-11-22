@@ -4,20 +4,47 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.IBinder
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.lifecycle.ViewModelProvider
 import com.khalinux.android.data.ServiceTerminalRuntimeGateway
+import com.khalinux.android.packages.PackagesViewModel
+import com.khalinux.android.labs.LabsViewModel
+import com.khalinux.android.toolkit.ToolkitViewModel
+import com.khalinux.android.files.FilesViewModel
+import com.khalinux.android.tutor.TutorViewModel
 
 /** Activity de hospedagem da UI Compose; a execução continua encapsulada no Service. */
 class MainActivity : ComponentActivity() {
     private val viewModel: TerminalViewModel by viewModels {
         ViewModelProvider.AndroidViewModelFactory.getInstance(application)
     }
+    private val packagesViewModel: PackagesViewModel by viewModels {
+        ViewModelProvider.AndroidViewModelFactory.getInstance(application)
+    }
+    private val toolkitViewModel: ToolkitViewModel by viewModels {
+        ViewModelProvider.AndroidViewModelFactory.getInstance(application)
+    }
+    private val labsViewModel: LabsViewModel by viewModels {
+        ViewModelProvider.AndroidViewModelFactory.getInstance(application)
+    }
+    private val filesViewModel: FilesViewModel by viewModels {
+        ViewModelProvider.AndroidViewModelFactory.getInstance(application)
+    }
+    private val tutorViewModel: TutorViewModel by viewModels {
+        ViewModelProvider.AndroidViewModelFactory.getInstance(application)
+    }
     private var bound = false
+
+    // A instalação roda mesmo sem a permissão; ela só controla a visibilidade da notificação de progresso.
+    private val notificationPermission =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
@@ -26,7 +53,13 @@ class MainActivity : ComponentActivity() {
                 viewModel.bindingUnavailable()
                 return
             }
-            viewModel.attachRuntime(ServiceTerminalRuntimeGateway(localBinder.service()))
+            val gateway = ServiceTerminalRuntimeGateway(localBinder.service())
+            viewModel.attachRuntime(gateway)
+            packagesViewModel.attach(gateway)
+            toolkitViewModel.attach(gateway)
+            labsViewModel.attach(gateway)
+            filesViewModel.attach(gateway)
+            tutorViewModel.attach(gateway)
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
@@ -35,9 +68,17 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        viewModel.onTrimMemory(level)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { KhaLinuxApp(viewModel) }
+        setContent { KhaLinuxApp(viewModel, packagesViewModel, toolkitViewModel, labsViewModel, filesViewModel, tutorViewModel) }
+        if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
         bound = bindService(
             Intent(this, KhaLinuxRuntimeService::class.java),
             connection,

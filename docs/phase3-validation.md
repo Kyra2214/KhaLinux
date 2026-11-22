@@ -17,13 +17,7 @@ terminal_output_buffer=ok cases=6
 phase3_structure=ok compose_mvvm_domain_data_service_separated=true transcript_bounded=true
 ```
 
-Para repetir:
-
-```bash
-python3 android/app/validate-phase3.py
-```
-
-Essa validação estrutural não compila nem executa a UI Compose. O código da Activity, tela e ViewModel ainda precisa de validação em toolchain Android.
+Esse validador estrutural (`validate-phase3.py`) foi removido no 3.5 e substituído por testes reais (ver "Fechamento da Fase 3" abaixo). O código da Activity, tela e ViewModel ainda precisa de validação em toolchain Android.
 
 ## Próximas etapas e estado atualizado
 
@@ -36,3 +30,27 @@ O PRoot 5.1.107.102 foi compilado para Android/Bionic ARM64 a partir de versões
 O smoke host executa Bash ARM64 pelo PRoot/QEMU com os binds mínimos e confirma UID simulado, arquitetura e dispositivos. O emulador ANSI/VT básico agora processa UTF-8 incremental, SGR/cores, cursor, erase e scrollback, e a UI renderiza atributos. Ele anuncia TERM=ansi e não promete xterm completo. O shell interativo promove o Service a foreground service `specialUse`, com canal de notificação de baixa prioridade, ação para encerrar a sessão e remoção da notificação ao receber saída/falha. A Activity pode ser destruída sem encerrar a sessão enquanto o foreground service estiver ativo. CI valida as declarações do manifest e compila o APK Debug. O ciclo de vida ainda precisa de validação em aparelho real; o teste físico continua reservado para o final. Os binds PRoot não são read-only nem uma fronteira de isolamento.
 
 A Fase 3 continua aberta. Testes em aparelho físico permanecem reservados para a etapa final, depois da implementação, auditoria, regressão e geração do APK.
+
+## Fechamento da Fase 3 (submódulo 3.5)
+
+Executado em 2026-11-22 com kotlinc 1.9.24, JDK 21, JUnit 4.13.2 (`bash android/runtime/test.sh`, `-jvm-target 17`):
+
+```text
+OK (59 tests)          # runtime: emulador, sessões, PRoot, binds, instaladores, download retomável,
+                       # progresso/estado, ProotLocator, RuntimeDiagnostics, TerminalKeys, contrapressão
+pty_native=ok spawn=true input=true resize=true utf8=true signals=true
+```
+
+Novos testes: `ProotLocatorTest`, `TerminalKeysTest`, `OutputBackpressureTest`, `RuntimeDiagnosticsTest` (com runtime/host falsos), `ResumableDownloaderTest` (servidor HTTP local: Range, retomada, repetição, 4xx, cancelamento) e `InstallProgressStateTest`. Os 36 testes anteriores continuam passando.
+
+**Não executado/validado nesta etapa (limites honestos):**
+
+- O módulo `:android:app` (Compose, ViewModel, Service, Room) **não foi compilado** aqui: não há Android SDK/Gradle neste ambiente. O CI (`./gradlew :android:runtime:testDebugUnitTest :android:app:testDebugUnitTest` e `:android:app:assembleDebug`) é o validador; o resultado dele ainda precisa ser conferido.
+- Sem testes automatizados de ViewModel (rotação) e de migração Room: exigem Android/instrumentação. O esquema do Room agora é exportado (`exportSchema = true`, `android/app/schemas`); os JSON serão gerados no primeiro build e devem ser commitados.
+- A compilação host do runtime não substitui o build com NDK/`externalNativeBuild`.
+- Nenhum teste em aparelho físico (PRoot em `filesDir`, DNS/rede no RootFS, rotação, segundo plano). Use a tela Diagnóstico.
+- `ps`/`/proc`: ver `docs/decisions/ADR-0005-proc-and-dev-binds.md`.
+
+## Release imutável
+
+Workflows publicam uma tag nova por execução (`rootfs-bookworm-<data>-r<n>`, `proot-android-<versão>-r<n>` em push) e **recusam tag existente**; `overwrite_files` foi removido. Os hashes pinados no app só mudam por PR. Os manifestos aprovados estão em `distribution/manifests/release/` (hash conferido com os pinos do app: rootfs `9c9c1678…`, proot `dafb56b1…`).

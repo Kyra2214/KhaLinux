@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "name": "nmap",
+  "version": "7.93",
+  "title": "Nmap",
+  "description": "Exemplo ilustrativo de manifesto (não faz parte do catálogo): scanner de portas e serviços, apenas contra alvos autorizados.",
+  "category": "rede",
+  "architecture": "arm64",
+  "source": { "type": "debian-apt", "apt_name": "nmap" },
+  "verification": {},
+  "validation": "unverified",
+  "limitations": [
+    "Scans SYN/raw exigem privilégios que o PRoot sem root não fornece; usar -sT (connect scan)."
+  ],
+  "requires_network": true,
+  "tags": ["scanner", "rede"]
+}

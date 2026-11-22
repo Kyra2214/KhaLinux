@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "project": "KhaLinux",
+  "artifact": "rootfs-arm64",
+  "distribution": "Debian",
+  "suite": "bookworm",
+  "architecture": "arm64",
+  "mirror": "https://snapshot.debian.org/archive/debian/20251122T000000Z",
+  "snapshot": "20251122T000000Z",
+  "source_date_epoch": 1763769600,
+  "source_date_epoch_utc": "2025-11-22T00:00:00Z",
+  "build_invocation_utc": "2026-11-22T17:07:54Z",
+  "git_commit": "3d8021aebbb7c1845ffa1094a0335d4890df3a0b",
+  "package_list": "distribution/configuration/base-packages.txt",
+  "package_lock": "distribution/manifests/base-package-versions-arm64.txt",
+  "rootfs_bytes": 349640611,
+  "canonical_tar_sha256": "359727153931aec668a35c9967b03eb4ece4c93ded715855a59a79c81b3bf91e",
+  "archive_name": "rootfs-arm64.tar.gz",
+  "release_tag": "rootfs-bookworm-20261122-v1",
+  "archive_url": "https://github.com/Kyra2214/KhaLinux/releases/download/rootfs-bookworm-20261122-v1/rootfs-arm64.tar.gz",
+  "archive_bytes": 126062682,
+  "archive_sha256": "bcd272a77f6f081408e1b60d9e9ed65ad9c23678b8892d334b5e051bf61613e8"
+}

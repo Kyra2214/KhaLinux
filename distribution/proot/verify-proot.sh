@@ -10,13 +10,13 @@ for cmd in python3 sha256sum tar readelf; do command -v "$cmd" >/dev/null || fai
 [[ -s "$MANIFEST" ]] || fail 'manifesto PRoot ausente'
 python3 -m json.tool "$MANIFEST" >/dev/null || fail 'manifesto JSON inválido'
 python3 - "$MANIFEST" <<'PY'
-import json, re, sys
+import json, os, re, sys
 m = json.load(open(sys.argv[1], encoding="utf-8"))
 assert m.get("schema") == 1
 assert m.get("architecture") == "arm64"
 assert m.get("runtime") == "Android Bionic"
 assert m.get("proot_source") == "https://github.com/termux/proot"
-assert m.get("release_tag") == "proot-android-5.1.107.102-v1"
+assert m.get("release_tag") == os.environ.get("PROOT_RELEASE_TAG", "proot-android-5.1.107.102-v1")
 assert m.get("archive_name") == "proot-arm64.tar.gz"
 assert m.get("archive_url") == "https://github.com/Kyra2214/KhaLinux/releases/download/" + m["release_tag"] + "/" + m["archive_name"]
 for field in ("archive_sha256", "binary_sha256", "proot_source_sha256", "talloc_source_sha256", "libandroid_shmem_source_sha256"):

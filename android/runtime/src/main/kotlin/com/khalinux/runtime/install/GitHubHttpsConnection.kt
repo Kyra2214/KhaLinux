@@ -8,7 +8,13 @@ import java.net.URL
 object GitHubHttpsConnection {
     private const val MAX_REDIRECTS = 5
 
-    fun open(url: URL, connectTimeoutMillis: Int, readTimeoutMillis: Int): HttpURLConnection {
+    fun open(
+        url: URL,
+        connectTimeoutMillis: Int,
+        readTimeoutMillis: Int,
+        rangeStart: Long = 0L
+    ): HttpURLConnection {
+        require(rangeStart >= 0L) { "rangeStart inválido" }
         require(url.protocol.equals("https", ignoreCase = true)) { "A conexão exige HTTPS" }
         var current = url
         var redirects = 0
@@ -20,6 +26,7 @@ object GitHubHttpsConnection {
                 instanceFollowRedirects = false
                 requestMethod = "GET"
                 setRequestProperty("Accept-Encoding", "identity")
+                if (rangeStart > 0L) setRequestProperty("Range", "bytes=$rangeStart-")
             }
             connection.connect()
             val code = connection.responseCode
@@ -37,7 +44,7 @@ object GitHubHttpsConnection {
             }
             if (code !in 200..299) {
                 connection.disconnect()
-                throw IOException("Download falhou: HTTP $code")
+                throw HttpStatusException(code)
             }
             return connection
         }
@@ -48,3 +55,6 @@ object GitHubHttpsConnection {
             host.equals("release-assets.githubusercontent.com", ignoreCase = true) ||
             host.equals("objects.githubusercontent.com", ignoreCase = true)
 }
+
+/** Resposta HTTP inesperada; 4xx não é repetido, exceto 416 tratado pelo downloader. */
+class HttpStatusException(val code: Int) : IOException("Download falhou: HTTP $code")

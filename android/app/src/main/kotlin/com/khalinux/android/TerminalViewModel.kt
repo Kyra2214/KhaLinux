@@ -9,12 +9,28 @@ import com.khalinux.android.data.CommandHistoryRepository
 import com.khalinux.android.data.TerminalSettingsEntity
 import com.khalinux.android.data.TerminalSettingsRepository
 import com.khalinux.android.domain.RuntimeEventObserver
-import com.khalinux.android.domain.RootfsInstallObserver
-import com.khalinux.android.domain.ProotInstallObserver
+import com.khalinux.android.domain.EnvironmentInstallObserver
 import com.khalinux.android.domain.TerminalRuntimeGateway
 import com.khalinux.android.domain.TerminalUseCases
 import com.khalinux.runtime.RuntimeEvent
-import com.khalinux.runtime.TerminalEmulator
+import com.khalinux.runtime.diagnostics.DiagnosticId
+import com.khalinux.runtime.diagnostics.DiagnosticReport
+import com.khalinux.runtime.diagnostics.DiagnosticStatus
+import com.khalinux.runtime.install.InstallPhase
+import com.khalinux.runtime.install.InstallProgress
+import com.khalinux.android.data.FavoritesProvider
+import com.khalinux.runtime.favorites.FavoriteKind
+import com.khalinux.runtime.files.HomeFileManager
+import com.khalinux.runtime.reports.OutputNote
+import com.khalinux.runtime.reports.ReportWriter
+import com.khalinux.runtime.scripts.ScriptStore
+import com.khalinux.runtime.settings.TerminalThemes
+import com.khalinux.runtime.tabs.TerminalTab
+import com.khalinux.runtime.tabs.TerminalTabInfo
+import com.khalinux.runtime.tabs.TerminalTabs
+import com.khalinux.runtime.TerminalKey
+import com.khalinux.runtime.TerminalKeys
+import kotlinx.coroutines.delay
 import com.khalinux.runtime.TerminalSnapshot
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,7 +45,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.update
 
+private const val PUBLISH_INTERVAL_MILLIS = 33L
 private const val DEFAULT_COMMAND = "printf 'KhaLinux\\n'"
+
+/** Editor de script aberto na UI (nome e conteúdo em edição). */
+data class ScriptEditorState(val name: String, val content: String, val isNew: Boolean)
 
 data class TerminalUiState(
     val serviceConnected: Boolean = false,
@@ -41,39 +61,61 @@ data class TerminalUiState(
     val isInteractive: Boolean = false,
     val isStarting: Boolean = false,
     val isSendingInput: Boolean = false,
-    val isInstallingRootfs: Boolean = false,
-    val rootfsInstallProgress: String? = null,
-    val rootfsInstallMessage: String? = null,
+    val isInstalling: Boolean = false,
+    val installPhase: InstallPhase? = null,
+    val installPercent: Int = 0,
+    val installDetail: String? = null,
+    val installError: String? = null,
     val rootfsInstalled: Boolean = false,
     val prootInstalled: Boolean = false,
-    val isInstallingProot: Boolean = false,
-    val prootInstallProgress: String? = null,
-    val prootInstallMessage: String? = null,
     val terminalSnapshot: TerminalSnapshot = TerminalSnapshot.empty(),
     val commandHistory: List<CommandHistoryEntry> = emptyList(),
     val fontSizeSp: Float = 12f,
     val terminalRows: Int = 24,
-    val terminalColumns: Int = 80
+    val terminalColumns: Int = 80,
+    val showDiagnostics: Boolean = false,
+    val diagnosticsRunning: Boolean = false,
+    val ctrlArmed: Boolean = false,
+    val altArmed: Boolean = false,
+    val diagnostics: DiagnosticReport = DiagnosticReport.initial(),
+    val tabs: List<TerminalTabInfo> = emptyList(),
+    val activeTabId: String = "",
+    val canAddTab: Boolean = true,
+    val themeIndex: Int = 0,
+    val favoriteCommands: List<String> = emptyList(),
+    val scripts: List<String> = emptyList(),
+    val scriptEditor: ScriptEditorState? = null,
+    val scriptMessage: String? = null,
+    val noteMessage: String? = null
 ) {
     val isRunning: Boolean get() = isStarting || sessionId != null
 }
 
 class TerminalViewModel(application: Application) : AndroidViewModel(application) {
     private val lock = Any()
-    private val terminalEmulator = TerminalEmulator(rows = 24, columns = 80)
+    private val tabs = TerminalTabs(rows = 24, columns = 80)
     private val database = CommandHistoryDatabase.getInstance(application)
     private val historyRepository = CommandHistoryRepository(database.commandHistoryDao())
     private val settingsRepository = TerminalSettingsRepository(database.terminalSettingsDao())
+    private val favoritesStore = FavoritesProvider.get(application)
+    // O diretório do host aparece no RootFS como /home/khalinux/scripts (bind do home persistente).
+    private val scriptStore = ScriptStore(java.io.File(application.filesDir, "home/scripts"))
     private val mutableUiState = MutableStateFlow(TerminalUiState())
     val uiState: StateFlow<TerminalUiState> = mutableUiState.asStateFlow()
 
     private var runtimeGateway: TerminalRuntimeGateway? = null
     private var runtimeUseCases: TerminalUseCases? = null
-    private var startJob: Job? = null
-    private var inputJob: Job? = null
+    private val startJobs = mutableMapOf<String, Job>()
+    private val inputJobs = mutableMapOf<String, Job>()
+    private var diagnosticsJob: Job? = null
+    private var publishJob: Job? = null
+    private var lastPublishMillis = 0L
     private val completedSessionsBeforeStartReturn = mutableSetOf<String>()
 
     init {
+        synchronized(lock) { refreshLocked() }
+        reloadFavorites()
+        reloadScripts()
         viewModelScope.launch {
             historyRepository.observeRecent().collect { entries ->
                 mutableUiState.update { it.copy(commandHistory = entries) }
@@ -87,16 +129,16 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
                     synchronized(lock) {
                         val rows = settings.rows.coerceIn(12, 60)
                         val columns = settings.columns.coerceIn(40, 160)
-                        terminalEmulator.resize(rows, columns)
+                        tabs.resizeAll(rows, columns)
                         mutableUiState.update {
                             it.copy(
                                 fontSizeSp = settings.fontSizeSp.coerceIn(10f, 22f),
+                                themeIndex = TerminalThemes.byIndex(settings.themeIndex).index,
                                 terminalRows = rows,
-                                terminalColumns = columns,
-                                terminalSnapshot = terminalEmulator.snapshot(),
-                                output = terminalEmulator.plainText()
+                                terminalColumns = columns
                             )
                         }
+                        refreshLocked()
                     }
                 }
             }
@@ -105,15 +147,14 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
 
     fun attachRuntime(gateway: TerminalRuntimeGateway) {
         synchronized(lock) {
-            if (runtimeGateway !== gateway && mutableUiState.value.isRunning) {
-                appendOutputLocked("\\n[sessão interrompida após reconexão do Service]\\n")
-                startJob?.cancel()
-                inputJob?.cancel()
-                completedSessionsBeforeStartReturn.clear()
-                mutableUiState.update { it.copy(sessionId = null, isInteractive = false, isStarting = false, isSendingInput = false) }
+            val sameService = runtimeGateway == gateway
+            if (!sameService && tabs.anyRunning()) {
+                dropAllSessionsLocked("\n[sessão interrompida após reconexão do Service]\n")
             }
-            runtimeGateway = gateway
-            runtimeUseCases = TerminalUseCases(gateway)
+            if (!sameService) {
+                runtimeGateway = gateway
+                runtimeUseCases = TerminalUseCases(gateway)
+            }
             mutableUiState.update {
                 it.copy(
                     serviceConnected = true,
@@ -125,23 +166,14 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
             }
         }
 
-        // Bootstrap automático: primeiro Debian RootFS, depois PRoot.
-        val state = mutableUiState.value
-        if (!state.runtimeInstalled) {
-            when {
-                !state.rootfsInstalled -> installRootfs()
-                !state.prootInstalled -> installProot()
-            }
-        }
+        // Instalação automática na primeira abertura: PRoot + Debian, com progresso global.
+        // Em reconexões o Service apenas reenvia o último progresso ao novo ouvinte.
+        if (!mutableUiState.value.runtimeInstalled) startInstall()
     }
 
     fun serviceDisconnected() = synchronized(lock) {
-        if (mutableUiState.value.sessionId != null || mutableUiState.value.isStarting) {
-            appendOutputLocked("\n[Service desconectado; sessão não está mais vinculada]\n")
-        }
-        startJob?.cancel()
-        inputJob?.cancel()
-        completedSessionsBeforeStartReturn.clear()
+        dropAllSessionsLocked("\n[Service desconectado; sessão não está mais vinculada]\n")
+        diagnosticsJob?.cancel()
         runtimeGateway = null
         runtimeUseCases = null
         mutableUiState.update {
@@ -149,22 +181,15 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
                 serviceConnected = false,
                 runtimeInstalled = false,
                 connectionMessage = "Service local desconectado",
-                sessionId = null,
-                isInteractive = false,
-                isStarting = false,
-                isSendingInput = false,
-                isInstallingRootfs = false,
-                rootfsInstallProgress = null,
-                isInstallingProot = false,
-                prootInstallProgress = null
+                isInstalling = false,
+                diagnosticsRunning = false
             )
         }
     }
 
     fun bindingUnavailable() = synchronized(lock) {
-        startJob?.cancel()
-        inputJob?.cancel()
-        completedSessionsBeforeStartReturn.clear()
+        dropAllSessionsLocked(null)
+        diagnosticsJob?.cancel()
         runtimeGateway = null
         runtimeUseCases = null
         mutableUiState.update {
@@ -172,63 +197,61 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
                 serviceConnected = false,
                 runtimeInstalled = false,
                 connectionMessage = "Não foi possível conectar ao Service local",
-                sessionId = null,
-                isInteractive = false,
-                isStarting = false,
-                isSendingInput = false,
-                isInstallingRootfs = false,
-                rootfsInstallProgress = null,
-                isInstallingProot = false,
-                prootInstallProgress = null
+                isInstalling = false,
+                diagnosticsRunning = false
             )
         }
     }
 
-    fun installRootfs() {
+    /** Inicia (ou retoma/reconecta) a instalação automática; também serve de "Tentar novamente". */
+    fun startInstall() {
         val gateway = synchronized(lock) {
             val activeGateway = runtimeGateway ?: return
             val current = mutableUiState.value
-            if (!current.serviceConnected || current.isInstallingRootfs || current.runtimeInstalled) return
-            mutableUiState.update { it.copy(isInstallingRootfs = true, rootfsInstallProgress = "Preparando download…", rootfsInstallMessage = null) }
+            if (!current.serviceConnected || current.runtimeInstalled) return
+            mutableUiState.update {
+                it.copy(
+                    isInstalling = true,
+                    installError = null,
+                    installPhase = it.installPhase ?: InstallPhase.CHECKING
+                )
+            }
             activeGateway
         }
         try {
-            gateway.installRootfs(object : RootfsInstallObserver {
-                override fun onProgress(downloadedBytes: Long, totalBytes: Long?) {
-                    val downloadedMb = downloadedBytes / (1024 * 1024)
-                    val progress = if (totalBytes != null && totalBytes > 0) {
-                        "$downloadedMb / ${totalBytes / (1024 * 1024)} MB"
-                    } else {
-                        "$downloadedMb MB baixados"
-                    }
-                    mutableUiState.update { it.copy(rootfsInstallProgress = progress) }
-                }
-
-                override fun onInstalled(runtimeReady: Boolean) {
+            gateway.installEnvironment(object : EnvironmentInstallObserver {
+                override fun onProgress(progress: InstallProgress) {
                     mutableUiState.update {
                         it.copy(
-                            isInstallingRootfs = false,
-                            runtimeInstalled = runtimeReady,
-                            rootfsInstalled = true,
-                            rootfsInstallProgress = null,
-                            rootfsInstallMessage = if (runtimeReady) {
-                                "Ambiente Linux instalado e pronto."
-                            } else {
-                                "Debian instalado. Preparando o PRoot automaticamente…"
-                            }
+                            isInstalling = true,
+                            installPhase = progress.phase,
+                            installPercent = progress.percent,
+                            installDetail = describeProgress(progress)
                         )
                     }
-                    if (!runtimeReady && !mutableUiState.value.prootInstalled) {
-                        installProot()
+                }
+
+                override fun onFinished(runtimeReady: Boolean) {
+                    mutableUiState.update {
+                        it.copy(
+                            isInstalling = false,
+                            installPhase = InstallPhase.READY,
+                            installPercent = 100,
+                            installDetail = null,
+                            installError = if (runtimeReady) null else "Ambiente instalado, mas o runtime não iniciou",
+                            runtimeInstalled = runtimeReady,
+                            rootfsInstalled = true,
+                            prootInstalled = true
+                        )
                     }
                 }
 
                 override fun onError(message: String) {
                     mutableUiState.update {
                         it.copy(
-                            isInstallingRootfs = false,
-                            rootfsInstallProgress = null,
-                            rootfsInstallMessage = "Falha na instalação: $message"
+                            isInstalling = false,
+                            installPhase = InstallPhase.FAILED,
+                            installError = message
                         )
                     }
                 }
@@ -236,76 +259,198 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
         } catch (error: Exception) {
             mutableUiState.update {
                 it.copy(
-                    isInstallingRootfs = false,
-                    rootfsInstallProgress = null,
-                    rootfsInstallMessage = "Falha ao iniciar instalação: ${error.message ?: error.javaClass.simpleName}"
+                    isInstalling = false,
+                    installPhase = InstallPhase.FAILED,
+                    installError = "Falha ao iniciar instalação: ${error.message ?: error.javaClass.simpleName}"
                 )
             }
         }
     }
 
-    fun installProot() {
+    fun cancelInstall() {
+        runtimeGateway?.cancelInstall()
+    }
+
+    /** Abre a tela de Diagnóstico e executa os testes automáticos sozinha. */
+    fun openDiagnostics() {
+        mutableUiState.update { it.copy(showDiagnostics = true) }
+        runDiagnostics()
+    }
+
+    fun closeDiagnostics() {
+        mutableUiState.update { it.copy(showDiagnostics = false) }
+    }
+
+    fun runDiagnostics() {
         val gateway = synchronized(lock) {
+            if (mutableUiState.value.diagnosticsRunning) return
             val activeGateway = runtimeGateway ?: return
-            val current = mutableUiState.value
-            if (!current.serviceConnected || !current.rootfsInstalled ||
-                current.isInstallingProot || current.prootInstalled
-            ) return
             mutableUiState.update {
-                it.copy(
-                    isInstallingProot = true,
-                    prootInstallProgress = "Preparando download do PRoot…",
-                    prootInstallMessage = null
-                )
+                it.copy(diagnosticsRunning = true, diagnostics = DiagnosticReport.initial())
             }
             activeGateway
         }
-        try {
-            gateway.installProot(object : ProotInstallObserver {
-                override fun onProgress(downloadedBytes: Long, totalBytes: Long?) {
-                    val downloadedKb = downloadedBytes / 1024
-                    val progress = if (totalBytes != null && totalBytes > 0) {
-                        "$downloadedKb / ${totalBytes / 1024} KB"
-                    } else {
-                        "$downloadedKb KB baixados"
-                    }
-                    mutableUiState.update { it.copy(prootInstallProgress = progress) }
+        diagnosticsJob = viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val finalReport = gateway.runDiagnostics { report ->
+                    mutableUiState.update { it.copy(diagnostics = report) }
                 }
-
-                override fun onInstalled(runtimeReady: Boolean) {
-                    mutableUiState.update {
-                        it.copy(
-                            isInstallingProot = false,
-                            prootInstalled = true,
-                            runtimeInstalled = runtimeReady,
-                            prootInstallProgress = null,
-                            prootInstallMessage = if (runtimeReady) {
-                                "PRoot instalado. Ambiente Linux pronto."
-                            } else {
-                                "PRoot instalado, mas o runtime não iniciou. Verifique o RootFS e os pontos de montagem."
-                            }
+                mutableUiState.update { it.copy(diagnostics = finalReport) }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Throwable) {
+                mutableUiState.update {
+                    it.copy(
+                        diagnostics = it.diagnostics.with(
+                            DiagnosticId.PROOT_EXEC,
+                            DiagnosticStatus.FAILED,
+                            "Falha ao executar o diagnóstico: ${error.message ?: error.javaClass.simpleName}"
                         )
-                    }
+                    )
                 }
-
-                override fun onError(message: String) {
-                    mutableUiState.update {
-                        it.copy(
-                            isInstallingProot = false,
-                            prootInstallProgress = null,
-                            prootInstallMessage = "Falha na instalação do PRoot: $message"
-                        )
-                    }
-                }
-            })
-        } catch (error: Exception) {
-            mutableUiState.update {
-                it.copy(
-                    isInstallingProot = false,
-                    prootInstallProgress = null,
-                    prootInstallMessage = "Falha ao iniciar instalação do PRoot: ${error.message ?: error.javaClass.simpleName}"
-                )
+            } finally {
+                mutableUiState.update { it.copy(diagnosticsRunning = false) }
             }
+        }
+    }
+
+    /** Itens de rotação e segundo plano só o usuário consegue confirmar. */
+    fun confirmManualDiagnostic(id: DiagnosticId, ok: Boolean) {
+        mutableUiState.update { state ->
+            val item = state.diagnostics.item(id)
+            if (item.status != DiagnosticStatus.MANUAL &&
+                item.status != DiagnosticStatus.OK &&
+                item.status != DiagnosticStatus.FAILED
+            ) return@update state
+            if (id != DiagnosticId.ROTATION && id != DiagnosticId.BACKGROUND) return@update state
+            state.copy(
+                diagnostics = state.diagnostics.with(
+                    id,
+                    if (ok) DiagnosticStatus.OK else DiagnosticStatus.FAILED,
+                    if (ok) "confirmado pelo usuário" else "reprovado pelo usuário"
+                )
+            )
+        }
+    }
+
+    private fun describeProgress(progress: InstallProgress): String? {
+        val total = progress.totalBytes ?: return null
+        if (total <= 0L) return null
+        val megabyte = 1024L * 1024L
+        return when (progress.phase) {
+            InstallPhase.DOWNLOADING_PROOT ->
+                "${progress.doneBytes / 1024} / ${total / 1024} KB"
+            InstallPhase.DOWNLOADING_ROOTFS, InstallPhase.EXTRACTING ->
+                "${progress.doneBytes / megabyte} / ${total / megabyte} MB"
+            else -> null
+        }
+    }
+
+    // ---- Integração entre ferramentas (7.7): saída do terminal -> nota em reports/ ----
+
+    /** Salva a saída da aba ativa (e o último comando digitado) como nota Markdown em `reports/`. */
+    fun saveOutputNote() {
+        val state = mutableUiState.value
+        val title = state.tabs.firstOrNull { it.id == state.activeTabId }?.title ?: "Saída do terminal"
+        val output = state.output
+        val command = state.command.takeIf { it.isNotBlank() && !state.isInteractive }
+        viewModelScope.launch(Dispatchers.IO) {
+            val now = System.currentTimeMillis()
+            val note = OutputNote.build(now, title, command, output)
+            val path = if (note == null) null else runCatching {
+                ReportWriter(HomeFileManager(java.io.File(getApplication<Application>().filesDir, "home").apply { mkdirs() }))
+                    .write(now, note, OutputNote.PREFIX)
+            }.getOrNull()
+            mutableUiState.update {
+                it.copy(noteMessage = when {
+                    note == null -> "Sem saída para salvar nesta aba"
+                    path == null -> "Não foi possível salvar a nota"
+                    else -> "Nota salva em $path"
+                })
+            }
+        }
+    }
+
+    fun dismissNoteMessage() = mutableUiState.update { it.copy(noteMessage = null) }
+
+    // ---- Scripts (7.4) ----
+
+    private fun reloadScripts() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val names = runCatching { scriptStore.list() }.getOrDefault(emptyList())
+            mutableUiState.update { it.copy(scripts = names) }
+        }
+    }
+
+    fun newScript() = mutableUiState.update {
+        it.copy(scriptEditor = ScriptEditorState("", "#!/usr/bin/env bash\n", isNew = true), scriptMessage = null)
+    }
+
+    fun editScript(name: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val content = runCatching { scriptStore.read(name) }.getOrNull()
+            mutableUiState.update {
+                if (content == null) it.copy(scriptMessage = "Não foi possível abrir o script")
+                else it.copy(scriptEditor = ScriptEditorState(name, content, isNew = false), scriptMessage = null)
+            }
+        }
+    }
+
+    fun updateScriptEditor(name: String, content: String) = mutableUiState.update { state ->
+        state.scriptEditor?.let { state.copy(scriptEditor = it.copy(name = name.take(64), content = content)) } ?: state
+    }
+
+    fun cancelScriptEditor() = mutableUiState.update { it.copy(scriptEditor = null) }
+
+    fun saveScript() {
+        val editor = mutableUiState.value.scriptEditor ?: return
+        viewModelScope.launch(Dispatchers.IO) {
+            val saved = runCatching { scriptStore.save(editor.name, editor.content) }.getOrNull()
+            mutableUiState.update {
+                if (saved == null) it.copy(scriptMessage = "Nome inválido (use letras, números, ponto, hífen) ou conteúdo grande demais")
+                else it.copy(scriptEditor = null, scriptMessage = null)
+            }
+            if (saved != null) reloadScripts()
+        }
+    }
+
+    fun deleteScript(name: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching { scriptStore.delete(name) }
+            reloadScripts()
+        }
+    }
+
+    /** Executa o script na aba ativa (o comando entra no histórico como qualquer comando). */
+    fun runScript(name: String) {
+        val command = scriptStore.command(name) ?: return
+        updateCommand(command)
+        runCommand()
+    }
+
+    // ---- Favoritos (7.3) ----
+
+    private fun reloadFavorites() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val commands = runCatching { favoritesStore.list(FavoriteKind.COMMAND).map { it.value } }.getOrDefault(emptyList())
+            mutableUiState.update { it.copy(favoriteCommands = commands) }
+        }
+    }
+
+    /** Favorita (ou desfavorita) o comando digitado; ignora entrada vazia e sessões interativas (podem conter senhas). */
+    fun toggleFavoriteCommand() {
+        val command = mutableUiState.value.command
+        if (mutableUiState.value.isInteractive) return
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching { favoritesStore.toggle(FavoriteKind.COMMAND, command) }
+            reloadFavorites()
+        }
+    }
+
+    fun removeFavoriteCommand(command: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching { favoritesStore.remove(FavoriteKind.COMMAND, command) }
+            reloadFavorites()
         }
     }
 
@@ -313,67 +458,128 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
         mutableUiState.update { it.copy(command = command) }
     }
 
+    // ---- Múltiplas sessões (7.1): cada aba tem emulador, sessão do runtime e rascunho próprios ----
+
+    /** Cria e ativa uma nova aba (até o limite de abas). */
+    fun addTab() {
+        synchronized(lock) {
+            if (!tabs.canCreate()) return
+            tabs.active().draft = mutableUiState.value.command
+            val tab = tabs.create() ?: return
+            tab.draft = DEFAULT_COMMAND
+            mutableUiState.update { it.copy(command = tab.draft) }
+            refreshLocked()
+        }
+    }
+
+    fun selectTab(id: String) {
+        synchronized(lock) {
+            if (id == tabs.activeId()) return
+            val previous = tabs.active()
+            if (!tabs.select(id)) return
+            previous.draft = mutableUiState.value.command
+            mutableUiState.update { it.copy(command = tabs.active().draft, ctrlArmed = false, altArmed = false) }
+            refreshLocked()
+        }
+    }
+
+    fun renameTab(id: String, title: String) {
+        synchronized(lock) {
+            if (tabs.rename(id, title)) refreshLocked()
+        }
+    }
+
+    /** Fecha a aba (a última não fecha) e cancela a sessão que ela mantinha. */
+    fun closeTab(id: String) {
+        val cancel = synchronized(lock) {
+            val wasActive = tabs.activeId() == id
+            val result = tabs.close(id)
+            if (!result.closed) return
+            startJobs.remove(id)?.cancel()
+            inputJobs.remove(id)?.cancel()
+            if (wasActive) mutableUiState.update { it.copy(command = tabs.active().draft) }
+            refreshLocked()
+            runtimeUseCases to result.sessionToCancel
+        }
+        val useCases = cancel.first
+        val sessionId = cancel.second
+        if (useCases != null && sessionId != null) {
+            viewModelScope.launch(Dispatchers.IO) { runCatching { useCases.cancelSession(sessionId) } }
+        }
+    }
+
     fun runCommand() {
         val start = synchronized(lock) {
             val activeUseCases = runtimeUseCases ?: return
+            val tab = tabs.active()
             val current = mutableUiState.value
-            if (!current.runtimeInstalled || current.isRunning || current.isInteractive) return
+            if (!current.runtimeInstalled || tab.isRunning || tab.interactive) return
             val command = current.command.trim()
             if (command.isEmpty()) return
-            appendOutputLocked("\n$ $command\n")
-            mutableUiState.update { it.copy(isStarting = true) }
-            activeUseCases to command
+            appendOutputLocked(tab, "\n$ $command\n")
+            tab.starting = true
+            refreshLocked()
+            Triple(activeUseCases, command, tab.id)
         }
         persistCommand(start.second)
-        launchSession(interactive = false, useCases = start.first, command = start.second)
+        launchSession(tabId = start.third, interactive = false, useCases = start.first, command = start.second)
     }
 
     fun openInteractiveShell() {
         val start = synchronized(lock) {
             val current = mutableUiState.value
             val useCases = runtimeUseCases ?: return
-            if (!current.runtimeInstalled || current.isRunning) return
-            appendOutputLocked("\n[shell interativo PTY iniciando; TERM=ansi]\n")
-            mutableUiState.update { it.copy(isStarting = true) }
-            Triple(useCases, current.terminalRows, current.terminalColumns)
+            val tab = tabs.active()
+            if (!current.runtimeInstalled || tab.isRunning) return
+            appendOutputLocked(tab, "\n[shell interativo PTY iniciando; TERM=ansi]\n")
+            tab.starting = true
+            refreshLocked()
+            Triple(useCases, current.terminalRows, current.terminalColumns) to tab.id
         }
         launchSession(
+            tabId = start.second,
             interactive = true,
-            useCases = start.first,
-            rows = start.second,
-            columns = start.third
+            useCases = start.first.first,
+            rows = start.first.second,
+            columns = start.first.third
         )
     }
 
     private fun launchSession(
+        tabId: String,
         interactive: Boolean,
         useCases: TerminalUseCases,
         command: String? = null,
         rows: Int = 24,
         columns: Int = 80
     ) {
-        startJob = viewModelScope.launch {
+        val job = viewModelScope.launch {
             val createdSessionId = AtomicReference<String?>(null)
             try {
                 val sessionId = withContext(Dispatchers.IO) {
                     val id = if (interactive) {
-                        useCases.startInteractive(rows, columns, observerFor(useCases))
+                        useCases.startInteractive(rows, columns, observerFor(useCases, tabId))
                     } else {
-                        useCases.startCommand(requireNotNull(command), observerFor(useCases))
+                        useCases.startCommand(requireNotNull(command), observerFor(useCases, tabId))
                     }
                     createdSessionId.set(id)
                     id
                 }
                 synchronized(lock) {
                     val alreadyFinished = completedSessionsBeforeStartReturn.remove(sessionId)
-                    mutableUiState.update { state ->
-                        state.copy(
-                            sessionId = if (alreadyFinished) null else sessionId,
-                            isStarting = false,
-                            isInteractive = interactive && !alreadyFinished,
-                            command = if (interactive) "" else state.command
-                        )
+                    val tab = tabs.get(tabId)
+                    if (tab == null) {
+                        // A aba foi fechada durante a inicialização: a sessão recém-criada não tem dono.
+                        viewModelScope.launch(Dispatchers.IO) { runCatching { useCases.cancelSession(sessionId) } }
+                        return@synchronized
                     }
+                    tab.sessionId = if (alreadyFinished) null else sessionId
+                    tab.starting = false
+                    tab.interactive = interactive && !alreadyFinished
+                    if (interactive) {
+                        if (tab.id == tabs.activeId()) mutableUiState.update { it.copy(command = "") } else tab.draft = ""
+                    }
+                    refreshLocked()
                 }
             } catch (cancelled: CancellationException) {
                 createdSessionId.get()?.let { sessionId ->
@@ -384,48 +590,108 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
                 throw cancelled
             } catch (error: Exception) {
                 synchronized(lock) {
-                    mutableUiState.update { it.copy(isStarting = false, sessionId = null, isInteractive = false) }
-                    appendOutputLocked("erro ao iniciar sessão: ${error.message ?: error.javaClass.simpleName}\n")
+                    val tab = tabs.get(tabId) ?: return@synchronized
+                    tab.starting = false
+                    tab.sessionId = null
+                    tab.interactive = false
+                    appendOutputLocked(tab, "erro ao iniciar sessão: ${error.message ?: error.javaClass.simpleName}\n")
+                    refreshLocked()
                 }
             }
         }
+        synchronized(lock) { startJobs[tabId] = job }
     }
 
     fun sendInput() {
         val payload = synchronized(lock) {
             val activeUseCases = runtimeUseCases ?: return
+            val tab = tabs.active()
             val current = mutableUiState.value
-            val sessionId = current.sessionId ?: return
-            if (!current.isInteractive || current.isStarting || current.isSendingInput) return
+            val sessionId = tab.sessionId ?: return
+            if (!tab.interactive || tab.starting || tab.sendingInput) return
             val input = current.command
             if (input.isEmpty()) return
-            mutableUiState.update { it.copy(isSendingInput = true) }
-            Triple(activeUseCases, sessionId, input)
+            val ctrl = current.ctrlArmed
+            val alt = current.altArmed
+            tab.sendingInput = true
+            mutableUiState.update { it.copy(ctrlArmed = false, altArmed = false) }
+            refreshLocked()
+            SendRequest(activeUseCases, sessionId, input, ctrl, alt, tab.id)
         }
-        inputJob = viewModelScope.launch {
+        val job = viewModelScope.launch {
             try {
                 val sent = withContext(Dispatchers.IO) {
-                    payload.first.writeInput(payload.second, "${payload.third}\n")
+                    // Com Ctrl/Alt armado o texto vira uma tecla modificada: sem Enter automático.
+                    val modifierUsed = payload.ctrl || payload.alt
+                    val text = TerminalKeys.applyModifiers(payload.text, payload.ctrl, payload.alt)
+                    payload.useCases.writeInput(payload.sessionId, if (modifierUsed) text else "$text\n")
                 }
-                if (sent) persistCommand(payload.third)
+                // Entrada interativa pode conter senhas em prompts sem eco: nunca é gravada no histórico.
                 synchronized(lock) {
-                    mutableUiState.update { state ->
-                        state.copy(
-                            command = if (sent && state.command == payload.third) "" else state.command,
-                            isSendingInput = false
-                        )
+                    val tab = tabs.get(payload.tabId) ?: return@synchronized
+                    tab.sendingInput = false
+                    if (sent) {
+                        if (tab.id == tabs.activeId()) {
+                            mutableUiState.update { state ->
+                                state.copy(command = if (state.command == payload.text) "" else state.command)
+                            }
+                        } else if (tab.draft == payload.text) {
+                            tab.draft = ""
+                        }
+                    } else {
+                        appendOutputLocked(tab, "\n[entrada não enviada: sessão PTY indisponível]\n")
                     }
-                    if (!sent) appendOutputLocked("\n[entrada não enviada: sessão PTY indisponível]\n")
+                    refreshLocked()
                 }
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
                 synchronized(lock) {
-                    mutableUiState.update { it.copy(isSendingInput = false) }
-                    appendOutputLocked("\n[erro de entrada: ${error.message ?: error.javaClass.simpleName}]\n")
+                    val tab = tabs.get(payload.tabId) ?: return@synchronized
+                    tab.sendingInput = false
+                    appendOutputLocked(tab, "\n[erro de entrada: ${error.message ?: error.javaClass.simpleName}]\n")
+                    refreshLocked()
                 }
             }
         }
+        synchronized(lock) { inputJobs[payload.tabId] = job }
+    }
+
+    fun toggleCtrl() = mutableUiState.update { it.copy(ctrlArmed = !it.ctrlArmed) }
+
+    fun toggleAlt() = mutableUiState.update { it.copy(altArmed = !it.altArmed) }
+
+    /** Envia uma tecla da barra extra como bytes brutos ao PTY; Ctrl/Alt armados valem para uma única tecla. */
+    fun sendKey(key: TerminalKey) {
+        val request = synchronized(lock) {
+            val activeUseCases = runtimeUseCases ?: return
+            val tab = tabs.active()
+            val current = mutableUiState.value
+            val sessionId = tab.sessionId ?: return
+            if (!tab.interactive || tab.starting) return
+            mutableUiState.update { it.copy(ctrlArmed = false, altArmed = false) }
+            SendRequest(activeUseCases, sessionId, TerminalKeys.encode(key, current.ctrlArmed, current.altArmed), false, false, tab.id)
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            val sent = runCatching { request.useCases.writeInput(request.sessionId, request.text) }.getOrDefault(false)
+            if (!sent) synchronized(lock) {
+                tabs.get(request.tabId)?.let { appendOutputLocked(it, "\n[tecla não enviada: sessão PTY indisponível]\n") }
+            }
+        }
+    }
+
+    private class SendRequest(
+        val useCases: TerminalUseCases,
+        val sessionId: String,
+        val text: String,
+        val ctrl: Boolean,
+        val alt: Boolean,
+        val tabId: String
+    )
+
+    fun selectTheme(index: Int) {
+        mutableUiState.update { it.copy(themeIndex = TerminalThemes.byIndex(index).index) }
+        saveTerminalSettings()
     }
 
     fun updateFontSize(fontSizeSp: Float) {
@@ -440,7 +706,8 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
                     TerminalSettingsEntity(
                         fontSizeSp = state.fontSizeSp,
                         rows = state.terminalRows,
-                        columns = state.terminalColumns
+                        columns = state.terminalColumns,
+                        themeIndex = state.themeIndex
                     )
                 )
             }
@@ -459,37 +726,41 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
 
     private fun updateTerminalDimensions(rows: Int, columns: Int) {
         synchronized(lock) {
-            terminalEmulator.resize(rows, columns)
-            mutableUiState.update {
-                it.copy(
-                    terminalRows = rows,
-                    terminalColumns = columns,
-                    terminalSnapshot = terminalEmulator.snapshot(),
-                    output = terminalEmulator.plainText()
-                )
-            }
-            val state = mutableUiState.value
-            val gateway = runtimeGateway
-            val sessionId = state.sessionId
-            if (gateway != null && sessionId != null && state.isInteractive) {
-                gateway.resize(sessionId, rows, columns)
-            }
+            tabs.resizeAll(rows, columns)
+            mutableUiState.update { it.copy(terminalRows = rows, terminalColumns = columns) }
+            refreshLocked()
+            resizeInteractiveTabsLocked(rows, columns)
         }
         saveTerminalSettings()
     }
 
-    fun resizeTerminal(rows: Int, columns: Int) = synchronized(lock) {
-        terminalEmulator.resize(rows, columns)
-        publishTerminalSnapshot()
-        val activeUseCases = runtimeUseCases ?: return
-        val sessionId = mutableUiState.value.sessionId ?: return
-        if (mutableUiState.value.isInteractive) activeUseCases.resize(sessionId, rows, columns)
+    /** Pressão de memória do sistema (8.4): só níveis críticos reduzem o histórico das abas em segundo plano. */
+    fun onTrimMemory(level: Int) {
+        if (com.khalinux.runtime.memory.MemoryPressure.shouldTrimBackgroundTabs(level)) {
+            synchronized(lock) { tabs.trimBackground() }
+        }
     }
 
+    fun resizeTerminal(rows: Int, columns: Int) = synchronized(lock) {
+        tabs.resizeAll(rows, columns)
+        publishTerminalSnapshot()
+        resizeInteractiveTabsLocked(rows, columns)
+    }
+
+    /** O tamanho é global: todas as sessões PTY em execução recebem o novo tamanho. */
+    private fun resizeInteractiveTabsLocked(rows: Int, columns: Int) {
+        val activeUseCases = runtimeUseCases ?: return
+        tabs.all().forEach { tab ->
+            val sessionId = tab.sessionId
+            if (sessionId != null && tab.interactive) activeUseCases.resize(sessionId, rows, columns)
+        }
+    }
+
+    /** Cancela a sessão da aba ativa. */
     fun cancelCommand() {
         val (activeUseCases, sessionId) = synchronized(lock) {
             val useCases = runtimeUseCases ?: return
-            val id = mutableUiState.value.sessionId ?: return
+            val id = tabs.active().sessionId ?: return
             useCases to id
         }
         viewModelScope.launch(Dispatchers.IO) {
@@ -497,48 +768,50 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    private fun observerFor(activeUseCases: TerminalUseCases) = RuntimeEventObserver { event ->
+    private fun observerFor(activeUseCases: TerminalUseCases, tabId: String) = RuntimeEventObserver { event ->
         synchronized(lock) {
-            if (runtimeUseCases === activeUseCases) handleEventLocked(event)
+            if (runtimeUseCases === activeUseCases) handleEventLocked(tabId, event)
         }
     }
 
-    private fun handleEventLocked(event: RuntimeEvent) {
-        val activeSessionId = mutableUiState.value.sessionId
+    private fun handleEventLocked(tabId: String, event: RuntimeEvent) {
+        val tab = tabs.get(tabId) ?: return
+        val activeSessionId = tab.sessionId
         when (event) {
             is RuntimeEvent.Started -> {
                 if (activeSessionId == null || activeSessionId == event.sessionId) {
-                    mutableUiState.update { it.copy(sessionId = event.sessionId) }
+                    tab.sessionId = event.sessionId
+                    refreshLocked()
                 }
             }
             is RuntimeEvent.Stdout -> {
-                if (event.sessionId == activeSessionId) appendOutputBytesLocked(event.bytes)
+                if (event.sessionId == activeSessionId) appendOutputBytesLocked(tab, event.bytes)
             }
             is RuntimeEvent.Stderr -> {
-                if (event.sessionId == activeSessionId) appendOutputBytesLocked(event.bytes)
+                if (event.sessionId == activeSessionId) appendOutputBytesLocked(tab, event.bytes)
             }
             is RuntimeEvent.Exited -> {
                 if (event.sessionId == activeSessionId) {
-                    inputJob?.cancel()
                     val result = if (event.timedOut) "timeout" else "exit=${event.exitCode}"
-                    appendOutputLocked("\n[$result]\n")
-                    if (mutableUiState.value.isStarting) {
-                        completedSessionsBeforeStartReturn.add(event.sessionId)
-                    }
-                    mutableUiState.update { it.copy(sessionId = null, isInteractive = false, isSendingInput = false) }
+                    finishSessionLocked(tab, event.sessionId, "\n[$result]\n")
                 }
             }
             is RuntimeEvent.Failed -> {
                 if (event.sessionId == activeSessionId) {
-                    inputJob?.cancel()
-                    appendOutputLocked("\n[falha=${event.message}]\n")
-                    if (mutableUiState.value.isStarting) {
-                        completedSessionsBeforeStartReturn.add(event.sessionId)
-                    }
-                    mutableUiState.update { it.copy(sessionId = null, isInteractive = false, isSendingInput = false) }
+                    finishSessionLocked(tab, event.sessionId, "\n[falha=${event.message}]\n")
                 }
             }
         }
+    }
+
+    private fun finishSessionLocked(tab: TerminalTab, sessionId: String, message: String) {
+        inputJobs.remove(tab.id)?.cancel()
+        appendOutputLocked(tab, message)
+        if (tab.starting) completedSessionsBeforeStartReturn.add(sessionId)
+        tab.sessionId = null
+        tab.interactive = false
+        tab.sendingInput = false
+        refreshLocked()
     }
 
     fun restoreCommandFromHistory(command: String) {
@@ -551,18 +824,64 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    private fun appendOutputLocked(text: String) {
-        terminalEmulator.appendText(text)
-        publishTerminalSnapshot()
+    /** Desvincula todas as sessões das abas (Service reconectado/perdido) e cancela as tarefas pendentes. */
+    private fun dropAllSessionsLocked(message: String?) {
+        val running = tabs.clearSessions()
+        if (message != null) running.forEach { it.emulator.appendText(message) }
+        startJobs.values.forEach { it.cancel() }
+        startJobs.clear()
+        inputJobs.values.forEach { it.cancel() }
+        inputJobs.clear()
+        completedSessionsBeforeStartReturn.clear()
+        refreshLocked()
     }
 
-    private fun appendOutputBytesLocked(bytes: ByteArray) {
-        terminalEmulator.append(bytes)
-        publishTerminalSnapshot()
+    /** Reflete a aba ativa (e a lista de abas) no estado da UI; os campos de sessão derivam sempre da aba. */
+    private fun refreshLocked() {
+        val tab = tabs.active()
+        lastPublishMillis = System.nanoTime() / 1_000_000L
+        val snapshot = tab.emulator.snapshot()
+        val infos = tabs.infos()
+        val canAdd = tabs.canCreate()
+        mutableUiState.update {
+            it.copy(
+                tabs = infos,
+                activeTabId = tab.id,
+                canAddTab = canAdd,
+                sessionId = tab.sessionId,
+                isInteractive = tab.interactive,
+                isStarting = tab.starting,
+                isSendingInput = tab.sendingInput,
+                output = snapshot.plainText(),
+                terminalSnapshot = snapshot
+            )
+        }
+    }
+
+    /** Mensagens do app: publicadas na hora se a aba é a ativa. */
+    private fun appendOutputLocked(tab: TerminalTab, text: String) {
+        tab.emulator.appendText(text)
+        if (tab.id == tabs.activeId()) publishTerminalSnapshot()
+    }
+
+    /** Saída do PTY: o emulador da aba recebe os bytes na hora; o snapshot de UI (só da aba ativa) sai no máximo a cada ~33 ms. */
+    private fun appendOutputBytesLocked(tab: TerminalTab, bytes: ByteArray) {
+        tab.emulator.append(bytes)
+        if (tab.id != tabs.activeId()) return
+        val wait = PUBLISH_INTERVAL_MILLIS - (System.nanoTime() / 1_000_000L - lastPublishMillis)
+        if (wait <= 0L) {
+            publishTerminalSnapshot()
+        } else if (publishJob?.isActive != true) {
+            publishJob = viewModelScope.launch {
+                delay(wait)
+                synchronized(lock) { publishTerminalSnapshot() }
+            }
+        }
     }
 
     private fun publishTerminalSnapshot() {
-        val snapshot = terminalEmulator.snapshot()
+        lastPublishMillis = System.nanoTime() / 1_000_000L
+        val snapshot = tabs.active().emulator.snapshot()
         mutableUiState.update {
             it.copy(
                 output = snapshot.plainText(),
@@ -574,16 +893,22 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
     override fun onCleared() {
         synchronized(lock) {
             val activeUseCases = runtimeUseCases
-            val sessionId = mutableUiState.value.sessionId
-            if (activeUseCases != null && sessionId != null) {
-                try {
-                    activeUseCases.cancelSession(sessionId)
-                } catch (_: Exception) {
-                    // The service may already have been destroyed with the Activity.
-                }
+            val sessionIds = tabs.all().mapNotNull { it.sessionId }
+            if (activeUseCases != null && sessionIds.isNotEmpty()) {
+                Thread {
+                    sessionIds.forEach { sessionId ->
+                        try {
+                            activeUseCases.cancelSession(sessionId)
+                        } catch (_: Exception) {
+                            // The service may already have been destroyed with the Activity.
+                        }
+                    }
+                }.apply { isDaemon = true; name = "khalinux-cancel-on-clear" }.start()
             }
-            startJob?.cancel()
-            inputJob?.cancel()
+            startJobs.values.forEach { it.cancel() }
+            startJobs.clear()
+            inputJobs.values.forEach { it.cancel() }
+            inputJobs.clear()
             completedSessionsBeforeStartReturn.clear()
             runtimeGateway = null
             runtimeUseCases = null

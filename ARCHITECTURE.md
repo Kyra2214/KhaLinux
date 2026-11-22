@@ -40,7 +40,7 @@ A camada de UI não executará comandos diretamente. Casos de uso e interfaces d
 
 ## Runtime
 
-A primeira implementação utiliza PRoot para execução sem root, com a abstração `LinuxRuntime`, `ProotLauncher` e `SessionManager` em `android/runtime/`. O núcleo separa launcher, sessões, processos, stdout/stderr, timeout e cancelamento. Pipes estão implementados; PTY e persistência continuam pendentes.
+A primeira implementação utiliza PRoot para execução sem root, com a abstração `LinuxRuntime`, `ProotLauncher` e `SessionManager` em `android/runtime/`. O núcleo separa launcher, sessões, processos, stdout/stderr, timeout e cancelamento. Pipes e PTY (JNI) estão implementados, com fila de saída limitada e fechamento seguro do fd. `ProotLocator` abstrai a origem do PRoot (plano A `filesDir`, plano B `libproot.so` em jniLibs) e `RuntimeDiagnostics` verifica PRoot, shell, DNS, rede e PTY no aparelho (tela Diagnóstico). A persistência local usa Room (histórico e configurações).
 
 PRoot não fornece isolamento forte. O produto deverá comunicar essa limitação e não prometer segurança equivalente a VM ou contêiner privilegiado.
 

@@ -1,0 +1,313 @@
+{
+  "schema": 1,
+  "tools": [
+    {
+      "id": "curl",
+      "package": "curl",
+      "title": "cURL",
+      "group": "web",
+      "summary": "Cliente HTTP/HTTPS de linha de comando para inspecionar cabeçalhos, respostas e APIs.",
+      "commands": [
+        "curl"
+      ],
+      "check_command": "curl --version",
+      "requires_authorization": false,
+      "root_limitations": [],
+      "doc": "docs/toolkit/curl.md"
+    },
+    {
+      "id": "dnsutils",
+      "package": "dnsutils",
+      "title": "DNS Utils (dig, nslookup, host)",
+      "group": "reconhecimento",
+      "summary": "Consultas DNS: registros A/AAAA/MX/TXT/NS, resolução reversa e diagnóstico de resolvedores.",
+      "commands": [
+        "dig",
+        "nslookup",
+        "host"
+      ],
+      "check_command": "dig -v",
+      "requires_authorization": false,
+      "root_limitations": [
+        "Depende do resolvedor definido em /etc/resolv.conf (padrão 1.1.1.1/8.8.8.8, suposição do projeto)."
+      ],
+      "doc": "docs/toolkit/dnsutils.md"
+    },
+    {
+      "id": "iputils-ping",
+      "package": "iputils-ping",
+      "title": "ping",
+      "group": "rede",
+      "summary": "Teste de alcance e latência com ICMP echo.",
+      "commands": [
+        "ping"
+      ],
+      "check_command": "ping -V",
+      "requires_authorization": false,
+      "root_limitations": [
+        "ICMP pode ser bloqueado ou exigir privilégios que o Android/PRoot sem root não fornece; resultado ainda não verificado em aparelho."
+      ],
+      "doc": "docs/toolkit/iputils-ping.md"
+    },
+    {
+      "id": "iproute2",
+      "package": "iproute2",
+      "title": "iproute2 (ip, ss)",
+      "group": "rede",
+      "summary": "Inspeção de interfaces, endereços, rotas e sockets.",
+      "commands": [
+        "ip",
+        "ss"
+      ],
+      "check_command": "ip -V",
+      "requires_authorization": false,
+      "root_limitations": [
+        "Alterar interfaces/rotas exige privilégios indisponíveis sem root.",
+        "/proc e /sys não são montados no RootFS (ADR-0005); ss e partes de ip podem falhar."
+      ],
+      "doc": "docs/toolkit/iproute2.md"
+    },
+    {
+      "id": "openssh-client",
+      "package": "openssh-client",
+      "title": "OpenSSH Client (ssh, scp, ssh-keygen)",
+      "group": "rede",
+      "summary": "Acesso remoto seguro e transferência de arquivos a sistemas que você administra ou tem autorização para acessar.",
+      "commands": [
+        "ssh",
+        "scp",
+        "ssh-keygen"
+      ],
+      "check_command": "ssh -V",
+      "requires_authorization": true,
+      "root_limitations": [
+        "Chaves ficam em /home/khalinux (persistente fora do RootFS); proteger a passphrase."
+      ],
+      "doc": "docs/toolkit/openssh-client.md"
+    },
+    {
+      "id": "nmap",
+      "package": "nmap",
+      "title": "Nmap (nmap, nping)",
+      "group": "reconhecimento",
+      "summary": "Descoberta de hosts, varredura de portas e detecção de serviços em alvos autorizados.",
+      "commands": [
+        "nmap",
+        "nping"
+      ],
+      "check_command": "nmap --version",
+      "requires_authorization": true,
+      "root_limitations": [
+        "Sem root: apenas connect scan (-sT) e -Pn; SYN (-sS), detecção de SO (-O), ARP e ICMP raw falham.",
+        "nping em modos raw exige privilégios indisponíveis."
+      ],
+      "doc": "docs/toolkit/nmap.md"
+    },
+    {
+      "id": "whois",
+      "package": "whois",
+      "title": "whois",
+      "group": "reconhecimento",
+      "summary": "Consulta de registro de domínios e alocações de IP em servidores WHOIS públicos.",
+      "commands": [
+        "whois"
+      ],
+      "check_command": "whois --version",
+      "requires_authorization": false,
+      "root_limitations": [
+        "Servidores WHOIS aplicam limites de consulta; depende de rede."
+      ],
+      "doc": "docs/toolkit/whois.md"
+    },
+    {
+      "id": "traceroute",
+      "package": "traceroute",
+      "title": "traceroute",
+      "group": "rede",
+      "summary": "Caminho de pacotes IP até um host, para diagnóstico de conectividade.",
+      "commands": [
+        "traceroute"
+      ],
+      "check_command": "traceroute --version",
+      "requires_authorization": false,
+      "root_limitations": [
+        "Modos ICMP (-I) e TCP (-T) podem exigir privilégios indisponíveis sem root; modo padrão não verificado."
+      ],
+      "doc": "docs/toolkit/traceroute.md"
+    },
+    {
+      "id": "whatweb",
+      "package": "whatweb",
+      "title": "WhatWeb",
+      "group": "web",
+      "summary": "Identificação de tecnologias Web (CMS, servidor, bibliotecas) a partir das respostas HTTP de alvos autorizados.",
+      "commands": [
+        "whatweb"
+      ],
+      "check_command": "whatweb --version",
+      "requires_authorization": true,
+      "root_limitations": [
+        "Gera requisições HTTP ao alvo: use só em alvos próprios ou autorizados.",
+        "Depende de Ruby e bibliotecas do APT; não verificado em ARM64/PRoot."
+      ],
+      "doc": "docs/toolkit/whatweb.md"
+    },
+    {
+      "id": "sqlmap",
+      "package": "sqlmap",
+      "title": "sqlmap",
+      "group": "web",
+      "summary": "Teste automatizado de injeção de SQL em aplicações Web autorizadas.",
+      "commands": [
+        "sqlmap"
+      ],
+      "check_command": "sqlmap --version",
+      "requires_authorization": true,
+      "root_limitations": [
+        "Ferramenta intrusiva: apenas alvos próprios ou com autorização escrita e escopo definido.",
+        "Depende de python3; não verificado em ARM64/PRoot."
+      ],
+      "doc": "docs/toolkit/sqlmap.md"
+    },
+    {
+      "id": "wfuzz",
+      "package": "wfuzz",
+      "title": "wfuzz",
+      "group": "web",
+      "summary": "Fuzzing de URLs e parâmetros Web (substituição de FUZZ) em alvos autorizados.",
+      "commands": [
+        "wfuzz"
+      ],
+      "check_command": "wfuzz --version",
+      "requires_authorization": true,
+      "root_limitations": [
+        "Ferramenta intrusiva: apenas alvos próprios ou autorizados; gera muitas requisições.",
+        "Wordlists não acompanham o pacote; depende de python3-pycurl; não verificado em ARM64/PRoot."
+      ],
+      "doc": "docs/toolkit/wfuzz.md"
+    },
+    {
+      "id": "sleuthkit",
+      "package": "sleuthkit",
+      "title": "The Sleuth Kit (mmls, fls, icat, fsstat, istat)",
+      "group": "forense",
+      "summary": "Análise de partições e sistemas de arquivos em imagens de disco de evidências autorizadas.",
+      "commands": [
+        "mmls",
+        "fls",
+        "icat",
+        "fsstat",
+        "istat"
+      ],
+      "check_command": "fls -V",
+      "requires_authorization": false,
+      "root_limitations": [
+        "Trabalha com arquivos de imagem; sem root não há acesso a dispositivos de bloco.",
+        "Não verificado em ARM64/PRoot."
+      ],
+      "doc": "docs/toolkit/sleuthkit.md"
+    },
+    {
+      "id": "binwalk",
+      "package": "binwalk",
+      "title": "binwalk",
+      "group": "forense",
+      "summary": "Análise de assinaturas e entropia em firmware e blobs binários próprios ou autorizados.",
+      "commands": [
+        "binwalk"
+      ],
+      "check_command": "binwalk --help",
+      "requires_authorization": false,
+      "root_limitations": [
+        "Evitar a extração automática (-e) em arquivos não confiáveis.",
+        "Utilitários de extração podem estar ausentes; não verificado em ARM64/PRoot."
+      ],
+      "doc": "docs/toolkit/binwalk.md"
+    },
+    {
+      "id": "hashdeep",
+      "package": "hashdeep",
+      "title": "hashdeep (hashdeep, md5deep, sha256deep)",
+      "group": "forense",
+      "summary": "Hashes recursivos e auditoria de integridade contra listas de hashes conhecidos.",
+      "commands": [
+        "hashdeep",
+        "md5deep",
+        "sha256deep"
+      ],
+      "check_command": "hashdeep -V",
+      "requires_authorization": false,
+      "root_limitations": [
+        "Não verificado em ARM64/PRoot."
+      ],
+      "doc": "docs/toolkit/hashdeep.md"
+    },
+    {
+      "id": "exiftool",
+      "package": "libimage-exiftool-perl",
+      "title": "ExifTool",
+      "group": "forense",
+      "summary": "Leitura e edição de metadados de arquivos de imagem, documento e mídia.",
+      "commands": [
+        "exiftool"
+      ],
+      "check_command": "exiftool -ver",
+      "requires_authorization": false,
+      "root_limitations": [
+        "Versão do bookworm antiga (12.57); não verificado em ARM64/PRoot."
+      ],
+      "doc": "docs/toolkit/exiftool.md"
+    },
+    {
+      "id": "lynis",
+      "package": "lynis",
+      "title": "Lynis",
+      "group": "auditoria",
+      "summary": "Auditoria de segurança e hardening do RootFS do KhaLinux.",
+      "commands": [
+        "lynis"
+      ],
+      "check_command": "lynis --version",
+      "requires_authorization": false,
+      "root_limitations": [
+        "/proc não montado (ADR-0005): vários testes falham ou não se aplicam.",
+        "Audita só o RootFS, não o Android; não verificado em ARM64/PRoot."
+      ],
+      "doc": "docs/toolkit/lynis.md"
+    },
+    {
+      "id": "chkrootkit",
+      "package": "chkrootkit",
+      "title": "chkrootkit",
+      "group": "auditoria",
+      "summary": "Verificação local de sinais de rootkits conhecidos no RootFS.",
+      "commands": [
+        "chkrootkit"
+      ],
+      "check_command": "chkrootkit -V",
+      "requires_authorization": false,
+      "root_limitations": [
+        "/proc não montado (ADR-0005) e sem acesso ao kernel: vários testes não se aplicam.",
+        "Resultado não prova ausência de comprometimento; não verificado em ARM64/PRoot."
+      ],
+      "doc": "docs/toolkit/chkrootkit.md"
+    },
+    {
+      "id": "rkhunter",
+      "package": "rkhunter",
+      "title": "Rootkit Hunter",
+      "group": "auditoria",
+      "summary": "Verificação local de rootkits e integridade de arquivos do RootFS.",
+      "commands": [
+        "rkhunter"
+      ],
+      "check_command": "rkhunter --version",
+      "requires_authorization": false,
+      "root_limitations": [
+        "/proc não montado (ADR-0005): vários testes falham ou não se aplicam.",
+        "Resultado não prova ausência de comprometimento; não verificado em ARM64/PRoot."
+      ],
+      "doc": "docs/toolkit/rkhunter.md"
+    }
+  ]
+}

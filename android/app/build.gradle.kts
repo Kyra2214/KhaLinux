@@ -4,6 +4,18 @@ plugins {
     id("org.jetbrains.kotlin.kapt")
 }
 
+// Assinatura de release (Fase 9.3): somente por variáveis de ambiente; nada é gravado no repositório.
+// Sem as variáveis, `assembleRelease` gera um APK NÃO assinado (o workflow de release exige a assinatura).
+val khalinuxKeystorePath: String? = System.getenv("KHALINUX_KEYSTORE_PATH")?.takeIf { it.isNotBlank() }
+val assinaturaConfigurada: Boolean = khalinuxKeystorePath != null &&
+    listOf("KHALINUX_KEYSTORE_PASSWORD", "KHALINUX_KEY_ALIAS", "KHALINUX_KEY_PASSWORD")
+        .all { !System.getenv(it).isNullOrBlank() }
+// Versão por propriedade Gradle (-PkhalinuxVersionName=1.0.0 -PkhalinuxVersionCode=2); padrões abaixo.
+val khalinuxVersionName: String = providers.gradleProperty("khalinuxVersionName").getOrElse("1.0.0-rc.1")
+val khalinuxVersionCode: Int = providers.gradleProperty("khalinuxVersionCode").map(String::toInt).getOrElse(2)
+// R8 ligado por padrão no release; -PkhalinuxMinify=false desliga para diagnosticar problemas de ofuscação.
+val khalinuxMinify: Boolean = providers.gradleProperty("khalinuxMinify").map(String::toBoolean).getOrElse(true)
+
 android {
     namespace = "com.khalinux.android"
     compileSdk = 35
@@ -12,8 +24,30 @@ android {
         applicationId = "com.khalinux.android"
         minSdk = 35
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0-phase3"
+        versionCode = khalinuxVersionCode
+        versionName = khalinuxVersionName
+    }
+
+    signingConfigs {
+        if (assinaturaConfigurada) {
+            create("release") {
+                storeFile = file(khalinuxKeystorePath!!)
+                storePassword = System.getenv("KHALINUX_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("KHALINUX_KEY_ALIAS")
+                keyPassword = System.getenv("KHALINUX_KEY_PASSWORD")
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = khalinuxMinify
+            isShrinkResources = khalinuxMinify
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            // O app é somente ARM64 (docs/install-guide.md).
+            ndk { abiFilters += "arm64-v8a" }
+            if (assinaturaConfigurada) signingConfig = signingConfigs.getByName("release")
+        }
     }
 
     buildFeatures {
@@ -22,6 +56,17 @@ android {
 
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.14"
+    }
+
+    sourceSets {
+        // Catálogo de pacotes versionado em distribution/ embarcado como asset `catalog.json`.
+        getByName("main").assets.srcDir("../../distribution/packages/catalog")
+        // Descritores do Cyber Toolkit (Fase 5) embarcados como asset `tools.json`.
+        getByName("main").assets.srcDir("../../distribution/toolkit")
+        // Laboratórios (Fase 6): assets `labs.json` e `fixtures/` (copiadas para /opt/khalinux-labs no RootFS).
+        getByName("main").assets.srcDir("../../distribution/labs")
+        // Tutor didático offline (Fase 7.8): asset `knowledge.tsv`.
+        getByName("main").assets.srcDir("../../distribution/tutor")
     }
 }
 
@@ -48,6 +93,13 @@ dependencies {
 
     testImplementation("junit:junit:4.13.2")
     debugImplementation("androidx.compose.ui:ui-tooling")
+}
+
+kapt {
+    arguments {
+        // Esquemas do Room versionados em android/app/schemas (exportSchema = true).
+        arg("room.schemaLocation", "$projectDir/schemas")
+    }
 }
 
 kotlin {

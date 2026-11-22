@@ -6,14 +6,21 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
-import android.os.Build
+import android.content.pm.ServiceInfo
 import android.os.Binder
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat
 import com.khalinux.runtime.AndroidPtyProcessLauncher
 import com.khalinux.runtime.CommandRequest
 import com.khalinux.runtime.LinuxRuntime
 import com.khalinux.runtime.ProotConfig
+import com.khalinux.runtime.FallbackProotLocator
+import com.khalinux.runtime.FilesDirProotLocator
+import com.khalinux.runtime.NativeLibProotLocator
+import com.khalinux.runtime.ProotLocator
+import com.khalinux.runtime.diagnostics.DiagnosticReport
+import com.khalinux.runtime.diagnostics.RuntimeDiagnostics
 import com.khalinux.runtime.AndroidBindMountPolicy
 import com.khalinux.runtime.ProotBindMountPreparer
 import com.khalinux.runtime.ProotLauncher
@@ -22,11 +29,18 @@ import com.khalinux.runtime.SessionManager
 import com.khalinux.runtime.install.RootfsInstaller
 import com.khalinux.runtime.install.ProotInstaller
 import com.khalinux.runtime.install.GitHubHttpsConnection
+import com.khalinux.runtime.install.InstallCancelledException
+import com.khalinux.runtime.install.InstallPhase
+import com.khalinux.runtime.install.InstallProgress
+import com.khalinux.runtime.install.InstallProgressCalculator
+import com.khalinux.runtime.install.InstallStateStore
+import com.khalinux.runtime.install.RootfsFinalizer
 import com.khalinux.runtime.SessionSnapshot
 import java.io.File
 import java.time.Duration
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicBoolean
 import java.net.URL
 import org.json.JSONObject
 import java.security.MessageDigest
@@ -40,15 +54,9 @@ class KhaLinuxRuntimeService : Service() {
         fun onEvent(event: RuntimeEvent)
     }
 
-    interface RootfsInstallListener {
-        fun onProgress(downloadedBytes: Long, totalBytes: Long?)
-        fun onInstalled(rootfsDirectory: File, runtimeReady: Boolean)
-        fun onError(message: String)
-    }
-
-    interface ProotInstallListener {
-        fun onProgress(downloadedBytes: Long, totalBytes: Long?)
-        fun onInstalled(prootExecutable: File, runtimeReady: Boolean)
+    interface EnvironmentInstallListener {
+        fun onProgress(progress: InstallProgress)
+        fun onFinished(runtimeReady: Boolean)
         fun onError(message: String)
     }
 
@@ -59,30 +67,71 @@ class KhaLinuxRuntimeService : Service() {
     private val binder = LocalBinder()
     private val callbacks: ExecutorService = Executors.newCachedThreadPool()
     private val installerExecutor: ExecutorService = Executors.newSingleThreadExecutor()
-    private var runtime: LinuxRuntime? = null
-    @Volatile private var activeInteractiveSessionId: String? = null
-    @Volatile private var interactiveSessionStarting: Boolean = false
+    @Volatile private var runtime: LinuxRuntime? = null
+    private val installRunning = AtomicBoolean(false)
+    @Volatile private var installCancelled: Boolean = false
+    @Volatile private var installListener: EnvironmentInstallListener? = null
+    @Volatile private var lastInstallProgress: InstallProgress? = null
+    @Volatile private var lastNotificationKey: Int = -1
+    // Várias abas interativas podem coexistir (7.1): o foreground vale enquanto houver ao menos uma.
+    private val activeInteractiveSessionIds: MutableSet<String> = java.util.concurrent.ConcurrentHashMap.newKeySet()
+    private val interactiveSessionsStarting = java.util.concurrent.atomic.AtomicInteger(0)
 
     override fun onCreate() {
         super.onCreate()
+        // 8.5: restaura a cópia anterior se uma instalação morreu entre as duas trocas (antes de procurar o runtime).
+        runCatching {
+            com.khalinux.runtime.install.InstallRecovery.recover(
+                File(filesDir, "runtime"),
+                InstallStateStore(File(filesDir, "runtime/install-state.properties")),
+                installRunning.get()
+            )
+        }
         runtime = createRuntimeIfInstalled()
+        // 8.1: limpa resíduos de instalações interrompidas; roda na fila do instalador (serial com a instalação).
+        installerExecutor.submit { runCatching { storage().cleanup(installRunning.get()) } }
+        // 8.3: aquece catálogos/toolkit/laboratórios em segundo plano para a primeira abertura das telas não pagar o parse.
+        installerExecutor.submit { runCatching { packageManager(); toolkit(); labs() } }
+    }
+
+    /** Higiene de armazenamento (8.1): relatório de espaço e limpeza de resíduos; nunca toca em dados do usuário. */
+    fun storage(): com.khalinux.runtime.storage.StorageHygiene = com.khalinux.runtime.storage.StorageHygiene(
+        runtimeDirectory = File(filesDir, "runtime"),
+        homeDirectory = File(filesDir, "home"),
+        packageTempDirectory = File(filesDir, "runtime/packages/tmp")
+    )
+
+    /** Plano A (filesDir) primeiro; plano B (libproot.so em jniLibs) só se o A não existir. */
+    private val prootLocator: ProotLocator by lazy {
+        FallbackProotLocator(
+            listOf(
+                FilesDirProotLocator(File(filesDir, "runtime/proot")),
+                NativeLibProotLocator(File(applicationInfo.nativeLibraryDir))
+            )
+        )
     }
 
     private fun createRuntimeIfInstalled(): LinuxRuntime? {
         val runtimeDirectory = File(filesDir, "runtime")
-        val proot = File(runtimeDirectory, "proot")
+        val prootLocation = prootLocator.locate()
         val rootfs = File(runtimeDirectory, "rootfs-arm64")
-        if (!proot.isFile || !proot.canExecute() || !rootfs.isDirectory) return null
-        val bindMounts = AndroidBindMountPolicy.defaultMounts()
+        if (prootLocation == null || !rootfs.isDirectory) return null
+        runCatching { RootfsFinalizer.apply(rootfs) }
+        // Home fora do RootFS: reinstalar o Debian não apaga os arquivos do usuário.
+        val homeDirectory = File(filesDir, "home").apply { mkdirs() }
+        val bindMounts = AndroidBindMountPolicy.defaultMounts() +
+            com.khalinux.runtime.BindMount(homeDirectory, "/home/khalinux")
         runCatching { ProotBindMountPreparer.prepare(rootfs, bindMounts) }
             .getOrElse { return null }
         return SessionManager(
             ProotLauncher(
                 ProotConfig(
-                    prootExecutable = proot,
+                    prootExecutable = prootLocation.executable,
                     rootfsDirectory = rootfs,
                     qemuExecutable = null,
-                    bindMounts = bindMounts
+                    bindMounts = bindMounts,
+                    tempDirectory = File(runtimeDirectory, "tmp"),
+                    prootEnvironment = prootLocation.environment
                 ),
                 interactiveProcessLauncher = AndroidPtyProcessLauncher()
             )
@@ -91,136 +140,325 @@ class KhaLinuxRuntimeService : Service() {
 
     fun isRuntimeInstalled(): Boolean = runtime != null
 
-    fun isRootfsInstalled(): Boolean {
+    private var packageManagerInstance: com.khalinux.runtime.packages.PackageManager? = null
+    private var packageManagerRuntime: LinuxRuntime? = null
+
+    /**
+     * Gerenciador de pacotes ligado ao runtime atual (recriado se o runtime mudar). Nulo sem runtime
+     * ou se o catálogo embarcado for inválido. Chamadas do gerenciador bloqueiam: usar thread de trabalho.
+     */
+    @Synchronized
+    fun packageManager(): com.khalinux.runtime.packages.PackageManager? {
+        val current = runtime ?: return null
+        if (packageManagerRuntime === current) packageManagerInstance?.let { return it }
+        val catalog = runCatching {
+            assets.open("catalog.json").use {
+                com.khalinux.android.packages.PackageCatalogJson.parse(String(it.readBytes(), Charsets.UTF_8))
+            }
+        }.getOrNull() ?: return null
+        val dir = File(filesDir, "runtime/packages").apply { mkdirs() }
         val rootfs = File(filesDir, "runtime/rootfs-arm64")
-        return rootfs.isDirectory && (File(rootfs, "bin/bash").exists() || File(rootfs, "usr/bin/bash").exists())
+        val store = com.khalinux.runtime.packages.InstalledPackageStore(File(dir, "installed.tsv"))
+        val runner = com.khalinux.runtime.packages.LinuxRuntimePackageCommandRunner(current)
+        val installer = com.khalinux.runtime.packages.PackageInstaller(catalog, store, runner, rootfs, File(dir, "tmp"))
+        val manager = com.khalinux.runtime.packages.PackageManager(
+            catalog = catalog,
+            store = store,
+            installer = installer,
+            remover = com.khalinux.runtime.packages.PackageRemover(catalog, store, runner, rootfs),
+            updater = com.khalinux.runtime.packages.PackageUpdater(catalog, store, installer),
+            history = com.khalinux.runtime.packages.PackageHistoryStore(File(dir, "history.log"))
+        )
+        packageManagerInstance = manager
+        packageManagerRuntime = current
+        return manager
     }
 
-    fun isProotInstalled(): Boolean {
-        val proot = File(filesDir, "runtime/proot")
-        return proot.isFile && proot.canExecute()
+    private var toolkitInstance: com.khalinux.runtime.toolkit.ToolkitService? = null
+    private var toolkitRuntime: LinuxRuntime? = null
+
+    /**
+     * Cyber Toolkit ligado ao runtime atual: descritores (asset `tools.json`) validados contra o catálogo,
+     * guarda de uso autorizado e verificações persistidas. Nulo sem runtime ou com assets inválidos.
+     * Chamadas bloqueiam: usar thread de trabalho.
+     */
+    @Synchronized
+    fun toolkit(): com.khalinux.runtime.toolkit.ToolkitService? {
+        val current = runtime ?: return null
+        if (toolkitRuntime === current) toolkitInstance?.let { return it }
+        val catalog = runCatching {
+            assets.open("catalog.json").use {
+                com.khalinux.android.packages.PackageCatalogJson.parse(String(it.readBytes(), Charsets.UTF_8))
+            }
+        }.getOrNull() ?: return null
+        val registry = runCatching {
+            assets.open("tools.json").use {
+                com.khalinux.android.toolkit.ToolkitJson.parse(String(it.readBytes(), Charsets.UTF_8), catalog)
+            }
+        }.getOrNull() ?: return null
+        val packagesDir = File(filesDir, "runtime/packages").apply { mkdirs() }
+        val toolkitDir = File(filesDir, "runtime/toolkit").apply { mkdirs() }
+        val guard = com.khalinux.runtime.toolkit.ToolkitGuard(
+            registry, com.khalinux.runtime.toolkit.AuthorizationStore(File(toolkitDir, "authorizations.tsv"))
+        )
+        val service = com.khalinux.runtime.toolkit.ToolkitService(
+            registry = registry,
+            guard = guard,
+            runner = com.khalinux.runtime.packages.LinuxRuntimePackageCommandRunner(current),
+            installed = com.khalinux.runtime.packages.InstalledPackageStore(File(packagesDir, "installed.tsv")),
+            verifications = com.khalinux.runtime.toolkit.VerificationStore(File(toolkitDir, "verifications.tsv"))
+        )
+        toolkitInstance = service
+        toolkitRuntime = current
+        return service
+    }
+
+    private var labsInstance: com.khalinux.runtime.labs.LabProgressService? = null
+    private var labsRuntime: LinuxRuntime? = null
+
+    /**
+     * Laboratórios (Fase 6): catálogo do asset `labs.json`, progresso persistido em `runtime/labs/progress.tsv`
+     * e cópia das fixtures dos serviços para `/opt/khalinux-labs` no RootFS. Nulo sem runtime ou com asset inválido.
+     * Chamadas bloqueiam: usar thread de trabalho.
+     */
+    @Synchronized
+    fun labs(): com.khalinux.runtime.labs.LabProgressService? {
+        val current = runtime ?: return null
+        if (labsRuntime === current) labsInstance?.let { return it }
+        val catalog = runCatching {
+            assets.open("labs.json").use {
+                com.khalinux.android.labs.LabsJson.parse(String(it.readBytes(), Charsets.UTF_8))
+            }
+        }.getOrNull() ?: return null
+        // 8.3: as fixtures só mudam com o app; recopia apenas quando a marca (última atualização do app) muda ou o destino sumiu.
+        runCatching {
+            val target = File(filesDir, "runtime/rootfs-arm64/opt/khalinux-labs")
+            val stampValue = packageManager.getPackageInfo(packageName, 0).lastUpdateTime.toString() + (if (target.isDirectory) "" else "-missing")
+            com.khalinux.runtime.startup.AssetSyncStamp(File(filesDir, "runtime/labs/fixtures.stamp"))
+                .syncIfStale(stampValue) { copyAssetTree("fixtures", target) }
+        }
+        val dir = File(filesDir, "runtime/labs").apply { mkdirs() }
+        val service = com.khalinux.runtime.labs.LabProgressService(
+            com.khalinux.runtime.labs.LabEngine(catalog),
+            com.khalinux.runtime.labs.LabProgressStore(File(dir, "progress.tsv"))
+        )
+        labsInstance = service
+        labsRuntime = current
+        return service
+    }
+
+    private fun copyAssetTree(path: String, target: File) {
+        val children = assets.list(path)
+        if (children.isNullOrEmpty()) {
+            target.parentFile?.mkdirs()
+            assets.open(path).use { input -> target.outputStream().use { input.copyTo(it) } }
+            return
+        }
+        target.mkdirs()
+        for (name in children) copyAssetTree("$path/$name", File(target, name))
+    }
+
+    fun isRootfsInstalled(): Boolean {
+        val rootfs = File(filesDir, "runtime/rootfs-arm64")
+        // Validação estrita: um RootFS extraído com links quebrados (bin vazio) deve ser reinstalado.
+        return com.khalinux.runtime.install.RootfsValidator.isUsable(rootfs)
+    }
+
+    fun isProotInstalled(): Boolean = prootLocator.locate() != null
+
+    /** Executa o diagnóstico do ponto de teste físico; bloqueante, chamar fora da thread principal. */
+    fun runDiagnostics(onUpdate: (DiagnosticReport) -> Unit): DiagnosticReport =
+        RuntimeDiagnostics(
+            locator = prootLocator,
+            runtimeProvider = { runtime },
+            tempDirectory = File(filesDir, "runtime/tmp")
+        ).run(onUpdate)
+
+    fun isInstallRunning(): Boolean = installRunning.get()
+
+    /**
+     * Instala PRoot e RootFS automaticamente (nessa ordem) com um único percentual global.
+     * Chamadas repetidas apenas registram o novo ouvinte e reenviam o último progresso.
+     */
+    fun installEnvironment(listener: EnvironmentInstallListener) {
+        installListener = listener
+        if (!installRunning.compareAndSet(false, true)) {
+            lastInstallProgress?.let(listener::onProgress)
+            return
+        }
+        if (runtime != null) {
+            installRunning.set(false)
+            listener.onFinished(true)
+            return
+        }
+        installCancelled = false
+        lastNotificationKey = -1
+        lastInstallProgress = null
+        requestInstallForeground()
+        installerExecutor.submit { runEnvironmentInstall() }
+    }
+
+    fun cancelInstall() {
+        installCancelled = true
+    }
+
+    private fun runEnvironmentInstall() {
+        val store = InstallStateStore(File(filesDir, "runtime/install-state.properties"))
+        try {
+            publishInstall(InstallPhase.CHECKING, 0.0)
+            store.write(InstallPhase.CHECKING)
+            if (!isProotInstalled()) {
+                store.write(InstallPhase.DOWNLOADING_PROOT)
+                installProotBlocking()
+            }
+            if (!isRootfsInstalled()) {
+                store.write(InstallPhase.DOWNLOADING_ROOTFS)
+                installRootfsBlocking()
+            }
+            publishInstall(InstallPhase.FINALIZING, 0.0)
+            store.write(InstallPhase.FINALIZING)
+            val rootfs = File(filesDir, "runtime/rootfs-arm64")
+            RootfsFinalizer.apply(rootfs)
+            publishInstall(InstallPhase.FINALIZING, 0.5)
+            runtime?.close()
+            runtime = createRuntimeIfInstalled()
+            val ready = runtime != null
+            store.write(InstallPhase.READY)
+            publishInstall(InstallPhase.READY, 1.0)
+            installListener?.onFinished(ready)
+        } catch (cancelled: InstallCancelledException) {
+            store.write(InstallPhase.FAILED, "Instalação cancelada")
+            installListener?.onError("Instalação cancelada")
+        } catch (error: Throwable) {
+            val message = error.message ?: "Falha ao instalar o ambiente Linux"
+            store.write(InstallPhase.FAILED, message)
+            installListener?.onError(message)
+        } finally {
+            installRunning.set(false)
+            stopInstallForeground()
+        }
+    }
+
+    private fun publishInstall(phase: InstallPhase, fraction: Double, done: Long = 0L, total: Long? = null) {
+        val progress = InstallProgress(phase, InstallProgressCalculator.percent(phase, fraction), done, total)
+        lastInstallProgress = progress
+        installListener?.onProgress(progress)
+        val key = phase.ordinal * 1000 + progress.percent
+        if (key != lastNotificationKey) {
+            lastNotificationKey = key
+            getSystemService(NotificationManager::class.java)
+                .notify(NOTIFICATION_ID, createInstallNotification(progress))
+        }
+    }
+
+    private fun fetchManifest(releaseBase: String, name: String, expectedSha256: String, label: String): JSONObject {
+        val connection = GitHubHttpsConnection.open(URL("$releaseBase/$name"), 15_000, 20_000)
+        val manifestBytes = try {
+            connection.inputStream.use { input -> input.readNBytes(64 * 1024 + 1) }
+        } finally {
+            connection.disconnect()
+        }
+        require(manifestBytes.size <= 64 * 1024) { "Manifesto $label excede 64 KiB" }
+        val manifestSha = MessageDigest.getInstance("SHA-256").digest(manifestBytes)
+            .joinToString("") { "%02x".format(java.util.Locale.ROOT, it.toInt() and 0xff) }
+        require(manifestSha == expectedSha256) { "SHA-256 do manifesto $label não confere" }
+        return JSONObject(String(manifestBytes, Charsets.UTF_8))
     }
 
     /** Instala PRoot somente após conferir o hash fixado do manifesto e os hashes do artefato. */
-    fun installLatestProot(listener: ProotInstallListener) {
-        installerExecutor.submit {
-            try {
-                val releaseTag = PROOT_RELEASE_TAG
-                val releaseBase = "https://github.com/Kyra2214/KhaLinux/releases/download/$releaseTag"
-                val manifestUrl = URL("$releaseBase/proot-arm64.json")
-                val connection = GitHubHttpsConnection.open(manifestUrl, 15_000, 20_000)
-                val manifestBytes = try {
-                    connection.inputStream.use { input -> input.readNBytes(64 * 1024 + 1) }
-                } finally {
-                    connection.disconnect()
-                }
-                require(manifestBytes.size <= 64 * 1024) { "Manifesto PRoot excede 64 KiB" }
-                val manifestSha = MessageDigest.getInstance("SHA-256").digest(manifestBytes)
-                    .joinToString("") { "%02x".format(java.util.Locale.ROOT, it.toInt() and 0xff) }
-                require(manifestSha == PROOT_MANIFEST_SHA256) { "SHA-256 do manifesto PRoot não confere" }
+    private fun installProotBlocking() {
+        publishInstall(InstallPhase.DOWNLOADING_PROOT, 0.0)
+        val releaseTag = PROOT_RELEASE_TAG
+        val releaseBase = "https://github.com/Kyra2214/KhaLinux/releases/download/$releaseTag"
+        val manifest = fetchManifest(releaseBase, "proot-arm64.json", PROOT_MANIFEST_SHA256, "PRoot")
+        require(manifest.getInt("schema") == 1) { "Versão de manifesto PRoot não suportada" }
+        require(manifest.getString("architecture") == "arm64") { "Este PRoot não é ARM64" }
+        require(manifest.getString("runtime") == "Android Bionic") { "Runtime PRoot incompatível" }
+        require(manifest.getString("release_tag") == releaseTag) { "Tag do manifesto PRoot não corresponde à release fixada" }
+        require(manifest.getString("proot_version") == PROOT_VERSION) { "Versão PRoot inesperada" }
+        require(manifest.getString("proot_source") == "https://github.com/termux/proot") { "Origem PRoot inesperada" }
+        require(manifest.getString("proot_source_sha256") == PROOT_SOURCE_SHA256) { "Fonte PRoot não corresponde à versão aprovada" }
+        require(manifest.getString("talloc_source_sha256") == TALLOC_SOURCE_SHA256) { "Fonte talloc não corresponde à versão aprovada" }
+        require(manifest.getString("libandroid_shmem_source_sha256") == SHMEM_SOURCE_SHA256) { "Fonte libandroid-shmem não corresponde à versão aprovada" }
+        require(manifest.getInt("android_api") == 35) { "API Android do PRoot não corresponde ao build aprovado" }
+        require(manifest.getString("archive_name") == "proot-arm64.tar.gz") { "Nome do pacote PRoot inesperado" }
+        val expectedUrl = "$releaseBase/proot-arm64.tar.gz"
+        require(manifest.getString("archive_url") == expectedUrl) { "URL do pacote PRoot não corresponde à release fixada" }
+        val archiveSha = manifest.getString("archive_sha256")
+        val binarySha = manifest.getString("binary_sha256")
+        require(archiveSha == PROOT_ARCHIVE_SHA256) { "Hash do pacote PRoot não corresponde à release aprovada" }
+        require(binarySha == PROOT_BINARY_SHA256) { "Hash do executável PRoot não corresponde à release aprovada" }
 
-                val manifest = JSONObject(String(manifestBytes, Charsets.UTF_8))
-                require(manifest.getInt("schema") == 1) { "Versão de manifesto PRoot não suportada" }
-                require(manifest.getString("architecture") == "arm64") { "Este PRoot não é ARM64" }
-                require(manifest.getString("runtime") == "Android Bionic") { "Runtime PRoot incompatível" }
-                require(manifest.getString("release_tag") == releaseTag) { "Tag do manifesto PRoot não corresponde à release fixada" }
-                require(manifest.getString("proot_version") == PROOT_VERSION) { "Versão PRoot inesperada" }
-                require(manifest.getString("proot_source") == "https://github.com/termux/proot") { "Origem PRoot inesperada" }
-                require(manifest.getString("proot_source_sha256") == PROOT_SOURCE_SHA256) { "Fonte PRoot não corresponde à versão aprovada" }
-                require(manifest.getString("talloc_source_sha256") == TALLOC_SOURCE_SHA256) { "Fonte talloc não corresponde à versão aprovada" }
-                require(manifest.getString("libandroid_shmem_source_sha256") == SHMEM_SOURCE_SHA256) { "Fonte libandroid-shmem não corresponde à versão aprovada" }
-                require(manifest.getInt("android_api") == 35) { "API Android do PRoot não corresponde ao build aprovado" }
-                require(manifest.getString("archive_name") == "proot-arm64.tar.gz") { "Nome do pacote PRoot inesperado" }
-                val expectedUrl = "$releaseBase/proot-arm64.tar.gz"
-                require(manifest.getString("archive_url") == expectedUrl) { "URL do pacote PRoot não corresponde à release fixada" }
-                val archiveSha = manifest.getString("archive_sha256")
-                val binarySha = manifest.getString("binary_sha256")
-                require(archiveSha == PROOT_ARCHIVE_SHA256) { "Hash do pacote PRoot não corresponde à release aprovada" }
-                require(binarySha == PROOT_BINARY_SHA256) { "Hash do executável PRoot não corresponde à release aprovada" }
+        val archiveBytes = manifest.getLong("archive_bytes")
+        val binaryBytes = manifest.getLong("binary_bytes")
+        require(archiveBytes in 1..(64L * 1024 * 1024)) { "Tamanho do pacote PRoot inválido" }
+        require(binaryBytes in 64..(32L * 1024 * 1024)) { "Tamanho do executável PRoot inválido" }
+        val requiredSpace = archiveBytes + binaryBytes + 8L * 1024 * 1024
+        require(filesDir.usableSpace >= requiredSpace) {
+            "Espaço insuficiente: necessários aproximadamente ${requiredSpace / (1024 * 1024)} MB"
+        }
 
-                val archiveBytes = manifest.getLong("archive_bytes")
-                val binaryBytes = manifest.getLong("binary_bytes")
-                require(archiveBytes in 1..(64L * 1024 * 1024)) { "Tamanho do pacote PRoot inválido" }
-                require(binaryBytes in 64..(32L * 1024 * 1024)) { "Tamanho do executável PRoot inválido" }
-                val requiredSpace = archiveBytes + binaryBytes + 8L * 1024 * 1024
-                require(filesDir.usableSpace >= requiredSpace) {
-                    "Espaço insuficiente: necessários aproximadamente ${requiredSpace / (1024 * 1024)} MB"
-                }
-
-                val target = File(filesDir, "runtime/proot")
-                val result = ProotInstaller().install(
-                    ProotInstaller.Request(expectedUrl, archiveSha, binarySha, binaryBytes, target)
-                ) { downloaded, total -> listener.onProgress(downloaded, total ?: archiveBytes) }
-                runtime?.close()
-                runtime = createRuntimeIfInstalled()
-                listener.onInstalled(result.installedFile, runtime != null)
-            } catch (error: Throwable) {
-                listener.onError(error.message ?: "Falha ao instalar PRoot")
-            }
+        val target = File(filesDir, "runtime/proot")
+        ProotInstaller().install(
+            ProotInstaller.Request(expectedUrl, archiveSha, binarySha, binaryBytes, target),
+            onPhase = { /* verificação do PRoot é instantânea; mantém a banda de download */ },
+            isCancelled = { installCancelled }
+        ) { downloaded, total ->
+            val size = total ?: archiveBytes
+            publishInstall(
+                InstallPhase.DOWNLOADING_PROOT,
+                InstallProgressCalculator.fraction(downloaded, size),
+                downloaded,
+                size
+            )
         }
     }
 
     /** Busca o manifesto da release versionada e instala somente o artefato ARM64 declarado nela. */
-    fun installLatestRootfs(listener: RootfsInstallListener) {
-        installerExecutor.submit {
-            try {
-                val releaseTag = ROOTFS_RELEASE_TAG
-                val releaseBase = "https://github.com/Kyra2214/KhaLinux/releases/download/$releaseTag"
-                val manifestUrl = URL("$releaseBase/rootfs-arm64.json")
-                val connection = GitHubHttpsConnection.open(manifestUrl, 15_000, 20_000)
-                val manifestBytes = try {
-                    connection.inputStream.use { input -> input.readNBytes(64 * 1024 + 1) }
-                } finally {
-                    connection.disconnect()
-                }
-                require(manifestBytes.size <= 64 * 1024) { "Manifesto RootFS excede 64 KiB" }
-                val manifestSha = MessageDigest.getInstance("SHA-256").digest(manifestBytes)
-                    .joinToString("") { "%02x".format(java.util.Locale.ROOT, it.toInt() and 0xff) }
-                require(manifestSha == ROOTFS_MANIFEST_SHA256) { "SHA-256 do manifesto RootFS não confere" }
-                val manifest = JSONObject(String(manifestBytes, Charsets.UTF_8))
-                require(manifest.getInt("schema") == 1) { "Versão de manifesto RootFS não suportada" }
-                require(manifest.getString("architecture") == "arm64") { "Este RootFS não é ARM64" }
-                require(manifest.getString("release_tag") == releaseTag) { "Tag do manifesto não corresponde à release fixada" }
-                require(manifest.getString("archive_name") == "rootfs-arm64.tar.gz") { "Nome de arquivo RootFS inesperado" }
-                val expectedUrl = "$releaseBase/rootfs-arm64.tar.gz"
-                require(manifest.getString("archive_url") == expectedUrl) { "URL do arquivo não corresponde à release fixada" }
-                val archiveSha = manifest.getString("archive_sha256")
-                require(archiveSha == ROOTFS_ARCHIVE_SHA256) { "Hash do arquivo RootFS não corresponde à release aprovada" }
-                val expectedBytes = manifest.getLong("archive_bytes")
-                require(expectedBytes in 1..1_500_000_000L) { "Tamanho do arquivo RootFS inválido" }
-                val expectedRootfsBytes = manifest.getLong("rootfs_bytes")
-                require(expectedRootfsBytes in 1..4_000_000_000L) { "Tamanho descompactado do RootFS inválido" }
-                val requiredSpace = expectedBytes + expectedRootfsBytes + 32L * 1024 * 1024
-                require(filesDir.usableSpace >= requiredSpace) {
-                    "Espaço insuficiente: necessários aproximadamente ${requiredSpace / (1024 * 1024)} MB"
-                }
-                val target = File(filesDir, "runtime/rootfs-arm64")
-                val result = RootfsInstaller().install(
-                    RootfsInstaller.Request(expectedUrl, archiveSha, target)
-                ) { downloaded, total -> listener.onProgress(downloaded, total ?: expectedBytes) }
-                runtime?.close()
-                runtime = createRuntimeIfInstalled()
-                listener.onInstalled(result.installedDirectory, runtime != null)
-            } catch (error: Throwable) {
-                listener.onError(error.message ?: "Falha ao instalar RootFS")
-            }
+    private fun installRootfsBlocking() {
+        publishInstall(InstallPhase.DOWNLOADING_ROOTFS, 0.0)
+        val releaseTag = ROOTFS_RELEASE_TAG
+        val releaseBase = "https://github.com/Kyra2214/KhaLinux/releases/download/$releaseTag"
+        val manifest = fetchManifest(releaseBase, "rootfs-arm64.json", ROOTFS_MANIFEST_SHA256, "RootFS")
+        require(manifest.getInt("schema") == 1) { "Versão de manifesto RootFS não suportada" }
+        require(manifest.getString("architecture") == "arm64") { "Este RootFS não é ARM64" }
+        require(manifest.getString("release_tag") == releaseTag) { "Tag do manifesto não corresponde à release fixada" }
+        require(manifest.getString("archive_name") == "rootfs-arm64.tar.gz") { "Nome de arquivo RootFS inesperado" }
+        val expectedUrl = "$releaseBase/rootfs-arm64.tar.gz"
+        require(manifest.getString("archive_url") == expectedUrl) { "URL do arquivo não corresponde à release fixada" }
+        val archiveSha = manifest.getString("archive_sha256")
+        require(archiveSha == ROOTFS_ARCHIVE_SHA256) { "Hash do arquivo RootFS não corresponde à release aprovada" }
+        val expectedBytes = manifest.getLong("archive_bytes")
+        require(expectedBytes in 1..1_500_000_000L) { "Tamanho do arquivo RootFS inválido" }
+        val expectedRootfsBytes = manifest.getLong("rootfs_bytes")
+        require(expectedRootfsBytes in 1..4_000_000_000L) { "Tamanho descompactado do RootFS inválido" }
+        val target = File(filesDir, "runtime/rootfs-arm64")
+        // Pico real: arquivo + RootFS novo + cópia anterior (se houver) + margem.
+        val previousBytes = if (target.exists()) expectedRootfsBytes else 0L
+        val requiredSpace = expectedBytes + expectedRootfsBytes + previousBytes + 32L * 1024 * 1024
+        require(filesDir.usableSpace >= requiredSpace) {
+            "Espaço insuficiente: necessários aproximadamente ${requiredSpace / (1024 * 1024)} MB"
         }
-    }
-
-    /** Instala o RootFS verificado em diretório privado; não executa comandos durante a extração. */
-    fun installRootfs(archiveUrl: String, expectedSha256: String, listener: RootfsInstallListener) {
-        installerExecutor.submit {
-            try {
-                val target = File(filesDir, "runtime/rootfs-arm64")
-                val result = RootfsInstaller().install(
-                    RootfsInstaller.Request(archiveUrl, expectedSha256, target)
-                ) { downloaded, total -> listener.onProgress(downloaded, total) }
-                runtime?.close()
-                runtime = createRuntimeIfInstalled()
-                listener.onInstalled(result.installedDirectory, runtime != null)
-            } catch (error: Throwable) {
-                listener.onError(error.message ?: "Falha ao instalar RootFS")
-            }
+        RootfsInstaller().install(
+            RootfsInstaller.Request(expectedUrl, archiveSha, target),
+            onPhase = { phase -> if (phase == InstallPhase.VERIFYING) publishInstall(phase, 0.0) },
+            onExtractProgress = { extracted ->
+                publishInstall(
+                    InstallPhase.EXTRACTING,
+                    InstallProgressCalculator.fraction(extracted, expectedRootfsBytes),
+                    extracted,
+                    expectedRootfsBytes
+                )
+            },
+            isCancelled = { installCancelled }
+        ) { downloaded, total ->
+            val size = total ?: expectedBytes
+            publishInstall(
+                InstallPhase.DOWNLOADING_ROOTFS,
+                InstallProgressCalculator.fraction(downloaded, size),
+                downloaded,
+                size
+            )
         }
     }
 
@@ -253,15 +491,15 @@ class KhaLinuxRuntimeService : Service() {
             initialRows = rows,
             initialColumns = columns
         )
-        interactiveSessionStarting = true
+        interactiveSessionsStarting.incrementAndGet()
         requestInteractiveForeground()
         return try {
             val session = activeRuntime.start(request)
-            activeInteractiveSessionId = session.id
-            interactiveSessionStarting = false
+            activeInteractiveSessionIds.add(session.id)
+            interactiveSessionsStarting.decrementAndGet()
             observe(session, listener, foregroundSession = true)
         } catch (error: Throwable) {
-            interactiveSessionStarting = false
+            interactiveSessionsStarting.decrementAndGet()
             stopInteractiveForeground()
             throw error
         }
@@ -290,36 +528,99 @@ class KhaLinuxRuntimeService : Service() {
 
     private fun requestInteractiveForeground() {
         val intent = Intent(this, KhaLinuxRuntimeService::class.java).setAction(ACTION_INTERACTIVE_SESSION)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent) else startService(intent)
+        startForegroundService(intent)
+    }
+
+    private fun requestInstallForeground() {
+        val intent = Intent(this, KhaLinuxRuntimeService::class.java).setAction(ACTION_INSTALL)
+        // Sem foreground a instalação ainda executa, mas pode ser interrompida em segundo plano.
+        runCatching { startForegroundService(intent) }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_INTERACTIVE_SESSION -> {
-                startForeground(NOTIFICATION_ID, createSessionNotification())
-                if (!interactiveSessionStarting && activeInteractiveSessionId == null) {
+                ServiceCompat.startForeground(
+                    this,
+                    NOTIFICATION_ID,
+                    createSessionNotification(),
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+                )
+                if (interactiveSessionsStarting.get() == 0 && activeInteractiveSessionIds.isEmpty() && !installRunning.get()) {
                     stopInteractiveForeground()
                 }
             }
             ACTION_STOP_INTERACTIVE_SESSION -> {
-                activeInteractiveSessionId?.let { runtime?.cancel(it) }
+                activeInteractiveSessionIds.toList().forEach { runtime?.cancel(it) }
                 stopInteractiveForeground()
             }
+            ACTION_INSTALL -> {
+                ServiceCompat.startForeground(
+                    this,
+                    NOTIFICATION_ID,
+                    createInstallNotification(lastInstallProgress),
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+                )
+                if (!installRunning.get()) stopInstallForeground()
+            }
+            ACTION_CANCEL_INSTALL -> installCancelled = true
         }
         return START_NOT_STICKY
     }
 
-    private fun createSessionNotification(): Notification {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
+    private fun ensureNotificationChannels() {
+        val manager = getSystemService(NotificationManager::class.java)
+        manager.createNotificationChannel(
+            NotificationChannel(
                 NOTIFICATION_CHANNEL_ID,
-                "Sessão KhaLinux",
+                getString(R.string.notif_session_channel),
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "Mantém uma sessão de terminal Linux iniciada pelo usuário"
+                description = getString(R.string.notif_session_channel_desc)
             }
-            getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
-        }
+        )
+        manager.createNotificationChannel(
+            NotificationChannel(
+                INSTALL_CHANNEL_ID,
+                getString(R.string.notif_install_channel),
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = getString(R.string.notif_install_channel_desc)
+            }
+        )
+    }
+
+    private fun createInstallNotification(progress: InstallProgress?): Notification {
+        ensureNotificationChannels()
+        val openApp = PendingIntent.getActivity(
+            this,
+            0,
+            Intent(this, MainActivity::class.java),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val cancel = PendingIntent.getService(
+            this,
+            2,
+            Intent(this, KhaLinuxRuntimeService::class.java).setAction(ACTION_CANCEL_INSTALL),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val percent = progress?.percent ?: 0
+        val label = progress?.phase?.label ?: InstallPhase.CHECKING.label
+        return NotificationCompat.Builder(this, INSTALL_CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.stat_sys_download)
+            .setContentTitle(getString(R.string.notif_install_title))
+            .setContentText("$label · $percent%")
+            .setProgress(100, percent, progress == null)
+            .setContentIntent(openApp)
+            .setCategory(NotificationCompat.CATEGORY_PROGRESS)
+            .setOnlyAlertOnce(true)
+            .setOngoing(true)
+            .addAction(android.R.drawable.ic_menu_close_clear_cancel, getString(R.string.action_cancel), cancel)
+            .build()
+    }
+
+    private fun createSessionNotification(): Notification {
+        ensureNotificationChannels()
 
         val openApp = PendingIntent.getActivity(
             this,
@@ -335,24 +636,27 @@ class KhaLinuxRuntimeService : Service() {
         )
         return NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_menu_manage)
-            .setContentTitle("KhaLinux")
-            .setContentText("Sessão de terminal Linux em execução")
+            .setContentTitle(getString(R.string.app_name))
+            .setContentText(getString(R.string.notif_session_text))
             .setContentIntent(openApp)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .setOngoing(true)
-            .addAction(android.R.drawable.ic_media_pause, "Encerrar sessão", stopSession)
+            .addAction(android.R.drawable.ic_media_pause, getString(R.string.notif_stop_session), stopSession)
             .build()
     }
 
+    private fun stopInstallForeground() {
+        if (activeInteractiveSessionIds.isNotEmpty() || interactiveSessionsStarting.get() > 0) return
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        stopSelf()
+    }
+
     private fun stopInteractiveForeground(sessionId: String? = null) {
-        if (sessionId != null && activeInteractiveSessionId != sessionId) return
-        activeInteractiveSessionId = null
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            stopForeground(STOP_FOREGROUND_REMOVE)
-        } else {
-            @Suppress("DEPRECATION")
-            stopForeground(true)
-        }
+        if (sessionId != null) activeInteractiveSessionIds.remove(sessionId)
+        // Ainda há abas interativas (ou uma iniciando) ou instalação: o foreground continua.
+        if (activeInteractiveSessionIds.isNotEmpty() || interactiveSessionsStarting.get() > 0) return
+        if (installRunning.get()) return
+        stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
 
@@ -381,6 +685,9 @@ class KhaLinuxRuntimeService : Service() {
     companion object {
         private const val ACTION_INTERACTIVE_SESSION = "com.khalinux.android.action.INTERACTIVE_SESSION"
         private const val ACTION_STOP_INTERACTIVE_SESSION = "com.khalinux.android.action.STOP_INTERACTIVE_SESSION"
+        private const val ACTION_INSTALL = "com.khalinux.android.action.INSTALL_ENVIRONMENT"
+        private const val ACTION_CANCEL_INSTALL = "com.khalinux.android.action.CANCEL_INSTALL"
+        private const val INSTALL_CHANNEL_ID = "khalinux_install_progress"
         private const val NOTIFICATION_CHANNEL_ID = "khalinux_terminal_session"
         private const val NOTIFICATION_ID = 35
         private const val ROOTFS_RELEASE_TAG = "rootfs-bookworm-20261122-v1"

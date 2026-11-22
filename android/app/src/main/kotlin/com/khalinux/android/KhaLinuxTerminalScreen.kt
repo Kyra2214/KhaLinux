@@ -1,225 +1,144 @@
 package com.khalinux.android
 
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Text
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.khalinux.runtime.TerminalSnapshot
 import com.khalinux.runtime.TerminalStyle
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.khalinux.runtime.tutor.TutorContext
 
+/**
+ * Raiz da UI: conteúdo da seção atual + navegação inferior persistente.
+ * As telas secundárias (Pacotes, Ferramentas, Labs, Tutor, Arquivos, Diagnóstico) continuam controladas pelos
+ * respectivos ViewModels (flag `visible`); a barra inferior apenas fecha uma e abre outra.
+ */
 @Composable
-fun KhaLinuxApp(viewModel: TerminalViewModel) {
+fun KhaLinuxApp(
+    viewModel: TerminalViewModel,
+    packagesViewModel: com.khalinux.android.packages.PackagesViewModel,
+    toolkitViewModel: com.khalinux.android.toolkit.ToolkitViewModel,
+    labsViewModel: com.khalinux.android.labs.LabsViewModel,
+    filesViewModel: com.khalinux.android.files.FilesViewModel,
+    tutorViewModel: com.khalinux.android.tutor.TutorViewModel
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val outputScroll = rememberScrollState()
-    val terminalText = remember(state.terminalSnapshot) { state.terminalSnapshot.toAnnotatedString() }
+    val packagesState by packagesViewModel.uiState.collectAsStateWithLifecycle()
+    val toolkitState by toolkitViewModel.uiState.collectAsStateWithLifecycle()
+    val labsState by labsViewModel.uiState.collectAsStateWithLifecycle()
+    val filesState by filesViewModel.uiState.collectAsStateWithLifecycle()
+    val tutorState by tutorViewModel.uiState.collectAsStateWithLifecycle()
+    var showMore by remember { mutableStateOf(false) }
 
-    LaunchedEffect(state.output) {
-        outputScroll.animateScrollTo(outputScroll.maxValue)
+    val section = when {
+        packagesState.visible -> Section.PACKAGES
+        toolkitState.visible -> Section.TOOLKIT
+        tutorState.visible -> Section.TUTOR
+        labsState.visible -> Section.LABS
+        filesState.visible -> Section.FILES
+        state.showDiagnostics -> Section.DIAGNOSTICS
+        else -> Section.TERMINAL
     }
 
-    MaterialTheme(
-        colorScheme = darkColorScheme(
-            primary = Color(0xFF80CBC4),
-            background = Color(0xFF101418),
-            surface = Color(0xFF182126)
-        )
-    ) {
-        Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFF101418)) {
-            Column(
-                modifier = Modifier.fillMaxSize().padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Text("KhaLinux", style = MaterialTheme.typography.headlineMedium, color = Color(0xFFE8F0F2))
-                Text(
-                    text = when {
-                        !state.serviceConnected -> state.connectionMessage ?: "Conectando ao Service local…"
-                        state.runtimeInstalled -> "Runtime Linux instalado"
-                        state.rootfsInstalled && state.prootInstalled -> "RootFS e PRoot instalados; runtime pendente"
-                        state.rootfsInstalled -> "RootFS instalado; PRoot pendente"
-                        state.prootInstalled -> "PRoot instalado; RootFS pendente"
-                        else -> "Ambiente Linux ainda não instalado"
-                    } + when {
-                        state.isStarting -> " · iniciando sessão…"
-                        state.sessionId != null -> " · sessão ${state.sessionId}"
-                        else -> ""
-                    },
-                    color = Color(0xFF80CBC4),
-                    style = MaterialTheme.typography.bodyMedium
-                )
+    val navigate: (Section) -> Unit = { target ->
+        if (target != section) {
+            packagesViewModel.close()
+            toolkitViewModel.close()
+            labsViewModel.close()
+            tutorViewModel.close()
+            filesViewModel.close()
+            viewModel.closeDiagnostics()
+            when (target) {
+                Section.TERMINAL -> Unit
+                Section.PACKAGES -> packagesViewModel.open()
+                Section.TOOLKIT -> toolkitViewModel.open()
+                Section.LABS -> labsViewModel.open()
+                Section.TUTOR -> tutorViewModel.open()
+                Section.FILES -> filesViewModel.open()
+                Section.DIAGNOSTICS -> viewModel.openDiagnostics()
+            }
+        }
+    }
 
-                if (state.serviceConnected && !state.runtimeInstalled) {
-                    Text(
-                        text = when {
-                            state.isInstallingRootfs -> "Configurando ambiente automaticamente: baixando Debian ARM64…"
-                            state.isInstallingProot -> "Configurando ambiente automaticamente: instalando PRoot…"
-                            !state.rootfsInstalled -> "Preparando instalação automática do Debian…"
-                            !state.prootInstalled -> "Preparando instalação automática do PRoot…"
-                            else -> "Finalizando inicialização do ambiente Linux…"
-                        },
-                        color = Color(0xFF80CBC4),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-
-                state.rootfsInstallProgress?.let { progress ->
-                    Text(progress, color = Color(0xFF80CBC4), style = MaterialTheme.typography.bodySmall)
-                }
-                state.rootfsInstallMessage?.let { message ->
-                    Text(message, color = Color(0xFFE8F0F2), style = MaterialTheme.typography.bodySmall)
-                }
-                state.prootInstallProgress?.let { progress ->
-                    Text(progress, color = Color(0xFF80CBC4), style = MaterialTheme.typography.bodySmall)
-                }
-                state.prootInstallMessage?.let { message ->
-                    Text(message, color = Color(0xFFE8F0F2), style = MaterialTheme.typography.bodySmall)
-                }
-
-                OutlinedTextField(
-                    value = state.command,
-                    onValueChange = viewModel::updateCommand,
-                    label = { Text(if (state.isInteractive) "Entrada do shell" else "Comando Bash") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                    Button(
-                        onClick = if (state.isInteractive) viewModel::sendInput else viewModel::runCommand,
-                        enabled = if (state.isInteractive) {
-                            state.command.isNotEmpty() && !state.isSendingInput
-                        } else {
-                            state.serviceConnected && state.runtimeInstalled && !state.isRunning && state.command.isNotBlank()
-                        },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(if (state.isSendingInput) "Enviando…" else if (state.isInteractive) "Enviar" else "Executar")
-                    }
-                    OutlinedButton(
-                        onClick = viewModel::openInteractiveShell,
-                        enabled = state.serviceConnected && state.runtimeInstalled && !state.isRunning,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Abrir shell")
-                    }
-                    OutlinedButton(
-                        onClick = viewModel::cancelCommand,
-                        enabled = state.sessionId != null,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Cancelar")
-                    }
-                }
-
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(
-                        "Fonte do terminal: ${state.fontSizeSp.toInt()} sp",
-                        color = Color(0xFF8A9AA0),
-                        style = MaterialTheme.typography.labelMedium
-                    )
-                    Slider(
-                        value = state.fontSizeSp,
-                        onValueChange = viewModel::updateFontSize,
-                        onValueChangeFinished = viewModel::saveTerminalSettings,
-                        valueRange = 10f..22f,
-                        steps = 11
-                    )
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text("Linhas: ${state.terminalRows}", color = Color(0xFF8A9AA0), modifier = Modifier.weight(1f))
-                        OutlinedButton(onClick = { viewModel.adjustTerminalRows(-1) }) { Text("−") }
-                        OutlinedButton(onClick = { viewModel.adjustTerminalRows(1) }) { Text("+") }
-                    }
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text("Colunas: ${state.terminalColumns}", color = Color(0xFF8A9AA0), modifier = Modifier.weight(1f))
-                        OutlinedButton(onClick = { viewModel.adjustTerminalColumns(-8) }) { Text("− 8") }
-                        OutlinedButton(onClick = { viewModel.adjustTerminalColumns(8) }) { Text("+ 8") }
-                    }
-                }
-
-                if (state.commandHistory.isNotEmpty()) {
-                    Text("Histórico recente", color = Color(0xFF8A9AA0), style = MaterialTheme.typography.labelMedium)
-                    Row(
-                        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        state.commandHistory.take(8).forEach { entry ->
-                            OutlinedButton(onClick = { viewModel.restoreCommandFromHistory(entry.command) }) {
-                                Text(entry.command, maxLines = 1)
-                            }
-                        }
-                    }
-                }
-
-                Surface(
-                    modifier = Modifier.weight(1f).fillMaxWidth(),
-                    color = Color(0xFF0B0F12),
-                    shape = MaterialTheme.shapes.medium
+    KhaLinuxTheme {
+        Surface(modifier = Modifier.fillMaxSize(), color = KhaColors.Background) {
+            // Com o teclado aberto a barra inferior some (libera espaço para o terminal e evita lacuna sob o IME).
+            val imeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
+            Column(modifier = Modifier.fillMaxSize()) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .then(if (imeVisible) Modifier else Modifier.consumeWindowInsets(WindowInsets.navigationBars))
                 ) {
-                    Column(
-                        modifier = Modifier.fillMaxSize().verticalScroll(outputScroll).padding(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        if (state.output.isEmpty()) {
-                            Text(
-                                "A saída dos comandos aparecerá aqui.",
-                                color = Color(0xFF8A9AA0),
-                                fontFamily = FontFamily.Monospace
-                            )
-                        } else {
-                            Text(
-                                text = terminalText,
-                                color = Color(0xFFE8F0F2),
-                                fontFamily = FontFamily.Monospace,
-                                fontSize = state.fontSizeSp.sp,
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(1.dp))
+                    when (section) {
+                        Section.PACKAGES -> com.khalinux.android.packages.PackagesScreen(packagesState, packagesViewModel)
+                        Section.TOOLKIT -> com.khalinux.android.toolkit.ToolkitScreen(
+                            toolkitState,
+                            toolkitViewModel,
+                            onUseInTerminal = { command ->
+                                toolkitViewModel.close()
+                                viewModel.updateCommand(command)
+                            }
+                        )
+                        Section.TUTOR -> com.khalinux.android.tutor.TutorScreen(tutorState, tutorViewModel)
+                        Section.LABS -> com.khalinux.android.labs.LabsScreen(
+                            labsState,
+                            labsViewModel,
+                            onAskTutor = { lab, exercise ->
+                                tutorViewModel.openWith(TutorContext(lab.id, exercise.title, exercise.instructions))
+                            }
+                        )
+                        Section.FILES -> com.khalinux.android.files.FilesScreen(filesState, filesViewModel)
+                        Section.DIAGNOSTICS -> DiagnosticsScreen(
+                            state = state,
+                            onRun = viewModel::runDiagnostics,
+                            onClose = viewModel::closeDiagnostics,
+                            onConfirm = viewModel::confirmManualDiagnostic
+                        )
+                        Section.TERMINAL -> HomeScreen(state, viewModel)
                     }
                 }
+                if (!imeVisible) {
+                    KhaNavigationBar(
+                        current = section,
+                        enabled = state.serviceConnected && !state.isInstalling,
+                        onSelect = navigate,
+                        onMore = { showMore = true }
+                    )
+                }
+            }
+            if (showMore) {
+                MoreSheet(onDismiss = { showMore = false }, onSelect = { target ->
+                    showMore = false
+                    navigate(target)
+                })
             }
         }
     }
 }
 
-
-private fun TerminalSnapshot.toAnnotatedString(): AnnotatedString = buildAnnotatedString {
+internal fun TerminalSnapshot.toAnnotatedString(defaultForeground: Color, defaultBackground: Color): AnnotatedString = buildAnnotatedString {
     val range = displayRange()
     range.forEach { rowIndex ->
         val line = lines[rowIndex]
@@ -243,7 +162,7 @@ private fun TerminalSnapshot.toAnnotatedString(): AnnotatedString = buildAnnotat
             val style = styleAt(column)
             var runEnd = column + 1
             while (runEnd < end && styleAt(runEnd) == style) runEnd++
-            pushStyle(style.toComposeSpanStyle())
+            pushStyle(style.toComposeSpanStyle(defaultForeground, defaultBackground))
             for (index in column until runEnd) append(line[index].text)
             pop()
             column = runEnd
@@ -252,9 +171,7 @@ private fun TerminalSnapshot.toAnnotatedString(): AnnotatedString = buildAnnotat
     }
 }
 
-private fun TerminalStyle.toComposeSpanStyle(): SpanStyle {
-    val defaultForeground = Color(0xFFE8F0F2)
-    val defaultBackground = Color(0xFF0B0F12)
+private fun TerminalStyle.toComposeSpanStyle(defaultForeground: Color, defaultBackground: Color): SpanStyle {
     var foreground = this.foreground?.let { Color(it) } ?: defaultForeground
     var background = this.background?.let { Color(it) } ?: Color.Transparent
     if (inverse) {

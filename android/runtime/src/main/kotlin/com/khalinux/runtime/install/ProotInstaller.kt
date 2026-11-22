@@ -44,6 +44,8 @@ class ProotInstaller(
 
     fun install(
         request: Request,
+        onPhase: (InstallPhase) -> Unit = {},
+        isCancelled: () -> Boolean = { false },
         onProgress: (downloaded: Long, total: Long?) -> Unit = { _, _ -> }
     ): Result {
         requireSha256(request.expectedArchiveSha256, "SHA-256 do pacote")
@@ -66,11 +68,15 @@ class ProotInstaller(
         val archive = File(parent, ".proot.download")
         val backup = File(parent, ".proot.previous")
         deleteFile(staging)
-        deleteFile(archive)
         deleteFile(backup)
 
+        // O arquivo parcial (.download) é mantido entre tentativas para permitir retomada.
+        var downloadComplete = false
         try {
-            val archiveDigest = download(url, archive, onProgress)
+            val archiveDigest = ResumableDownloader(connectTimeoutMillis, readTimeoutMillis, maxDownloadBytes)
+                .download(url, archive, isCancelled, onProgress)
+            downloadComplete = true
+            onPhase(InstallPhase.VERIFYING)
             val actualArchiveSha = archiveDigest.toHex()
             require(actualArchiveSha.equals(request.expectedArchiveSha256, ignoreCase = true)) {
                 "SHA-256 do pacote PRoot divergente"
@@ -97,38 +103,8 @@ class ProotInstaller(
             runCatching { deleteFile(backup) }
             return Result(destination, actualArchiveSha, actualBinarySha, binaryBytes)
         } finally {
-            deleteFile(archive)
+            if (downloadComplete) deleteFile(archive)
             deleteFile(staging)
-        }
-    }
-
-    private fun download(url: URL, output: File, onProgress: (Long, Long?) -> Unit): ByteArray {
-        val connection = GitHubHttpsConnection.open(url, connectTimeoutMillis, readTimeoutMillis)
-        try {
-            val total = connection.contentLengthLong.takeIf { it >= 0 }
-            require(total == null || total in 1..maxDownloadBytes) { "Pacote PRoot excede o limite de download" }
-            val digest = MessageDigest.getInstance("SHA-256")
-            var count = 0L
-            connection.inputStream.use { input ->
-                FileOutputStream(output).use { raw ->
-                    BufferedOutputStream(raw).use { sink ->
-                        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-                        while (true) {
-                            val read = input.read(buffer)
-                            if (read < 0) break
-                            count += read
-                            require(count <= maxDownloadBytes) { "Download PRoot excedeu o limite permitido" }
-                            digest.update(buffer, 0, read)
-                            sink.write(buffer, 0, read)
-                            onProgress(count, total)
-                        }
-                    }
-                }
-            }
-            require(count > 0) { "Download PRoot vazio" }
-            return digest.digest()
-        } finally {
-            connection.disconnect()
         }
     }
 

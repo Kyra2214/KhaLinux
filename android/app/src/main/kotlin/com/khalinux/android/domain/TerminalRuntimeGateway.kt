@@ -1,16 +1,13 @@
 package com.khalinux.android.domain
 
 import com.khalinux.runtime.RuntimeEvent
+import com.khalinux.runtime.diagnostics.DiagnosticReport
+import com.khalinux.runtime.install.InstallProgress
 
-interface RootfsInstallObserver {
-    fun onProgress(downloadedBytes: Long, totalBytes: Long?)
-    fun onInstalled(runtimeReady: Boolean)
-    fun onError(message: String)
-}
-
-interface ProotInstallObserver {
-    fun onProgress(downloadedBytes: Long, totalBytes: Long?)
-    fun onInstalled(runtimeReady: Boolean)
+/** Observador da instalação automática (PRoot + RootFS) com progresso global 0..100. */
+interface EnvironmentInstallObserver {
+    fun onProgress(progress: InstallProgress)
+    fun onFinished(runtimeReady: Boolean)
     fun onError(message: String)
 }
 
@@ -23,11 +20,25 @@ interface TerminalRuntimeGateway {
     fun isInstalled(): Boolean
     fun isRootfsInstalled(): Boolean
     fun isProotInstalled(): Boolean
-    fun installRootfs(observer: RootfsInstallObserver)
-    fun installProot(observer: ProotInstallObserver)
+    fun installEnvironment(observer: EnvironmentInstallObserver)
+    fun cancelInstall()
+    /** Bloqueante; chamar fora da thread principal. */
+    fun runDiagnostics(onUpdate: (DiagnosticReport) -> Unit): DiagnosticReport
     fun start(command: String, observer: RuntimeEventObserver): String
     fun startInteractive(rows: Int, columns: Int, observer: RuntimeEventObserver): String
     fun writeInput(sessionId: String, text: String): Boolean
     fun resize(sessionId: String, rows: Int, columns: Int): Boolean
     fun cancel(sessionId: String): Boolean
+    /** Gerenciador de pacotes; nulo se o runtime ainda não está instalado. */
+    fun packageManager(): com.khalinux.runtime.packages.PackageManager? = null
+    /** Cyber Toolkit; nulo se o runtime ainda não está instalado. */
+    fun toolkit(): com.khalinux.runtime.toolkit.ToolkitService? = null
+
+    /** Laboratórios (Fase 6); nulo se o runtime ainda não está instalado. */
+    fun labs(): com.khalinux.runtime.labs.LabProgressService? = null
+
+    /** Higiene de armazenamento (8.1). */
+    fun storage(): com.khalinux.runtime.storage.StorageHygiene? = null
+
+    fun isInstallRunning(): Boolean = false
 }

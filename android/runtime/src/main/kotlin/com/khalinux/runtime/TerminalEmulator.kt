@@ -16,12 +16,22 @@ data class TerminalStyle(
     val underline: Boolean = false,
     val inverse: Boolean = false,
     val strikeThrough: Boolean = false
-)
+) {
+    companion object {
+        /** Estilo padrão compartilhado (imutável): evita um objeto por célula (8.2). */
+        val DEFAULT = TerminalStyle()
+    }
+}
 
 data class TerminalCell(
     val text: String = " ",
-    val style: TerminalStyle = TerminalStyle()
-)
+    val style: TerminalStyle = TerminalStyle.DEFAULT
+) {
+    companion object {
+        /** Célula em branco compartilhada (imutável). */
+        val BLANK = TerminalCell()
+    }
+}
 
 data class TerminalSnapshot(
     val lines: List<List<TerminalCell>>,
@@ -32,10 +42,10 @@ data class TerminalSnapshot(
     val columns: Int
 ) {
     fun displayRange(): IntRange {
-        val firstContent = lines.indexOfFirst { line -> line.any { it.text != " " || it.style != TerminalStyle() } }
+        val firstContent = lines.indexOfFirst { line -> line.any { it.text != " " || it.style != TerminalStyle.DEFAULT } }
         val cursor = cursorRow.coerceIn(0, lines.lastIndex)
         val start = if (firstContent >= 0) min(firstContent, cursor) else cursor
-        val lastContent = lines.indexOfLast { line -> line.any { it.text != " " || it.style != TerminalStyle() } }
+        val lastContent = lines.indexOfLast { line -> line.any { it.text != " " || it.style != TerminalStyle.DEFAULT } }
         val end = max(lastContent, cursor).coerceIn(start, lines.lastIndex)
         return start..end
     }
@@ -44,14 +54,14 @@ data class TerminalSnapshot(
         val range = displayRange()
         return range.joinToString("\n") { rowIndex ->
             val line = lines[rowIndex]
-            val end = line.indexOfLast { it.text != " " || it.style != TerminalStyle() } + 1
+            val end = line.indexOfLast { it.text != " " || it.style != TerminalStyle.DEFAULT } + 1
             if (end <= 0) "" else line.take(end).joinToString("") { it.text }
         }
     }
 
     companion object {
         fun empty(rows: Int = 24, columns: Int = 80): TerminalSnapshot {
-            val blank = List(columns) { TerminalCell() }
+            val blank = List(columns) { TerminalCell.BLANK }
             return TerminalSnapshot(List(rows) { blank }, 0, 0, true, rows, columns)
         }
     }
@@ -65,8 +75,9 @@ data class TerminalSnapshot(
 class TerminalEmulator(
     rows: Int = 24,
     columns: Int = 80,
-    private val maxScrollbackLines: Int = 1_000
+    maxScrollbackLines: Int = DEFAULT_SCROLLBACK_LINES
 ) {
+    private var maxScrollbackLines: Int = maxScrollbackLines
     private enum class ParserState { NORMAL, ESCAPE, CSI, OSC, OSC_ESCAPE, CHARSET }
 
     private var screenRows = rows
@@ -78,7 +89,7 @@ class TerminalEmulator(
     private var savedCursorColumn = 0
     private var cursorVisible = true
     private var autoWrap = true
-    private var currentStyle = TerminalStyle()
+    private var currentStyle = TerminalStyle.DEFAULT
     private var parserState = ParserState.NORMAL
     private val csi = StringBuilder()
     private var pendingHighSurrogate: Char? = null
@@ -165,12 +176,20 @@ class TerminalEmulator(
         screenColumns = columns
         lines.forEach { line ->
             if (line.size > columns) line.subList(columns, line.size).clear()
-            while (line.size < columns) line += TerminalCell()
+            while (line.size < columns) line += TerminalCell.BLANK
         }
         while (lines.size < rows) lines += blankLine()
         trimScrollback()
         cursorRow = cursorRow.coerceIn(screenStart(), lines.lastIndex)
         cursorColumn = cursorColumn.coerceIn(0, columns - 1)
+    }
+
+    /** Ajusta o limite de histórico (8.2); linhas excedentes mais antigas são descartadas imediatamente. */
+    @Synchronized
+    fun setScrollbackLimit(lines: Int) {
+        require(lines >= 0) { "maxScrollbackLines não pode ser negativo" }
+        maxScrollbackLines = lines
+        trimScrollback()
     }
 
     @Synchronized
@@ -183,7 +202,7 @@ class TerminalEmulator(
         savedCursorColumn = 0
         cursorVisible = true
         autoWrap = true
-        currentStyle = TerminalStyle()
+        currentStyle = TerminalStyle.DEFAULT
         parserState = ParserState.NORMAL
         csi.setLength(0)
         pendingHighSurrogate = null
@@ -338,7 +357,7 @@ class TerminalEmulator(
         var index = 0
         while (index < params.size) {
             when (val code = params[index]) {
-                0 -> currentStyle = TerminalStyle()
+                0 -> currentStyle = TerminalStyle.DEFAULT
                 1 -> currentStyle = currentStyle.copy(bold = true)
                 2 -> currentStyle = currentStyle.copy(dim = true)
                 3 -> currentStyle = currentStyle.copy(italic = true)
@@ -490,7 +509,7 @@ class TerminalEmulator(
         if (row !in lines.indices) return
         val line = lines[row]
         for (column in start.coerceIn(0, screenColumns) until end.coerceIn(0, screenColumns)) {
-            line[column] = TerminalCell()
+            line[column] = TerminalCell.BLANK
         }
     }
 
@@ -498,7 +517,7 @@ class TerminalEmulator(
         val line = lines[cursorRow]
         val column = cursorColumn.coerceIn(0, screenColumns - 1)
         repeat(count.coerceIn(1, screenColumns)) {
-            line.add(column, TerminalCell())
+            line.add(column, TerminalCell.BLANK)
             line.removeAt(line.lastIndex)
         }
     }
@@ -508,7 +527,7 @@ class TerminalEmulator(
         val column = cursorColumn.coerceIn(0, screenColumns - 1)
         repeat(count.coerceIn(1, screenColumns)) {
             if (column < line.size) line.removeAt(column)
-            line += TerminalCell()
+            line += TerminalCell.BLANK
         }
     }
 
@@ -550,9 +569,10 @@ class TerminalEmulator(
     private fun screenStart(): Int = max(0, lines.size - screenRows)
 
     private fun blankLine(): MutableList<TerminalCell> =
-        MutableList(screenColumns) { TerminalCell() }
+        MutableList(screenColumns) { TerminalCell.BLANK }
 
     companion object {
+        const val DEFAULT_SCROLLBACK_LINES = 1_000
         private val ANSI_COLORS = intArrayOf(
             0xff000000.toInt(), 0xffcd0000.toInt(), 0xff00cd00.toInt(), 0xffcdcd00.toInt(),
             0xff0000ee.toInt(), 0xffcd00cd.toInt(), 0xff00cdcd.toInt(), 0xffe5e5e5.toInt(),

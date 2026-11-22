@@ -18,7 +18,11 @@ data class ProotConfig(
         "TERM" to "ansi",
         "PATH" to "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
     ),
-    val preserveHostUid: Boolean = false
+    val preserveHostUid: Boolean = false,
+    /** Diretório temporário privado (PROOT_TMP_DIR/TMPDIR); padrão: `tmp` ao lado do executável. */
+    val tempDirectory: File? = null,
+    /** Variáveis do lado do host exigidas pela origem do PRoot (ver [ProotLocation.environment]). */
+    val prootEnvironment: Map<String, String> = emptyMap()
 ) {
     fun validate() {
         require(prootExecutable.isFile && prootExecutable.canExecute()) {
@@ -30,8 +34,9 @@ data class ProotConfig(
             }
         }
         require(rootfsDirectory.isDirectory) { "RootFS ausente: ${rootfsDirectory.path}" }
-        require(File(rootfsDirectory, "bin/bash").exists()) {
-            "RootFS não contém /bin/bash: ${rootfsDirectory.path}"
+        require(File(rootfsDirectory, "bin/bash").isFile) {
+            val detail = com.khalinux.runtime.install.RootfsValidator.problem(rootfsDirectory)
+            "RootFS não contém /bin/bash: ${rootfsDirectory.path}" + (detail?.let { " ($it)" } ?: "")
         }
         require(defaultWorkingDirectory.startsWith("/")) {
             "defaultWorkingDirectory deve ser absoluto no RootFS"
@@ -46,6 +51,8 @@ data class ProotConfig(
         val args = mutableListOf<String>()
         args += prootExecutable.absolutePath
         if (!preserveHostUid) args += "-0"
+        // Encerra os processos convidados quando o PRoot termina (evita órfãos no Android).
+        args += "--kill-on-exit"
         // Usar apenas flags portáteis; opções específicas do PRoot Android serão validadas depois.
         qemuExecutable?.let { args += listOf("-q", it.absolutePath) }
         args += listOf("-r", rootfsDirectory.absolutePath)

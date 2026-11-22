@@ -1,0 +1,309 @@
+# Changelog
+
+## [Não lançado] — CHECKPOINT 046
+
+### Corrigido
+- **RootFS sem `/bin/bash` após instalar** ("Falha na instalação do PRoot: RootFS não contém /bin/bash"): no
+  commons-compress 1.27.1 `TarArchiveEntry.isFile()` também é `true` para links simbólicos, então o extrator gravava
+  `/bin`, `/lib`, `/sbin` (usrmerge do Debian) como arquivos vazios. A ordem do `when` agora trata links/diretórios
+  antes de `isFile`.
+- `RootfsValidator`: a instalação só é considerada pronta se `/bin/bash` resolver de fato. Um RootFS quebrado de
+  versões anteriores é detectado e reinstalado automaticamente.
+
+### Alterado
+- Interface redesenhada: navegação inferior (Terminal, Pacotes, Ferramentas, Labs, Mais), terminal em tela cheia,
+  barra de comando com Enter para enviar, abas em chips, folhas de Ajustes e Atalhos (favoritos, histórico,
+  scripts), cartão de instalação com etapas e erros legíveis.
+
+## [Não lançado]
+
+### Validação final (parcial)
+- Compilado todo o Kotlin do runtime e executada a suíte: 166 testes, 0 falhas (compilador do Gradle 2.0.21 em modo 1.9 + shim de `kotlin.test`; ver `docs/final-validation.md`). `audit-security.py`: 0 erros (controle negativo detectou violações). PTY nativo OK.
+- Corrigido: `TutorTopic.DOC` recusava `ADR-*.md` (maiúsculas) e aceitava `..`; agora aceita só caminhos sob `docs/` sem `..` (+ teste de regressão). Corrigido `LabsDataTest.docsAndFixturesExist` (serviço sem fixture). Auditoria exige `--bind` loopback em `http.server`.
+- Pendentes: `:android:app`, Room, build release/R8, workflows, aparelho físico, medições. Nenhum item marcado como aprovado sem execução.
+
+### 9.4 — Notas de versão
+- `RELEASE_NOTES.md` da **1.0.0-rc.1** (candidata, não estável): recursos, requisitos, estado de validação honesto, limitações, verificação do APK.
+- `versionName` padrão `1.0.0-rc.1` e `versionCode` 2 (sobrescritíveis por `-P`). A 1.0.0 estável fica condicionada à validação final e a testes em aparelho.
+- Implementação do Roadmap: 47/47 em código. Validação registrada separadamente (`docs/final-validation.md`).
+
+### 9.3 — APK release e assinatura
+- `android/app/build.gradle.kts`: build type `release` (R8 + shrinkResources, `-PkhalinuxMinify=false` desliga), `abiFilters arm64-v8a`, `versionName/versionCode` por propriedade Gradle (padrão inalterado: `0.1.0-phase3`/1) e `signingConfig` por variáveis `KHALINUX_KEYSTORE_PATH/_PASSWORD/KEY_ALIAS/KEY_PASSWORD` (sem segredo no repositório; sem variáveis → APK não assinado).
+- `android/app/proguard-rules.pro` (NativePty, commons-compress, dontwarn de dependências opcionais, números de linha).
+- `.github/workflows/release-apk.yml`: manual, entradas via env, tag imutável, exige secrets, auditoria estática, `apksigner verify`, SHA-256, publica release.
+- `docs/release.md`: geração de chave, secrets, processo e verificação. **Nada foi compilado/executado**; regras do R8 não exercitadas. O workflow lê `RELEASE_NOTES.md` (criado em 9.4).
+
+### 9.2 — Documentação de instalação e uso
+- `docs/install-guide.md` (requisitos, APK, instalação, primeira abertura, conferência, atualização, desinstalação, problemas comuns, limitações) e `docs/user-guide.md` (todas as telas e fluxos; 12 laboratórios/51 exercícios conferidos no `labs.json`).
+- README: status, instalação e estado atualizados (estavam desatualizados na Fase 3/7).
+- Conteúdo descreve o código; nada validado em aparelho. `install-guide` referencia `docs/release.md` (criado em 9.3).
+
+### 9.1 — Auditoria de segurança estática
+- ROADMAP: Fase 9 subdividida em 9.1–9.4 (total 47 submódulos; percentual 91% antes do 9.1, 94% depois).
+- `distribution/scripts/audit-security.py` (stdlib, sem rede/escrita): manifesto, segredos, APIs proibidas, `ProcessBuilder` centralizado, downloads HTTPS+SHA-256, escopo loopback dos laboratórios, shell e workflows. Novo passo no job `host-validation` do CI.
+- Manifesto: `android:usesCleartextTraffic="false"` explícito.
+- `docs/security-audit.md`: regras, revisão manual (download, extração, PRoot, binds, comandos apt, arquivos, toolkit, laboratórios), riscos aceitos e pendências.
+- **Script não executado** (política: verificações só na validação final); revisão de `native_pty.c` linha a linha transferida para a validação final.
+
+### 6.8 — UI, asset e validação da Fase 6
+- App: asset `labs.json` + `fixtures/` (`assets.srcDir("../../distribution/labs")`), `LabsJson`, `KhaLinuxRuntimeService.labs()` (progresso em `runtime/labs/progress.tsv`; copia as fixtures para `/opt/khalinux-labs` no RootFS), `TerminalRuntimeGateway.labs()`, `LabsViewModel`, `LabsScreen` (trilhas, bloqueio por pré-requisito, enunciado, dicas com custo, resposta, pontos, reiniciar laboratório/tudo) e botão "Laboratórios". `LabEngine.catalog` e `LabProgressService.engine` agora são públicos.
+- Testes escritos e **não executados**: `LabsDataTest`, `LabProgressTest`. `docs/phase6-validation.md` registra o que foi e o que não foi verificado. Nada de Kotlin compilado (sem `kotlinc`/rede); `:android:app` só no CI.
+- Serviços dos laboratórios continuam sendo iniciados manualmente no terminal.
+
+### 6.7 — Laboratórios de forense (conteúdo)
+- `labs.json` (`2026.11.22-5`): `forense-hashes` (iniciante, 4 exercícios), `forense-assinaturas` (intermediário, 4) e `forense-logs` (avançado, 4). Total: 12 laboratórios, 51 exercícios, nas 4 trilhas.
+- `distribution/labs/fixtures/forense/gerar_evidencias.py`: gera evidências determinísticas (cópias de texto, PNG com comentário disfarçado de .pdf, log de acesso com IPs RFC 5737). Execução repetida produz arquivos idênticos (conferido).
+- Respostas conferidas no host com `sha256sum`, `od`, `wc`, `grep` e `awk`; CRCs do PNG validados. Os laboratórios usam só coreutils/grep/python do RootFS base (sem `file`, `strings` ou `xxd`, que não estão na base); ferramentas forenses do toolkit (exiftool, binwalk, sleuthkit, hashdeep) não são exigidas porque não pude executá-las aqui.
+- Parser Kotlin não executado (sem `kotlinc`). Sem testes (política por fase).
+
+### 6.6 — Laboratórios Web
+- `labs.json` (`2026.11.22-4`): `web-http-basico` (iniciante, 4 exercícios), `web-reflexao` (intermediário, 3) e `web-sqli-local` (avançado, 5). Total: 9 laboratórios, 39 exercícios.
+- Fixtures em `distribution/labs/fixtures/web/` (Python stdlib; `HTTPServer` com endereço fixo em 127.0.0.1; porta 1024–65535): servidor didático, busca que reflete entrada sem escape e login de brinquedo com SQL concatenado (SQLite em memória, sem disco). Vulnerabilidades propositais, só locais e marcadas no código.
+- Serviços apontam para `/opt/khalinux-labs/web/*.py` no RootFS. A cópia das fixtures para o RootFS fica para 6.8 (asset/instalação); até lá é manual. Suposição registrada.
+- Conferido no host: os três servidores foram executados e todas as respostas de exercício foram obtidas com `curl`. Parser Kotlin não executado (sem `kotlinc`). Sem testes (política por fase). `sqlmap`/`wfuzz`/`nmap` não são usados.
+
+### 6.5 — Laboratórios de rede (conteúdo)
+- `labs.json` (`2026.11.22-3`): `rede-loopback` (iniciante, 4 exercícios), `rede-sockets` (intermediário, 5; serviço `http-local` = `python3 -m http.server 8080 --bind 127.0.0.1`, python3 já está no RootFS base) e `rede-dns-portas` (avançado, 5; conceitual, sem rede). Total do catálogo: 6 laboratórios, 27 exercícios.
+- Só loopback; `nmap` não é usado (exigiria confirmação de escopo). Ferramentas exigidas existem no `tools.json` (conferido em Python).
+- Conferido no host: 404 do `http.server`. Não conferidos aqui: `ss`/`ping` (ausentes no ambiente; respostas vêm de conhecimento do manual) e a leitura pelo parser Kotlin (sem `kotlinc`). Sem testes (política por fase).
+
+### 6.4 — Laboratórios Linux (conteúdo)
+- `distribution/labs/labs.json` (`2026.11.22-2`): `linux-basico` (iniciante, 4 exercícios), `linux-permissoes` (intermediário, 4; exige o anterior) e `linux-texto-processos` (avançado, 5; exige o anterior). Sem serviços e sem rede; sem ferramentas do toolkit (só coreutils do RootFS).
+- Respostas só como SHA-256 da resposta normalizada; as respostas foram conferidas executando os comandos no host (wc, aritmética, sort/uniq, tr/rev, cut, awk, umask).
+- Docs em `docs/labs/<id>.md`. O asset `labs.json` no app entra em 6.8.
+- Sem `kotlinc` nesta sessão: o parser Kotlin não leu o arquivo (validei os limites do modelo em Python). Nenhum teste executado ou criado (política por fase).
+
+### 6.3 — Pontuação e progresso persistido
+- `LabProgressStore`: arquivo TAB com gravação atômica (mesmo padrão do `AuthorizationStore`) guardando `ExerciseState` por laboratório/exercício e laboratórios concluídos; linhas inválidas ignoradas; `resetLab` e `resetAll`.
+- `LabProgress` (total de pontos geral e por laboratório) e `LabProgressService` (abre sessões com `LabEngine.open(..., restored)`, grava após cada `submit` e dica revelada, lista laboratórios disponíveis).
+- Não compilado nesta sessão (sem `kotlinc` e sem rede); nenhum teste executado ou criado (política por fase).
+
+### 6.2 — Motor de exercícios
+- `LabEngine` (abre sessões respeitando pré-requisitos), `LabSession` (verificação por SHA-256 em tempo constante, dicas em ordem, estado e snapshot), `LabScoring` (base por dificuldade − dicas − tentativas além de 3, piso de 25%), `SubmitResult`, `ExerciseState`, `LabLockedException`.
+- Estado em memória; restauração prevista para 6.3. Código compilado no host; nenhum teste executado ou criado (política por fase).
+
+### 6.1 — Modelo de laboratório/exercício
+- ROADMAP: Fase 6 subdividida em 6.1–6.8 (total passa a 33 submódulos; percentual recalculado: 70%).
+- `LabDescriptor`/`LabExercise`/`LabService`/`LabHint`, `AnswerHasher` (SHA-256 da resposta normalizada), `LabCatalog` (pré-requisitos sem ciclos, ferramentas existentes no toolkit, `available(completed)`) e `LabCatalogParser` (campos desconhecidos rejeitados).
+- Serviços de laboratório só escutam em loopback e portas 1024–65535; o modelo não tem alvo externo.
+- `distribution/labs/labs.json` (vazio; conteúdo em 6.4–6.7) e `docs/labs.md`.
+- Código compilado no host; nenhum teste executado ou criado (política por fase).
+
+### 5.6 — Wiring do toolkit e validação da Fase 5
+- Runtime: `ToolkitService` (status, verificação no RootFS com registro persistido, execução protegida pelo `ToolkitGuard`) e `VerificationStore`.
+- App: asset `tools.json`, `ToolkitJson`, `KhaLinuxRuntimeService.toolkit()`, gateway, `ToolkitViewModel`, `ToolkitScreen` e botão "Ferramentas" (confirmação de escopo, verificar, revogar). **Não compilado aqui** (CI).
+- Testes: `ToolkitServiceTest` e `ToolkitDataTest` (valida `catalog.json`/`tools.json` reais). Suíte do runtime executada pela primeira vez neste ambiente: 88 testes aprovados (após corrigir os dados de `DependencyResolverTest`, que usavam nomes de pacote de 1 letra inválidos).
+- `docs/phase5-validation.md` registra o que foi e o que não foi validado. Versões do catálogo seguem sem conferência no snapshot APT fixado.
+
+### 5.5 — Auditoria
+- Catálogo (`2026.11.22-5`): `lynis` 3.0.8-1.1, `chkrootkit` 0.57-2 e `rkhunter` 1.4.6-11 (categoria auditoria, `known-limited`: sem `/proc` e sem acesso ao kernel, ADR-0005).
+- Toolkit: descritores e docs para as três ferramentas (auditam só o RootFS, sem confirmação de escopo).
+- Ferramentas de ataque a credenciais (john, hydra) não foram adicionadas: fora do escopo de auditoria definido e não pesquisadas.
+- Versões lidas em páginas do Debian; conferir no snapshot APT fixado em 5.6. Nenhum teste executado ou criado; nada compilado.
+
+### 5.4 — Forense
+- Catálogo (`2026.11.22-4`): `sleuthkit` 4.11.1+dfsg-1, `binwalk` 2.3.4+dfsg1-1, `hashdeep` 4.4-7.1 e `libimage-exiftool-perl` 12.57+dfsg-1 (categoria forense, `unverified`, limitações registradas). Sem tamanhos informados (não confirmados).
+- Toolkit: descritores e docs para sleuthkit, binwalk, hashdeep e exiftool (análise local; sem confirmação de escopo, com aviso de uso apenas em evidências próprias/autorizadas).
+- `foremost` não foi adicionado: disponibilidade no bookworm não confirmada nesta pesquisa.
+- binwalk: o rastreador de segurança do Debian lista CVE de extração sem correção para o bookworm; a doc recomenda evitar `-e` em arquivos não confiáveis.
+- Versões lidas em páginas do Debian; conferir no snapshot APT fixado em 5.6. Nenhum teste executado ou criado; nada compilado.
+
+### 5.3 — Web
+- Catálogo (`2026.11.22-3`): `whatweb` 0.5.5-1, `sqlmap` 1.7.2-1 e `wfuzz` 3.1.0-2 (categoria web, `unverified`, com limitações registradas; dependências Ruby/Python resolvidas pelo APT). Tamanho informado apenas para o whatweb.
+- Toolkit: descritores (`requires_authorization`) e docs para whatweb, sqlmap e wfuzz; `curl` (5.1) continua sendo a ferramenta Web sem confirmação de escopo.
+- `nikto` não foi adicionado: no bookworm consta em `non-free` (1:2.1.5-3.1) e o RootFS base não habilita esse componente (suposição a confirmar em 5.6).
+- Versões lidas em páginas de pacotes do Debian (bookworm); devem ser conferidas no snapshot APT fixado (`20251122T000000Z`) em 5.6.
+- Nenhum teste executado ou criado; nada compilado.
+
+### 5.2 — Reconhecimento e rede
+- Catálogo (`2026.11.22-2`): `nmap` 7.93+dfsg1-1 (known-limited sem root), `whois` 5.5.17 e `traceroute` 1:2.1.2-1, com limitações sem root; tamanhos aproximados do pacote principal.
+- Toolkit: descritores e docs para nmap (exige confirmação de escopo), whois e traceroute.
+- Versões lidas em packages.debian.org (bookworm); a de `traceroute` veio da página "stable" e deve ser reconferida. Todas precisam ser conferidas no snapshot APT fixado (`20251122T000000Z`) em 5.6.
+- Nenhum teste executado ou criado; nada compilado.
+
+### 5.1 — Infra do toolkit
+- `ToolDescriptor`/`ToolkitRegistry`/`ToolkitRegistryParser`: ferramentas ligadas a pacotes do catálogo, com grupos (reconhecimento, rede, web, forense, auditoria), comandos, comando de verificação restrito (sem metacaracteres de shell), limitações sem root e documentação obrigatória; `verified` só com evidência.
+- `ToolkitGuard`/`AuthorizationStore`: política de uso autorizado (escopo informado pelo usuário, validade de 24 h) para ferramentas que interagem com terceiros.
+- `distribution/toolkit/tools.json` com 5 ferramentas já presentes no catálogo (curl, dnsutils, iputils-ping, iproute2, openssh-client) e docs em `docs/toolkit/`.
+- ROADMAP: Fase 5 subdividida em 5.1–5.6 (total passa a 26 submódulos).
+- Nenhum teste executado ou criado; nada compilado.
+
+### 4.8 — UI do gerenciador e validação da Fase 4
+- App: `PackagesViewModel` e `PackagesScreen` (busca, categorias, instalar/remover/atualizar com progresso e cancelamento, histórico, avisos de validação/limitações); botão "Pacotes" na tela principal.
+- Service: `packageManager()` liga catálogo (asset `catalog.json`, a partir de `distribution/packages/catalog`), registro, histórico e runner ao runtime atual; `TerminalRuntimeGateway.packageManager()` (padrão nulo).
+- Testes escritos para 4.1–4.7 (`android/runtime/src/test/.../packages/`): manifesto, catálogo/pesquisa, versões, dependências, instalação APT com runner falso, remoção, atualização, registro e histórico. **Não executados nesta sessão** (sem `kotlinc` nem rede); o CI executa via Gradle. O caminho de download direto (HTTPS) não tem teste automatizado ainda.
+- Nada compilado (módulo `:android:app` só no CI).
+
+### 4.7 — Histórico auditável, fachada e adaptadores
+- `PackageHistoryStore`: log append-only (TAB) de instalações, remoções e atualizações, inclusive falhas; compactação atômica ao exceder o limite.
+- `PackageManager`: fachada única (pesquisa, categorias, instalados, atualizações, install/update/remove) que audita cada operação.
+- `LinuxRuntimePackageCommandRunner`: executa comandos do gerenciador no RootFS via `LinuxRuntime`.
+- App: `PackageCatalogJson` (org.json → `PackageCatalogParser`).
+- Nenhum teste executado ou criado; nada compilado.
+
+### 4.6 — Atualização de pacotes
+- `PackageUpdater`: `available()` (versão do catálogo > instalada, via `PackageVersion`) e `update(nomes?)`; reutiliza `PackageInstaller` (SHA-256/tamanho, troca atômica, registro após sucesso); sem rebaixamento.
+- `PackageInstaller.install` ganhou `forceReinstall` (compatível com chamadas existentes).
+- ROADMAP: antigo 4.7 separado em 4.7 (histórico/fachada/adaptadores) e 4.8 (UI e validação da fase); total passa a 21 submódulos.
+- Nenhum teste executado ou criado; nada compilado.
+
+### 4.5 — Remoção de pacotes
+- `PackageRemover`: só remove pacotes registrados; recusa pacotes protegidos (apt, bash, coreutils, ca-certificates, dpkg) e pacotes com dependentes instalados; `apt-get remove` (sem purge/autoremove) ou apagamento seguro de `/opt/khalinux/<nome>`; registro alterado só após sucesso.
+- Nenhum teste executado ou criado; nada compilado.
+
+### 4.4 — Instalação de pacotes
+- `PackageInstaller`: usa o plano do `DependencyResolver`; `debian-apt` via `apt-get install nome=versão` (índice atualizado uma vez); origens diretas com download retomável, conferência de tamanho e SHA-256 e extração protegida em `/opt/khalinux/<nome>` com troca atômica e versão anterior preservada até o sucesso.
+- `InstalledPackageStore`: registro persistido com gravação atômica (inclui `remove`, usado em 4.5); registro só após conclusão do pacote.
+- `PackageCommandRunner`: porta para executar comandos no RootFS (adaptador sobre `LinuxRuntime` no app, 4.7).
+- Eventos de progresso por pacote/etapa; cancelamento cooperativo.
+- Nenhum teste executado ou criado; nada compilado.
+
+### 4.3 — Resolução de dependências
+- `DependencyResolver`: plano em ordem topológica, detecção de ciclos, versão mínima, pacotes já instalados, checagem de arquitetura; falha sem plano parcial (`DependencyResolutionException`). `dependents()` para a remoção.
+- `PackageVersion`: comparação de versões estilo Debian (epoch, `~`, revisão).
+- Nenhum teste executado ou criado; nada compilado.
+
+### 4.2 — Catálogo, pesquisa e categorias
+- `PackageCatalog`: catálogo imutável (sem duplicatas; dependências devem existir), `find`, `categories()` com contagem e `search(PackageQuery)` por texto (sem caixa/acentos, com relevância), categoria, tag, arquitetura e estado de validação.
+- `PackageCatalogParser` para `catalog.json`.
+- `distribution/packages/catalog/catalog.json`: 8 pacotes já presentes no RootFS base, versões do lock APT; todos `unverified` (nenhuma compatibilidade em PRoot presumida).
+- Nenhum teste executado ou criado; nada compilado.
+
+### 4.1 — Modelo de manifesto de pacote
+- `PackageManifest` com arquitetura, origem (APT fixado, release GitHub, repositório KhaLinux), versão, tamanhos, verificação SHA-256/evidência, estado de validação e limitações; invariantes validadas na construção (HTTPS, SHA-256 obrigatório em artefato direto, `verified` exige evidência, `known-limited` exige limitações).
+- `PackageManifestParser`: converte estrutura decodificada em manifesto, rejeitando campos desconhecidos.
+- Esquema JSON em `distribution/packages/schema/` e exemplo ilustrativo em `distribution/packages/examples/`.
+- Fase 4 subdividida em 4.1–4.7 no ROADMAP (total passa a 20 submódulos).
+- Nenhum teste executado ou criado; nada compilado (política por fase; sem `kotlinc` no ambiente).
+
+### 3.1 — Instalação automática com porcentagem
+- Instalação automática de PRoot e RootFS na primeira abertura (PRoot primeiro, depois Debian), sem ação do usuário.
+- Progresso global 0–100% (`InstallProgressCalculator`) com fases: verificação, download PRoot, download RootFS, verificação de integridade, extração, finalização.
+- Download retomável (`Range` + arquivo `.download`), até 3 tentativas com backoff, SHA-256 contínuo (`ResumableDownloader`).
+- Progresso de extração por bytes (`extractSafely` com callback e cancelamento).
+- Foreground service `dataSync` com notificação de progresso e ação "Cancelar"; permissão `POST_NOTIFICATIONS` solicitada na abertura.
+- Estado persistido da instalação (`InstallStateStore`) e pós-instalação (`RootfsFinalizer`: `/etc/resolv.conf`, `/etc/hosts`, `/home/khalinux`).
+- UI: painel com fase, barra, MB e botões "Cancelar instalação"/"Tentar novamente".
+- Removidos: `installLatestProot`, `installLatestRootfs`, `installRootfs(url, sha)` e observadores antigos.
+- Nenhum teste foi executado nesta etapa (política de execução por fase); build e testes ficam para o fechamento da Fase 3.
+
+### 3.2 — Correções sem aparelho
+- Rotação de tela: `ServiceTerminalRuntimeGateway` compara por instância do Service e o ViewModel reaproveita gateway/casos de uso; a sessão viva não é mais declarada interrompida.
+- Histórico: entrada do shell interativo deixou de ser gravada (possíveis senhas); `validate-phase3.py` atualizado.
+- `onCleared` cancela a sessão fora da thread principal; `runtime` do Service é `@Volatile`.
+- PRoot: `--kill-on-exit` e `PROOT_TMP_DIR`.
+- Home persistente: `filesDir/home` montado em `/home/khalinux`; reinstalar o RootFS não apaga os arquivos do usuário.
+- UI: `systemBarsPadding`/`imePadding` e UUID da sessão oculto.
+- Removido código morto: `TerminalOutputBuffer` (Java), seu teste e script.
+
+### 3.3 — Tela de Diagnóstico
+- `ProotLocator` (`FilesDirProotLocator`, `NativeLibProotLocator`, `FallbackProotLocator`): abstração para o plano B (`libproot.so` em jniLibs); o Service passa a localizar o PRoot por ela.
+- `ProotConfig`: `tempDirectory` e `prootEnvironment` opcionais (comportamento padrão inalterado).
+- `RuntimeDiagnostics`: `proot --version`, shell no RootFS (`uname -m`, `id`), DNS, rede, PTY (resize e Ctrl+C); rotação e segundo plano como itens manuais.
+- Tela `DiagnosticsScreen` com OK/FALHA por item, relatório copiável e botão "Diagnóstico" na tela principal.
+- Nenhum teste foi executado ou criado nesta etapa; `validate-phase3.py` falhou no ambiente por `test-pty-native.sh` (sem toolchain JNI), sem relação com esta mudança.
+
+### 3.4 — Terminal utilizável
+- Barra de teclas extras no shell interativo: Ctrl e Alt (armados para uma única tecla), ESC, Tab, setas, Home, End, Ctrl+C (`0x03`) e Ctrl+D (`0x04`) como bytes brutos (`TerminalKeys`/`TerminalKey`). Com Ctrl/Alt armado, "Enviar" aplica o modificador ao primeiro caractere digitado, sem Enter automático.
+- Conflação: o emulador recebe os bytes na hora; o snapshot da UI é publicado no máximo a cada ~33 ms.
+- Fila de saída da sessão limitada a 512 blocos pendentes (contrapressão no PTY).
+- `AndroidPtyProcess`: o fd do master só é fechado depois de terminadas as operações em curso (corrida de fd corrigida).
+- Nenhum teste executado ou criado; nada compilado.
+
+### 3.5 — Release imutável, CI, documentação e testes
+- Testes do runtime **executados** no host (kotlinc 1.9.24, JUnit 4.13.2): 59 testes OK e `pty_native=ok`. `android/runtime/test.sh` agora compila tudo (inclui `install/` e `diagnostics/`) e roda todas as classes `*Test`.
+- Novos testes: `ProotLocatorTest`, `TerminalKeysTest`, `OutputBackpressureTest`, `RuntimeDiagnosticsTest`, `ResumableDownloaderTest` (servidor HTTP local), `InstallProgressStateTest`.
+- Workflows de release: tag única por execução (`-r<n>`), recusa de tag existente, sem `overwrite_files`.
+- Manifestos aprovados commitados em `distribution/manifests/release/` (hashes conferidos com os pinos do app).
+- Gradle wrapper 8.7 (SHA-256 da distribuição verificado); CI usa `./gradlew`; `validate-phase3.py` removido.
+- Room: `exportSchema = true` e `room.schemaLocation`. LICENSE Apache-2.0 completa e `NOTICE`.
+- strings.xml: textos das telas e notificações do app movidos para recursos (rótulos de fase/diagnóstico do runtime continuam no módulo runtime).
+- ADR-0005: `/proc` e `/sys` seguem sem bind (decisão registrada).
+- README, ARCHITECTURE e `android/runtime/README.md` atualizados.
+- Não compilado: módulo `:android:app` (depende do Android SDK; validação no CI).
+
+### Documentação
+- `docs/toolkit.md` e `docs/toolkit/*.md` adicionados.
+- `docs/phase4-validation.md` adicionado.
+- `docs/package-manager.md` adicionado.
+- `docs/package-update.md` adicionado.
+- `docs/package-remove.md` adicionado.
+- `docs/package-install.md` adicionado.
+- `docs/package-dependencies.md` adicionado.
+- `docs/package-catalog.md` adicionado.
+- `docs/package-manifest.md` adicionado.
+- `docs/plano-de-correcao.md` adicionado.
+- `docs/terminal-usability.md` adicionado.
+- `docs/diagnostics.md` adicionado.
+
+### 7.1 — Múltiplas sessões
+- Fase 7 subdividida em 7.1–7.8 (ROADMAP); percentual recalculado para 78% (31/40).
+- `TerminalTabs`/`TerminalTab` (`runtime/tabs`): até 4 abas, cada uma com emulador, sessão do runtime, título e rascunho próprios; sempre ao menos uma aba; fechar devolve a sessão a cancelar.
+- `TerminalViewModel` refatorado: eventos roteados por aba, saída em segundo plano preservada, redimensionamento global aplicado a todas as abas/PTYs, cancelamento de todas as sessões em `onCleared`/reconexão. Corrigida a mensagem de reconexão que exibia `\n` literal.
+- `KhaLinuxRuntimeService`: várias sessões interativas simultâneas (conjunto de ids + contador de inícios); o foreground só termina quando não resta nenhuma; a ação da notificação encerra todas.
+- UI: barra de abas (selecionar, `+ Aba`, fechar, renomear por diálogo) e strings em `strings.xml`.
+- `TerminalTabsTest` escrito; **não compilado nem executado** (sem `kotlinc` e sem rede).
+
+
+### 7.2 — Personalização
+- `TerminalThemes` (`runtime/settings`): 5 temas (Padrão, Claro, Alto contraste, Verde clássico, Solarized escuro); índice inválido volta ao padrão.
+- Room versão 3: coluna `themeIndex` (`DEFAULT 0`) em `terminal_settings` com `MIGRATION_2_3`; o tema é salvo junto com fonte e dimensões.
+- UI: seletor de tema; fundo e primeiro plano padrão do terminal (e vídeo inverso) usam o tema.
+- `TerminalThemesTest` escrito; **não compilado nem executado**.
+
+### 7.3 — Favoritos
+- `FavoritesStore` (`runtime/favorites`): favoritos de comandos e ferramentas em `favorites.tsv` (gravação atômica, até 50 por tipo, sem duplicatas, recusa controle/quebra de linha/valores > 500).
+- `FavoritesProvider` (instância compartilhada); terminal: botão de favoritar o comando digitado, atalhos e remoção; não favorita em sessão interativa. Toolkit: botão ★ por ferramenta, favoritas listadas primeiro.
+- `FavoritesStoreTest` escrito; **não compilado nem executado**.
+
+### 7.4 — Scripts
+- `ScriptStore` (`runtime/scripts`): scripts `.sh` em `filesDir/home/scripts` (visíveis em `/home/khalinux/scripts`); nomes validados (sem traversal/injeção), até 64 KB, quebras de linha normalizadas, gravação atômica.
+- UI: barra de scripts (criar, executar na aba ativa, editar, apagar) com diálogo de edição; execução usa `bash /home/khalinux/scripts/<nome>` e entra no histórico.
+- `ScriptStoreTest` escrito; **não compilado nem executado**.
+
+### 7.5 — Gerenciador de arquivos
+- `HomeFileManager` (`runtime/files`): listar/ler/gravar texto/criar pasta/renomear/apagar confinados ao home persistente; recusa `..`, controle/NUL e links simbólicos que escapam da raiz; apagar não segue links; texto até 256 KB e sem NUL.
+- UI `FilesScreen`/`FilesViewModel` (botão "Arquivos"), editor de texto, confirmação antes de apagar.
+- `HomeFileManagerTest` escrito; **não compilado nem executado**.
+
+### 7.6 — Relatórios
+- `ReportBuilder`/`ReportWriter` (`runtime/reports`): relatório Markdown (resumo, tabela de laboratórios com estado/exercícios/pontos, tabela de ferramentas com instalação e última verificação) em `reports/relatorio-AAAAMMDD-HHMMSS.md` (UTC, sem sobrescrever). Não inclui respostas, hashes, dicas, escopos nem saídas brutas.
+- UI: botão "Gerar relatório de progresso" na tela Arquivos (`FilesViewModel.attach/generateReport`).
+- `ReportBuilderTest` escrito; **não compilado nem executado**.
+
+### 7.7 — Integração entre ferramentas
+- `OutputNote` (`runtime/reports`): nota Markdown com a saída da aba (cerca de código maior que qualquer sequência de crases, truncamento mantendo o final, 64 KB); `ReportWriter.write` ganhou prefixo (`nota-...`).
+- Terminal: botão "Salvar saída em nota" (aba ativa + comando digitado) grava em `reports/`.
+- Toolkit: botão "Usar no terminal" leva o comando da ferramenta ao campo de comando; só habilitado se instalada e, quando exige autorização, com escopo confirmado.
+- `OutputNoteTest` escrito; **não compilado nem executado**.
+
+### 7.8 — Assistente didático local
+- Decisão (ADR-0006): sem modelo embarcado e sem rede; tutor offline determinístico baseado em regras e conteúdo versionado.
+- Runtime: `TutorKnowledge`/`TutorKnowledgeParser` (TSV validado) e `TutorEngine` (busca por palavras-chave sem acentos, fichas de ferramentas do toolkit, recusa de gabarito e de ataque a terceiros, "não encontrei" quando não sabe). Base `distribution/tutor/knowledge.tsv` (32 tópicos, referências a `docs/` conferidas em Python).
+- App: asset via `srcDir`, `TutorViewModel`, `TutorScreen`, botão "Tutor" e "Perguntar ao tutor" em cada exercício (só enunciado público). **Não compilado** (sem `kotlinc`/rede).
+- `TutorEngineTest` escrito e não executado; suíte das Fases 6 e 7 transferida para a validação final. Percentual: 95%.
+
+### 8.1 — Higiene de armazenamento
+- ROADMAP: Fase 8 subdividida em 8.1–8.5 (44 submódulos; percentual recalculado: 86% antes do 8.1, 89% depois).
+- `StorageHygiene` (relatório de espaço e limpeza de resíduos com regras de segurança), chamada na criação do Service e botão "Limpar resíduos de instalação" na tela Arquivos. Já existiam a checagem de espaço pré-download e a remoção do arquivo baixado; não foram refeitas. Ver `docs/storage.md`.
+- `StorageHygieneTest` escrito e não executado; nada compilado (sem `kotlinc`/rede).
+
+### 8.2 — Memória e saída do terminal
+- `TerminalMemoryBudget` (histórico por aba calculado para o pior caso caber em ~24 MB), aplicado por `TerminalTabs` na criação e no `resizeAll`; `TerminalEmulator.setScrollbackLimit`.
+- `TerminalStyle.DEFAULT` e `TerminalCell.BLANK` compartilhados: elimina um objeto por célula e por verificação em `plainText`/`displayRange`. Comportamento visual inalterado.
+- Estimativas não medidas em aparelho; `TerminalMemoryBudgetTest` escrito e não executado; nada compilado. Ver `docs/memory.md`.
+
+### 8.3 — Inicialização
+- `AssetSyncStamp`: as fixtures dos laboratórios só são recopiadas quando o app é atualizado ou o destino sumiu (antes eram recopiadas a cada abertura).
+- Aquecimento em segundo plano de catálogo, toolkit e laboratórios após a criação do Service. `createRuntimeIfInstalled()` na thread principal mantido (justificativa em `docs/startup.md`).
+- `AssetSyncStampTest` escrito e não executado; nada compilado; sem medição de tempo.
+
+### 8.4 — Bateria e processos
+- Auditoria: foreground só com instalação/sessão, `onDestroy` cancela sessões e grupos de processos, sem wakelock/polling. Decisão registrada: sem encerramento automático por ociosidade (perderia trabalho do usuário).
+- `MemoryPressure` + `TerminalTabs.trimBackground()` + `MainActivity.onTrimMemory`: sob pressão crítica, o histórico das abas em segundo plano cai para o mínimo; `select()` restaura o limite normal.
+- `MemoryPressureTest` escrito e não executado; nada compilado; sem medição de consumo. Ver `docs/battery-processes.md`.
+
+### 8.5 — Recuperação e validação da Fase 8
+- `InstallRecovery`: restaura `.rootfs-arm64.previous`/`.proot.previous` quando uma instalação morreu entre as duas trocas e o destino não existe; registra instalação interrompida no `install-state.properties`. Chamada em `onCreate` do Service.
+- `docs/recovery.md` e `docs/phase8-validation.md` (o que não foi validado). `InstallRecoveryTest` escrito e não executado; nada compilado.
+- Fase 8 concluída em código. Percentual: 98% (43/44); falta a Fase 9.

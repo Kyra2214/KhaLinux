@@ -1,6 +1,7 @@
 package com.khalinux.android.data
 
 import android.content.Context
+import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Database
 import androidx.room.Entity
@@ -44,7 +45,8 @@ data class TerminalSettingsEntity(
     @PrimaryKey val id: Int = 1,
     val fontSizeSp: Float = 12f,
     val rows: Int = 24,
-    val columns: Int = 80
+    val columns: Int = 80,
+    @ColumnInfo(defaultValue = "0") val themeIndex: Int = 0
 )
 
 @Dao
@@ -56,7 +58,7 @@ interface TerminalSettingsDao {
     suspend fun save(settings: TerminalSettingsEntity)
 }
 
-@Database(entities = [CommandHistoryEntry::class, TerminalSettingsEntity::class], version = 2, exportSchema = false)
+@Database(entities = [CommandHistoryEntry::class, TerminalSettingsEntity::class], version = 3, exportSchema = true)
 abstract class CommandHistoryDatabase : RoomDatabase() {
     abstract fun commandHistoryDao(): CommandHistoryDao
     abstract fun terminalSettingsDao(): TerminalSettingsDao
@@ -75,6 +77,12 @@ abstract class CommandHistoryDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE terminal_settings ADD COLUMN themeIndex INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
         @Volatile
         private var instance: CommandHistoryDatabase? = null
 
@@ -84,7 +92,7 @@ abstract class CommandHistoryDatabase : RoomDatabase() {
                     context.applicationContext,
                     CommandHistoryDatabase::class.java,
                     "khalinux-local.db"
-                ).addMigrations(MIGRATION_1_2).build().also { instance = it }
+                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3).build().also { instance = it }
             }
     }
 }

@@ -37,7 +37,13 @@ class RootfsInstaller(
 
     data class Result(val installedDirectory: File, val sha256: String, val extractedBytes: Long)
 
-    fun install(request: Request, onProgress: (downloaded: Long, total: Long?) -> Unit = { _, _ -> }): Result {
+    fun install(
+        request: Request,
+        onPhase: (InstallPhase) -> Unit = {},
+        onExtractProgress: (extracted: Long) -> Unit = {},
+        isCancelled: () -> Boolean = { false },
+        onProgress: (downloaded: Long, total: Long?) -> Unit = { _, _ -> }
+    ): Result {
         require(request.expectedSha256.matches(Regex("[a-fA-F0-9]{64}"))) { "SHA-256 inválido" }
         val url = URL(request.archiveUrl)
         require(url.protocol.equals("https", ignoreCase = true)) { "O download do RootFS exige HTTPS" }
@@ -54,19 +60,24 @@ class RootfsInstaller(
         val archive = File(parent, ".${destination.name}.download")
         val backup = File(parent, ".${destination.name}.previous")
         deleteTree(staging)
-        if (archive.exists()) check(archive.delete()) { "Não foi possível limpar download anterior" }
         if (backup.exists()) deleteTree(backup)
 
+        // O arquivo parcial (.download) é mantido entre tentativas para permitir retomada.
+        var downloadComplete = false
         try {
-            val digest = download(url, archive, onProgress)
+            val digest = ResumableDownloader(connectTimeoutMillis, readTimeoutMillis, maxDownloadBytes)
+                .download(url, archive, isCancelled, onProgress)
+            downloadComplete = true
+            onPhase(InstallPhase.VERIFYING)
             val actual = digest.joinToString("") { "%02x".format(Locale.ROOT, it.toInt() and 0xff) }
             require(actual.equals(request.expectedSha256, ignoreCase = true)) {
                 "SHA-256 divergente: esperado ${request.expectedSha256}, recebido $actual"
             }
             check(staging.mkdirs()) { "Não foi possível criar diretório temporário" }
-            val extracted = extractSafely(archive, staging)
-            require(File(staging, "bin/bash").isFile || File(staging, "usr/bin/bash").isFile) {
-                "O arquivo não parece conter um RootFS Linux (bash ausente)"
+            onPhase(InstallPhase.EXTRACTING)
+            val extracted = extractSafely(archive, staging, onExtractProgress, isCancelled)
+            RootfsValidator.problem(staging)?.let { problem ->
+                throw IOException("RootFS extraído inválido: $problem")
             }
 
             require(!Files.isSymbolicLink(destination.toPath())) { "Destino de instalação não pode ser link simbólico" }
@@ -92,51 +103,30 @@ class RootfsInstaller(
             runCatching { deleteTree(backup) }
             return Result(destination, actual, extracted)
         } finally {
-            archive.delete()
+            if (downloadComplete) archive.delete()
             deleteTree(staging)
         }
     }
 
-    private fun download(url: URL, output: File, onProgress: (Long, Long?) -> Unit): ByteArray {
-        val connection = GitHubHttpsConnection.open(url, connectTimeoutMillis, readTimeoutMillis)
-        try {
-            val total = connection.contentLengthLong.takeIf { it >= 0 }
-            require(total == null || total <= maxDownloadBytes) { "Arquivo excede o limite de download" }
-            val digest = MessageDigest.getInstance("SHA-256")
-            var count = 0L
-            connection.inputStream.use { input ->
-                FileOutputStream(output).use { raw ->
-                    BufferedOutputStream(raw).use { sink ->
-                        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-                        while (true) {
-                            val read = input.read(buffer)
-                            if (read < 0) break
-                            count += read
-                            require(count <= maxDownloadBytes) { "Download excedeu o limite permitido" }
-                            digest.update(buffer, 0, read)
-                            sink.write(buffer, 0, read)
-                            onProgress(count, total)
-                        }
-                    }
-                }
-            }
-            require(count > 0) { "Download vazio" }
-            return digest.digest()
-        } finally {
-            connection.disconnect()
-        }
-    }
-
-    internal fun extractSafely(archive: File, root: File): Long {
+    internal fun extractSafely(
+        archive: File,
+        root: File,
+        onExtractProgress: (extracted: Long) -> Unit = {},
+        isCancelled: () -> Boolean = { false }
+    ): Long {
         val canonicalRoot = root.canonicalFile.toPath()
         var extractedBytes = 0L
         val directoryModes = mutableListOf<Pair<java.nio.file.Path, Int>>()
         TarArchiveInputStream(GzipCompressorInputStream(BufferedInputStream(FileInputStream(archive)))).use { tar ->
             while (true) {
                 val entry = tar.nextTarEntry ?: break
+                if (isCancelled()) throw InstallCancelledException()
                 val target = resolveEntry(canonicalRoot, entry.name)
                 ensureNoSymlinkParents(canonicalRoot, if (target == canonicalRoot) canonicalRoot else target.parent)
                 val alreadyExists = Files.exists(target, LinkOption.NOFOLLOW_LINKS)
+                // ATENÇÃO À ORDEM: no commons-compress, TarArchiveEntry.isFile() também é true para links
+                // simbólicos, hard links e dispositivos. Esses tipos precisam ser tratados ANTES de isFile,
+                // senão /bin, /lib etc. viram arquivos vazios e o RootFS fica inutilizável.
                 when {
                     entry.isDirectory -> {
                         require(!alreadyExists || (Files.isDirectory(target, LinkOption.NOFOLLOW_LINKS) && !Files.isSymbolicLink(target))) {
@@ -145,6 +135,22 @@ class RootfsInstaller(
                         Files.createDirectories(target)
                         directoryModes += target to entry.mode
                     }
+                    entry.isSymbolicLink -> {
+                        require(!alreadyExists) { "Entrada TAR duplicada: " + entry.name }
+                        val link = resolveLink(canonicalRoot, target.parent, entry.linkName)
+                        Files.createDirectories(target.parent)
+                        val relative = target.parent.relativize(link).toString().ifEmpty { "." }
+                        Files.createSymbolicLink(target, target.fileSystem.getPath(relative))
+                    }
+                    entry.isLink -> {
+                        require(!alreadyExists) { "Entrada TAR duplicada: " + entry.name }
+                        val link = resolveEntry(canonicalRoot, entry.linkName)
+                        require(Files.isRegularFile(link)) { "Hard link aponta para arquivo ausente ou não regular: ${entry.name}" }
+                        Files.createDirectories(target.parent)
+                        Files.copy(link, target)
+                        applyMode(target, entry.mode)
+                    }
+                    entry.isCharacterDevice || entry.isBlockDevice || entry.isFIFO -> Unit
                     entry.isFile -> {
                         require(!alreadyExists) { "Entrada TAR duplicada: " + entry.name }
                         require(entry.size >= 0) { "Tamanho de arquivo inválido no TAR" }
@@ -162,22 +168,8 @@ class RootfsInstaller(
                             }
                         }
                         applyMode(target, entry.mode)
+                        onExtractProgress(extractedBytes)
                     }
-                    entry.isSymbolicLink -> {
-                        require(!alreadyExists) { "Entrada TAR duplicada: " + entry.name }
-                        val link = resolveLink(canonicalRoot, target.parent, entry.linkName)
-                        Files.createDirectories(target.parent)
-                        Files.createSymbolicLink(target, target.parent.relativize(link))
-                    }
-                    entry.isLink -> {
-                        require(!alreadyExists) { "Entrada TAR duplicada: " + entry.name }
-                        val link = resolveEntry(canonicalRoot, entry.linkName)
-                        require(Files.isRegularFile(link)) { "Hard link aponta para arquivo ausente ou não regular: ${entry.name}" }
-                        Files.createDirectories(target.parent)
-                        Files.copy(link, target)
-                        applyMode(target, entry.mode)
-                    }
-                    entry.isCharacterDevice || entry.isBlockDevice || entry.isFIFO -> Unit
                     else -> throw IOException("Tipo de entrada TAR não permitido: ${entry.name}")
                 }
             }

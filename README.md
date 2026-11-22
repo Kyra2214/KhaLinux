@@ -2,7 +2,7 @@
 
 Ambiente Linux ARM64 para Android, executado localmente e sem root, voltado a aprendizado, diagnóstico, auditoria autorizada e prática de cibersegurança.
 
- > **Status:** Fase 3 — RootFS Debian Bookworm ARM64 e PRoot Android ARM64 publicados em releases versionadas. Instaladores separados, validação dos manifestos/ELF e UI de progresso integrados. Binds mínimos, VT/ANSI básico, histórico Room, configurações persistentes e foreground service com notificação para sessões interativas integrados e compilados no CI. Auditoria final e testes físicos permanecem pendentes.
+> **Status:** implementação das Fases 0–8 em código e Fase 9 em andamento (auditoria estática e documentação prontas; release e notas de versão em seguida). **Nada foi validado em aparelho físico.** Runtime: 166 testes aprovados no host; `:android:app` e o build release ainda não foram compilados (ver [`docs/final-validation.md`](docs/final-validation.md)). Veja [`ROADMAP.md`](ROADMAP.md).
 
 ## Visão
 
@@ -48,9 +48,15 @@ Nenhuma funcionalidade é considerada implementada sem código, testes executado
 4. Commits pequenos, documentação honesta e testes realmente executados.
 5. Nenhuma credencial no APK ou no repositório.
 
-## Próximo passo
+## Instalação e uso
 
-A próxima etapa continua a Fase 3 validando o emulador ANSI/VT em CI e implementando persistência Room/histórico e refinamentos de ciclo de vida. Consulte [`ROADMAP.md`](ROADMAP.md), [`ARCHITECTURE.md`](ARCHITECTURE.md), [`SECURITY.md`](SECURITY.md), [`docs/phase1-validation.md`](docs/phase1-validation.md), [`docs/phase2-validation.md`](docs/phase2-validation.md) e [`docs/phase3-validation.md`](docs/phase3-validation.md).
+- [`docs/install-guide.md`](docs/install-guide.md): requisitos (Android 15+, ARM64, sem root), instalação, primeira abertura, atualização e problemas comuns.
+- [`docs/user-guide.md`](docs/user-guide.md): terminal, abas, scripts, arquivos, pacotes, ferramentas, laboratórios, tutor e diagnóstico.
+- Na primeira abertura o app baixa e instala PRoot e Debian ARM64 sozinho, com barra de progresso (0–100%) e download retomável; releases são imutáveis e os hashes são pinados no app ([`docs/installation-flow.md`](docs/installation-flow.md)). O build usa `./gradlew`.
+
+## Estado atual
+
+Fases 0–9 implementadas em código (candidata `1.0.0-rc.1`, ver [`RELEASE_NOTES.md`](RELEASE_NOTES.md)). Validação parcial: o runtime foi compilado e testado no host (166 testes, 0 falhas) e o PTY nativo passou; o módulo `:android:app`, o build release e o app em aparelho físico (use **Diagnóstico**) ainda não foram validados ([`docs/final-validation.md`](docs/final-validation.md)). Auditoria estática em [`docs/security-audit.md`](docs/security-audit.md). Documentos de validação: [`docs/phase1-validation.md`](docs/phase1-validation.md) a [`docs/phase8-validation.md`](docs/phase8-validation.md). Consulte também [`ARCHITECTURE.md`](ARCHITECTURE.md) e [`SECURITY.md`](SECURITY.md).
 
 ## Licença
 

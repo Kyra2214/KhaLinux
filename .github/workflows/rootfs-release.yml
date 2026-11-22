@@ -25,10 +25,18 @@ jobs:
     timeout-minutes: 90
     env:
       SOURCE_DATE_EPOCH: "1763769600"
-      ROOTFS_RELEASE_TAG: "rootfs-bookworm-20261122-v1"
+      # Tag imutável: uma por execução. Depois de publicada, nunca é reescrita.
+      ROOTFS_RELEASE_TAG: "rootfs-bookworm-20261122-r${{ github.run_number }}"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Refuse to reuse an existing release tag
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/${ROOTFS_RELEASE_TAG}" >/dev/null 2>&1; then
+            echo "A tag ${ROOTFS_RELEASE_TAG} já existe; releases são imutáveis." >&2
+            exit 1
+          fi
 
       - name: Install Debian cross-build dependencies
         run: |
@@ -62,11 +70,11 @@ jobs:
       - name: Publish versioned RootFS release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: rootfs-bookworm-20261122-v1
-          name: KhaLinux Debian Bookworm ARM64 RootFS v1
+          tag_name: ${{ env.ROOTFS_RELEASE_TAG }}
+          name: KhaLinux Debian Bookworm ARM64 RootFS ${{ env.ROOTFS_RELEASE_TAG }}
           prerelease: true
           draft: false
-          overwrite_files: true
+          fail_on_unmatched_files: true
           files: |
             distribution/build/output/rootfs-arm64.tar.gz
             distribution/manifests/rootfs-arm64.json

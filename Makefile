@@ -13,4 +13,5 @@ test-rootfs:
 	sudo ./distribution/scripts/test-rootfs.sh
 
 test-runtime:
+	# Requer kotlinc 1.9.24+, JDK, junit4, hamcrest, commons-compress/io/lang3 (ver android/runtime/test.sh)
 	./android/runtime/test.sh

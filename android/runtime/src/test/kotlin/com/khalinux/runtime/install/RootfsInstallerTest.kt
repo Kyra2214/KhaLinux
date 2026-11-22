@@ -75,4 +75,57 @@ class RootfsInstallerTest {
             installer.resolveLink(root, parent, "../../../../../../outside")
         }.isFailure)
     }
+
+    @Test
+    fun extractsSymlinksAsRealLinksNotEmptyFiles() {
+        val temp = Files.createTempDirectory("khalinux-tar-usrmerge").toFile()
+        val archive = File(temp, "rootfs.tar.gz")
+        GzipCompressorOutputStream(FileOutputStream(archive)).use { gzip ->
+            TarArchiveOutputStream(gzip).use { tar ->
+                fun dir(name: String) {
+                    val e = TarArchiveEntry(name)
+                    e.mode = 0b111101101
+                    tar.putArchiveEntry(e)
+                    tar.closeArchiveEntry()
+                }
+                dir("./")
+                // Layout "usrmerge" do Debian: /bin e /lib são links para usr/...
+                val bin = TarArchiveEntry("./bin", TarArchiveEntry.LF_SYMLINK)
+                bin.linkName = "usr/bin"
+                tar.putArchiveEntry(bin)
+                tar.closeArchiveEntry()
+                val lib = TarArchiveEntry("./lib", TarArchiveEntry.LF_SYMLINK)
+                lib.linkName = "/usr/lib"
+                tar.putArchiveEntry(lib)
+                tar.closeArchiveEntry()
+                dir("./usr/")
+                dir("./usr/bin/")
+                dir("./usr/lib/")
+                val bash = TarArchiveEntry("./usr/bin/bash")
+                bash.size = 3
+                bash.mode = 0b111101101
+                tar.putArchiveEntry(bash)
+                tar.write(byteArrayOf(1, 2, 3))
+                tar.closeArchiveEntry()
+            }
+        }
+        val destination = File(temp, "unpacked")
+        assertTrue(destination.mkdir())
+        assertEquals(3L, installer.extractSafely(archive, destination))
+        assertTrue(Files.isSymbolicLink(File(destination, "bin").toPath()))
+        assertTrue(Files.isSymbolicLink(File(destination, "lib").toPath()))
+        assertTrue(File(destination, "bin/bash").isFile)
+        assertTrue(File(destination, "lib").isDirectory)
+        assertTrue(RootfsValidator.isUsable(destination))
+    }
+
+    @Test
+    fun validatorRejectsEmptyFileInPlaceOfBinLink() {
+        val root = Files.createTempDirectory("khalinux-rootfs-broken").toFile()
+        File(root, "usr/bin").mkdirs()
+        File(root, "usr/bin/bash").writeText("x")
+        File(root, "bin").writeText("") // sintoma do bug: link extraído como arquivo vazio
+        assertFalse(RootfsValidator.isUsable(root))
+        assertTrue(RootfsValidator.problem(root)!!.contains("/bin"))
+    }
 }

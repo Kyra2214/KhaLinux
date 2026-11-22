@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOTFS_RELEASE_TAG="rootfs-bookworm-20261122-v1"
+# Release aprovada (pinada no app). Atualizar junto com o PR que atualiza os hashes do app.
+ROOTFS_RELEASE_TAG="${KHALINUX_APPROVED_ROOTFS_TAG:-rootfs-bookworm-20261122-v1}"
 ROOTFS_ARCHIVE_SHA256="bcd272a77f6f081408e1b60d9e9ed65ad9c23678b8892d334b5e051bf61613e8"
 ARCHIVE_URL="https://github.com/Kyra2214/KhaLinux/releases/download/${ROOTFS_RELEASE_TAG}/rootfs-arm64.tar.gz"
 WORK_DIR="$(mktemp -d)"

@@ -103,9 +103,11 @@ class ProotLauncher(
     }
 
     internal fun hostEnvironment(): Map<String, String> {
-        val runtimeDirectory = config.prootExecutable.absoluteFile.parentFile
-            ?: error("Diretório do executável PRoot inválido")
-        val tempDirectory = File(runtimeDirectory, "tmp")
+        val tempDirectory = config.tempDirectory ?: run {
+            val runtimeDirectory = config.prootExecutable.absoluteFile.parentFile
+                ?: error("Diretório do executável PRoot inválido")
+            File(runtimeDirectory, "tmp")
+        }
         if (!tempDirectory.exists()) {
             check(tempDirectory.mkdirs() || tempDirectory.isDirectory) {
                 "Não foi possível criar o diretório temporário privado do KhaLinux"
@@ -114,10 +116,11 @@ class ProotLauncher(
         require(tempDirectory.isDirectory && tempDirectory.canWrite()) {
             "Diretório temporário privado do KhaLinux não está gravável"
         }
-        return mapOf(
+        return config.prootEnvironment + mapOf(
             "LC_ALL" to "C.UTF-8",
             "LANG" to "C.UTF-8",
-            "TMPDIR" to tempDirectory.absolutePath
+            "TMPDIR" to tempDirectory.absolutePath,
+            "PROOT_TMP_DIR" to tempDirectory.absolutePath
         )
     }
 

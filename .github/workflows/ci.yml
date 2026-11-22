@@ -46,8 +46,11 @@ jobs:
           bash -n distribution/scripts/test-rootfs.sh
           bash -n distribution/scripts/test-proot-runtime.sh
 
-      - name: Validate architecture, output buffer and JNI PTY
-        run: python3 android/app/validate-phase3.py
+      - name: Static security audit (Phase 9.1)
+        run: python3 distribution/scripts/audit-security.py
+
+      - name: Validate JNI PTY on the host
+        run: bash android/runtime/test-pty-native.sh
 
       - name: Smoke test ARM64 RootFS with host PRoot and device binds
         run: bash distribution/scripts/test-proot-runtime.sh
@@ -65,10 +68,8 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Gradle 8.7
+      - name: Set up Gradle (wrapper 8.7)
         uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.7'
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
@@ -87,10 +88,10 @@ jobs:
             "ndk;27.0.12077973"
 
       - name: Run runtime unit tests
-        run: gradle --no-daemon :android:runtime:testDebugUnitTest :android:app:testDebugUnitTest
+        run: ./gradlew --no-daemon :android:runtime:testDebugUnitTest :android:app:testDebugUnitTest
 
       - name: Compile debug APK
-        run: gradle --no-daemon :android:app:assembleDebug
+        run: ./gradlew --no-daemon :android:app:assembleDebug
 
       - name: Upload debug APK for CI inspection
         uses: actions/upload-artifact@v4

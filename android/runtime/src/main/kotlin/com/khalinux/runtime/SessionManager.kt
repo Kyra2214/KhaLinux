@@ -14,6 +14,8 @@ import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
+private const val MAX_PENDING_DATA_EVENTS = 512
+
 class SessionManager(
     private val launcher: ProotLauncher,
     private val maxSessions: Int = 4,
@@ -95,6 +97,8 @@ class SessionManager(
         private val request: CommandRequest
     ) : RuntimeSession {
         private val queue: BlockingQueue<RuntimeEvent> = LinkedBlockingQueue()
+        // Limita os blocos de saída pendentes: leitor lento gera contrapressão no PTY em vez de memória sem fim.
+        private val dataPermits = Semaphore(MAX_PENDING_DATA_EVENTS)
         private val lock = Any()
         private val inputLock = Any()
         private val streamPumpsFinished = CountDownLatch(2)
@@ -141,6 +145,15 @@ class SessionManager(
             }
         }
 
+        /** Espera vaga na fila; descarta o bloco se a sessão já não está em execução. */
+        private fun acquireDataPermit(): Boolean {
+            while (!dataPermits.tryAcquire(200, TimeUnit.MILLISECONDS)) {
+                val state = synchronized(lock) { current.state }
+                if (state != SessionState.RUNNING && state != SessionState.CREATED) return false
+            }
+            return true
+        }
+
         private fun pump(stream: InputStream, stderr: Boolean) {
             stream.use { input ->
                 val buffer = ByteArray(8192)
@@ -149,6 +162,7 @@ class SessionManager(
                     if (count < 0) break
                     if (count > 0) {
                         val bytes = buffer.copyOf(count)
+                        if (!acquireDataPermit()) continue
                         if (stderr) queue.offer(RuntimeEvent.Stderr(id, bytes))
                         else queue.offer(RuntimeEvent.Stdout(id, bytes))
                     }
@@ -230,6 +244,7 @@ class SessionManager(
         override fun events(): Sequence<RuntimeEvent> = sequence {
             while (true) {
                 val event = queue.take()
+                if (event is RuntimeEvent.Stdout || event is RuntimeEvent.Stderr) dataPermits.release()
                 yield(event)
                 if (event is RuntimeEvent.Exited || event is RuntimeEvent.Failed) break
             }

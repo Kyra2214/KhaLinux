@@ -23,6 +23,9 @@ jobs:
   build-proot:
     name: Build and verify Android ARM64 PRoot
     runs-on: ubuntu-24.04
+    env:
+      # Em push para main a tag é única por execução (imutável); em PR usa a tag aprovada só para verificação.
+      PROOT_RELEASE_TAG: ${{ github.event_name == 'push' && format('proot-android-5.1.107.102-r{0}', github.run_number) || 'proot-android-5.1.107.102-v1' }}
     timeout-minutes: 45
     env:
       ANDROID_API_LEVEL: "35"
@@ -30,6 +33,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Refuse to reuse an existing release tag
+        if: github.event_name == 'push'
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/${PROOT_RELEASE_TAG}" >/dev/null 2>&1; then
+            echo "A tag ${PROOT_RELEASE_TAG} já existe; releases são imutáveis." >&2
+            exit 1
+          fi
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
@@ -73,11 +84,11 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: proot-android-5.1.107.102-v1
+          tag_name: ${{ env.PROOT_RELEASE_TAG }}
           name: KhaLinux Android ARM64 PRoot 5.1.107.102
           prerelease: true
           draft: false
-          overwrite_files: true
+          fail_on_unmatched_files: true
           files: |
             distribution/build/proot-output/proot-arm64.tar.gz
             distribution/manifests/proot-arm64.json

@@ -1,0 +1,985 @@
+{
+  "schema": 1,
+  "catalog_version": "2026.11.22-5",
+  "labs": [
+    {
+      "id": "linux-basico",
+      "track": "linux",
+      "title": "Linux: primeiros comandos",
+      "summary": "Navegação, listagem e contagem de linhas no shell do RootFS, com respostas verificáveis sem serviços.",
+      "difficulty": "iniciante",
+      "required_tools": [],
+      "prerequisites": [],
+      "services": [],
+      "doc": "docs/labs/linux-basico.md",
+      "exercises": [
+        {
+          "id": "ls-ocultos",
+          "title": "Arquivos ocultos",
+          "instructions": "Qual opção de uma letra (com hífen) faz o `ls` mostrar também os arquivos ocultos, aqueles que começam com ponto? Responda só com a opção.",
+          "difficulty": "iniciante",
+          "answer_sha256": "c274891790345c56cef3b53c026bdc48150948fa60c56306073d6fea7766ad6a",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "Veja `man ls` ou `ls --help` no terminal do KhaLinux.",
+              "cost": 2
+            },
+            {
+              "text": "A opção é a inicial de \"all\" em inglês.",
+              "cost": 5
+            }
+          ]
+        },
+        {
+          "id": "diretorio-atual",
+          "title": "Onde estou",
+          "instructions": "Qual comando (apenas o nome, 3 letras) imprime o diretório de trabalho atual?",
+          "difficulty": "iniciante",
+          "answer_sha256": "a1159e9df3670d549d04524532629f5477ceb7deec9b45e47e8c009506ecb2c8",
+          "ignore_case": true,
+          "hints": [
+            {
+              "text": "Abreviação de \"print working directory\".",
+              "cost": 3
+            }
+          ]
+        },
+        {
+          "id": "contar-linhas",
+          "title": "Contando linhas",
+          "instructions": "Um arquivo contém exatamente quatro linhas, sendo a terceira vazia: `a`, `b`, (vazia) e `c`, cada uma terminada por quebra de linha. Que número o comando `wc -l arquivo` imprime?",
+          "difficulty": "iniciante",
+          "answer_sha256": "4b227777d4dd1fc61c6f884f48641d02b4d121d3fd328cb08b5531fcacdabf8a",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "`wc -l` conta caracteres de quebra de linha, e linhas vazias também têm uma.",
+              "cost": 3
+            },
+            {
+              "text": "Teste no terminal: `printf 'a\\nb\\n\\nc\\n' | wc -l`.",
+              "cost": 5
+            }
+          ]
+        },
+        {
+          "id": "aritmetica",
+          "title": "Aritmética no shell",
+          "instructions": "O que o comando `echo $((7*6))` imprime?",
+          "difficulty": "iniciante",
+          "answer_sha256": "73475cb40a568e8da8a045ced110137e159f890ac4da883b6b17dc651b3a8049",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "`$(( ))` faz aritmética inteira no Bash.",
+              "cost": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "linux-permissoes",
+      "track": "linux",
+      "title": "Linux: permissões e umask",
+      "summary": "Notação octal e simbólica, chmod e umask aplicados a arquivos e diretórios do RootFS.",
+      "difficulty": "intermediario",
+      "required_tools": [],
+      "prerequisites": [
+        "linux-basico"
+      ],
+      "services": [],
+      "doc": "docs/labs/linux-permissoes.md",
+      "exercises": [
+        {
+          "id": "octal-rwxr-x",
+          "title": "Permissão em octal",
+          "instructions": "Qual é a representação octal (3 dígitos) da permissão `rwxr-x---`?",
+          "difficulty": "intermediario",
+          "answer_sha256": "64d095f2fecfdeb907dae5403b10966c4ae755b7598aa078cb932e345bd0b5d0",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "Leitura vale 4, escrita 2 e execução 1, somados por classe (dono, grupo, outros).",
+              "cost": 5
+            },
+            {
+              "text": "Dono: rwx = 7; grupo: r-x = 5; outros: --- = 0.",
+              "cost": 10
+            }
+          ]
+        },
+        {
+          "id": "chmod-644",
+          "title": "Saída do ls -l",
+          "instructions": "Depois de `chmod 644 relatorio.txt` num arquivo regular, que string de 10 caracteres a primeira coluna do `ls -l` mostra?",
+          "difficulty": "intermediario",
+          "answer_sha256": "21411292377478274947df38b208efe1fc972acf34c23acb8f9847a024f75b9c",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "O primeiro caractere indica o tipo: `-` para arquivo regular.",
+              "cost": 5
+            },
+            {
+              "text": "6 = rw-, 4 = r--, 4 = r--.",
+              "cost": 10
+            }
+          ]
+        },
+        {
+          "id": "umask-arquivo",
+          "title": "umask e arquivos",
+          "instructions": "Com `umask 022`, qual é a permissão octal de um arquivo regular recém-criado (permissão máxima padrão 666)?",
+          "difficulty": "intermediario",
+          "answer_sha256": "87e50b28705900bb064d1e9df1bd6cf55a7efa01cc16c6cf0703f491a1f13d44",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "A umask remove bits da permissão máxima: 666 menos os bits de 022.",
+              "cost": 5
+            }
+          ]
+        },
+        {
+          "id": "umask-diretorio",
+          "title": "umask e diretórios",
+          "instructions": "Com `umask 027`, qual é a permissão octal de um diretório recém-criado (permissão máxima padrão 777)?",
+          "difficulty": "intermediario",
+          "answer_sha256": "64d095f2fecfdeb907dae5403b10966c4ae755b7598aa078cb932e345bd0b5d0",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "Remova os bits de 027 de 777: o grupo perde escrita e os outros perdem tudo.",
+              "cost": 5
+            },
+            {
+              "text": "Teste: `umask 027; mkdir t; stat -c %a t`.",
+              "cost": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "linux-texto-processos",
+      "track": "linux",
+      "title": "Linux: pipelines de texto e processos",
+      "summary": "Combinar sort, uniq, tr, cut e awk em pipelines e entender sinais de processos.",
+      "difficulty": "avancado",
+      "required_tools": [],
+      "prerequisites": [
+        "linux-permissoes"
+      ],
+      "services": [],
+      "doc": "docs/labs/linux-texto-processos.md",
+      "exercises": [
+        {
+          "id": "contagem-frequencia",
+          "title": "Mais frequente",
+          "instructions": "Qual é a saída (depois de normalizar espaços) de `printf 'b\\na\\nb\\nc\\na\\nb\\n' | sort | uniq -c | sort -rn | head -1`? Responda no formato `quantidade letra`.",
+          "difficulty": "avancado",
+          "answer_sha256": "528a171c06d739e66421f6afbaecb363cb001ee850d0a14c4d14a49f710848ba",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "`uniq -c` precede cada linha única com sua contagem.",
+              "cost": 5
+            },
+            {
+              "text": "Rode o pipeline por partes, acrescentando um comando por vez.",
+              "cost": 10
+            }
+          ]
+        },
+        {
+          "id": "tr-rev",
+          "title": "tr e rev",
+          "instructions": "O que `echo \"KhaLinux\" | tr 'a-z' 'A-Z' | rev` imprime?",
+          "difficulty": "avancado",
+          "answer_sha256": "8cb2cd32b055bb88e7e68cc9e2c549327df6e25ca33119936f3e681d1dab7934",
+          "ignore_case": true,
+          "hints": [
+            {
+              "text": "Primeiro tudo vira maiúsculas, depois a ordem dos caracteres se inverte.",
+              "cost": 5
+            }
+          ]
+        },
+        {
+          "id": "cut-campo",
+          "title": "Campo do passwd",
+          "instructions": "Dada a linha `usuario:x:1000:1000::/home/usuario:/bin/bash`, o que `cut -d: -f6` imprime?",
+          "difficulty": "avancado",
+          "answer_sha256": "f8279564f56669f5d1b97eb017d2dadb46fb82daf3c0aa8505ff84e0e5e41065",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "`-d:` define o separador e `-f6` escolhe o sexto campo, contando de 1.",
+              "cost": 5
+            }
+          ]
+        },
+        {
+          "id": "awk-soma",
+          "title": "Soma com awk",
+          "instructions": "Para as linhas `x,5`, `y,15` e `z,8`, o que imprime `awk -F, '{s+=$2} END{print s}'`?",
+          "difficulty": "avancado",
+          "answer_sha256": "59e19706d51d39f66711c2653cd7eb1291c94d9b55eb14bda74ce4dc636d015a",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "`-F,` usa vírgula como separador; `$2` é o segundo campo.",
+              "cost": 5
+            }
+          ]
+        },
+        {
+          "id": "sinal-kill9",
+          "title": "Sinal do kill -9",
+          "instructions": "Qual é o nome do sinal que `kill -9` envia? Responda com o nome completo, começando por SIG.",
+          "difficulty": "avancado",
+          "answer_sha256": "d8dce5d7f9cf6637a78dec691a6519f27f876fda816c83ca3436b94e5c8c34e7",
+          "ignore_case": true,
+          "hints": [
+            {
+              "text": "Esse sinal não pode ser capturado nem ignorado pelo processo.",
+              "cost": 5
+            },
+            {
+              "text": "`kill -l` lista os sinais e seus números.",
+              "cost": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rede-loopback",
+      "track": "rede",
+      "title": "Rede: loopback e ping",
+      "summary": "Interface e endereço de loopback, prefixo da rede 127.0.0.0 e opções básicas do ping, tudo local.",
+      "difficulty": "iniciante",
+      "required_tools": [
+        "iproute2",
+        "iputils-ping"
+      ],
+      "prerequisites": [],
+      "services": [],
+      "doc": "docs/labs/rede-loopback.md",
+      "exercises": [
+        {
+          "id": "ip-loopback",
+          "title": "Endereço de loopback",
+          "instructions": "Qual é o endereço IPv4 de loopback padrão, que sempre aponta para o próprio dispositivo?",
+          "difficulty": "iniciante",
+          "answer_sha256": "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "Comece por 127; é o endereço de `localhost`.",
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "interface-lo",
+          "title": "Interface de loopback",
+          "instructions": "Qual é o nome da interface de loopback no Linux, mostrada por `ip addr`?",
+          "difficulty": "iniciante",
+          "answer_sha256": "9294ab38039f60d2ec53822fb46b52c663af7ea478f4d17bf43da44ede5e166c",
+          "ignore_case": true,
+          "hints": [
+            {
+              "text": "Duas letras: abreviação de \"loopback\".",
+              "cost": 3
+            }
+          ]
+        },
+        {
+          "id": "cidr-loopback",
+          "title": "Prefixo da rede 127",
+          "instructions": "Toda a rede de loopback IPv4 é 127.0.0.0/N. Qual é o valor de N (apenas o número)?",
+          "difficulty": "iniciante",
+          "answer_sha256": "2c624232cdd221771294dfbb310aca000a0df6ac8b66b696d90ef06fdefb64a3",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "Só o primeiro octeto (127) é fixo.",
+              "cost": 3
+            }
+          ]
+        },
+        {
+          "id": "ping-contagem",
+          "title": "Limitar o ping",
+          "instructions": "Qual opção do `ping` (letra única, com hífen) define quantos pacotes enviar antes de parar?",
+          "difficulty": "iniciante",
+          "answer_sha256": "0c3603e13e24a40b4bf215e3795a9a40d60a8456fb7b63c2d11e81701a231e85",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "É a inicial de \"count\" em inglês.",
+              "cost": 2
+            },
+            {
+              "text": "Veja `ping -h`.",
+              "cost": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rede-sockets",
+      "track": "rede",
+      "title": "Rede: sockets e HTTP local",
+      "summary": "Serviço HTTP em 127.0.0.1:8080: inspecionar sockets com ss e requisitar com curl, sem sair do aparelho.",
+      "difficulty": "intermediario",
+      "required_tools": [
+        "iproute2",
+        "curl"
+      ],
+      "prerequisites": [
+        "rede-loopback"
+      ],
+      "services": [
+        {
+          "name": "http-local",
+          "command": "python3 -m http.server 8080 --bind 127.0.0.1",
+          "bind": "127.0.0.1",
+          "port": 8080
+        }
+      ],
+      "doc": "docs/labs/rede-sockets.md",
+      "exercises": [
+        {
+          "id": "ss-opcao",
+          "title": "Só sockets em escuta",
+          "instructions": "Qual opção do `ss` (letra única, com hífen) mostra apenas sockets em escuta (listening)?",
+          "difficulty": "intermediario",
+          "answer_sha256": "8d29a0f35918ca625667b2858e1c366e227ecbb424c5b30d008a1b2ec709e6d2",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "Inicial de \"listening\".",
+              "cost": 3
+            },
+            {
+              "text": "Combine com `-t` para TCP e `-n` para números: `ss -ltn`.",
+              "cost": 5
+            }
+          ]
+        },
+        {
+          "id": "ss-estado",
+          "title": "Estado do servidor",
+          "instructions": "Com o serviço `http-local` ativo, qual estado `ss -ltn` mostra para a porta 8080? Responda com a palavra em maiúsculas.",
+          "difficulty": "intermediario",
+          "answer_sha256": "6f8860eb5103a16b917146f9cbf21aa00fe7d2291b1aad7f4fe83a6db71688cf",
+          "ignore_case": true,
+          "hints": [
+            {
+              "text": "É o estado de um socket TCP aguardando conexões.",
+              "cost": 5
+            }
+          ]
+        },
+        {
+          "id": "http-404",
+          "title": "Caminho inexistente",
+          "instructions": "Com o serviço ativo, qual código de status HTTP `curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/nao-existe` imprime?",
+          "difficulty": "intermediario",
+          "answer_sha256": "6b3c238ebcf1f3c07cf0e556faa82c6b8fe96840ff4b6b7e9962a2d855843a0b",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "O servidor não tem esse arquivo.",
+              "cost": 5
+            }
+          ]
+        },
+        {
+          "id": "curl-head",
+          "title": "Só cabeçalhos",
+          "instructions": "Qual opção do `curl` (letra única maiúscula, com hífen) envia uma requisição HEAD e mostra só os cabeçalhos?",
+          "difficulty": "intermediario",
+          "answer_sha256": "4c3a1b75ae7e2fb96bf49999f1c9c33f9edc7580ff9002e2f5cdf411bb1169b1",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "Está em `curl --help`; a forma longa é `--head`.",
+              "cost": 5
+            }
+          ]
+        },
+        {
+          "id": "bind-loopback",
+          "title": "Acesso externo",
+          "instructions": "O serviço escuta só em 127.0.0.1. Outro dispositivo da mesma rede consegue acessá-lo? Responda sim ou nao (sem acento).",
+          "difficulty": "intermediario",
+          "answer_sha256": "b6a0005c7e9085a729bb395b3d30aac3ee4c5155f9dd570a41bc3a82614b31af",
+          "ignore_case": true,
+          "hints": [
+            {
+              "text": "Loopback só é alcançável de dentro do próprio dispositivo.",
+              "cost": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rede-dns-portas",
+      "track": "rede",
+      "title": "Rede: DNS, portas e TCP",
+      "summary": "Conceitos verificáveis sem rede: registros DNS, portas conhecidas e o handshake TCP.",
+      "difficulty": "avancado",
+      "required_tools": [
+        "dnsutils",
+        "iproute2"
+      ],
+      "prerequisites": [
+        "rede-sockets"
+      ],
+      "services": [],
+      "doc": "docs/labs/rede-dns-portas.md",
+      "exercises": [
+        {
+          "id": "dns-porta",
+          "title": "Porta do DNS",
+          "instructions": "Qual é a porta padrão do serviço DNS (usada em UDP e TCP)?",
+          "difficulty": "avancado",
+          "answer_sha256": "2858dcd1057d3eae7f7d5f782167e24b61153c01551450a628cee722509f6529",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "É um número de dois dígitos.",
+              "cost": 5
+            }
+          ]
+        },
+        {
+          "id": "dns-aaaa",
+          "title": "Registro IPv6",
+          "instructions": "Qual tipo de registro DNS associa um nome a um endereço IPv6? Dica para o `dig`: `dig nome TIPO`.",
+          "difficulty": "avancado",
+          "answer_sha256": "61be55a8e2f6b4e172338bddf184d6dbee29c98853e0a0485ecee7f27b9af0b4",
+          "ignore_case": true,
+          "hints": [
+            {
+              "text": "O registro A é IPv4; este tem quatro vezes o tamanho do endereço.",
+              "cost": 5
+            }
+          ]
+        },
+        {
+          "id": "dns-mx",
+          "title": "Servidor de e-mail",
+          "instructions": "Qual tipo de registro DNS indica os servidores de e-mail de um domínio?",
+          "difficulty": "avancado",
+          "answer_sha256": "d7f890c4f72a3d49b69870b2dc2850c698e7b841eb2dd7cd21e4de551a29f4c4",
+          "ignore_case": true,
+          "hints": [
+            {
+              "text": "Inicial de \"mail exchanger\".",
+              "cost": 5
+            }
+          ]
+        },
+        {
+          "id": "tcp-handshake",
+          "title": "Handshake de três vias",
+          "instructions": "Escreva, separadas por espaço, as flags TCP do handshake de três vias na ordem em que ocorrem (cliente, servidor, cliente), usando SYN, SYN-ACK e ACK.",
+          "difficulty": "avancado",
+          "answer_sha256": "c50ed0c9c4eec07b0668a55c7a4e0e06c4a13e843d2fd5e0e92c3dfea54aa653",
+          "ignore_case": true,
+          "hints": [
+            {
+              "text": "O cliente abre, o servidor responde confirmando e abrindo, o cliente confirma.",
+              "cost": 10
+            }
+          ]
+        },
+        {
+          "id": "portas-conhecidas",
+          "title": "Portas privilegiadas",
+          "instructions": "As portas bem conhecidas (privilegiadas) vão de 0 até qual número? Por isso os serviços dos laboratórios usam portas a partir de 1024.",
+          "difficulty": "avancado",
+          "answer_sha256": "6629ddae3736e894e89cb4a1300a9d2c5c0fad418f8ea06a341b81f2a98bb491",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "O primeiro valor não privilegiado é 1024.",
+              "cost": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "web-http-basico",
+      "track": "web",
+      "title": "Web: HTTP na prática",
+      "summary": "Status, cabeçalhos, robots.txt e uma página escondida num servidor didático em 127.0.0.1:8090, usando só curl.",
+      "difficulty": "iniciante",
+      "required_tools": [
+        "curl"
+      ],
+      "prerequisites": [
+        "rede-sockets"
+      ],
+      "services": [
+        {
+          "name": "info-local",
+          "command": "python3 /opt/khalinux-labs/web/info_server.py 8090",
+          "bind": "127.0.0.1",
+          "port": 8090
+        }
+      ],
+      "doc": "docs/labs/web-http-basico.md",
+      "exercises": [
+        {
+          "id": "status-raiz",
+          "title": "Status da raiz",
+          "instructions": "Com o serviço `info-local` ativo, qual código de status HTTP `curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8090/` imprime?",
+          "difficulty": "iniciante",
+          "answer_sha256": "27badc983df1780b60c2b3fa9d3a19a00e46aac798451f0febdca52920faaddf",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "É o código de sucesso padrão.",
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "cabecalho-lab",
+          "title": "Cabeçalho personalizado",
+          "instructions": "Veja os cabeçalhos com `curl -I http://127.0.0.1:8090/`. Qual é o valor do cabeçalho `X-Lab-Versao`?",
+          "difficulty": "iniciante",
+          "answer_sha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "`-I` mostra só os cabeçalhos da resposta.",
+              "cost": 3
+            }
+          ]
+        },
+        {
+          "id": "robots-disallow",
+          "title": "O que o robots.txt esconde",
+          "instructions": "Leia `http://127.0.0.1:8090/robots.txt`. Qual caminho aparece depois de `Disallow:`?",
+          "difficulty": "iniciante",
+          "answer_sha256": "a7a0bb61d9324d4205a96a1a62c0c0cc11fe8b31d19efa7c052ee4dfb32128dd",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "Use `curl -s` na URL do robots.txt.",
+              "cost": 3
+            }
+          ]
+        },
+        {
+          "id": "flag-segredo",
+          "title": "Página não listada",
+          "instructions": "Requisite o caminho que o robots.txt pede para não indexar e informe a flag (formato KHA{...}).",
+          "difficulty": "intermediario",
+          "answer_sha256": "b5e24ea9be46d58e24aaa133f0fcb8440c4bbed324f7cd5b334cb9ea98e83049",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "robots.txt é só uma convenção para buscadores: não protege nada.",
+              "cost": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "web-reflexao",
+      "track": "web",
+      "title": "Web: entrada refletida sem escape",
+      "summary": "Busca em 127.0.0.1:8091 que devolve a entrada sem escapar; entender o problema e a correção (escape de saída).",
+      "difficulty": "intermediario",
+      "required_tools": [
+        "curl"
+      ],
+      "prerequisites": [
+        "web-http-basico"
+      ],
+      "services": [
+        {
+          "name": "busca-local",
+          "command": "python3 /opt/khalinux-labs/web/reflect_server.py 8091",
+          "bind": "127.0.0.1",
+          "port": 8091
+        }
+      ],
+      "doc": "docs/labs/web-reflexao.md",
+      "exercises": [
+        {
+          "id": "refletida",
+          "title": "A entrada volta?",
+          "instructions": "Rode `curl -s -G --data-urlencode 'q=teste' http://127.0.0.1:8091/busca`. O texto enviado aparece na página? Responda sim ou nao (sem acento).",
+          "difficulty": "iniciante",
+          "answer_sha256": "507a9a8be3d145a86daa9644b28bf42a8dc0720d8baeabdf0406c393692bf082",
+          "ignore_case": true,
+          "hints": [
+            {
+              "text": "Procure `teste` no HTML devolvido.",
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "tag-refletida",
+          "title": "Tag preservada",
+          "instructions": "Envie `q=<i>x</i>` (com `--data-urlencode`). Que tag de abertura aparece no HTML devolvido? Responda com a tag, como `<b>`.",
+          "difficulty": "intermediario",
+          "answer_sha256": "d983253427fd6983e7b4e77e7483259f9061091c70a5a11aa3709c59f6bd7dc0",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "Se a tag chega intacta, o servidor não escapou a entrada.",
+              "cost": 5
+            }
+          ]
+        },
+        {
+          "id": "entidade-lt",
+          "title": "Escape do menor-que",
+          "instructions": "Para corrigir, a saída deve escapar caracteres especiais. Que entidade HTML representa o caractere `<`?",
+          "difficulty": "intermediario",
+          "answer_sha256": "3885ff5ae3386f58e4f1f1363d4863d8c9a5f280fe15e346ad7c78a09529637a",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "Inicial de \"less than\".",
+              "cost": 5
+            },
+            {
+              "text": "Termina em ponto e vírgula.",
+              "cost": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "web-sqli-local",
+      "track": "web",
+      "title": "Web: injeção de SQL em app de brinquedo",
+      "summary": "Login em 127.0.0.1:8092 que concatena a entrada na consulta; observar o erro, explorar o brinquedo local e aprender a defesa.",
+      "difficulty": "avancado",
+      "required_tools": [
+        "curl"
+      ],
+      "prerequisites": [
+        "web-reflexao"
+      ],
+      "services": [
+        {
+          "name": "login-local",
+          "command": "python3 /opt/khalinux-labs/web/login_server.py 8092",
+          "bind": "127.0.0.1",
+          "port": 8092
+        }
+      ],
+      "doc": "docs/labs/web-sqli-local.md",
+      "exercises": [
+        {
+          "id": "login-visitante",
+          "title": "Login legítimo",
+          "instructions": "Use `curl -s -G --data-urlencode 'user=visitante' --data-urlencode 'senha=visitante' http://127.0.0.1:8092/login` e informe a flag devolvida.",
+          "difficulty": "iniciante",
+          "answer_sha256": "807dcb3ed1da0fb5651559a9008dea7f9221110d85f20cc8bd0600786de8b635",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "`-G` com `--data-urlencode` monta a query string.",
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "senha-errada",
+          "title": "Credencial inválida",
+          "instructions": "Com `user=admin` e `senha=errada`, qual código de status HTTP o serviço devolve?",
+          "difficulty": "intermediario",
+          "answer_sha256": "dcaadad1cfce437735b81ab025f776e5857e48558c47f6960e6a5f2595664a85",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "Use `-w '%{http_code}'` no curl.",
+              "cost": 3
+            }
+          ]
+        },
+        {
+          "id": "erro-aspa",
+          "title": "A aspa quebra a consulta",
+          "instructions": "Envie `user='` (apenas uma aspa simples) e qualquer senha. Qual código de status HTTP aparece, e o que isso revela sobre como a consulta é montada?",
+          "difficulty": "intermediario",
+          "answer_sha256": "0604cd3138feed202ef293e062da2f4720f77a05d25ee036a7a01c9cfcdd1f0a",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "O corpo da resposta traz a mensagem de erro do banco.",
+              "cost": 5
+            }
+          ]
+        },
+        {
+          "id": "bypass-admin",
+          "title": "Entrar como admin",
+          "instructions": "Sem conhecer a senha, faça o login como `admin` neste serviço local e informe a flag. Aplica-se só a este brinquedo em 127.0.0.1.",
+          "difficulty": "avancado",
+          "answer_sha256": "6b35072c78f4ca996e1c8831d2a1f35f3564c903f1f18205341c97b1ba8d109d",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "A aspa fecha o texto de `nome`; compare com o erro do exercício anterior.",
+              "cost": 10
+            },
+            {
+              "text": "Pense em como tornar o restante da condição (a senha) irrelevante; o SQLite aceita comentários.",
+              "cost": 20
+            }
+          ]
+        },
+        {
+          "id": "defesa-sql",
+          "title": "A defesa correta",
+          "instructions": "Complete com uma palavra (sem acento): a correção é usar consultas ______ (separam o código SQL dos dados).",
+          "difficulty": "avancado",
+          "answer_sha256": "ced89bbf38c94dc76ea22d67523c0c16d03112b9341190a9e5789e08fffa8e65",
+          "ignore_case": true,
+          "hints": [
+            {
+              "text": "Em Python/sqlite3 isso usa `?` como marcador.",
+              "cost": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "forense-hashes",
+      "track": "forense",
+      "title": "Forense: integridade com hashes",
+      "summary": "Calcular SHA-256 de evidências didáticas, achar cópias idênticas e entender por que um hash detecta alterações.",
+      "difficulty": "iniciante",
+      "required_tools": [],
+      "prerequisites": [],
+      "services": [],
+      "doc": "docs/labs/forense-hashes.md",
+      "exercises": [
+        {
+          "id": "hash-tamanho",
+          "title": "Tamanho do SHA-256",
+          "instructions": "Quantos caracteres hexadecimais tem a saída de `sha256sum` (apenas o hash, sem o nome do arquivo)?",
+          "difficulty": "iniciante",
+          "answer_sha256": "a68b412c4282555f15546cf6e1fc42893b7e07f271557ceb021821098dd66c1b",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "São 256 bits, e cada caractere hexadecimal representa 4 bits.",
+              "cost": 3
+            }
+          ]
+        },
+        {
+          "id": "hash-prefixo",
+          "title": "Prefixo do hash",
+          "instructions": "Antes, gere as evidências com `python3 /opt/khalinux-labs/forense/gerar_evidencias.py` e entre em `/opt/khalinux-labs/forense/evidencias`. Quais são os 8 primeiros caracteres do SHA-256 de `copia-a.txt`?",
+          "difficulty": "iniciante",
+          "answer_sha256": "42041b426e9e6b273451f3fdf210d1c74effeb8d93c5d3cebea656d5a53774f1",
+          "ignore_case": true,
+          "hints": [
+            {
+              "text": "Use `sha256sum copia-a.txt` e leia o começo da linha.",
+              "cost": 3
+            }
+          ]
+        },
+        {
+          "id": "hash-duplicados",
+          "title": "Cópias idênticas",
+          "instructions": "Antes, gere as evidências com `python3 /opt/khalinux-labs/forense/gerar_evidencias.py` e entre em `/opt/khalinux-labs/forense/evidencias`. Entre `copia-a.txt`, `copia-b.txt` e `versao-c.txt`, quais dois arquivos têm o mesmo SHA-256? Responda com os dois nomes em ordem alfabética, separados por espaço.",
+          "difficulty": "iniciante",
+          "answer_sha256": "33d7a370799e7731fd0a7c72da622f7a1711c0edde9c59b68d0cf727afced3db",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "Compare as três saídas de `sha256sum copia-*.txt versao-c.txt`.",
+              "cost": 5
+            }
+          ]
+        },
+        {
+          "id": "hash-distintos",
+          "title": "Hashes distintos",
+          "instructions": "Antes, gere as evidências com `python3 /opt/khalinux-labs/forense/gerar_evidencias.py` e entre em `/opt/khalinux-labs/forense/evidencias`. Quantos SHA-256 diferentes existem entre `copia-a.txt`, `copia-b.txt` e `versao-c.txt`?",
+          "difficulty": "iniciante",
+          "answer_sha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "Uma das versões difere das outras por um único caractere, e isso muda o hash inteiro.",
+              "cost": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "forense-assinaturas",
+      "track": "forense",
+      "title": "Forense: assinaturas de arquivo",
+      "summary": "Descobrir o formato real de um arquivo pelos bytes iniciais e achar texto escondido em metadados de uma imagem.",
+      "difficulty": "intermediario",
+      "required_tools": [],
+      "prerequisites": [
+        "forense-hashes"
+      ],
+      "services": [],
+      "doc": "docs/labs/forense-assinaturas.md",
+      "exercises": [
+        {
+          "id": "magic-hex",
+          "title": "Bytes iniciais",
+          "instructions": "Antes, gere as evidências com `python3 /opt/khalinux-labs/forense/gerar_evidencias.py` e entre em `/opt/khalinux-labs/forense/evidencias`. Quais são os 8 primeiros bytes de `relatorio.pdf` em hexadecimal, minúsculos e sem espaços? Dica de comando: `od -An -tx1 -N8 relatorio.pdf`.",
+          "difficulty": "intermediario",
+          "answer_sha256": "29b3bd49d22a34158ef391d821dc505b7347b662fc795fc04535a145f321d30c",
+          "ignore_case": true,
+          "hints": [
+            {
+              "text": "Remova os espaços da saída do `od` (por exemplo com `tr -d ' '`).",
+              "cost": 5
+            }
+          ]
+        },
+        {
+          "id": "tipo-real",
+          "title": "Formato real",
+          "instructions": "A extensão diz .pdf, mas o conteúdo é de outro formato. Qual? (Os bytes `50 4e 47` são as letras PNG em ASCII.) Responda com a sigla do formato.",
+          "difficulty": "intermediario",
+          "answer_sha256": "8f8cbb7dcf46e0bc7d53265749a6c17d116093a6ba95e442764060c76fd4a86c",
+          "ignore_case": true,
+          "hints": [
+            {
+              "text": "Extensões podem mentir; os primeiros bytes (assinatura) indicam o formato.",
+              "cost": 5
+            }
+          ]
+        },
+        {
+          "id": "tamanho-bytes",
+          "title": "Tamanho do arquivo",
+          "instructions": "Antes, gere as evidências com `python3 /opt/khalinux-labs/forense/gerar_evidencias.py` e entre em `/opt/khalinux-labs/forense/evidencias`. Qual é o tamanho, em bytes, de `relatorio.pdf`? (`wc -c < relatorio.pdf`)",
+          "difficulty": "intermediario",
+          "answer_sha256": "9bdb2af6799204a299c603994b8e400e4b1fd625efdb74066cc869fee42c9df3",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "Use `wc -c` com redirecionamento para só ver o número.",
+              "cost": 3
+            }
+          ]
+        },
+        {
+          "id": "flag-png",
+          "title": "Texto escondido",
+          "instructions": "Antes, gere as evidências com `python3 /opt/khalinux-labs/forense/gerar_evidencias.py` e entre em `/opt/khalinux-labs/forense/evidencias`. Procure no conteúdo de `relatorio.pdf` o texto no formato KHA{...} e informe-o inteiro. Dica: `grep -a -o 'KHA{[^}]*}' relatorio.pdf`.",
+          "difficulty": "avancado",
+          "answer_sha256": "8753512fce7a6f33cbd07bfa0bfd36712cf87467086de4a07ac270c47e41896a",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "PNG guarda comentários em blocos de texto que ficam legíveis no arquivo.",
+              "cost": 5
+            },
+            {
+              "text": "`grep -a` trata o binário como texto.",
+              "cost": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "forense-logs",
+      "track": "forense",
+      "title": "Forense: análise de log de acesso",
+      "summary": "Contar falhas de login, achar o IP e o usuário mais visados e o horário da primeira falha num log didático.",
+      "difficulty": "avancado",
+      "required_tools": [],
+      "prerequisites": [
+        "forense-assinaturas"
+      ],
+      "services": [],
+      "doc": "docs/labs/forense-logs.md",
+      "exercises": [
+        {
+          "id": "total-falhas",
+          "title": "Total de falhas",
+          "instructions": "Antes, gere as evidências com `python3 /opt/khalinux-labs/forense/gerar_evidencias.py` e entre em `/opt/khalinux-labs/forense/evidencias`. Quantas linhas de `log-acesso.txt` têm `resultado=FALHA`? (`grep -c`)",
+          "difficulty": "intermediario",
+          "answer_sha256": "4fc82b26aecb47d2868c4efbe3581732a3e7cbcc6c2efb32062c08170a05eeb8",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "`grep -c FALHA arquivo` conta as linhas que casam.",
+              "cost": 3
+            }
+          ]
+        },
+        {
+          "id": "ip-top",
+          "title": "IP com mais falhas",
+          "instructions": "Antes, gere as evidências com `python3 /opt/khalinux-labs/forense/gerar_evidencias.py` e entre em `/opt/khalinux-labs/forense/evidencias`. Qual endereço IP (só o número, sem `ip=`) concentra mais linhas com FALHA?",
+          "difficulty": "avancado",
+          "answer_sha256": "d861b7e91033ebc1c1e8e7af3929010158b3241b54ca87ef73e79c32f26400ec",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "Filtre com grep, extraia o campo do IP com awk e use `sort | uniq -c | sort -rn`.",
+              "cost": 10
+            }
+          ]
+        },
+        {
+          "id": "usuario-alvo",
+          "title": "Usuário mais visado",
+          "instructions": "Antes, gere as evidências com `python3 /opt/khalinux-labs/forense/gerar_evidencias.py` e entre em `/opt/khalinux-labs/forense/evidencias`. Qual usuário (só o nome, sem `user=`) aparece mais vezes nas linhas com FALHA?",
+          "difficulty": "avancado",
+          "answer_sha256": "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918",
+          "ignore_case": true,
+          "hints": [
+            {
+              "text": "Mesmo método do exercício anterior, mas com o campo do usuário.",
+              "cost": 10
+            }
+          ]
+        },
+        {
+          "id": "primeira-falha",
+          "title": "Primeira falha",
+          "instructions": "Antes, gere as evidências com `python3 /opt/khalinux-labs/forense/gerar_evidencias.py` e entre em `/opt/khalinux-labs/forense/evidencias`. Qual é o horário (HH:MM:SS) da primeira linha com FALHA no log?",
+          "difficulty": "avancado",
+          "answer_sha256": "11521272d702aaff5200af04002a380a12b0e01578ab3194c33edaa4fe73cbd4",
+          "ignore_case": false,
+          "hints": [
+            {
+              "text": "`grep -m1 FALHA` para na primeira correspondência; o horário vem depois do `T`.",
+              "cost": 5
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
