@@ -221,15 +221,25 @@ class SessionManager(
 
         fun fail(error: Throwable) {
             val message = error.message ?: error::class.java.simpleName
-            synchronized(lock) {
-                current = current.copy(
-                    state = SessionState.FAILED,
-                    endedAtEpochMillis = clock.millis(),
-                    errorMessage = message
-                )
+            val changed = synchronized(lock) {
+                if (current.state == SessionState.EXITED ||
+                    current.state == SessionState.CANCELLED ||
+                    current.state == SessionState.FAILED
+                ) {
+                    false
+                } else {
+                    current = current.copy(
+                        state = SessionState.FAILED,
+                        endedAtEpochMillis = clock.millis(),
+                        errorMessage = message
+                    )
+                    true
+                }
             }
-            releaseSlotOnce()
-            queue.offer(RuntimeEvent.Failed(id, message))
+            if (changed) {
+                releaseSlotOnce()
+                queue.offer(RuntimeEvent.Failed(id, message))
+            }
         }
 
         private fun releaseSlotOnce() {
