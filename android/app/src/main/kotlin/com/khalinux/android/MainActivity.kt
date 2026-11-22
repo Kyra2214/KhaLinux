@@ -9,11 +9,12 @@ import android.os.IBinder
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.lifecycle.ViewModelProvider
 import com.khalinux.android.data.ServiceTerminalRuntimeGateway
 
 /** Activity de hospedagem da UI Compose; a execução continua encapsulada no Service. */
 class MainActivity : ComponentActivity() {
-    private val viewModel: TerminalViewModel by viewModels()
+    private val viewModel: TerminalViewModel by viewModels {\n        ViewModelProvider.AndroidViewModelFactory.getInstance(application)\n    }
     private var bound = false
 
     private val connection = object : ServiceConnection {
