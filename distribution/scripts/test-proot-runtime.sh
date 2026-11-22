@@ -32,8 +32,13 @@ sudo chown -R "$(id -u):$(id -g)" "${ROOTFS}"
 # O RootfsInstaller não cria nós de dispositivo; prepara placeholders equivalentes.
 mkdir -p "${ROOTFS}/dev/pts"
 for node in null zero random urandom tty; do
-    if [[ ! -e "${ROOTFS}/dev/${node}" ]]; then
-        : > "${ROOTFS}/dev/${node}"
+    target="${ROOTFS}/dev/${node}"
+    if [[ -L "${target}" ]]; then
+        echo "Ponto de montagem inesperado como symlink: ${target}" >&2
+        exit 1
+    fi
+    if [[ ! -e "${target}" ]]; then
+        : > "${target}"
     fi
 done
 
