@@ -160,7 +160,7 @@ class ProotInstaller(
     }
 
     internal fun validateAndroidArm64Elf(file: File) {
-        RandomAccessFileCompat(file).use { input ->
+        java.io.RandomAccessFile(file, "r").use { input ->
             val header = ByteArray(64)
             input.readFully(header)
             require(
@@ -256,5 +256,4 @@ class ProotInstaller(
         }
     }
 
-    private class RandomAccessFileCompat(file: File) : java.io.RandomAccessFile(file, "r")
 }
