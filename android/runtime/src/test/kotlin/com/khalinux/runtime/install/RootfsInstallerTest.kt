@@ -1,13 +1,44 @@
 package com.khalinux.runtime.install
 
 import java.nio.file.Files
+import java.io.File
+import java.io.FileOutputStream
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
+import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class RootfsInstallerTest {
     private val installer = RootfsInstaller()
+
+    @Test
+    fun extractsMinimalGzipTarAndKeepsExecutableBit() {
+        val temp = Files.createTempDirectory("khalinux-tar-test").toFile()
+        val archive = File(temp, "rootfs.tar.gz")
+        GzipCompressorOutputStream(FileOutputStream(archive)).use { gzip ->
+            TarArchiveOutputStream(gzip).use { tar ->
+                val rootEntry = TarArchiveEntry("./")
+                tar.putArchiveEntry(rootEntry)
+                tar.closeArchiveEntry()
+                val dir = TarArchiveEntry("bin/")
+                tar.putArchiveEntry(dir)
+                tar.closeArchiveEntry()
+                val bash = TarArchiveEntry("bin/bash")
+                bash.size = 3
+                bash.mode = 0b111101101
+                tar.putArchiveEntry(bash)
+                tar.write(byteArrayOf(1, 2, 3))
+                tar.closeArchiveEntry()
+            }
+        }
+        val destination = File(temp, "unpacked")
+        assertTrue(destination.mkdir())
+        assertEquals(3L, installer.extractSafely(archive, destination))
+        assertTrue(File(destination, "bin/bash").isFile)
+        assertTrue(File(destination, "bin/bash").canExecute())
+    }
 
     @Test
     fun archiveEntryMustStayInsideRoot() {
