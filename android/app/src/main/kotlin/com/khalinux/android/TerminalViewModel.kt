@@ -105,7 +105,7 @@ class TerminalViewModel : ViewModel() {
             if (!current.runtimeInstalled || current.isRunning || current.isInteractive) return
             val command = current.command.trim()
             if (command.isEmpty()) return
-            appendOutputLocked("\\n$ $command\\n")
+            appendOutputLocked("\n$ $command\n")
             mutableUiState.update { it.copy(isStarting = true) }
             activeUseCases to command
         }
@@ -117,7 +117,7 @@ class TerminalViewModel : ViewModel() {
             val current = mutableUiState.value
             val useCases = runtimeUseCases ?: return
             if (!current.runtimeInstalled || current.isRunning) return
-            appendOutputLocked("\\n[shell interativo PTY iniciando; TERM=dumb]\\n")
+            appendOutputLocked("\n[shell interativo PTY iniciando; TERM=dumb]\n")
             mutableUiState.update { it.copy(isStarting = true) }
             useCases
         }
@@ -152,7 +152,7 @@ class TerminalViewModel : ViewModel() {
             } catch (error: Exception) {
                 synchronized(lock) {
                     mutableUiState.update { it.copy(isStarting = false, sessionId = null, isInteractive = false) }
-                    appendOutputLocked("erro ao iniciar sessão: ${error.message ?: error.javaClass.simpleName}\\n")
+                    appendOutputLocked("erro ao iniciar sessão: ${error.message ?: error.javaClass.simpleName}\n")
                 }
             }
         }
@@ -166,13 +166,13 @@ class TerminalViewModel : ViewModel() {
         val input = current.command
         if (input.isEmpty()) return
         try {
-            if (activeUseCases.writeInput(sessionId, "$input\\n")) {
+            if (activeUseCases.writeInput(sessionId, "$input\n")) {
                 mutableUiState.update { it.copy(command = "") }
             } else {
-                appendOutputLocked("\\n[entrada não enviada: sessão PTY indisponível]\\n")
+                appendOutputLocked("\n[entrada não enviada: sessão PTY indisponível]\n")
             }
         } catch (error: Exception) {
-            appendOutputLocked("\\n[erro de entrada: ${error.message ?: error.javaClass.simpleName}]\\n")
+            appendOutputLocked("\n[erro de entrada: ${error.message ?: error.javaClass.simpleName}]\n")
         }
     }
 
