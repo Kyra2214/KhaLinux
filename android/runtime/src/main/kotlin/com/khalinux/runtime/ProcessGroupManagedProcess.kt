@@ -5,15 +5,14 @@ import java.io.OutputStream
 import java.util.concurrent.TimeUnit
 
 /**
- * Delegates the process streams and lifecycle while routing termination to the
- * process group created by Android's setsid launcher.
+ * Delegates process I/O and exit handling while routing termination to a
+ * separately identified process group.
  */
 internal class ProcessGroupManagedProcess(
     private val delegate: Process,
-    private val signalGroup: (processId: Int, force: Boolean) -> Boolean
+    private val processGroupId: Int,
+    private val signalGroup: (processGroupId: Int, force: Boolean) -> Boolean
 ) : Process() {
-    private val processId = Math.toIntExact(delegate.pid())
-
     override fun getOutputStream(): OutputStream = delegate.outputStream
     override fun getInputStream(): InputStream = delegate.inputStream
     override fun getErrorStream(): InputStream = delegate.errorStream
@@ -21,14 +20,13 @@ internal class ProcessGroupManagedProcess(
     override fun waitFor(timeout: Long, unit: TimeUnit): Boolean = delegate.waitFor(timeout, unit)
     override fun exitValue(): Int = delegate.exitValue()
     override fun isAlive(): Boolean = delegate.isAlive
-    override fun pid(): Long = delegate.pid()
 
     override fun destroy() {
-        if (isAlive) signalGroup(processId, false)
+        if (isAlive) signalGroup(processGroupId, false)
     }
 
     override fun destroyForcibly(): Process {
-        if (isAlive) signalGroup(processId, true)
+        if (isAlive) signalGroup(processGroupId, true)
         return this
     }
 }
