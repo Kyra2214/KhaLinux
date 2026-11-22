@@ -24,9 +24,8 @@ android {
     }
 }
 
-val composeBom = platform("androidx.compose:compose-bom:2024.06.00")
-
 dependencies {
+    implementation(platform("androidx.compose:compose-bom:2024.06.00"))
     implementation(project(":android:runtime"))
 
     implementation("androidx.activity:activity-ktx:1.9.0")
@@ -36,7 +35,6 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 
-    implementation(composeBom)
     implementation("androidx.compose.foundation:foundation")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.ui:ui")
