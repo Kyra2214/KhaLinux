@@ -58,6 +58,21 @@ export CC AR RANLIB CFLAGS="-fPIC -O2" LDFLAGS=""
 
 # libandroid-shmem é compilada como arquivo estático e ligada ao PRoot.
 make -C "$SHMEM_SRC" clean
+# O NDK exige declarações explícitas para strcmp/memset usadas por esta extensão.
+python3 - "$PROOT_SRC/src/extension/ashmem_memfd/ashmem_memfd.c" <<'PY'
+from pathlib import Path
+import sys
+
+source = Path(sys.argv[1])
+text = source.read_text()
+if "#include <string.h>" not in text:
+    anchor = "#include <stdlib.h>" + chr(10)
+    if text.count(anchor) != 1:
+        raise SystemExit("PRoot ashmem_memfd source layout changed; refusing an unreviewed patch")
+    text = text.replace(anchor, anchor + "#include <string.h>" + chr(10))
+    source.write_text(text)
+PY
+
 # Bionic não define _PATH_TMP. O patch usa TMPDIR, que será apontado pelo app
 # para um diretório privado gravável antes de iniciar o PRoot.
 python3 - "$SHMEM_SRC/shmem.c" <<'PY'
