@@ -105,7 +105,7 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
 
     fun attachRuntime(gateway: TerminalRuntimeGateway) {
         synchronized(lock) {
-            if (runtimeGateway !== gateway && mutableUiState.value.isRunning) {
+            if (runtimeGateway?.isSameRuntime(gateway) != true && mutableUiState.value.isRunning) {
                 appendOutputLocked("\\n[sessão interrompida após reconexão do Service]\\n")
                 startJob?.cancel()
                 inputJob?.cancel()
@@ -407,7 +407,8 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
                 val sent = withContext(Dispatchers.IO) {
                     payload.first.writeInput(payload.second, "${payload.third}\n")
                 }
-                if (sent) persistCommand(payload.third)
+                // Interactive PTY input may contain passwords or tokens typed into hidden prompts.
+                // Only commands submitted through the explicit non-interactive command mode are persisted.
                 synchronized(lock) {
                     mutableUiState.update { state ->
                         state.copy(
