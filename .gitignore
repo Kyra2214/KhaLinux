@@ -17,6 +17,8 @@ local.properties
 *.zip
 *.log
 coverage/
+__pycache__/
+*.py[cod]
 
 # Secrets and local configuration
 .env
