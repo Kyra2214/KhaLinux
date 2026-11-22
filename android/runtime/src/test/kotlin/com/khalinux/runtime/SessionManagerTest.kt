@@ -157,15 +157,16 @@ class SessionManagerTest {
                 .waitFor() == 0
         }
 
+        fun descendantIsActive(): Boolean {
+            val stat = File("/proc/$descendantPid/stat")
+            if (!stat.isFile) return false
+            val state = stat.readText().substringAfterLast(") ").firstOrNull()
+            return state != null && state != 'Z' && state != 'X'
+        }
+
         try {
             managed.destroy()
             assertTrue("processo/grupo não encerrou no prazo", managed.waitFor(3, TimeUnit.SECONDS))
-            fun descendantIsActive(): Boolean {
-                val stat = File("/proc/$descendantPid/stat")
-                if (!stat.isFile) return false
-                val state = stat.readText().substringAfterLast(") ").firstOrNull()
-                return state != null && state != 'Z' && state != 'X'
-            }
             val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2)
             while (descendantIsActive() && System.nanoTime() < deadline) {
                 Thread.sleep(25)
