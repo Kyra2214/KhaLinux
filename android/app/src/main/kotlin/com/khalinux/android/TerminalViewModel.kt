@@ -43,12 +43,14 @@ class TerminalViewModel : ViewModel() {
     private var runtimeGateway: TerminalRuntimeGateway? = null
     private var runtimeUseCases: TerminalUseCases? = null
     private var startJob: Job? = null
+    private var inputJob: Job? = null
     private val completedSessionsBeforeStartReturn = mutableSetOf<String>()
 
     fun attachRuntime(gateway: TerminalRuntimeGateway) = synchronized(lock) {
         if (runtimeGateway !== gateway && mutableUiState.value.isRunning) {
             appendOutputLocked("\n[sessão interrompida após reconexão do Service]\n")
             startJob?.cancel()
+            inputJob?.cancel()
             completedSessionsBeforeStartReturn.clear()
             mutableUiState.update { it.copy(sessionId = null, isInteractive = false, isStarting = false) }
         }
@@ -68,6 +70,7 @@ class TerminalViewModel : ViewModel() {
             appendOutputLocked("\n[Service desconectado; sessão não está mais vinculada]\n")
         }
         startJob?.cancel()
+        inputJob?.cancel()
         completedSessionsBeforeStartReturn.clear()
         runtimeGateway = null
         runtimeUseCases = null
@@ -78,7 +81,8 @@ class TerminalViewModel : ViewModel() {
                 connectionMessage = "Service local desconectado",
                 sessionId = null,
                 isInteractive = false,
-                isStarting = false
+                isStarting = false,
+                isSendingInput = false
             )
         }
     }
@@ -185,23 +189,25 @@ class TerminalViewModel : ViewModel() {
             mutableUiState.update { it.copy(isSendingInput = true) }
             Triple(activeUseCases, sessionId, input)
         }
-        viewModelScope.launch {
-            val result = runCatching {
-                withContext(Dispatchers.IO) {
+        inputJob = viewModelScope.launch {
+            try {
+                val sent = withContext(Dispatchers.IO) {
                     payload.first.writeInput(payload.second, "${payload.third}\n")
                 }
-            }
-            synchronized(lock) {
-                mutableUiState.update { state ->
-                    state.copy(
-                        command = if (result.getOrNull() == true && state.command == payload.third) "" else state.command,
-                        isSendingInput = false
-                    )
+                synchronized(lock) {
+                    mutableUiState.update { state ->
+                        state.copy(
+                            command = if (sent && state.command == payload.third) "" else state.command,
+                            isSendingInput = false
+                        )
+                    }
+                    if (!sent) appendOutputLocked("\n[entrada não enviada: sessão PTY indisponível]\n")
                 }
-                if (result.getOrNull() != true) {
-                    appendOutputLocked("\n[entrada não enviada: sessão PTY indisponível]\n")
-                }
-                result.exceptionOrNull()?.let { error ->
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                synchronized(lock) {
+                    mutableUiState.update { it.copy(isSendingInput = false) }
                     appendOutputLocked("\n[erro de entrada: ${error.message ?: error.javaClass.simpleName}]\n")
                 }
             }
@@ -257,11 +263,12 @@ class TerminalViewModel : ViewModel() {
             }
             is RuntimeEvent.Failed -> {
                 if (event.sessionId == activeSessionId) {
+                    inputJob?.cancel()
                     appendOutputLocked("\n[falha=${event.message}]\n")
                     if (mutableUiState.value.isStarting) {
                         completedSessionsBeforeStartReturn.add(event.sessionId)
                     }
-                    mutableUiState.update { it.copy(sessionId = null, isInteractive = false) }
+                    mutableUiState.update { it.copy(sessionId = null, isInteractive = false, isSendingInput = false) }
                 }
             }
         }
@@ -285,6 +292,7 @@ class TerminalViewModel : ViewModel() {
                 }
             }
             startJob?.cancel()
+            inputJob?.cancel()
             completedSessionsBeforeStartReturn.clear()
             runtimeGateway = null
             runtimeUseCases = null
