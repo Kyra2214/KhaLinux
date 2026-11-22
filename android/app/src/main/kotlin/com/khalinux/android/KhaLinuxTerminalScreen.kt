@@ -52,8 +52,10 @@ fun KhaLinuxApp(viewModel: TerminalViewModel) {
                     text = when {
                         !state.serviceConnected -> state.connectionMessage ?: "Conectando ao Service local…"
                         state.runtimeInstalled -> "Runtime Linux instalado"
-                        state.rootfsInstalled -> "RootFS instalado; runtime PRoot pendente"
-                        else -> "RootFS ainda não instalado"
+                        state.rootfsInstalled && state.prootInstalled -> "RootFS e PRoot instalados"
+                        state.rootfsInstalled -> "RootFS instalado; PRoot pendente"
+                        state.prootInstalled -> "PRoot instalado; RootFS pendente"
+                        else -> "Ambiente Linux ainda não instalado"
                     } + when {
                         state.isStarting -> " · iniciando sessão…"
                         state.sessionId != null -> " · sessão ${state.sessionId}"
@@ -69,14 +71,31 @@ fun KhaLinuxApp(viewModel: TerminalViewModel) {
                         enabled = !state.isInstallingRootfs,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(if (state.isInstallingRootfs) "Instalando Debian…" else "Instalar ambiente Linux")
+                        Text(if (state.isInstallingRootfs) "Instalando Debian…" else "Instalar Debian ARM64")
                     }
-                    state.rootfsInstallProgress?.let { progress ->
-                        Text(progress, color = Color(0xFF80CBC4), style = MaterialTheme.typography.bodySmall)
+                }
+
+                if (state.serviceConnected && state.rootfsInstalled && !state.prootInstalled) {
+                    OutlinedButton(
+                        onClick = viewModel::installProot,
+                        enabled = !state.isInstallingProot,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(if (state.isInstallingProot) "Instalando PRoot…" else "Instalar PRoot ARM64")
                     }
-                    state.rootfsInstallMessage?.let { message ->
-                        Text(message, color = Color(0xFFE8F0F2), style = MaterialTheme.typography.bodySmall)
-                    }
+                }
+
+                state.rootfsInstallProgress?.let { progress ->
+                    Text(progress, color = Color(0xFF80CBC4), style = MaterialTheme.typography.bodySmall)
+                }
+                state.rootfsInstallMessage?.let { message ->
+                    Text(message, color = Color(0xFFE8F0F2), style = MaterialTheme.typography.bodySmall)
+                }
+                state.prootInstallProgress?.let { progress ->
+                    Text(progress, color = Color(0xFF80CBC4), style = MaterialTheme.typography.bodySmall)
+                }
+                state.prootInstallMessage?.let { message ->
+                    Text(message, color = Color(0xFFE8F0F2), style = MaterialTheme.typography.bodySmall)
                 }
 
                 OutlinedTextField(
