@@ -35,4 +35,25 @@ class ProotConfigBindTest {
             directory.deleteRecursively()
         }
     }
+
+    @Test
+    fun commandEmulatesHardLinksForDpkgOnAndroid() {
+        val directory = Files.createTempDirectory("khalinux-proot-link").toFile()
+        try {
+            val proot = File(directory, "proot").apply {
+                writeText("placeholder")
+                setExecutable(true)
+            }
+            val rootfs = File(directory, "rootfs").apply { mkdirs() }
+            File(rootfs, "bin").mkdirs()
+            File(rootfs, "bin/bash").writeText("placeholder")
+            val command = ProotConfig(proot, rootfs).commandFor(CommandRequest(shellCommand = "true"))
+
+            // Sem isso o dpkg falha em /var/lib/dpkg/status-old (link() negado pelo SELinux).
+            assertTrue(command.contains("--link2symlink"))
+            assertTrue(command.indexOf("--link2symlink") < command.indexOf("-r"))
+        } finally {
+            directory.deleteRecursively()
+        }
+    }
 }

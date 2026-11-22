@@ -3,6 +3,8 @@
 ## [Não lançado] — CHECKPOINT 047
 
 ### Corrigido
+- **`dpkg: error creating new backup file '/var/lib/dpkg/status-old': Permission denied`** ao instalar pacotes `debian-apt` (ex.: binwalk; `apt-get install` saía com código 100 e o dpkg com 2). Causa: o dpkg cria o backup com `link()` (hard link), que o SELinux do Android nega em `filesDir` (EACCES). `ProotConfig.commandFor` agora passa `--link2symlink` ao PRoot, que emula hard links com symlinks.
+- A solicitação do foreground service de sessões interativas agora fica dentro do fluxo de erro da sessão, evitando um crash não tratado se o Android recusar a chamada.
 - **`Permission denied` (exit 126) ao executar o PRoot** (confirmado em aparelho: Terminal, Pacotes e Ferramentas falhavam por isso): com `targetSdk` ≥ 29 o SELinux bloqueia `execve` de arquivos em `filesDir`. `targetSdk`/`minSdk` passam a 28 (mesmo caminho do Termux; distribuição por APK fora da Play Store). `enableEdgeToEdge()` + `adjustResize` mantêm os insets corretos.
 - Ferramentas: botões "Favoritar" etc. em duas linhas de largura igual (não quebram mais o texto).
 

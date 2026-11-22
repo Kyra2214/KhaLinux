@@ -53,6 +53,9 @@ data class ProotConfig(
         if (!preserveHostUid) args += "-0"
         // Encerra os processos convidados quando o PRoot termina (evita órfãos no Android).
         args += "--kill-on-exit"
+        // Android (SELinux) nega link() em dados do app (EACCES). O dpkg cria /var/lib/dpkg/status-old
+        // com hard link; --link2symlink emula hard links com symlinks (mesma opção do proot-distro).
+        args += "--link2symlink"
         // Usar apenas flags portáteis; opções específicas do PRoot Android serão validadas depois.
         qemuExecutable?.let { args += listOf("-q", it.absolutePath) }
         args += listOf("-r", rootfsDirectory.absolutePath)
