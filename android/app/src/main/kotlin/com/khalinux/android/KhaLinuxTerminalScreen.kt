@@ -16,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
@@ -142,6 +143,35 @@ fun KhaLinuxApp(viewModel: TerminalViewModel) {
                         modifier = Modifier.weight(1f)
                     ) {
                         Text("Cancelar")
+                    }
+                }
+
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(
+                        "Fonte do terminal: ${state.fontSizeSp.toInt()} sp",
+                        color = Color(0xFF8A9AA0),
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                    Slider(
+                        value = state.fontSizeSp,
+                        onValueChange = viewModel::updateFontSize,
+                        onValueChangeFinished = viewModel::saveTerminalSettings,
+                        valueRange = 10f..22f,
+                        steps = 11
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            "Tela ${state.terminalRows} × ${state.terminalColumns}",
+                            color = Color(0xFF8A9AA0),
+                            modifier = Modifier.weight(1f)
+                        )
+                        OutlinedButton(onClick = { viewModel.adjustTerminalRows(-1) }) { Text("− linha") }
+                        OutlinedButton(onClick = { viewModel.adjustTerminalRows(1) }) { Text("+ linha") }
+                        OutlinedButton(onClick = { viewModel.adjustTerminalColumns(-8) }) { Text("− col.") }
+                        OutlinedButton(onClick = { viewModel.adjustTerminalColumns(8) }) { Text("+ col.") }
                     }
                 }
 
