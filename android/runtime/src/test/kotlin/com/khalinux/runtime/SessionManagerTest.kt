@@ -1,6 +1,7 @@
 package com.khalinux.runtime
 
 import java.io.File
+import java.io.IOException
 import java.nio.file.Files
 import java.time.Duration
 import org.junit.After
@@ -107,6 +108,27 @@ class SessionManagerTest {
             val second = runtime.start(CommandRequest("true"))
             second.events().toList()
             assertEquals(SessionState.EXITED, second.snapshot().state)
+        } finally {
+            runtime.close()
+        }
+    }
+
+    @Test fun launchFailureReleasesActiveSessionCapacity() {
+        val brokenLauncher = ProotLauncher(
+            config(),
+            processLauncher = object : ProcessLauncher {
+                override fun launch(arguments: List<String>, processEnvironment: Map<String, String>): Process {
+                    throw IOException("simulated process launch failure")
+                }
+            }
+        )
+        val runtime = SessionManager(brokenLauncher, maxSessions = 1)
+        try {
+            repeat(2) {
+                assertFailsWith<IOException> {
+                    runtime.start(CommandRequest("true"))
+                }
+            }
         } finally {
             runtime.close()
         }
