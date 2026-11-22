@@ -9,7 +9,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        minSdk = 35
+        minSdk = 28
         consumerProguardFiles("consumer-rules.pro")
     }
 
@@ -19,7 +19,6 @@ android {
             version = "3.22.1"
         }
     }
-
 }
 
 dependencies {

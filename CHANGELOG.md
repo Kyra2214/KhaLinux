@@ -1,6 +1,12 @@
 # Changelog
 
-## [Não lançado] — CHECKPOINT 046
+## [Não lançado] — CHECKPOINT 047
+
+### Corrigido
+- **`Permission denied` (exit 126) ao executar o PRoot** (confirmado em aparelho: Terminal, Pacotes e Ferramentas falhavam por isso): com `targetSdk` ≥ 29 o SELinux bloqueia `execve` de arquivos em `filesDir`. `targetSdk`/`minSdk` passam a 28 (mesmo caminho do Termux; distribuição por APK fora da Play Store). `enableEdgeToEdge()` + `adjustResize` mantêm os insets corretos.
+- Ferramentas: botões "Favoritar" etc. em duas linhas de largura igual (não quebram mais o texto).
+
+## CHECKPOINT 046
 
 ### Corrigido
 - **RootFS sem `/bin/bash` após instalar** ("Falha na instalação do PRoot: RootFS não contém /bin/bash"): no

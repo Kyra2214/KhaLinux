@@ -22,8 +22,10 @@ android {
 
     defaultConfig {
         applicationId = "com.khalinux.android"
-        minSdk = 35
-        targetSdk = 35
+        // targetSdk 28 é intencional: a partir do 29 o SELinux bloqueia execve em arquivos do app
+        // ("Permission denied", exit 126). Mesmo caminho do Termux (APK fora da Play Store).
+        minSdk = 28
+        targetSdk = 28
         versionCode = khalinuxVersionCode
         versionName = khalinuxVersionName
     }

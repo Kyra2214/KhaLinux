@@ -70,22 +70,34 @@ fun ToolkitScreen(state: ToolkitUiState, viewModel: ToolkitViewModel, onUseInTer
                             color = Color(0xFFFFE082), style = MaterialTheme.typography.bodySmall
                         )
                     }
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    // Duas linhas de botões com a mesma largura: evita quebrar "Favoritar" em duas linhas.
+                    val compact = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                         Button(
                             onClick = { viewModel.verify(tool.id) },
-                            enabled = state.busy == null && status.installedVersion != null
-                        ) { Text(stringResource(R.string.tk_verify)) }
+                            enabled = state.busy == null && status.installedVersion != null,
+                            contentPadding = compact,
+                            modifier = Modifier.weight(1f)
+                        ) { Text(stringResource(R.string.tk_verify), maxLines = 1) }
                         // Integração (7.7): leva o comando da ferramenta ao terminal; ferramentas que exigem autorização só depois do escopo confirmado.
                         OutlinedButton(
                             onClick = { onUseInTerminal(tool.commands.first() + " ") },
-                            enabled = status.installedVersion != null && tool.commands.isNotEmpty() && (!tool.requiresAuthorization || status.allowed)
-                        ) { Text(stringResource(R.string.tk_use_in_terminal)) }
-                        OutlinedButton(onClick = { viewModel.toggleFavorite(tool.id) }) {
-                            Text(stringResource(if (tool.id in state.favoriteToolIds) R.string.fav_tool_on else R.string.fav_tool_off))
+                            enabled = status.installedVersion != null && tool.commands.isNotEmpty() && (!tool.requiresAuthorization || status.allowed),
+                            contentPadding = compact,
+                            modifier = Modifier.weight(1f)
+                        ) { Text(stringResource(R.string.tk_use_in_terminal), maxLines = 1) }
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                        OutlinedButton(
+                            onClick = { viewModel.toggleFavorite(tool.id) },
+                            contentPadding = compact,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(stringResource(if (tool.id in state.favoriteToolIds) R.string.fav_tool_on else R.string.fav_tool_off), maxLines = 1)
                         }
                         if (tool.requiresAuthorization) {
-                            if (status.allowed) OutlinedButton(onClick = { viewModel.revoke(tool.id) }) { Text(stringResource(R.string.tk_revoke)) }
-                            else OutlinedButton(onClick = { viewModel.askScope(tool.id) }) { Text(stringResource(R.string.tk_confirm_scope)) }
+                            if (status.allowed) OutlinedButton(onClick = { viewModel.revoke(tool.id) }, contentPadding = compact, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.tk_revoke), maxLines = 1) }
+                            else OutlinedButton(onClick = { viewModel.askScope(tool.id) }, contentPadding = compact, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.tk_confirm_scope), maxLines = 1) }
                         }
                     }
                 }
