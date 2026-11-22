@@ -134,7 +134,8 @@ class SessionManagerTest {
         }
     }
 
-    @Test fun processGroupCancellationTerminatesShellDescendants() {
+    @Test(timeout = 15000)
+    fun processGroupCancellationTerminatesShellDescendants() {
         val setsid = listOf(File("/usr/bin/setsid"), File("/bin/setsid"))
             .firstOrNull { it.canExecute() }
         assumeTrue("setsid ausente no host", setsid != null)
@@ -142,6 +143,7 @@ class SessionManagerTest {
         assumeTrue("utilitário kill ausente no host", kill.canExecute())
 
         val pidFile = Files.createTempFile("khalinux-process-group-", ".pid").toFile()
+        val descendantPidFile = Files.createTempFile("khalinux-descendant-", ".pid").toFile()
         val wrapperScript = "printf '%s\\n' \"\$\$\" > \"\$1\"; shift; exec \"\$@\""
         val child = ProcessBuilder(
             setsid!!.absolutePath,
@@ -152,20 +154,33 @@ class SessionManagerTest {
             "khalinux-process-group",
             pidFile.absolutePath,
             "/bin/bash",
-            "--noprofile",
-            "--norc",
-            "-lc",
-            "sleep 10 & echo $!; wait"
+            "-c",
+            "sleep 10 & echo $! > \"\$1\"; wait",
+            "khalinux-child",
+            descendantPidFile.absolutePath
         ).start()
+
+        var descendantPid: Int? = null
+        fun readPid(file: File): Int? = runCatching { file.readText().trim().toInt() }.getOrNull()
+        fun descendantIsActive(pid: Int): Boolean {
+            val stat = File("/proc/$pid/stat")
+            if (!stat.isFile) return false
+            val state = stat.readText().substringAfterLast(") ").firstOrNull()
+            return state != null && state != 'Z' && state != 'X'
+        }
+
         try {
             val deadlineForPid = System.nanoTime() + TimeUnit.SECONDS.toNanos(2)
             var processGroupId: Int? = null
-            while (System.nanoTime() < deadlineForPid && processGroupId == null) {
-                processGroupId = runCatching { pidFile.readText().trim().toInt() }.getOrNull()
-                if (processGroupId == null && child.isAlive) Thread.sleep(10)
+            while (System.nanoTime() < deadlineForPid &&
+                (processGroupId == null || descendantPid == null)
+            ) {
+                if (processGroupId == null) processGroupId = readPid(pidFile)
+                if (descendantPid == null) descendantPid = readPid(descendantPidFile)
+                if ((processGroupId == null || descendantPid == null) && child.isAlive) Thread.sleep(10)
             }
             val resolvedGroupId = requireNotNull(processGroupId) { "wrapper não publicou o PID do grupo" }
-            val descendantPid = child.inputStream.bufferedReader().readLine().trim().toInt()
+            val resolvedDescendantPid = requireNotNull(descendantPid) { "shell não publicou o PID descendente" }
             val managed = ProcessGroupManagedProcess(child, resolvedGroupId) { pid, force ->
                 val signal = if (force) "KILL" else "TERM"
                 ProcessBuilder(kill.absolutePath, "-$signal", "--", "-$pid")
@@ -173,22 +188,26 @@ class SessionManagerTest {
                     .waitFor() == 0
             }
 
-            fun descendantIsActive(): Boolean {
-                val stat = File("/proc/$descendantPid/stat")
-                if (!stat.isFile) return false
-                val state = stat.readText().substringAfterLast(") ").firstOrNull()
-                return state != null && state != 'Z' && state != 'X'
-            }
-
             managed.destroy()
             assertTrue("processo/grupo não encerrou no prazo", managed.waitFor(3, TimeUnit.SECONDS))
             val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2)
-            while (descendantIsActive() && System.nanoTime() < deadline) {
+            while (descendantIsActive(resolvedDescendantPid) && System.nanoTime() < deadline) {
                 Thread.sleep(25)
             }
-            assertTrue("processo descendente sobreviveu ao cancelamento", !descendantIsActive())
+            assertTrue(
+                "processo descendente sobreviveu ao cancelamento",
+                !descendantIsActive(resolvedDescendantPid)
+            )
         } finally {
+            val cleanupPid = descendantPid ?: readPid(descendantPidFile)
+            if (cleanupPid != null && descendantIsActive(cleanupPid)) {
+                ProcessBuilder(kill.absolutePath, "-KILL", "--", cleanupPid.toString())
+                    .start()
+                    .waitFor()
+            }
+            if (child.isAlive) child.destroyForcibly()
             pidFile.delete()
+            descendantPidFile.delete()
         }
     }
 
