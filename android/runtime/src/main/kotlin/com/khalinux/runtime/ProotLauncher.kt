@@ -91,7 +91,7 @@ class ProotLauncher(
 
     fun launch(request: CommandRequest): Process {
         val arguments = config.commandFor(request)
-        val environment = mapOf("LC_ALL" to "C.UTF-8", "LANG" to "C.UTF-8")
+        val environment = hostEnvironment()
         return if (request.interactive) {
             requireNotNull(interactiveProcessLauncher) {
                 "launcher PTY não configurado para sessão interativa"
@@ -99,6 +99,25 @@ class ProotLauncher(
         } else {
             processLauncher.launch(arguments, environment)
         }
+    }
+
+    internal fun hostEnvironment(): Map<String, String> {
+        val runtimeDirectory = config.prootExecutable.absoluteFile.parentFile
+            ?: error("Diretório do executável PRoot inválido")
+        val tempDirectory = File(runtimeDirectory, "tmp")
+        if (!tempDirectory.exists()) {
+            check(tempDirectory.mkdirs() || tempDirectory.isDirectory) {
+                "Não foi possível criar o diretório temporário privado do KhaLinux"
+            }
+        }
+        require(tempDirectory.isDirectory && tempDirectory.canWrite()) {
+            "Diretório temporário privado do KhaLinux não está gravável"
+        }
+        return mapOf(
+            "LC_ALL" to "C.UTF-8",
+            "LANG" to "C.UTF-8",
+            "TMPDIR" to tempDirectory.absolutePath
+        )
     }
 
     fun commandPreview(request: CommandRequest): List<String> = config.commandFor(request)
