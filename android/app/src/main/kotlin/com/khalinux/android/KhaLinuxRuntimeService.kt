@@ -1,9 +1,15 @@
 package com.khalinux.android
 
 import android.app.Service
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Intent
+import android.os.Build
 import android.os.Binder
 import android.os.IBinder
+import androidx.core.app.NotificationCompat
 import com.khalinux.runtime.AndroidPtyProcessLauncher
 import com.khalinux.runtime.CommandRequest
 import com.khalinux.runtime.LinuxRuntime
@@ -54,6 +60,7 @@ class KhaLinuxRuntimeService : Service() {
     private val callbacks: ExecutorService = Executors.newCachedThreadPool()
     private val installerExecutor: ExecutorService = Executors.newSingleThreadExecutor()
     private var runtime: LinuxRuntime? = null
+    @Volatile private var activeInteractiveSessionId: String? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -245,18 +252,99 @@ class KhaLinuxRuntimeService : Service() {
             initialRows = rows,
             initialColumns = columns
         )
-        return observe(activeRuntime.start(request), listener)
+        requestInteractiveForeground()
+        return try {
+            val session = activeRuntime.start(request)
+            activeInteractiveSessionId = session.id
+            observe(session, listener, foregroundSession = true)
+        } catch (error: Throwable) {
+            stopInteractiveForeground()
+            throw error
+        }
     }
 
-    private fun observe(session: com.khalinux.runtime.RuntimeSession, listener: EventListener): String {
+    private fun observe(
+        session: com.khalinux.runtime.RuntimeSession,
+        listener: EventListener,
+        foregroundSession: Boolean = false
+    ): String {
         callbacks.submit {
             try {
-                session.events().forEach(listener::onEvent)
+                session.events().forEach { event ->
+                    listener.onEvent(event)
+                    if (foregroundSession && (event is RuntimeEvent.Exited || event is RuntimeEvent.Failed)) {
+                        stopInteractiveForeground(session.id)
+                    }
+                }
             } catch (error: Throwable) {
                 listener.onEvent(RuntimeEvent.Failed(session.id, error.message ?: "erro de eventos"))
+                if (foregroundSession) stopInteractiveForeground(session.id)
             }
         }
         return session.id
+    }
+
+    private fun requestInteractiveForeground() {
+        val intent = Intent(this, KhaLinuxRuntimeService::class.java).setAction(ACTION_INTERACTIVE_SESSION)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent) else startService(intent)
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        when (intent?.action) {
+            ACTION_INTERACTIVE_SESSION -> startForeground(NOTIFICATION_ID, createSessionNotification())
+            ACTION_STOP_INTERACTIVE_SESSION -> {
+                activeInteractiveSessionId?.let { runtime?.cancel(it) }
+                stopInteractiveForeground()
+            }
+        }
+        return START_NOT_STICKY
+    }
+
+    private fun createSessionNotification(): Notification {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                NOTIFICATION_CHANNEL_ID,
+                "Sessão KhaLinux",
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = "Mantém uma sessão de terminal Linux iniciada pelo usuário"
+            }
+            getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
+        }
+
+        val openApp = PendingIntent.getActivity(
+            this,
+            0,
+            Intent(this, MainActivity::class.java),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val stopSession = PendingIntent.getService(
+            this,
+            1,
+            Intent(this, KhaLinuxRuntimeService::class.java).setAction(ACTION_STOP_INTERACTIVE_SESSION),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        return NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.ic_menu_manage)
+            .setContentTitle("KhaLinux")
+            .setContentText("Sessão de terminal Linux em execução")
+            .setContentIntent(openApp)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
+            .setOngoing(true)
+            .addAction(android.R.drawable.ic_media_pause, "Encerrar sessão", stopSession)
+            .build()
+    }
+
+    private fun stopInteractiveForeground(sessionId: String? = null) {
+        if (sessionId != null && activeInteractiveSessionId != sessionId) return
+        activeInteractiveSessionId = null
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            stopForeground(STOP_FOREGROUND_REMOVE)
+        } else {
+            @Suppress("DEPRECATION")
+            stopForeground(true)
+        }
+        stopSelf()
     }
 
     fun writeInput(sessionId: String, text: String): Boolean =
