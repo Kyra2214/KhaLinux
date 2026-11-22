@@ -31,9 +31,21 @@ data class TerminalSnapshot(
     val rows: Int,
     val columns: Int
 ) {
-    fun plainText(): String = lines.joinToString("\n") { line ->
-        val end = line.indexOfLast { it.text != " " || it.style != TerminalStyle() } + 1
-        if (end <= 0) "" else line.take(end).joinToString("") { it.text }
+    fun displayRange(): IntRange {
+        val firstContent = lines.indexOfFirst { line -> line.any { it.text != " " || it.style != TerminalStyle() } }
+        val start = if (firstContent >= 0) firstContent else cursorRow.coerceIn(0, lines.lastIndex)
+        val lastContent = lines.indexOfLast { line -> line.any { it.text != " " || it.style != TerminalStyle() } }
+        val end = max(lastContent, cursorRow).coerceIn(start, lines.lastIndex)
+        return start..end
+    }
+
+    fun plainText(): String {
+        val range = displayRange()
+        return range.joinToString("\n") { rowIndex ->
+            val line = lines[rowIndex]
+            val end = line.indexOfLast { it.text != " " || it.style != TerminalStyle() } + 1
+            if (end <= 0) "" else line.take(end).joinToString("") { it.text }
+        }
     }
 
     companion object {
@@ -311,7 +323,10 @@ class TerminalEmulator(
             'M' -> deleteLines(param(0))
             'S' -> repeat(param(0)) { scrollUp() }
             'T' -> repeat(param(0)) { scrollDown() }
-            'h', 'l' -> if (privateMode && 25 in params) cursorVisible = final == 'h'
+            'h', 'l' -> if (privateMode) {
+                if (25 in params) cursorVisible = final == 'h'
+                if (7 in params) autoWrap = final == 'h'
+            }
             'c', 'n', 'r', 'q' -> Unit
             else -> Unit
         }
@@ -416,7 +431,7 @@ class TerminalEmulator(
             cursorRow--
         } else {
             lines.add(start, blankLine())
-            if (lines.size > maxScrollbackLines + screenRows) lines.removeAt(lines.lastIndex)
+            lines.removeAt(start + screenRows)
         }
     }
 
@@ -428,9 +443,8 @@ class TerminalEmulator(
 
     private fun scrollDown() {
         val start = screenStart()
-        if (cursorRow > start) cursorRow--
         lines.add(start, blankLine())
-        if (lines.size > maxScrollbackLines + screenRows) lines.removeAt(lines.lastIndex)
+        lines.removeAt(start + screenRows)
     }
 
     private fun setCursor(row: Int, column: Int) {
@@ -473,40 +487,43 @@ class TerminalEmulator(
     private fun eraseRange(row: Int, start: Int, end: Int) {
         if (row !in lines.indices) return
         val line = lines[row]
-        for (column in start.coerceIn(0, screenColumns)..end.coerceIn(0, screenColumns)) {
-            if (column < screenColumns) line[column] = TerminalCell()
+        for (column in start.coerceIn(0, screenColumns) until end.coerceIn(0, screenColumns)) {
+            line[column] = TerminalCell()
         }
     }
 
     private fun insertCharacters(count: Int) {
         val line = lines[cursorRow]
+        val column = cursorColumn.coerceIn(0, screenColumns - 1)
         repeat(count.coerceIn(1, screenColumns)) {
-            line.add(cursorColumn, TerminalCell())
+            line.add(column, TerminalCell())
             line.removeAt(line.lastIndex)
         }
     }
 
     private fun deleteCharacters(count: Int) {
         val line = lines[cursorRow]
+        val column = cursorColumn.coerceIn(0, screenColumns - 1)
         repeat(count.coerceIn(1, screenColumns)) {
-            if (cursorColumn < line.size) line.removeAt(cursorColumn)
+            if (column < line.size) line.removeAt(column)
             line += TerminalCell()
         }
     }
 
     private fun insertLines(count: Int) {
+        val start = screenStart()
         repeat(count.coerceIn(1, screenRows)) {
             lines.add(cursorRow, blankLine())
-            if (lines.size > maxScrollbackLines + screenRows) lines.removeAt(lines.lastIndex)
+            lines.removeAt(start + screenRows)
         }
     }
 
     private fun deleteLines(count: Int) {
+        val start = screenStart()
         repeat(count.coerceIn(1, screenRows)) {
             if (cursorRow < lines.size) lines.removeAt(cursorRow)
-            lines += blankLine()
+            lines.add(start + screenRows - 1, blankLine())
         }
-        trimScrollback()
     }
 
     private fun saveCursor() {
