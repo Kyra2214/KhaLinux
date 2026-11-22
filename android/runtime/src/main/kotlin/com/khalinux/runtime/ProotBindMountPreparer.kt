@@ -40,10 +40,9 @@ object ProotBindMountPreparer {
                         "Destino de bind deveria ser diretório: ${mount.guestPath}"
                     }
                 } else {
-                    require(
-                        Files.isRegularFile(current, LinkOption.NOFOLLOW_LINKS) ||
-                            Files.isOther(current, LinkOption.NOFOLLOW_LINKS)
-                    ) { "Destino de bind deveria ser arquivo ou dispositivo: ${mount.guestPath}" }
+                    require(!Files.isDirectory(current, LinkOption.NOFOLLOW_LINKS)) {
+                        "Destino de bind não pode ser diretório: ${mount.guestPath}"
+                    }
                 }
             }
         }
