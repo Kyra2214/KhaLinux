@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.khalinux.android.domain.RuntimeEventObserver
 import com.khalinux.android.domain.RootfsInstallObserver
+import com.khalinux.android.domain.ProotInstallObserver
 import com.khalinux.android.domain.TerminalRuntimeGateway
 import com.khalinux.android.domain.TerminalUseCases
 import com.khalinux.runtime.RuntimeEvent
@@ -34,7 +35,11 @@ data class TerminalUiState(
     val isInstallingRootfs: Boolean = false,
     val rootfsInstallProgress: String? = null,
     val rootfsInstallMessage: String? = null,
-    val rootfsInstalled: Boolean = false
+    val rootfsInstalled: Boolean = false,
+    val prootInstalled: Boolean = false,
+    val isInstallingProot: Boolean = false,
+    val prootInstallProgress: String? = null,
+    val prootInstallMessage: String? = null
 ) {
     val isRunning: Boolean get() = isStarting || sessionId != null
 }
@@ -66,6 +71,7 @@ class TerminalViewModel : ViewModel() {
                 serviceConnected = true,
                 runtimeInstalled = runtimeUseCases?.isRuntimeInstalled?.invoke() == true,
                 rootfsInstalled = gateway.isRootfsInstalled(),
+                prootInstalled = gateway.isProotInstalled(),
                 connectionMessage = null
             )
         }
@@ -164,6 +170,71 @@ class TerminalViewModel : ViewModel() {
                     isInstallingRootfs = false,
                     rootfsInstallProgress = null,
                     rootfsInstallMessage = "Falha ao iniciar instalação: ${error.message ?: error.javaClass.simpleName}"
+                )
+            }
+        }
+    }
+
+    fun installProot() {
+        val gateway = synchronized(lock) {
+            val activeGateway = runtimeGateway ?: return
+            val current = mutableUiState.value
+            if (!current.serviceConnected || !current.rootfsInstalled ||
+                current.isInstallingProot || current.prootInstalled
+            ) return
+            mutableUiState.update {
+                it.copy(
+                    isInstallingProot = true,
+                    prootInstallProgress = "Preparando download do PRoot…",
+                    prootInstallMessage = null
+                )
+            }
+            activeGateway
+        }
+        try {
+            gateway.installProot(object : ProotInstallObserver {
+                override fun onProgress(downloadedBytes: Long, totalBytes: Long?) {
+                    val downloadedKb = downloadedBytes / 1024
+                    val progress = if (totalBytes != null && totalBytes > 0) {
+                        "$downloadedKb / ${totalBytes / 1024} KB"
+                    } else {
+                        "$downloadedKb KB baixados"
+                    }
+                    mutableUiState.update { it.copy(prootInstallProgress = progress) }
+                }
+
+                override fun onInstalled(runtimeReady: Boolean) {
+                    mutableUiState.update {
+                        it.copy(
+                            isInstallingProot = false,
+                            prootInstalled = true,
+                            runtimeInstalled = runtimeReady,
+                            prootInstallProgress = null,
+                            prootInstallMessage = if (runtimeReady) {
+                                "PRoot instalado. Ambiente Linux pronto."
+                            } else {
+                                "PRoot instalado. O RootFS Debian ainda precisa ser instalado."
+                            }
+                        )
+                    }
+                }
+
+                override fun onError(message: String) {
+                    mutableUiState.update {
+                        it.copy(
+                            isInstallingProot = false,
+                            prootInstallProgress = null,
+                            prootInstallMessage = "Falha na instalação do PRoot: $message"
+                        )
+                    }
+                }
+            })
+        } catch (error: Exception) {
+            mutableUiState.update {
+                it.copy(
+                    isInstallingProot = false,
+                    prootInstallProgress = null,
+                    prootInstallMessage = "Falha ao iniciar instalação do PRoot: ${error.message ?: error.javaClass.simpleName}"
                 )
             }
         }
