@@ -103,24 +103,35 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    fun attachRuntime(gateway: TerminalRuntimeGateway) = synchronized(lock) {
-        if (runtimeGateway !== gateway && mutableUiState.value.isRunning) {
-            appendOutputLocked("\n[sessão interrompida após reconexão do Service]\n")
-            startJob?.cancel()
-            inputJob?.cancel()
-            completedSessionsBeforeStartReturn.clear()
-            mutableUiState.update { it.copy(sessionId = null, isInteractive = false, isStarting = false, isSendingInput = false) }
+    fun attachRuntime(gateway: TerminalRuntimeGateway) {
+        synchronized(lock) {
+            if (runtimeGateway !== gateway && mutableUiState.value.isRunning) {
+                appendOutputLocked("\\n[sessão interrompida após reconexão do Service]\\n")
+                startJob?.cancel()
+                inputJob?.cancel()
+                completedSessionsBeforeStartReturn.clear()
+                mutableUiState.update { it.copy(sessionId = null, isInteractive = false, isStarting = false, isSendingInput = false) }
+            }
+            runtimeGateway = gateway
+            runtimeUseCases = TerminalUseCases(gateway)
+            mutableUiState.update {
+                it.copy(
+                    serviceConnected = true,
+                    runtimeInstalled = runtimeUseCases?.isRuntimeInstalled?.invoke() == true,
+                    rootfsInstalled = gateway.isRootfsInstalled(),
+                    prootInstalled = gateway.isProotInstalled(),
+                    connectionMessage = null
+                )
+            }
         }
-        runtimeGateway = gateway
-        runtimeUseCases = TerminalUseCases(gateway)
-        mutableUiState.update {
-            it.copy(
-                serviceConnected = true,
-                runtimeInstalled = runtimeUseCases?.isRuntimeInstalled?.invoke() == true,
-                rootfsInstalled = gateway.isRootfsInstalled(),
-                prootInstalled = gateway.isProotInstalled(),
-                connectionMessage = null
-            )
+
+        // Bootstrap automático: primeiro Debian RootFS, depois PRoot.
+        val state = mutableUiState.value
+        if (!state.runtimeInstalled) {
+            when {
+                !state.rootfsInstalled -> installRootfs()
+                !state.prootInstalled -> installProot()
+            }
         }
     }
 
@@ -203,9 +214,12 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
                             rootfsInstallMessage = if (runtimeReady) {
                                 "Ambiente Linux instalado e pronto."
                             } else {
-                                "RootFS instalado. O binário PRoot ainda precisa ser instalado."
+                                "Debian instalado. Preparando o PRoot automaticamente…"
                             }
                         )
+                    }
+                    if (!runtimeReady && !mutableUiState.value.prootInstalled) {
+                        installProot()
                     }
                 }
 

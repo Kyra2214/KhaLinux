@@ -78,24 +78,18 @@ fun KhaLinuxApp(viewModel: TerminalViewModel) {
                     style = MaterialTheme.typography.bodyMedium
                 )
 
-                if (state.serviceConnected && !state.rootfsInstalled) {
-                    OutlinedButton(
-                        onClick = viewModel::installRootfs,
-                        enabled = !state.isInstallingRootfs,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(if (state.isInstallingRootfs) "Instalando Debian…" else "Instalar Debian ARM64")
-                    }
-                }
-
-                if (state.serviceConnected && state.rootfsInstalled && !state.prootInstalled) {
-                    OutlinedButton(
-                        onClick = viewModel::installProot,
-                        enabled = !state.isInstallingProot,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(if (state.isInstallingProot) "Instalando PRoot…" else "Instalar PRoot ARM64")
-                    }
+                if (state.serviceConnected && !state.runtimeInstalled) {
+                    Text(
+                        text = when {
+                            state.isInstallingRootfs -> "Configurando ambiente automaticamente: baixando Debian ARM64…"
+                            state.isInstallingProot -> "Configurando ambiente automaticamente: instalando PRoot…"
+                            !state.rootfsInstalled -> "Preparando instalação automática do Debian…"
+                            !state.prootInstalled -> "Preparando instalação automática do PRoot…"
+                            else -> "Finalizando inicialização do ambiente Linux…"
+                        },
+                        color = Color(0xFF80CBC4),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
 
                 state.rootfsInstallProgress?.let { progress ->
