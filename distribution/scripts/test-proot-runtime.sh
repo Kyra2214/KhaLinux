@@ -30,6 +30,10 @@ sudo tar -xzf "${ARCHIVE}" --numeric-owner -C "${ROOTFS}"
 sudo chown -R "$(id -u):$(id -g)" "${ROOTFS}"
 
 # O RootfsInstaller não cria nós de dispositivo; prepara placeholders equivalentes.
+if [[ -L "${ROOTFS}/dev" || -L "${ROOTFS}/dev/pts" ]]; then
+    echo "Diretório de dispositivo inesperadamente simbólico no RootFS" >&2
+    exit 1
+fi
 mkdir -p "${ROOTFS}/dev/pts"
 for node in null zero random urandom tty; do
     target="${ROOTFS}/dev/${node}"
