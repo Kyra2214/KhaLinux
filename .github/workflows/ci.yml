@@ -87,7 +87,7 @@ jobs:
             "ndk;27.0.12077973"
 
       - name: Run runtime unit tests
-        run: gradle --no-daemon :android:runtime:testDebugUnitTest
+        run: gradle --no-daemon :android:runtime:testDebugUnitTest :android:app:testDebugUnitTest
 
       - name: Compile debug APK
         run: gradle --no-daemon :android:app:assembleDebug
