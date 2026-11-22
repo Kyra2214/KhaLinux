@@ -26,4 +26,4 @@ Para repetir após instalar Kotlin 1.9.24 ou superior, JDK 17, JUnit 4 e Hamcres
 
 ## Limitações
 
-No registro original da Fase 2, a validação ocorreu em sandbox x86_64 com emulação e ainda não existiam integração Android, PTY interativo ou ciclo de vida de Service. Essas lacunas foram parcialmente tratadas nas fases posteriores: o projeto Gradle, o Service e o PTY nativo foram adicionados na Fase 3. Permanecem pendentes a validação da compilação Android, o instalador do RootFS/PRoot, a emulação VT/ANSI, o gerenciamento robusto de processos descendentes, a persistência Room e os testes físicos finais em Android ARM64.
+No registro original da Fase 2, a validação ocorreu em sandbox x86_64 com emulação e ainda não existiam integração Android, PTY interativo ou ciclo de vida de Service. Essas lacunas foram parcialmente tratadas nas fases posteriores: o projeto Gradle, o Service e o PTY nativo foram adicionados na Fase 3. Permanecem pendentes a validação da compilação Android, o instalador do RootFS/PRoot, a emulação VT/ANSI, confirmação final do gerenciamento de processos descendentes no Android, a persistência Room e os testes físicos finais em Android ARM64.
