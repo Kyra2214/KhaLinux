@@ -5,8 +5,11 @@ on:
   push:
     branches: [main]
     paths:
-      - 'distribution/**'
-      - '.github/workflows/rootfs-release.yml'
+      - 'distribution/configuration/**'
+      - 'distribution/repositories/**'
+      - 'distribution/scripts/build-rootfs.sh'
+      - 'distribution/scripts/test-rootfs.sh'
+      - 'distribution/scripts/verify-rootfs.sh'
 
 permissions:
   contents: write
