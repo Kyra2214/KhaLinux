@@ -2,6 +2,11 @@ name: Build and publish Debian ARM64 RootFS
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'distribution/**'
+      - '.github/workflows/rootfs-release.yml'
 
 permissions:
   contents: write
