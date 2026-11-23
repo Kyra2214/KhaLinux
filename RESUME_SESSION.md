@@ -20,3 +20,19 @@
 - **Validação pendente:** nenhuma compilação, teste automatizado, verificação de CI ou teste físico foi executado nesta implementação, conforme a regra do projeto. Validar integração Compose, parser, persistência, estados/eventos, permissões/hotspot, vínculo de interface, servidor HTTP, QR, segundo aparelho e exportação somente no fechamento.
 - Limitações conhecidas: LocalOnlyHotspot e interface IPv4 variam por Android/fabricante; abertura automática do portal não é garantida; se não for possível identificar a interface Wi-Fi, o portal não abre em todas as interfaces como fallback.
 - Próxima ação: executar a validação final acumulada da Área RED, corrigir achados, gerar checkpoint completo e só então solicitar autorização separada para eventual merge em `main`.
+
+
+## Área RED — revisão de escopo 2026-11-23
+
+- Roadmap mestre revisado: `docs/roadmap-area-red-completa.md`.
+- Operação 01 revisada: `docs/roadmap-area-red-estagio-01-wifi-publico.md`.
+- Documentação operacional atualizada: `docs/red-area.md`, `docs/red-operation-01.md`, `ARCHITECTURE.md`, `CHANGELOG.md`.
+- Direção: laboratório pessoal com dois aparelhos Android dedicados/controlados pelo instrutor. Aparelho A = operador, hotspot, servidor e painel; aparelho B = participante.
+- Portal HTTP local previsto na porta TCP 8080, com cenário de autenticação local fictícia e cenário de acesso direto sem login.
+- A aula deve demonstrar também navegação, links e redirecionamentos depois da conexão; o painel deve mostrar requisições reais e campos sintéticos efetivamente recebidos durante a sessão.
+- Interface do participante natural, sem avisos grotescos. Identificação do laboratório e observabilidade no painel do instrutor. Vídeos mostram comportamento e resultados, não código.
+- Permissões reais devem ser solicitadas no próprio aparelho B pelo modo participante Android. HTTP em IP de LAN não concede APIs nativas de câmera/microfone/localização; o navegador tem limitações de contexto seguro. Login e Wi-Fi não concedem permissões.
+- RED e BLUE devem compartilhar cenário/evidências e manter perspectivas pedagógicas separadas.
+- **Lacuna atual:** a implementação existente ainda envia apenas evento fixo no formulário e usa permissões simuladas. A revisão feita nesta sessão foi documental; os novos fluxos ainda não foram implementados.
+- Próxima etapa: iniciar RED-0/RED-1 do roadmap revisado e avançar sequencialmente até RED-12. Não executar testes, builds, validações ou testes físicos durante a implementação. Reservar RED-13 para validação final.
+- Branch permanece `plan/area-red-wifi-publico`; não mesclar em `main` sem autorização explícita.
