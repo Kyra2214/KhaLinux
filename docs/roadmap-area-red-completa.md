@@ -4,7 +4,7 @@
 **Branch:** `plan/area-red-wifi-publico`  
 **Repositório:** `Kyra2214/KhaLinux`  
 **Escopo:** protótipo pessoal de laboratório, com dois aparelhos Android controlados pelo instrutor.  
-**Progresso de implementação:** RED-0 a RED-7 concluídos em código/documentação (8 de 14 submódulos, 57%). RED-8 é o próximo submódulo de implementação. RED-13 permanece reservado à validação final. A execução continua na mesma branch, sem ZIP e sem validações antecipadas.  
+**Progresso de implementação:** RED-0 a RED-8 concluídos em código/documentação (9 de 14 submódulos, 64%). RED-9 é o próximo submódulo de implementação. RED-13 permanece reservado à validação final. A execução continua na mesma branch, sem ZIP e sem validações antecipadas.  
 **Validação:** reservada para depois de concluir todo o roadmap. Nenhum teste/build será executado durante a implementação.
 
 ---
@@ -271,13 +271,14 @@ O BLUE não deve inventar alertas ou detecções. Cada conclusão deve apontar p
 - Nenhuma permissão é concedida pelo login ou pelo portal HTTP.
 - Validação em dois aparelhos permanece acumulada para RED-13.
 
-### RED-8 — Painel de observabilidade
-- Criar linha do tempo unificada.
-- Exibir requisições e dados sintéticos recebidos.
-- Exibir estado de conexão e recursos.
-- Exibir permissões solicitadas e resultado.
-- Separar fatos observados, inferências e explicações.
-- Permitir limpar dados temporários e encerrar sessão.
+### RED-8 — Painel de observabilidade <sub>CONCLUÍDO EM CÓDIGO</sub>
+- Painel exibe estado do hotspot/servidor, endereço, interface, porta e atividade HTTP observada.
+- Lista as requisições com método, rota, status, horário, bytes, tipo, origem e cabeçalhos permitidos.
+- Exibe valores sintéticos recebidos somente durante a sessão e permite limpeza imediata.
+- Linha do tempo registra eventos de rede, formulário, navegação e permissões.
+- Novo resumo dedicado mostra o evento mais recente por câmera, microfone, localização e seletor de arquivos.
+- Distingue ações efetivamente registradas de recursos ainda não solicitados; não afirma acesso não observado.
+- Validação funcional permanece acumulada para RED-13.
 - Garantir que falhas sejam visíveis e não convertidas em sucesso.
 
 ### RED-9 — Relatórios e histórico <sub>CONCLUÍDO EM CÓDIGO</sub>
