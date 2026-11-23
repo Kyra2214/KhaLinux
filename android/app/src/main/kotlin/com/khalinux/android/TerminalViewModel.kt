@@ -573,17 +573,19 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
                                 ?.let { engine.evidenceBytes(it.id) }?.let { String(it, Charsets.UTF_8) }.orEmpty()
                             val stderr = evidence.firstOrNull { it.kind == "process.stderr" }
                                 ?.let { engine.evidenceBytes(it.id) }?.let { String(it, Charsets.UTF_8) }.orEmpty()
+                            val hasOutput = stdout.isNotEmpty() || stderr.isNotEmpty()
                             buildString {
                                 if (stdout.isNotEmpty()) append(stdout)
                                 if (stderr.isNotEmpty()) {
-                                    if (isNotEmpty() && last() != '\n') append("\n")
+                                    if (isNotEmpty() && last() != '\n') append('\n')
                                     append("[stderr]\n").append(stderr)
                                 }
-                                append("\\n[").append(result.state).append("]")
+                                if (!hasOutput) append("Operação concluída sem saída textual.")
+                                if (isNotEmpty() && last() != '\n') append('\n')
+                                append('[').append(result.state).append(']')
                                 result.exitCode?.let { append(" exit=").append(it) }
                                 result.durationMillis?.let { append(" duração=").append(it).append("ms") }
                                 result.errorSummary?.let { append("\n").append(it) }
-                                if (isEmpty()) append("Operação concluída sem saída textual.")
                                 append("\n")
                             }
                         }
