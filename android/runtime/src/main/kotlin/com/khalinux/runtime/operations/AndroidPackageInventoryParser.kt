@@ -1,6 +1,6 @@
 package com.khalinux.runtime.operations
 
-enum class AndroidPackageOrigin { SYSTEM, USER_DATA, APEX, UNKNOWN }
+enum class AndroidPackageOrigin { SYSTEM_PARTITION, DATA_PARTITION, APEX, UNKNOWN }
 
 data class AndroidPackageEntry(
     val packageName: String,
@@ -15,8 +15,8 @@ data class AndroidPackageEntry(
 object AndroidPackageInventoryParser {
     private val packageNamePattern = Regex("^[A-Za-z0-9_]+(?:\\.[A-Za-z0-9_]+)*$")
     private val installerPattern = Regex("(?:^|\\s)installer=([^\\s]+)")
-    private val uidPattern = Regex("(?:^|\\s)uid[:=]([0-9]+)")
-    private val versionPattern = Regex("(?:^|\\s)versionCode[:=]([0-9]+)")
+    private val uidPattern = Regex("(?:^|\\s)uid[:=]\\s*([0-9]+)")
+    private val versionPattern = Regex("(?:^|\\s)versionCode[:=]\\s*([0-9]+)")
 
     fun parse(output: String): List<AndroidPackageEntry> {
         val packages = linkedMapOf<String, AndroidPackageEntry>()
@@ -38,8 +38,8 @@ object AndroidPackageInventoryParser {
                     codePath?.startsWith("/product") == true ||
                     codePath?.startsWith("/vendor") == true ||
                     codePath?.startsWith("/odm") == true ||
-                    codePath?.startsWith("/system_ext") == true -> AndroidPackageOrigin.SYSTEM
-                codePath?.startsWith("/data/app") == true -> AndroidPackageOrigin.USER_DATA
+                    codePath?.startsWith("/system_ext") == true -> AndroidPackageOrigin.SYSTEM_PARTITION
+                codePath?.startsWith("/data/app") == true -> AndroidPackageOrigin.DATA_PARTITION
                 codePath?.startsWith("/apex") == true -> AndroidPackageOrigin.APEX
                 else -> AndroidPackageOrigin.UNKNOWN
             }
