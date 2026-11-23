@@ -77,7 +77,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         if (snapshot.state == RedNetworkState.HOTSPOT_READY) {
             mutableState.update { it.copy(networkState = RedNetworkState.STARTING_SERVER) }
             try {
-                val address = portal.start(snapshot.ipv4Address)
+                val address = portal.start(snapshot.ipv4Address, mutableState.value.portalMode)
                 mutableState.update {
                     it.copy(networkRunning = true, portalAddress = address, networkState = RedNetworkState.WAITING_PARTICIPANT)
                 }
@@ -154,7 +154,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
     fun filter(category: RedCategory?, difficulty: RedDifficulty?) =
         mutableState.update { it.copy(category = category, difficulty = difficulty) }
     fun select(id: String) = mutableState.update { it.copy(selectedOperationId = id, message = null) }
-    fun setPortalMode(mode: RedPortalMode) = mutableState.update { it.copy(portalMode = mode) }
+    fun setPortalMode(mode: RedPortalMode) {\n        mutableState.update { it.copy(portalMode = mode) }\n        portal.setMode(mode)\n    }
     fun backToCatalog() {
         interruptCurrentSession()
         mutableState.update { it.copy(selectedOperationId = null, session = null, message = null) }
@@ -296,8 +296,14 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
 
     fun recordRequest(observation: RedRequestObservation) {
         mutableState.update { it.copy(requests = (it.requests + observation).takeLast(100)) }
+        val type = when {
+            observation.path.startsWith("/go/") && observation.statusCode in 300..399 -> RedEventType.REDIRECT
+            observation.method == "POST" -> RedEventType.FORM_SUBMITTED
+            observation.path != "/" -> RedEventType.NAVIGATION
+            else -> RedEventType.HTTP_REQUEST_RECEIVED
+        }
         recordStructuredEvent(
-            type = RedEventType.HTTP_REQUEST_RECEIVED,
+            type = type,
             detail = "${observation.method} ${observation.path} → HTTP ${observation.statusCode} · ${observation.bodyBytes} bytes",
             source = "http",
             httpMethod = observation.method,
