@@ -2,7 +2,7 @@
 
 **Branch:** plan/area-red-wifi-publico  
 **Escopo:** laboratório local de dois aparelhos Android, RED + BLUE.  
-**Estado:** implementação de RED-0 a RED-12 registrada como concluída em código/documentação; RED-13 (validação final) pendente.  
+**Estado:** implementação RED-0 a RED-12 concluída em código/documentação; validação automatizada RED-13 aprovada no GitHub Actions; teste físico com dois aparelhos e compatibilidade de fabricantes pendentes.  
 **Regra de entrega:** ZIP/checkpoints ignorados por instrução do usuário; todas as alterações permanecem nesta branch.
 
 ## Implementado
@@ -40,19 +40,33 @@
 - O servidor vincula socket a IPv4 de interface Wi-Fi/AP identificada; se não conseguir identificar, não faz fallback para todas as interfaces.
 - A abertura automática do portal não é garantida; URL e QR Code são alternativas.
 
-## Pendências da validação RED-13
+## Resultado da validação automatizada RED-13
 
-- Compilação do módulo Android com CameraX e Compose.
-- Testes unitários e integração dos modelos, parser, store, ViewModels e server.
-- Testes do ciclo de vida LocalOnlyHotspot e bind na interface real.
-- Testes HTTP porta 8080, limites, rotas, formulário sintético, redirect e headers.
-- Testes do modo participante: câmera, microfone, localização, SAF e revogação.
-- Teste de relay de eventos autenticado entre dois aparelhos.
-- Teste de alternância RED ↔ BLUE mantendo a sessão ativa.
-- Testes de histórico, relatório, exclusão e recuperação.
-- Teste físico final com os dois Android e regressão das áreas existentes.
-- Corrigir falhas e repetir testes afetados.
+<badge color="success">GitHub Actions: sucesso</badge>
+
+- Host checks e sintaxe RootFS: aprovados.
+- Auditoria estática de segurança: aprovada após inclusão justificada das permissões Android do laboratório na allowlist.
+- Teste JNI PTY no host: aprovado.
+- Smoke test PRoot/ARM64: aprovado.
+- Testes unitários do runtime e app Android: aprovados.
+- Compilação do APK debug com CameraX/Compose: aprovada.
+- Upload do artefato de inspeção do CI: concluído.
+- Workflow: https://github.com/Kyra2214/KhaLinux/actions/runs/45099843828
+- Commit validado: cf1c16d68d6706f912ee856d3753efd935077a26.
+
+## Pendências físicas da validação RED-13
+
+- Testar criação/encerramento LocalOnlyHotspot em aparelho A.
+- Conectar aparelho B e abrir o portal local na porta 8080.
+- Exercitar login sintético e acesso direto; conferir requisições no painel.
+- Testar redirecionamento e sequência de navegação.
+- Testar câmera, microfone, localização e SAF no aparelho B, incluindo recusa/revogação.
+- Confirmar relay autenticado de eventos entre aparelhos.
+- Alternar RED ↔ BLUE durante sessão ativa.
+- Verificar histórico, relatório, limpeza e recuperação.
+- Regressão das áreas existentes e compatibilidade por fabricante/versão.
+- Corrigir falhas físicas e repetir os testes afetados.
 
 ## Declaração de integridade do estado
 
-Nenhum teste, build ou teste físico foi executado durante a implementação. Não declarar compatibilidade ou funcionamento validado até a conclusão de RED-13. O percentual de implementação (93%) e o estado de validação devem permanecer separados.
+Nenhum teste ou build foi executado durante a implementação. Após RED-12, a validação automatizada foi executada e passou. Testes físicos e compatibilidade ainda não foram realizados, portanto o projeto não deve ser declarado 100% concluído. O percentual de implementação e o estado de validação devem permanecer separados.
