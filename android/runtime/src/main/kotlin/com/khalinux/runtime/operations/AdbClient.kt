@@ -58,7 +58,9 @@ class AdbClient(
             }
             val help = collect(startOperationCommand(listOf("help"), Duration.ofSeconds(8)))
             val helpText = (help.stdout + "\n" + help.stderr).lowercase()
-            val pairing = helpText.contains("adb pair") && !helpText.contains("unknown command")
+            val pairing = (helpText.contains("pair host[:port]") ||
+                helpText.contains("pair with a device for secure tcp/ip communication")) &&
+                !helpText.contains("unknown command")
             AdbCapabilities(
                 installed = true,
                 versionOutput = version.stdout.ifBlank { version.stderr }.trim(),
@@ -95,6 +97,22 @@ class AdbClient(
     fun deviceRoutes(serial: String): RuntimeSession =
         startOperationCommand(listOf("-s", validSerial(serial), "shell", "ip", "-j", "route", "show"),
             Duration.ofSeconds(20))
+
+    fun devicePackages(serial: String): RuntimeSession =
+        startOperationCommand(listOf("-s", validSerial(serial), "shell", "pm", "list", "packages", "-3"),
+            Duration.ofSeconds(30))
+
+    fun deviceLogs(serial: String, lineLimit: Int = 500): RuntimeSession {
+        require(lineLimit in 1..5000)
+        return startOperationCommand(
+            listOf("-s", validSerial(serial), "logcat", "-d", "-t", lineLimit.toString()),
+            Duration.ofSeconds(30)
+        )
+    }
+
+    fun deviceBatteryState(serial: String): RuntimeSession =
+        startOperationCommand(listOf("-s", validSerial(serial), "shell", "dumpsys", "battery"),
+            Duration.ofSeconds(15))
 
     /** Entrada de operações ADB declaradas no catálogo; não grava argumentos nem códigos de pareamento. */
     internal fun startOperationCommand(arguments: List<String>, timeout: Duration): RuntimeSession {
