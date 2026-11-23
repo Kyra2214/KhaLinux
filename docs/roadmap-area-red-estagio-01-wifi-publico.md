@@ -1,9 +1,9 @@
 # Área RED — Operação 01: Nunca Conecte à Wi-Fi Pública
 
-**Status:** planejamento  
+**Status:** implementação inicial em código concluída; validação final pendente  
 **Branch:** `plan/area-red-wifi-publico`  
 **Produto:** KhaLinux / futura identidade Brain Lab Security  
-**Escopo deste documento:** especificação funcional e roadmap. Não implementar código nesta etapa e não executar testes durante a implementação do roadmap.
+**Escopo deste documento:** especificação funcional, critérios e backlog de validação final. O código da Operação 01 foi implementado na branch indicada; nenhum teste/build foi executado durante a implementação.
 
 ---
 
@@ -190,6 +190,8 @@ O tutorial é exclusivamente o roteiro de execução da simulação RED. O conte
 - Atualizar documentação do projeto, changelog e roadmap principal sem sobrescrever conteúdo existente.
 
 ## 9. Critérios de conclusão do Estágio 1
+
+**Situação atual:** o código dos fluxos descritos foi adicionado. Os critérios abaixo ainda precisam ser confirmados na validação final, especialmente hotspot real, conectividade entre dois aparelhos, QR Code, encerramento e compatibilidade por fabricante.
 
 O estágio será considerado implementado quando:
 
