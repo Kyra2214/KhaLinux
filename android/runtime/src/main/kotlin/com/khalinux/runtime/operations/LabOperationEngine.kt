@@ -88,7 +88,7 @@ class LabOperationEngine(
     fun closeSession(sessionId: String): Boolean {
         val current = store.session(sessionId) ?: return false
         if (current.state != LabSessionState.ACTIVE) return false
-        jobs.keys.filter { store.execution(it)?.sessionId == sessionId }.forEach(::cancel)
+        jobs.keys.filter { store.execution(it)?.sessionId == sessionId }.forEach { cancel(it) }
         store.saveSession(current.copy(state = LabSessionState.CLOSED, closedAtEpochMillis = clock()))
         publish(sessionId, null, null, "session.closed", LabEventSeverity.INFO, "Sessão de laboratório encerrada")
         return true
