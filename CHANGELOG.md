@@ -1,3 +1,10 @@
+## [Não lançado] — RED: implementação concluída, validação pendente
+
+- RED-0 a RED-12: 100% dos submódulos de implementação concluídos em código/documentação.
+- RED-13: validação final ainda pendente; o projeto não deve ser declarado concluído até a execução e resolução dos testes acumulados.
+- Testes físicos com os dois aparelhos permanecem como última etapa da validação.
+- Nenhum ZIP/checkpoint gerado; alterações aplicadas diretamente na branch `plan/area-red-wifi-publico`.
+
 ## [Não lançado] — RED-12: fechamento do ciclo de implementação
 
 ### Confirmado na implementação existente
