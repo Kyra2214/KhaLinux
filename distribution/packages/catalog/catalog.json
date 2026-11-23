@@ -13,7 +13,9 @@
       "architecture": "arm64",
       "source": {
         "type": "debian-apt",
-        "apt_name": "adb"
+        "apt_name": "adb",
+        "apt_suite": "bookworm-backports",
+        "apt_uri": "https://snapshot.debian.org/archive/debian/20251122T000000Z"
       },
       "download_bytes": null,
       "installed_bytes": null,
