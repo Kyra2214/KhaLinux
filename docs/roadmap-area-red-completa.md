@@ -4,7 +4,7 @@
 **Branch:** `plan/area-red-wifi-publico`  
 **Repositório:** `Kyra2214/KhaLinux`  
 **Escopo:** protótipo pessoal de laboratório, com dois aparelhos Android controlados pelo instrutor.  
-**Progresso de implementação:** RED-0 a RED-3 concluídos em documentação/código (4 de 14 submódulos, 29%); RED-4 é o próximo. Validação permanece pendente e será feita somente ao final.  
+**Progresso de implementação:** RED-0 a RED-6 concluídos em documentação/código (7 de 14 submódulos, 50%); RED-7 é o próximo. Validação permanece pendente e será feita somente ao final.  
 **Validação:** reservada para depois de concluir todo o roadmap. Nenhum teste/build será executado durante a implementação.
 
 ---
@@ -18,7 +18,7 @@
 | RED-2 — hotspot e conexão | Concluído em código | LocalOnlyHotspot, dados expostos pelo Android e atividade do participante inferida por requisição real; Android não expõe lista universal de clientes |
 | RED-3 a RED-13 | Pendente | executar em sequência após RED-2 |
 
-**Percentual de implementação do roadmap RED:** 29% (4/14 submódulos).  
+**Percentual de implementação do roadmap RED:** 50% (7/14 submódulos).  
 **Validação:** não executada por instrução; todos os testes e builds permanecem acumulados para RED-13.  
 **Checkpoint ZIP:** desativado por instrução explícita do usuário; trabalhar somente na branch Git indicada.
 
@@ -235,14 +235,12 @@ O BLUE não deve inventar alertas ou detecções. Cada conclusão deve apontar p
 - Exibir método, rota, status, tipo e tamanho de cada requisição.
 - Não implementar interceptação, proxy transparente ou captura de tráfego de terceiros.
 
-### RED-4 — Portal natural e dois cenários
-- Criar identidade visual fictícia de portal de estabelecimento.
-- Implementar modo de autenticação local e modo de acesso direto.
-- Criar páginas de boas-vindas, termos, acesso e conclusão.
-- Implementar navegação interna e links de demonstração.
-- Registrar cliques, sequência de páginas e redirecionamentos locais.
-- Garantir que a interface do participante seja natural e que o painel do instrutor mantenha identificação do laboratório.
-- Não imitar marcas ou serviços reais.
+### RED-4 — Portal natural e dois cenários <sub>CONCLUÍDO EM CÓDIGO</sub>
+- Identidade fictícia de portal Wi-Fi, com apresentação natural e sem imitar marcas reais.
+- Seletor de modo no operador: login local ou acesso direto.
+- Páginas de boas-vindas, termos, formulário local, conteúdo, destinos e aviso.
+- Links locais e redirecionamento HTTP 302 implementados.
+- Linha do tempo registra método, rota e status.
 
 ### RED-5 — Formulário local e visualização do que foi recebido
 - Implementar formulário de dados exclusivamente sintéticos.
