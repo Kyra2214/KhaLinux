@@ -42,7 +42,7 @@
 
 ## Resultado da validação automatizada RED-13
 
-<badge color="success">GitHub Actions: sucesso</badge>
+**GitHub Actions: SUCESSO**
 
 - Host checks e sintaxe RootFS: aprovados.
 - Auditoria estática de segurança: aprovada após inclusão justificada das permissões Android do laboratório na allowlist.
