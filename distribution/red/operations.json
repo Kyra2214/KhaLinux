@@ -4,33 +4,36 @@
     {
       "id": "red-wifi-public-01",
       "number": 1,
-      "title": "Nunca Conecte à Wi-Fi Pública",
+      "title": "Wi-Fi público: conexão, portal e navegação",
       "category": "NETWORKS",
       "difficulty": "BEGINNER",
-      "summary": "Laboratório de dois aparelhos com hotspot próprio e portal local de treinamento.",
+      "summary": "Laboratório de dois aparelhos com hotspot próprio, portal HTTP local e observação do que o servidor realmente recebe.",
       "objectives": [
-        "Preparar uma rede de laboratório",
-        "Abrir um portal local",
-        "Executar interações com dados sintéticos",
-        "Analisar os eventos gerados"
+        "Preparar uma rede de laboratório no aparelho operador",
+        "Conectar um segundo aparelho e abrir o portal local",
+        "Comparar autenticação local com acesso direto sem login",
+        "Observar navegação, requisições e resultados de permissões"
       ],
       "prerequisites": [
-        "Dois aparelhos Android sob controle ou autorização explícita",
-        "Wi-Fi habilitado",
-        "Participante informado de que está em um laboratório"
+        "Dois aparelhos Android dedicados ou explicitamente autorizados",
+        "Wi-Fi habilitado nos dois aparelhos",
+        "Dados de teste fictícios preparados para a aula"
       ],
       "steps": [
-        {"id":"prepare","title":"Preparar o operador","instructions":"Confirme que os dois aparelhos pertencem ao laboratório. Leia as limitações do Android e confirme a autorização dos participantes."},
-        {"id":"hotspot","title":"Ativar a rede de laboratório","instructions":"Solicite a ativação do hotspot local pelo Android. A rede e a senha são fornecidas pelo próprio sistema."},
+        {"id":"prepare","title":"Preparar o operador","instructions":"Confirme que os dois aparelhos pertencem ao laboratório e escolha o cenário da aula."},
+        {"id":"hotspot","title":"Ativar a rede de laboratório","instructions":"Solicite ao Android a criação do hotspot local. O sistema informa os parâmetros que o aplicativo pode exibir."},
         {"id":"connect","title":"Conectar o participante","instructions":"No segundo aparelho, abra as configurações Wi-Fi e conecte-se à rede exibida pelo operador."},
-        {"id":"portal","title":"Abrir o portal de treinamento","instructions":"Use o endereço local ou QR Code mostrado pelo operador. A abertura automática não é garantida pelo Android."},
-        {"id":"traps","title":"Percorrer as simulações","instructions":"Abra o formulário sintético, a rede social genérica de treinamento e as demonstrações de localização/câmera/arquivos. Todas são simulações; use apenas dados fictícios e não conceda permissões reais."},
-        {"id":"report","title":"Encerrar e revisar","instructions":"Finalize a sessão, confira a linha do tempo de eventos e exporte o relatório local."}
+        {"id":"portal","title":"Abrir o portal local","instructions":"Use o endereço HTTP e o QR Code mostrados pelo operador. A abertura automática depende do Android."},
+        {"id":"access","title":"Comparar os modos de acesso","instructions":"Percorra o portal com autenticação local fictícia e o modo de acesso direto sem login."},
+        {"id":"navigation","title":"Explorar navegação","instructions":"Abra os links locais e observe no painel as rotas e respostas efetivamente recebidas."},
+        {"id":"permissions","title":"Observar permissões","instructions":"No aparelho participante, execute as demonstrações nativas e observe os diálogos reais do Android."},
+        {"id":"report","title":"Encerrar e revisar","instructions":"Encerre a sessão e revise a linha do tempo e o relatório local."}
       ],
       "completionCriteria": [
-        "Sessão iniciada e encerrada",
-        "Etapas do tutorial concluídas",
-        "Formulário sintético demonstrado",
+        "Hotspot solicitado e estado real apresentado",
+        "Segundo aparelho conectado e portal local acessível",
+        "Modo com login local e modo sem login demonstrados",
+        "Requisições locais observadas no painel",
         "Relatório local disponível"
       ],
       "environment": "Dois aparelhos Android em rede de laboratório própria"
