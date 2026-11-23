@@ -143,6 +143,8 @@ class KhaLinuxRuntimeService : Service() {
     @Volatile private var operationCatalogCache: com.khalinux.runtime.operations.LabOperationCatalog? = null
     @Volatile private var operationEngineInstance: com.khalinux.runtime.operations.LabOperationEngine? = null
     @Volatile private var operationEngineRuntime: LinuxRuntime? = null
+    @Volatile private var adbClientInstance: com.khalinux.runtime.operations.AdbClient? = null
+    @Volatile private var adbClientRuntime: LinuxRuntime? = null
 
     /** Catálogo operacional LAB-0, independente da instalação do RootFS. */
     @Synchronized
@@ -165,6 +167,25 @@ class KhaLinuxRuntimeService : Service() {
     fun deviceAssets(): List<com.khalinux.runtime.operations.LabAsset> =
         com.khalinux.runtime.operations.LabAssetStore(File(filesDir, "runtime/lab-assets")).all()
 
+    /** Cliente ADB ARM64 com servidor persistente dentro do RootFS. */
+    @Synchronized
+    fun adbClient(): com.khalinux.runtime.operations.AdbClient? {
+        val current = runtime ?: return null
+        if (adbClientRuntime === current) adbClientInstance?.let { return it }
+        closeAdbClient()
+        val client = com.khalinux.runtime.operations.AdbClient(current)
+        adbClientInstance = client
+        adbClientRuntime = current
+        return client
+    }
+
+    @Synchronized
+    private fun closeAdbClient() {
+        adbClientInstance?.close()
+        adbClientInstance = null
+        adbClientRuntime = null
+    }
+
     /** Motor LAB-1 compartilhado pelo terminal e pelas interfaces RED/BLUE. */
     @Synchronized
     fun operationEngine(): com.khalinux.runtime.operations.LabOperationEngine? {
@@ -177,7 +198,8 @@ class KhaLinuxRuntimeService : Service() {
             runtime = current,
             catalog = catalog,
             store = com.khalinux.runtime.operations.LabOperationStore(directory),
-            evidence = com.khalinux.runtime.operations.LabEvidenceStore(directory)
+            evidence = com.khalinux.runtime.operations.LabEvidenceStore(directory),
+            adbClient = adbClient()
         )
         operationEngineInstance = engine
         operationEngineRuntime = current
@@ -372,6 +394,7 @@ class KhaLinuxRuntimeService : Service() {
             RootfsFinalizer.apply(rootfs)
             publishInstall(InstallPhase.FINALIZING, 0.5)
             closeOperationEngine()
+            closeAdbClient()
             runtime?.close()
             runtime = createRuntimeIfInstalled()
             val ready = runtime != null
@@ -728,6 +751,7 @@ class KhaLinuxRuntimeService : Service() {
 
     override fun onDestroy() {
         closeOperationEngine()
+        closeAdbClient()
         runtime?.close()
         callbacks.shutdownNow()
         installerExecutor.shutdownNow()
