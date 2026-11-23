@@ -8,6 +8,7 @@ import java.net.Socket
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.Semaphore
+import java.util.concurrent.ConcurrentHashMap
 
 /** HTTP local de laboratório. Descarta integralmente o corpo de formulários e registra só o evento. */
 class RedPortalServer(
@@ -17,6 +18,7 @@ class RedPortalServer(
     @Volatile private var socket: ServerSocket? = null
     private val running = AtomicBoolean(false)
     private val clientSlots = Semaphore(4)
+    private val clients = ConcurrentHashMap.newKeySet<Socket>()
     @Volatile private var worker: Thread? = null
     @Volatile var address: String? = null
         private set
@@ -43,8 +45,9 @@ class RedPortalServer(
                 runCatching { client.close() }
                 continue
             }
+            clients.add(client)
             Thread({
-                try { handle(client) } finally { clientSlots.release() }
+                try { handle(client) } finally { clients.remove(client); clientSlots.release() }
             }, "red-portal-client").apply { isDaemon = true; start() }
         }
     }
@@ -138,6 +141,8 @@ class RedPortalServer(
     fun stop() {
         running.set(false)
         runCatching { socket?.close() }
+        clients.toList().forEach { runCatching { it.close() } }
+        clients.clear()
         socket = null
         worker = null
         address = null
