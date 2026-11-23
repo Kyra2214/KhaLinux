@@ -198,8 +198,11 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         if (RedCatalog.find(operationId) == null) return
         val participantToken = UUID.randomUUID().toString().replace("-", "").take(12).uppercase()
         portal.setParticipantToken(participantToken)
-        val session = RedSession(operationId = operationId, state = RedOperationState.PREPARING)
-            .withEvent(RedEventType.SESSION_STARTED, "Sessão de laboratório iniciada.", source = "session")
+        val session = RedSession(
+            operationId = operationId,
+            state = RedOperationState.PREPARING,
+            portalMode = mutableState.value.portalMode
+        ).withEvent(RedEventType.SESSION_STARTED, "Sessão de laboratório iniciada.", source = "session")
         store.save(session)
         mutableState.update {
             it.copy(
@@ -431,6 +434,20 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
 
     fun report(session: RedSession): String {
         val operation = RedCatalog.find(session.operationId)
+        val orderedEvents = session.events.sortedBy { it.sequence }
+        val requestEvents = orderedEvents.filter { it.httpMethod != null }
+        val permissionEvents = orderedEvents.filter {
+            it.type in setOf(
+                RedEventType.PERMISSION_REQUESTED,
+                RedEventType.PERMISSION_GRANTED,
+                RedEventType.PERMISSION_DENIED,
+                RedEventType.PERMISSION_CANCELLED,
+                RedEventType.RESOURCE_PREVIEW_STARTED,
+                RedEventType.RESOURCE_PREVIEW_STOPPED,
+                RedEventType.FILE_PICKER_OPENED,
+                RedEventType.FILE_SELECTED
+            )
+        }
         return buildString {
             appendLine("# Relatório RED")
             appendLine()
@@ -439,17 +456,24 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             appendLine("- Início: ${session.startedAt}")
             appendLine("- Fim: ${session.endedAt ?: "em andamento"}")
             appendLine("- Estado: ${session.state}")
+            appendLine("- Modo do portal: ${if (session.portalMode == RedPortalMode.LOCAL_LOGIN) "login local" else "acesso direto"}")
             appendLine("- Etapas concluídas: ${session.completedSteps.size}/${operation?.steps?.size ?: 0}")
+            appendLine("- Requisições HTTP observadas: ${requestEvents.size}")
+            appendLine("- Eventos de permissões/recursos: ${permissionEvents.size}")
             appendLine()
-            appendLine("## Eventos")
-            session.events.sortedBy { it.sequence }.forEach { event ->
-                appendLine("- #${event.sequence} ${event.timestamp}: ${event.detail}")
+            appendLine("## Linha do tempo")
+            orderedEvents.forEach { event ->
+                appendLine("- #${event.sequence} ${event.timestamp} [${event.type}] ${event.detail}")
                 if (event.httpMethod != null || event.route != null) {
                     appendLine("  - HTTP: ${event.httpMethod ?: "?"} ${event.route ?: "?"} · status ${event.httpStatus ?: "?"} · bytes ${event.bytesReceived ?: "?"}")
                 }
+                event.source?.let { appendLine("  - Origem do evento: $it") }
             }
             appendLine()
-            appendLine("Relatório local. Não inclui valores de formulários, credenciais, tokens, cookies, arquivos ou localização precisa.")
+            appendLine("## Privacidade do relatório")
+            appendLine("- Não inclui campos de formulários, códigos de acesso, cookies, tokens, arquivos, áudio, vídeo ou coordenadas.")
+            appendLine("- Valores sintéticos do formulário existiram somente em memória durante a sessão.")
+            appendLine("- Requisições listadas são as recebidas pelo servidor local; não representam captura de tráfego externo.")
         }
     }
 
