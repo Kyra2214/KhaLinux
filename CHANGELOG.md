@@ -1,3 +1,18 @@
+## [Não lançado] — RED-1: fundação e catálogo
+
+### Implementado
+- Modelo de estados de rede separado do estado da sessão.
+- Tipos de eventos ampliados para hotspot, portal, requisições HTTP, navegação, redirecionamentos, formulários e permissões.
+- Modelo de observação HTTP com método, rota, status, tipo, tamanho e endereço remoto opcional.
+- Linha do tempo com sequência e metadados HTTP; armazenamento retrocompatível com sessões anteriores.
+- Estado de UI preparado para modo do portal, observações de requisição e ciclo de rede.
+- Catálogo da Operação 01 revisado com autenticação local fictícia, acesso direto sem login, navegação e permissões no aparelho participante.
+
+### Limites
+- Valores de formulários não fazem parte do modelo persistente.
+- Esta entrega não altera ainda o servidor HTTP nem implementa os fluxos de portal; esses requisitos pertencem aos próximos submódulos.
+- Nenhum teste, build ou validação foi executado. A validação permanece reservada à fase final.
+
 # Changelog
 
 ## [Não lançado] — Área RED (roadmap revisado 2026-11-23)
