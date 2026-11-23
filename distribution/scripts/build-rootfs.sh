@@ -9,7 +9,7 @@ OUTPUT_DIR="${OUTPUT_DIR:-${ROOT_DIR}/distribution/build/output}"
 ROOTFS_DIR="${ROOTFS_DIR:-${OUTPUT_DIR}/rootfs-arm64}"
 DEBIAN_SUITE="${DEBIAN_SUITE:-bookworm}"
 DEBIAN_SNAPSHOT="${DEBIAN_SNAPSHOT:-20251122T000000Z}"
-ROOTFS_RELEASE_TAG="${ROOTFS_RELEASE_TAG:-rootfs-bookworm-20261122-v1}"
+ROOTFS_RELEASE_TAG="${ROOTFS_RELEASE_TAG:-rootfs-bookworm-20261123-v1}"
 DEBIAN_MIRROR="${DEBIAN_MIRROR:-https://snapshot.debian.org/archive/debian/${DEBIAN_SNAPSHOT}}"
 SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-$(git -C "${ROOT_DIR}" log -1 --format=%ct 2>/dev/null || date +%s)}"
 BUILD_INVOCATION_UTC="${BUILD_INVOCATION_UTC:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"
@@ -78,6 +78,8 @@ export LANG=C.UTF-8
 export LC_ALL=C.UTF-8
 PROFILE
 rm -f /etc/apt/sources.list
+apt-get update
+apt-get install -y --no-install-recommends 'adb=1:34.0.5-12~bpo12+1'
 rm -f /root/khalinux-finalize.sh /usr/bin/qemu-aarch64-static
 apt-get clean
 rm -rf /var/lib/apt/lists/* /var/cache/apt/*

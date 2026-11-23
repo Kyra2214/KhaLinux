@@ -1,5 +1,6 @@
 # Pacotes explícitos da base KhaLinux; um pacote por linha.
 # A lista é consumida por build-rootfs.sh.
+adb
 apt
 bash
 ca-certificates
