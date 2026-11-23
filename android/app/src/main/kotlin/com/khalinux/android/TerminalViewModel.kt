@@ -854,13 +854,18 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
 
     /** Cancela a sessão da aba ativa. */
     fun cancelCommand() {
-        val (activeUseCases, sessionId) = synchronized(lock) {
-            val useCases = runtimeUseCases ?: return
-            val id = tabs.active().sessionId ?: return
-            useCases to id
+        val action = synchronized(lock) {
+            val tab = tabs.active()
+            val useCases = runtimeUseCases
+            Triple(useCases, tab.sessionId, if (tab.starting) startJobs[tab.id] else null)
         }
-        viewModelScope.launch(Dispatchers.IO) {
-            runCatching { activeUseCases.cancelSession(sessionId) }
+        val sessionId = action.second
+        if (sessionId != null && action.first != null) {
+            viewModelScope.launch(Dispatchers.IO) {
+                runCatching { action.first?.cancelSession(sessionId) }
+            }
+        } else {
+            action.third?.cancel()
         }
     }
 
