@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "operations": [
+    {
+      "id": "red-wifi-public-01",
+      "number": 1,
+      "title": "Nunca Conecte à Wi-Fi Pública",
+      "category": "NETWORKS",
+      "difficulty": "BEGINNER",
+      "summary": "Laboratório de dois aparelhos com hotspot próprio e portal local de treinamento.",
+      "objectives": [
+        "Preparar uma rede de laboratório",
+        "Abrir um portal local",
+        "Executar interações com dados sintéticos",
+        "Analisar os eventos gerados"
+      ],
+      "prerequisites": [
+        "Dois aparelhos Android sob controle ou autorização explícita",
+        "Wi-Fi habilitado",
+        "Participante informado de que está em um laboratório"
+      ],
+      "steps": [
+        {"id":"prepare","title":"Preparar o operador","instructions":"Confirme que os dois aparelhos pertencem ao laboratório. Leia as limitações do Android e confirme a autorização dos participantes."},
+        {"id":"hotspot","title":"Ativar a rede de laboratório","instructions":"Solicite a ativação do hotspot local pelo Android. A rede e a senha são fornecidas pelo próprio sistema."},
+        {"id":"connect","title":"Conectar o participante","instructions":"No segundo aparelho, abra as configurações Wi-Fi e conecte-se à rede exibida pelo operador."},
+        {"id":"portal","title":"Abrir o portal de treinamento","instructions":"Use o endereço local ou QR Code mostrado pelo operador. A abertura automática não é garantida pelo Android."},
+        {"id":"traps","title":"Percorrer as simulações","instructions":"Abra cada cenário identificado como SIMULAÇÃO. Use somente dados fictícios fornecidos pela aula."},
+        {"id":"report","title":"Encerrar e revisar","instructions":"Finalize a sessão, confira a linha do tempo de eventos e exporte o relatório local."}
+      ],
+      "completionCriteria": [
+        "Sessão iniciada e encerrada",
+        "Etapas do tutorial concluídas",
+        "Formulário sintético demonstrado",
+        "Relatório local disponível"
+      ],
+      "environment": "Dois aparelhos Android em rede de laboratório própria"
+    }
+  ]
+}
