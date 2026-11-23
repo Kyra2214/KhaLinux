@@ -314,6 +314,26 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun recordParticipantEvent(kind: String, result: String) {
+        val resource = when (kind) {
+            "camera" -> "câmera"
+            "microphone" -> "microfone"
+            "location" -> "localização"
+            "file" -> "seletor de arquivos"
+            else -> "recurso"
+        }
+        if (result in setOf("granted", "denied", "cancelled")) {
+            recordStructuredEvent(
+                RedEventType.PERMISSION_REQUESTED,
+                "O aparelho participante solicitou acesso a $resource.",
+                source = "participant"
+            )
+        } else if (kind == "file" && result in setOf("selected", "cancelled")) {
+            recordStructuredEvent(
+                RedEventType.FILE_PICKER_OPENED,
+                "O aparelho participante abriu o seletor de arquivos do Android.",
+                source = "participant"
+            )
+        }
         val type = when (result) {
             "denied" -> RedEventType.PERMISSION_DENIED
             "cancelled" -> RedEventType.PERMISSION_CANCELLED
@@ -322,23 +342,20 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             "selected" -> RedEventType.FILE_SELECTED
             else -> RedEventType.PERMISSION_GRANTED
         }
-        val resource = when (kind) {
-            "camera" -> "câmera"
-            "microphone" -> "microfone"
-            "location" -> "localização"
-            "file" -> "seletor de arquivos"
-            else -> "recurso"
-        }
         val action = when (result) {
             "granted" -> "permissão concedida"
             "denied" -> "permissão negada"
             "cancelled" -> "solicitação cancelada"
-            "preview_started" -> "prévia iniciada localmente"
-            "preview_stopped" -> "prévia encerrada"
-            "selected" -> "seletor concluído"
+            "preview_started" -> "prévia local iniciada"
+            "preview_stopped" -> "prévia local encerrada"
+            "selected" -> "seleção concluída"
             else -> "evento recebido"
         }
-        recordStructuredEvent(type, "Aparelho participante: $resource — $action. Nenhum conteúdo privado foi transmitido.", source = "participant")
+        recordStructuredEvent(
+            type,
+            "Aparelho participante: $resource — $action. Nenhum conteúdo privado foi transmitido.",
+            source = "participant"
+        )
     }
 
     private fun recordSyntheticSubmission(submission: RedSyntheticSubmission) {
