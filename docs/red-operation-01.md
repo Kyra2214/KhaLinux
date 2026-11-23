@@ -1,6 +1,6 @@
 # RED-01 — Wi-Fi público, portal local e navegação
 
-**Estado:** RED-2 a RED-6 implementados em código: hotspot, servidor 8080, portal natural, login local fictício, acesso direto, formulário sintético e navegação local. RED-7 em diante pendentes; validação final não executada.  
+**Estado:** RED-2 a RED-7 implementados em código: hotspot, servidor 8080, portal natural, login local fictício, acesso direto, formulário sintético, navegação local e modo participante Android. RED-8 em diante pendentes; validação final não executada.  
 **Roadmap:** `docs/roadmap-area-red-estagio-01-wifi-publico.md`
 
 ## Objetivo
@@ -72,7 +72,7 @@ O painel não inventa informações. Deve distinguir solicitado, autorizado, exe
 
 O portal do participante deve ser natural, sem banners ou alertas grotescos que destruam o realismo. A identificação do laboratório e a observabilidade ficam no painel do instrutor. Os vídeos mostram criação da rede, conexão, portal, navegação, permissões e resultados, sem exibir código-fonte.
 
-## Limitações técnicas
+## Modo participante no aparelho B\n\nO segundo aparelho pode entrar no modo participante do KhaLinux. O Android solicita as permissões reais. A câmera é exibida em prévia local; o microfone alimenta um medidor de nível que descarta as amostras; a localização aparece somente no aparelho B; arquivos são escolhidos pelo seletor SAF sem leitura de nome/conteúdo. Para registrar o resultado no painel A, o participante envia somente o estado da ação por uma rota local com token temporário da sessão.\n\n## Limitações técnicas
 
 - Hotspot é gerenciado pelo Android e varia por fabricante/versão.
 - A abertura automática do portal não é garantida; QR Code e endereço manual são alternativas.
