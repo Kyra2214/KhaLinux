@@ -22,6 +22,7 @@ import com.khalinux.android.toolkit.ToolkitViewModel
 import com.khalinux.android.files.FilesViewModel
 import com.khalinux.android.tutor.TutorViewModel
 import com.khalinux.android.red.RedViewModel
+import com.khalinux.android.blue.BlueViewModel
 
 /** Activity de hospedagem da UI Compose; a execução continua encapsulada no Service. */
 class MainActivity : ComponentActivity() {
@@ -41,6 +42,9 @@ class MainActivity : ComponentActivity() {
         ViewModelProvider.AndroidViewModelFactory.getInstance(application)
     }
     private val redViewModel: RedViewModel by viewModels {
+        ViewModelProvider.AndroidViewModelFactory.getInstance(application)
+    }
+    private val blueViewModel: BlueViewModel by viewModels {
         ViewModelProvider.AndroidViewModelFactory.getInstance(application)
     }
     private val tutorViewModel: TutorViewModel by viewModels {
@@ -86,7 +90,7 @@ class MainActivity : ComponentActivity() {
             statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
         )
-        setContent { KhaLinuxApp(viewModel, packagesViewModel, toolkitViewModel, labsViewModel, filesViewModel, tutorViewModel, redViewModel) }
+        setContent { KhaLinuxApp(viewModel, packagesViewModel, toolkitViewModel, labsViewModel, filesViewModel, tutorViewModel, redViewModel, blueViewModel) }
         if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
