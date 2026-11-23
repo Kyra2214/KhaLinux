@@ -4,7 +4,7 @@
 **Branch:** `plan/area-red-wifi-publico`  
 **Repositório:** `Kyra2214/KhaLinux`  
 **Escopo:** protótipo pessoal de laboratório, com dois aparelhos Android controlados pelo instrutor.  
-**Progresso de implementação:** RED-0 a RED-12 concluídos em documentação/código (13 de 14 submódulos, 93%); RED-13 é a única fase pendente e corresponde à validação final. A execução continua na mesma branch, sem ZIP e sem validações antecipadas. Validação permanece pendente e será feita somente ao final.  
+**Progresso de implementação:** RED-0 a RED-4 concluídos em documentação/código (5 de 14 submódulos, 36%). RED-5 é o próximo submódulo de implementação. RED-13 permanece reservado à validação final. A execução continua na mesma branch, sem ZIP e sem validações antecipadas.  
 **Validação:** reservada para depois de concluir todo o roadmap. Nenhum teste/build será executado durante a implementação.
 
 ---
@@ -227,13 +227,14 @@ O BLUE não deve inventar alertas ou detecções. Cada conclusão deve apontar p
 - A atividade do aparelho participante é confirmada por requisição HTTP real ao portal, sem varredura de dispositivos.
 - Limitação registrada: Android não oferece uma API universal para listar clientes conectados ao `LocalOnlyHotspot`; desconexão silenciosa do participante não pode ser afirmada sem evento observável.
 
-### RED-3 — Servidor HTTP local na porta 8080
-- Evoluir servidor atual para porta 8080 configurável com padrão fixo.
-- Vincular somente à interface do laboratório identificada.
-- Implementar rotas permitidas, limites de requisição, timeout e encerramento.
-- Mostrar URL completa e QR Code.
-- Exibir método, rota, status, tipo e tamanho de cada requisição.
-- Não implementar interceptação, proxy transparente ou captura de tráfego de terceiros.
+### RED-3 — Servidor HTTP local na porta 8080 <sub>CONCLUÍDO EM CÓDIGO</sub>
+- Porta configurável pelo construtor do servidor, com padrão 8080 e validação do intervalo não privilegiado.
+- Bind somente no IPv4 da interface Wi-Fi/AP identificada; sem bind em `0.0.0.0`.
+- Rotas locais permitidas, limites de cabeçalho/corpo/clientes, timeout e encerramento implementados.
+- URL completa e QR Code apresentados pela interface RED existente.
+- Método, rota, status, tipo e tamanho de cada requisição expostos ao painel.
+- Nenhuma interceptação, proxy transparente ou captura de tráfego de terceiros.
+- Validação de compilação e execução permanece pendente para RED-13.
 
 ### RED-4 — Portal natural e dois cenários <sub>CONCLUÍDO EM CÓDIGO</sub>
 - Identidade fictícia de portal Wi-Fi, com apresentação natural e sem imitar marcas reais.
@@ -352,6 +353,6 @@ A Área RED não será considerada completa até que:
 
 ## 12. Estado honesto na revisão de 2026-11-23
 
-A fundação RED já criada oferece navegação, catálogo, sessões, hotspot Android, servidor HTTP local, QR Code e painel inicial. A primeira implementação do portal é simplificada: envia apenas um evento fixo, não mostra os campos recebidos e usa botões de permissões simuladas. Portanto, ela **não satisfaz ainda** o novo escopo de laboratório completo.
+A inspeção da branch confirma implementação de RED-0 a RED-4, incluindo hotspot, servidor HTTP local, portal natural e os dois modos de acesso. O RED-3 foi complementado nesta retomada para aceitar porta configurável, mantendo 8080 como padrão e preservando o bind restrito à interface do laboratório. A existência de código não equivale a validação funcional.
 
-O trabalho seguinte deve corrigir essa diferença e implementar RED-2 a RED-12. Nenhuma dessas capacidades adicionais deve ser marcada como concluída antes de existir no código e, posteriormente, ser validada na fase final.
+O código atual ainda contém lacunas entre o escopo total e a experiência integrada. RED-5 é o próximo submódulo: completar o envio HTTP real de campos sintéticos, validação no servidor e visualização temporária no painel, sem persistir valores sensíveis. RED-6 em diante seguem na ordem definida. Nenhum requisito será marcado como concluído sem implementação correspondente; toda validação fica para RED-13.
