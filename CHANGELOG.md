@@ -1,3 +1,11 @@
+## [Não lançado] — RED-13: bloqueio de validação do HEAD atual
+
+- Implementação RED-0 a RED-12: 100% concluída em código/documentação.
+- A validação histórica do commit `cf1c16d` não cobre o HEAD atual e não foi usada como aprovação.
+- Status consultado para o commit anterior à atualização do freeze: sem checks e sem workflow run associado.
+- O conector disponível não oferece dispatch de workflow e não há checkout local nesta sessão para executar Gradle/testes.
+- Nenhum teste/build foi executado nesta retomada. RED-13 permanece pendente; teste físico será a última etapa.
+
 ## [Não lançado] — RED: implementação concluída, validação pendente
 
 - RED-0 a RED-12: 100% dos submódulos de implementação concluídos em código/documentação.
