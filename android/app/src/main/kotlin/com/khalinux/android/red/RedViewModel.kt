@@ -237,6 +237,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 networkRunning = false,
                 portalAddress = null,
                 hotspotInfo = null,
+                latestSubmission = null,
                 networkState = RedNetworkState.IDLE
             )
         }
