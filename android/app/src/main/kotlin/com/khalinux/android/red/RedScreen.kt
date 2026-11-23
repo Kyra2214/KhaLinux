@@ -1,6 +1,8 @@
 package com.khalinux.android.red
 
-import android.graphics.Bitmap\nimport androidx.compose.foundation.Image\nimport androidx.compose.foundation.layout.Arrangement
+import android.graphics.Bitmap
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,7 +25,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.Modifier\nimport androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
@@ -89,7 +92,11 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
             state.session?.let { session ->
                 Text("Sessão: ${session.state} · ${session.completedSteps.size}/${operation.steps.size} etapas")
                 if (state.networkRunning) {
-                    Text("Portal: ${state.portalAddress ?: "endereço local não identificado"}", style = MaterialTheme.typography.bodySmall)\n                    state.portalAddress?.let { address ->\n                        RedQrCode(address)\n                        TextButton(onClick = { clipboard.setText(AnnotatedString(address)) }) { Text("Copiar endereço do portal") }\n                    }
+                    Text("Portal: ${state.portalAddress ?: "endereço local não identificado"}", style = MaterialTheme.typography.bodySmall)
+                    state.portalAddress?.let { address ->
+                        RedQrCode(address)
+                        TextButton(onClick = { clipboard.setText(AnnotatedString(address)) }) { Text("Copiar endereço do portal") }
+                    }
                     state.hotspotInfo?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
                     OutlinedButton(onClick = viewModel::stopNetworkLab) { Text("Parar hotspot e portal") }
                 } else {
