@@ -317,7 +317,8 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         val nextState = when (type) {
             RedEventType.HOTSPOT_READY, RedEventType.PORTAL_STARTED -> RedOperationState.WAITING_PARTICIPANT
             RedEventType.PORTAL_OPENED, RedEventType.HTTP_REQUEST_RECEIVED, RedEventType.FORM_SUBMITTED,
-            RedEventType.DEMO_FORM_COMPLETED, RedEventType.NAVIGATION -> RedOperationState.ACTIVE
+            RedEventType.DEMO_FORM_COMPLETED, RedEventType.FORM_REJECTED,
+            RedEventType.NAVIGATION, RedEventType.REDIRECT -> RedOperationState.ACTIVE
             else -> current.state
         }
         val updated = current.copy(state = nextState).withEvent(
