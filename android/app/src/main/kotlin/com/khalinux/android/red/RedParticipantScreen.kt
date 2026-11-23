@@ -124,7 +124,7 @@ fun RedParticipantScreen(onExit: () -> Unit) {
             try {
                 recorder.startRecording()
                 val samples = ShortArray(1024)
-                while (isActive && microphoneActive) {
+                while (isActive) {
                     val count = recorder.read(samples, 0, samples.size)
                     if (count > 0) {
                         var sum = 0.0
