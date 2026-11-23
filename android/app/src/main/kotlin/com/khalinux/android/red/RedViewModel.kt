@@ -204,6 +204,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             portalMode = mutableState.value.portalMode
         ).withEvent(RedEventType.SESSION_STARTED, "Sessão de laboratório iniciada.", source = "session")
         store.save(session)
+        RedLiveEvidenceStore.begin(session)
         mutableState.update {
             it.copy(
                 session = session,
@@ -320,6 +321,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             bytesReceived = bytesReceived
         )
         store.save(updated)
+        RedLiveEvidenceStore.updateSession(updated)
         mutableState.update { it.copy(session = updated) }
         if (type == RedEventType.PORTAL_OPENED || type == RedEventType.HTTP_REQUEST_RECEIVED) {
             mutableState.update { it.copy(networkState = RedNetworkState.PARTICIPANT_ACTIVE) }
@@ -375,6 +377,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
     private fun recordSyntheticSubmission(submission: RedSyntheticSubmission) {
         // Os valores só existem no estado de UI da sessão atual; nunca são gravados no SessionStore.
         mutableState.update { it.copy(latestSubmission = submission) }
+        RedLiveEvidenceStore.updateSubmission(submission)
         recordStructuredEvent(
             type = if (submission.accepted) RedEventType.FORM_SUBMITTED else RedEventType.FORM_REJECTED,
             detail = submission.message,
@@ -383,7 +386,9 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun recordRequest(observation: RedRequestObservation) {
-        mutableState.update { it.copy(requests = (it.requests + observation).takeLast(100)) }
+        val updatedRequests = (mutableState.value.requests + observation).takeLast(100)
+        mutableState.update { it.copy(requests = updatedRequests) }
+        RedLiveEvidenceStore.updateRequests(updatedRequests)
         val type = when {
             observation.path.startsWith("/go/") && observation.statusCode in 300..399 -> RedEventType.REDIRECT
             observation.method == "POST" && observation.statusCode in 200..299 -> RedEventType.FORM_SUBMITTED
@@ -409,6 +414,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         val updated = current.copy(state = RedOperationState.COMPLETED, endedAt = System.currentTimeMillis())
             .withEvent(RedEventType.SESSION_ENDED, "Sessão encerrada pelo operador.", source = "session")
         store.save(updated)
+        RedLiveEvidenceStore.clear()
         mutableState.update { it.copy(session = updated, latestSubmission = null, message = "Sessão encerrada e relatório local atualizado.") }
         refreshHistory()
     }
@@ -424,11 +430,13 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
 
     fun clearSensitivePanelData() {
         mutableState.update { it.copy(latestSubmission = null) }
+        RedLiveEvidenceStore.updateSubmission(null)
         mutableState.update { it.copy(message = "Valores sintéticos temporários removidos do painel.") }
     }
 
     fun deleteHistory() {
         store.deleteAll()
+        RedLiveEvidenceStore.clear()
         mutableState.update { it.copy(history = emptyList(), session = null, message = "Histórico RED apagado.") }
     }
 
