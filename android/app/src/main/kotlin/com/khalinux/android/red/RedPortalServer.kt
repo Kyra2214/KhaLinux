@@ -223,7 +223,9 @@ class RedPortalServer(
                         safeHeaders = safeRequestHeaders(headers)
                     )
                 )
-                if (method == "GET" && path == "/") onEvent("Portal de treinamento acessado pelo aparelho participante.")
+                if (method == "GET" && path == "/") {
+                    onEvent("Portal de treinamento acessado pelo aparelho participante.")
+                }
             } catch (error: Exception) {
                 status = if (error is SocketTimeoutException) 408 else 400
                 runCatching { writeResponse(output, status, "Não foi possível processar a requisição.") }
