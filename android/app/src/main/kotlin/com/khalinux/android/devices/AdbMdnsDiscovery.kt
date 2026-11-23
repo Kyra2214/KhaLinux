@@ -59,7 +59,7 @@ class AdbMdnsDiscovery(context: Context) : Closeable {
                             }
 
                             override fun onServiceResolved(info: NsdServiceInfo) {
-                                val address = info.host?.hostAddress?.substringBefore('%') ?: return
+                                val address = info.host?.hostAddress ?: return
                                 if (info.port !in 1..65535) return
                                 val endpoint = AdbMdnsEndpoint(
                                     id = info.serviceType + "|" + info.serviceName,

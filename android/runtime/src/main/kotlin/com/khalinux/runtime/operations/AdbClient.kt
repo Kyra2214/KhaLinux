@@ -273,7 +273,7 @@ class AdbClient(
         require(port in 1..65535) { "Porta inválida" }
         val host = hostValue.trim().removePrefix("[").removeSuffix("]")
         require(host.isNotBlank() && host.length <= 253 &&
-            host.matches(Regex("^[A-Za-z0-9._:-]+$")) && !host.startsWith(".") && !host.endsWith(".")) {
+            host.matches(Regex("^[A-Za-z0-9._:%-]+$")) && !host.startsWith(".") && !host.endsWith(".")) {
             "Endereço do dispositivo inválido"
         }
         val formatted = if (host.contains(":")) "[$host]" else host
@@ -281,7 +281,7 @@ class AdbClient(
     }
 
     private fun validSerial(value: String): String {
-        require(value.length in 1..255 && value.matches(Regex("^[A-Za-z0-9._:-]+$"))) {
+        require(value.length in 1..255 && value.matches(Regex("^[A-Za-z0-9._:%\\[\\]-]+$"))) {
             "Identificador ADB inválido"
         }
         return value
