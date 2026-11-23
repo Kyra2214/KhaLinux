@@ -42,6 +42,53 @@ class PackageManagerFlowTest {
         assertTrue(history.recent().all { it.success })
     }
 
+    @Test fun retriesWithBinNmuSuffixWhenExactVersionNotFound() {
+        // Simula o apt do Debian: a versão do catálogo só existe com sufixo de recompilação (+b1).
+        val commands = mutableListOf<String>()
+        val runner = PackageCommandRunner { shellCommand, _ ->
+            commands += shellCommand
+            when {
+                shellCommand.contains("'bin=1.0'") ->
+                    PackageCommandOutcome(100, "E: Version '1.0' for 'bin' was not found")
+                else -> PackageCommandOutcome(0, "ok")
+            }
+        }
+        val single = PackageCatalog("t", listOf(apt("bin", "1.0")))
+        val dir2 = Files.createTempDirectory("khalinux-binnmu").toFile()
+        try {
+            val store = InstalledPackageStore(File(dir2, "installed.tsv"))
+            val installer = PackageInstaller(single, store, runner, File(dir2, "rootfs"), File(dir2, "tmp"))
+            val done = installer.install(listOf("bin"))
+            assertEquals(listOf("bin"), done.map { it.name })
+            assertEquals(mapOf("bin" to "1.0"), store.versions())
+            assertTrue(commands.any { it.contains("'bin=1.0'") })
+            assertTrue(commands.any { it.contains("'bin=1.0+b*'") })
+        } finally {
+            dir2.deleteRecursively()
+        }
+    }
+
+    @Test fun doesNotRetryWhenFailureIsNotVersionNotFound() {
+        // O update passa; o install falha por outro motivo (rede): não deve haver tentativa com +b*.
+        val commands = mutableListOf<String>()
+        val runner = PackageCommandRunner { shellCommand, _ ->
+            commands += shellCommand
+            if (shellCommand.contains("apt-get install")) PackageCommandOutcome(100, "E: Failed to fetch (rede)")
+            else PackageCommandOutcome(0, "ok")
+        }
+        val single = PackageCatalog("t", listOf(apt("bin", "1.0")))
+        val dir2 = Files.createTempDirectory("khalinux-noretry").toFile()
+        try {
+            val store = InstalledPackageStore(File(dir2, "installed.tsv"))
+            val installer = PackageInstaller(single, store, runner, File(dir2, "rootfs"), File(dir2, "tmp"))
+            assertFailsWith<PackageInstallException> { installer.install(listOf("bin")) }
+            assertTrue(commands.none { it.contains("+b*") })
+            assertTrue(store.all().isEmpty())
+        } finally {
+            dir2.deleteRecursively()
+        }
+    }
+
     @Test fun failureIsAuditedAndNotRecorded() {
         val runner = FakeRunner(exitCode = 100)
         val (store, history, manager) = parts(catalog, runner)

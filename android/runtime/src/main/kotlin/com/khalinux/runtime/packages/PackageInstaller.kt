@@ -81,11 +81,7 @@ class PackageInstaller(
                             indexUpdated = true
                         }
                         onEvent(PackageInstallEvent(PackageInstallStep.INSTALLING, manifest.name, position, total))
-                        val spec = "${manifest.source.aptName}=${manifest.version}"
-                        requireOk(
-                            runner.run("DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends '$spec'", aptTimeout),
-                            "apt-get install $spec"
-                        )
+                        installFromApt(manifest)
                         null
                     }
                     else -> installDirect(manifest, position, total, isCancelled, onEvent)
@@ -153,6 +149,22 @@ class PackageInstaller(
             part.delete()
         }
         return actual
+    }
+
+    /**
+     * `apt-get install nome=versão` exata. Pacotes com binários por arquitetura (hashdeep, chkrootkit, sleuthkit…)
+     * costumam ter no Debian um sufixo de recompilação (`+b1`, `+b6`) que não consta da versão do catálogo; nesse caso
+     * o apt responde "Version ... was not found". Só nessa situação tentamos a mesma versão com sufixo `+b*`
+     * (recompilação da mesma versão; nunca outra versão do pacote).
+     */
+    private fun installFromApt(manifest: PackageManifest) {
+        val spec = "${manifest.source.aptName}=${manifest.version}"
+        val base = "DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends"
+        var outcome = runner.run("$base '$spec'", aptTimeout)
+        if (outcome.exitCode != 0 && outcome.output.contains("was not found")) {
+            outcome = runner.run("$base '$spec+b*'", aptTimeout)
+        }
+        requireOk(outcome, "apt-get install $spec")
     }
 
     private fun requireOk(outcome: PackageCommandOutcome, what: String) {

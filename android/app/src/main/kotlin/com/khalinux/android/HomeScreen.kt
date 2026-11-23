@@ -56,8 +56,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -561,6 +563,11 @@ private fun SectionLabel(text: String) {
 @Composable
 private fun ShortcutsSheet(state: TerminalUiState, viewModel: TerminalViewModel, onDismiss: () -> Unit) {
     val canRun = state.serviceConnected && state.runtimeInstalled && !state.isRunning
+    val clipboard = LocalClipboardManager.current
+    var copyMessage by remember { mutableStateOf<String?>(null) }
+    val inputDone = stringResource(R.string.copy_input_done)
+    val outputDone = stringResource(R.string.copy_output_done)
+    val nothingToCopy = stringResource(R.string.copy_empty)
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(
             modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(horizontal = 20.dp),
@@ -582,6 +589,29 @@ private fun ShortcutsSheet(state: TerminalUiState, viewModel: TerminalViewModel,
                     Text(stringResource(R.string.note_save))
                 }
             }
+            // Copiar para a área de transferência: entrada (campo de comando) e saída (texto visível da aba ativa,
+            // que já inclui os comandos enviados). O conteúdo é copiado como está; nada é gravado em disco.
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
+                OutlinedButton(onClick = {
+                    val text = state.command
+                    if (text.isEmpty()) {
+                        copyMessage = nothingToCopy
+                    } else {
+                        clipboard.setText(AnnotatedString(text))
+                        copyMessage = inputDone
+                    }
+                }) { Text(stringResource(R.string.copy_input)) }
+                OutlinedButton(onClick = {
+                    val text = state.output.trimEnd()
+                    if (text.isEmpty()) {
+                        copyMessage = nothingToCopy
+                    } else {
+                        clipboard.setText(AnnotatedString(text))
+                        copyMessage = outputDone
+                    }
+                }) { Text(stringResource(R.string.copy_output)) }
+            }
+            copyMessage?.let { Text(it, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall) }
             state.noteMessage?.let { Text(it, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall) }
 
             Divider()

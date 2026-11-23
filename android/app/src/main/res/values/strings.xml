@@ -115,6 +115,11 @@
     <string name="files_delete_folder_body">Apagar a pasta %1$s e todo o conteúdo?</string>
     <string name="files_report">Gerar relatório de progresso</string>
     <string name="note_save">Salvar saída em nota</string>
+    <string name="copy_input">Copiar entrada</string>
+    <string name="copy_output">Copiar saída</string>
+    <string name="copy_input_done">Entrada copiada</string>
+    <string name="copy_output_done">Saída do terminal copiada</string>
+    <string name="copy_empty">Nada para copiar</string>
     <string name="tk_use_in_terminal">Usar no terminal</string>
     <string name="action_tutor">Tutor</string>
     <string name="tutor_disclaimer">Tutor offline baseado em regras: não é uma IA, não usa a internet e só responde o que está documentado. Não entrega respostas de exercícios.</string>

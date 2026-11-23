@@ -70,3 +70,26 @@ Se o item 1 falhar, o plano B (PRoot como `libproot.so` em `jniLibs`) fica previ
 4. Rotação de tela orfana a sessão ativa.
 5. Sem `/etc/resolv.conf` no RootFS.
 6. Entrada interativa é gravada no histórico (possíveis senhas).
+
+## Melhorias de terminal (sessão atual)
+
+### M-01 — Copiar entrada e saída do terminal (concluída no código; não compilada nesta sessão)
+
+- **Onde:** botão **★ Atalhos** (folha inferior do Terminal), logo abaixo de "Favoritar comando" / "Salvar saída em nota".
+- **O que faz:** **Copiar entrada** copia o texto atual do campo de comando; **Copiar saída** copia o texto visível da aba ativa (inclui os comandos enviados, pois o terminal os registra na saída). Mostra "Entrada copiada" / "Saída do terminal copiada" ou "Nada para copiar" se estiver vazio.
+- **Arquivos:** `android/app/src/main/kotlin/com/khalinux/android/HomeScreen.kt` (`ShortcutsSheet`, usa `LocalClipboardManager`, mesmo padrão da tela de Diagnóstico) e `android/app/src/main/res/values/strings.xml` (`copy_input`, `copy_output`, `copy_input_done`, `copy_output_done`, `copy_empty`).
+- **Limites:** só texto; nada é gravado em disco; a saída copiada é a da aba ativa, no limite do scrollback do emulador.
+- **Verificar em aparelho:** abrir Atalhos → Copiar saída → colar em outro app; repetir com o campo vazio.
+
+### M-02 — Limpar o campo de comando ao enviar (pendente)
+
+- Hoje, no modo comando (não interativo), `runCommand()` mantém o texto no campo após o envio; só o shell interativo limpa (`sendInput()`/`launchSession`).
+
+### F-01 — hashdeep, chkrootkit e sleuthkit não instalavam (concluída no código; não compilada nesta sessão)
+
+- **Sintoma (aparelho):** na tela Pacotes, "Falha ao instalar 'apt-get install hashdeep=4.4-7.1': código de saída 100 … E: Version '4.4-7.1' for 'hashdeep' was not found"; igual para `chkrootkit=0.57-2` e `sleuthkit=4.11.1+dfsg-1`.
+- **Causa:** o catálogo pina a versão exata sem o sufixo de recompilação (binNMU) que o Debian acrescenta a pacotes com binários por arquitetura. Conferido nas páginas do Debian (bookworm, arm64): hashdeep `4.4-7.1+b1`; chkrootkit `0.57-2+b6`; libtsk19/libtsk-dev (mesma origem do sleuthkit) `4.11.1+dfsg-1+b1`. O `apt` não considera `4.4-7.1` igual a `4.4-7.1+b1`. Pacotes `Architecture: all` (binwalk, lynis…) não têm esse problema.
+- **Correção:** `PackageInstaller.installFromApt`: tenta `nome=versão`; se o apt responder "was not found", tenta `nome=versão+b*` (recompilação da mesma versão, nunca outra versão). Outros erros não geram nova tentativa. O catálogo não foi alterado e o registro continua com a versão do catálogo.
+- **Testes novos** (`PackageManagerFlowTest`): `retriesWithBinNmuSuffixWhenExactVersionNotFound` e `doesNotRetryWhenFailureIsNotVersionNotFound`.
+- **Verificar em aparelho:** instalar os três pela tela Pacotes; se ainda falhar, rodar no Terminal `apt-cache madison hashdeep chkrootkit sleuthkit` e enviar a saída.
+- **Risco aberto:** não foi possível consultar o snapshot `20251122` do Debian daqui (sem rede), então o sufixo exato nesse snapshot não foi confirmado; `+b*` cobre qualquer número. Outros pacotes `unverified` com binários por arquitetura (nmap, whois, traceroute, iproute2, sqlite3…) podem ter o mesmo problema e agora também são cobertos.
