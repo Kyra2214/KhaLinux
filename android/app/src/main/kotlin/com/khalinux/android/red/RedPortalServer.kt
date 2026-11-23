@@ -219,7 +219,8 @@ class RedPortalServer(
                         statusCode = status,
                         contentType = contentType,
                         bodyBytes = bodyBytes,
-                        remoteAddress = peer.inetAddress?.hostAddress
+                        remoteAddress = peer.inetAddress?.hostAddress,
+                        safeHeaders = safeRequestHeaders(headers)
                     )
                 )
                 if (method == "GET" && path == "/") onEvent("Portal de treinamento acessado pelo aparelho participante.")
@@ -348,6 +349,16 @@ class RedPortalServer(
             if (matched == delimiter.size) return ByteArray(bytes.size) { bytes[it] }
         }
         throw IllegalArgumentException("Cabeçalho acima do limite")
+    }
+
+    private fun safeRequestHeaders(headers: Map<String, String>): Map<String, String> {
+        val allowed = setOf("host", "user-agent", "accept", "accept-language", "content-type", "referer")
+        return headers.filterKeys { it in allowed }.mapValues { (name, value) ->
+            val safeValue = if (name == "referer") {
+                runCatching { java.net.URI(value).rawPath.orEmpty() }.getOrDefault("")
+            } else value
+            safeValue.take(180)
+        }
     }
 
     private fun parseHeaders(lines: List<String>): Map<String, String> = buildMap {
