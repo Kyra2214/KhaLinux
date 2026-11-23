@@ -75,3 +75,11 @@
 - Acesso à câmera/microfone/localização não é concedido pelo portal web ou login; as solicitações acontecem no app participante no aparelho B.
 - Próximo: RED-8 — painel de observabilidade completo e linha do tempo unificada.
 - Validação (incluindo CameraX, permissões e dois aparelhos) continua adiada para RED-13; não executar testes/builds agora.
+
+## Execução contínua RED — atualização após RED-8
+
+- RED-0 a RED-8 concluídos em código/documentação: **64% (9/14)**.
+- RED-8 ampliou painel: status hotspot/servidor/participante, interface/porta, lista de requisições, headers allowlist, valores sintéticos efêmeros, permissões e timeline.
+- RedRequestObservation.safeHeaders mantém somente Host, User-Agent, Accept, Accept-Language, Content-Type e Referer sem query. Cookie e Authorization não entram no modelo.
+- Próximo submódulo: RED-9 — histórico e relatórios.
+- Sem ZIP, sem testes, sem builds e sem merge.
