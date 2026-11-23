@@ -166,7 +166,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 operationEventSubscription = next.addEventListener { event ->
                     viewModelScope.launch(Dispatchers.IO) {
                         val sessionId = mutableState.value.operationalSessionId
-                        if (sessionId == event.sessionId) {
+                        if (sessionId != null && sessionId == event.sessionId) {
                             mutableState.update {
                                 it.copy(
                                     operationalExecutions = next.executions(sessionId),

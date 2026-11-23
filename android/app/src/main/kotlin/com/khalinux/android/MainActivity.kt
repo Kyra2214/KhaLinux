@@ -61,6 +61,8 @@ class MainActivity : ComponentActivity() {
             val localBinder = binder as? KhaLinuxRuntimeService.LocalBinder
             if (localBinder == null) {
                 viewModel.bindingUnavailable()
+                redViewModel.detachRuntime()
+                blueViewModel.detachRuntime()
                 return
             }
             val gateway = ServiceTerminalRuntimeGateway(localBinder.service())
