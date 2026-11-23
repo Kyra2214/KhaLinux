@@ -187,6 +187,15 @@ class KhaLinuxRuntimeService : Service() {
                 ?.let { engine.evidenceBytes(it.id) }
                 ?.let { String(it, Charsets.UTF_8) }.orEmpty()
             val entries = com.khalinux.runtime.operations.AdbDeviceInventory.parseDevices(listingOutput)
+            val currentIds = entries.map {
+                com.khalinux.runtime.operations.AdbDeviceInventory.assetId(it.serial)
+            }.toSet()
+            store.all().filter { it.source == "adb.devices" && it.id !in currentIds }.forEach { stale ->
+                store.upsert(stale.copy(
+                    attributes = stale.attributes + ("adb_state" to "not-listed"),
+                    capabilities = stale.capabilities - "adb.connected"
+                ))
+            }
             val baseAssets = entries.map { entry ->
                 val id = com.khalinux.runtime.operations.AdbDeviceInventory.assetId(entry.serial)
                 val asset = com.khalinux.runtime.operations.AdbDeviceInventory.toAsset(entry, previous = store.get(id))
