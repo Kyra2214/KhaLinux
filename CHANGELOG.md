@@ -1,3 +1,14 @@
+## [Não lançado] — RED-10: integração de evidências na Área BLUE
+
+### Implementado / complementado
+- BLUE apresenta requisições HTTP com horário, bytes, tipo de conteúdo, origem e cabeçalhos permitidos.
+- BLUE resume o evento mais recente de câmera, microfone, localização e seletor de arquivos.
+- Mantida a interpretação defensiva por evento, separando fato observado e orientação.
+- Evidências ao vivo e histórico continuam compartilhados a partir da sessão RED.
+
+### Validação
+- Nenhum build/teste executado; alternância e atualização ao vivo serão verificadas em RED-13.
+
 ## [Não lançado] — RED-9: histórico e relatórios locais
 
 ### Confirmado na implementação existente
