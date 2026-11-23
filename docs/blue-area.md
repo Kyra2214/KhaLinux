@@ -2,7 +2,7 @@
 
 **Direção revisada:** 2026-11-23  
 **Roadmap operacional:** [roadmap-area-red-completa.md](roadmap-area-red-completa.md)  
-**Estado:** a integração atual com evidências RED é um ponto de partida; o BLUE operacional ainda será construído.
+**Estado:** o BLUE já recebe eventos operacionais persistidos e ao vivo do motor compartilhado, incluindo operações ADB do LAB-2. Regras de detecção, investigação e resposta continuam pendentes do LAB-7.
 
 ## Função
 
@@ -12,7 +12,8 @@ Não deve ser apenas uma tela com explicações sobre o que o usuário deveria f
 
 ## Fontes de telemetria
 
-- Eventos do motor de operações: comando, ferramenta, processo, resultado e código de saída.
+- Eventos do motor de operações: comando, ferramenta, processo, resultado, código de saída e evidências persistidas.
+- ADB Wireless debugging: pareamento/conexão, estado do dispositivo, inventário, propriedades, interfaces e rotas.
 - Android/ADB: inventário, logs e alterações de estado disponibilizadas pelo dispositivo.
 - Rede: descoberta, DNS, conexões, HTTP/TLS e captura conforme a interface e o ponto de observação.
 - Aplicações: eventos e logs produzidos por alvos instrumentados.

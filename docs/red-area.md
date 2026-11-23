@@ -2,7 +2,7 @@
 
 **Direção revisada:** 2026-11-23  
 **Roadmap operacional:** [roadmap-area-red-completa.md](roadmap-area-red-completa.md)  
-**Estado:** o RED Wi-Fi existente é um protótipo de hotspot/portal local e painel. A suíte RED operacional ainda será construída.
+**Estado:** o motor de operações e a base de inventário/conexão Android (LAB-1/LAB-2) estão implementados. O RED Mobile operacional começa no LAB-3; reconhecimento de rede, Wi-Fi e Web seguem nos módulos seguintes. O protótipo antigo de hotspot/portal permanece classificado como protótipo.
 
 ## Função
 
@@ -12,7 +12,7 @@ Não é uma seção de aulas, questionários ou simulações de resultados. A do
 
 ## Estrutura operacional
 
-- **Ativos:** aparelhos Android, redes, serviços e aplicações identificados pelo inventário.
+- **Ativos:** inventário local Android e ativos remotos descobertos por ADB, com estado e atributos persistidos.
 - **Operações:** procedimentos técnicos com parâmetros, pré-requisitos e ferramentas definidas.
 - **Execução:** processos reais no RootFS, APIs Android ou adaptadores de rede.
 - **Resultados:** saída original, código de retorno, duração, erros e estado final.

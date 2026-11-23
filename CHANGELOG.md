@@ -1,3 +1,24 @@
+## [Não lançado] — LAB-2: inventário e conectividade Android
+
+### Implementado
+- Inventário local Android com atributos de build, ABI, rede, endereços, gateway, DNS e capacidades, sem IMEI/Android ID/MAC/SSID.
+- Persistência de ativos locais/remotos em `LabAssetStore`, com primeira/última observação e estado de dispositivos ausentes.
+- Descoberta mDNS de endpoints ADB TLS de pareamento e conexão, com fallback manual.
+- ADB ARM64 34.0.5 no catálogo e RootFS novo; suite Debian bookworm-backports fixada e provisionada pelo instalador também em RootFS existente.
+- Servidor ADB persistente em sessão PRoot dedicada na porta 5038; chave do host no home persistente.
+- Operações reais de pareamento, conexão, desconexão, listagem, propriedades, interfaces, rotas, pacotes, logcat e bateria.
+- Integração com o motor comum; resultados/evidências RED e eventos recebidos pelo BLUE.
+
+### Estado e pendências
+- Implementação LAB-2 concluída; interface final permanece no LAB-9.
+- Pacote ADB `unverified` até a validação ARM64/PRoot e os testes com dois aparelhos no LAB-10.
+- RootFS atual não foi reconstruído; o próximo build final atualizará o lock e o manifesto. O build não foi executado nesta etapa.
+- Nenhum teste, build, compilação ou validação foi executado.
+- Detalhes: `docs/lab-2-device-connectivity.md`.
+- Próximo módulo: LAB-3 — RED Mobile.
+
+---
+
 ## [Não lançado] — LAB-1: motor operacional parcial
 
 ### Implementado
@@ -11,13 +32,13 @@
 ### Pendências preservadas
 - Número do sinal Unix: o backend Java atual não expõe o status bruto de `waitpid`; requer extensão nativa.
 - Pré-condições completas: verificação atual cobre o executável principal, ainda não todas as dependências e capacidades.
-- Executores TOOLKIT, ANDROID_API, ADB, HTTP_SERVICE e PCAP_ANALYZER ainda serão conectados nas fases correspondentes.
+- Executores TOOLKIT, ANDROID_API, HTTP_SERVICE e PCAP_ANALYZER ainda serão conectados nas fases correspondentes; ADB foi integrado no LAB-2.
 - Interface operacional final permanece no LAB-9.
 
 ### Estado
 - LAB-1 parcialmente implementado; ver `docs/lab-1-engine.md`.
 - Nenhum teste, build, compilação ou validação foi executado. Tudo acumulado para LAB-10.
-- Próximo módulo executável: LAB-2 — inventário e conexão de dispositivos.
+- Próximo módulo executável: LAB-3 — RED Mobile.
 
 ---
 

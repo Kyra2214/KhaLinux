@@ -2,7 +2,7 @@
 
 Ambiente Linux ARM64 para Android, executado localmente e sem root, cuja finalidade principal é executar um laboratório operacional de cibersegurança RED/BLUE/PURPLE. O Linux, o runtime Android, o terminal e o toolkit formam a infraestrutura do laboratório.
 
-> **Status:** infraestrutura-base implementada em grande parte; CI nº 284 aprovou testes unitários Android, compilação Debug e verificações host. APK Release e validação física pendentes. O laboratório operacional foi replanejado em 2026-11-23 e ainda será construído (ver [`ROADMAP.md`](ROADMAP.md) e [`docs/roadmap-area-red-completa.md`](docs/roadmap-area-red-completa.md)).
+> **Status:** LAB-0 concluído; LAB-1 parcialmente implementado; LAB-2 com implementação concluída e validação final pendente. O próximo módulo é RED Mobile (LAB-3). APK Release e testes físicos continuam reservados à etapa final (ver [`ROADMAP.md`](ROADMAP.md) e [`docs/roadmap-area-red-completa.md`](docs/roadmap-area-red-completa.md)).
 
 ## Visão
 
@@ -20,10 +20,12 @@ O primeiro runtime planejado é baseado em PRoot. PRoot não é uma fronteira de
 - Manifesto versionado com SHA-256 canônico do RootFS gerado.
 - Verificações estruturais e smoke test em `chroot` ARM64 emulado.
 - Runtime Kotlin com launcher PRoot, sessões, stdout/stderr, timeout e cancelamento.
+- Motor operacional com fila, sessões, eventos persistidos, evidências SHA-256 e CLI `khalab`.
+- Inventário Android local/remoto, ADB Wireless debugging, descoberta mDNS, pareamento/conexão e operações ADB integradas ao motor.
 - `KhaLinuxRuntimeService` com Binder local e separação UI/runtime.
 - Activity Compose, ViewModel com `StateFlow`, casos de uso de terminal, porta de domínio/adaptador do Service e transcript limitado em memória.
 
-Nenhuma funcionalidade é considerada implementada sem código, testes executados, evidência e documentação correspondente.
+Implementação e validação são estados separados: o código pode estar implementado enquanto os testes e a evidência final permanecem pendentes para LAB-10.
 
 ## Estrutura
 

@@ -54,7 +54,7 @@ O backend atual usa `java.lang.Process.waitFor()`, que entrega o código de saí
 O motor verifica a disponibilidade do executável principal com `command -v`. Ainda não valida todos os pacotes declarados, dependências transitivas, permissões de API Android ou capacidades de cada adaptador. A presença de um pacote no catálogo APT não é tratada como instalação confirmada.
 
 ### Escopo de executores
-O motor executa atualmente `ROOTFS_ARGV` para alvos `LOCAL_RUNTIME`. Os tipos TOOLKIT, ANDROID_API, ADB, HTTP_SERVICE e PCAP_ANALYZER já estão representados no contrato, mas seus adaptadores serão conectados nos módulos correspondentes do roadmap.
+O motor executa `ROOTFS_ARGV` para alvos `LOCAL_RUNTIME` e `ADB` para alvos `LOCAL_RUNTIME`/ `ANDROID_DEVICE`. O adaptador ADB, o servidor persistente e as operações de inventário estão documentados em [`lab-2-device-connectivity.md`](lab-2-device-connectivity.md). Os tipos TOOLKIT, ANDROID_API, HTTP_SERVICE e PCAP_ANALYZER permanecem representados no contrato e serão conectados nos módulos correspondentes do roadmap.
 
 ### Interface
 O terminal e os ViewModels RED/BLUE já compartilham o backend. A apresentação final das operações, filtros, evidências e investigação fica no LAB-9. Nenhum layout de demonstração foi usado para declarar uma execução concluída.

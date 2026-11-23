@@ -35,3 +35,19 @@ O CI nº 284 valida a compilação Debug e os testes automatizados existentes. E
 A direção do produto foi corrigida em 2026-11-23. O roadmap operacional está em [roadmap-area-red-completa.md](roadmap-area-red-completa.md), com a sequência LAB-0 a LAB-10. O protótipo atual de hotspot/portal e as telas RED/BLUE serão auditados e evoluídos para operações reais.
 
 **Conclusão:** a integração CI da infraestrutura passou; o APK Release ainda não foi produzido; a validação física e a implementação do laboratório operacional continuam pendentes.
+
+
+## Validação acumulada — LAB-1/LAB-2 (executar somente no LAB-10)
+
+- [ ] Verificar catálogo e parser de operações, inclusive parâmetros `ADB_ENDPOINT` e `PAIRING_CODE`.
+- [ ] Construir RootFS ARM64 com ADB 1:34.0.5-12~bpo12+1 e confirmar o lock de versões/manifesto gerados.
+- [ ] Instalar ADB em RootFS já existente e confirmar provisionamento da suite backports fixada.
+- [ ] Confirmar execução de `adb nodaemon server` em sessão PRoot persistente na porta 5038; verificar encerramento limpo ao destruir o Service.
+- [ ] Confirmar criação e persistência de `~/.android/adbkey`/ `adbkey.pub` no home persistente.
+- [ ] Descobrir serviços mDNS de pareamento/conexão e validar o fallback manual quando multicast estiver bloqueado.
+- [ ] Parear e conectar dois Androids reais; confirmar estados de `adb devices -l`.
+- [ ] Conferir inventário local/remoto, propriedades, interfaces, rotas, pacotes, logcat e bateria.
+- [ ] Conferir cancelamento, timeout, evidências SHA-256 e eventos RED/BLUE nas operações ADB.
+- [ ] Confirmar comportamento IPv4/IPv6, incluindo endereços IPv6 com escopo quando suportados pelo ADB/rede.
+
+O pacote ADB permanece `unverified` até a execução dessas verificações. Nenhuma atividade desta lista foi executada durante a implementação.

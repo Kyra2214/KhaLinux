@@ -15,9 +15,8 @@
 - Não gerar ZIP/checkpoints. Não fazer merge para `main` sem autorização explícita.
 - Não executar testes/builds intermediários durante a implementação; acumular validação para LAB-10.
 - LAB-0 concluído em código/documentação: inventário em `docs/lab-0-inventory.md`, contratos em `android/runtime/.../operations/LabOperationModels.kt`, parser em `android/app/.../operations/OperationCatalogJson.kt` e catálogo em `distribution/lab/operation-catalog.json`.
-- LAB-1 parcialmente implementado: motor, persistência, evidências, fila/cancelamento/timeout, CLI `khalab` e ligação aos ViewModels RED/BLUE. Detalhes em `docs/lab-1-engine.md`.
-- Pendências LAB-1: número do sinal Unix (exige status bruto nativo de waitpid) e verificação completa de dependências/capacidades. Não declaradas concluídas.
-- Progresso do laboratório operacional: 15% (LAB-0 concluído; LAB-1 parcial). Próximo módulo executável: LAB-2 — inventário e conexão de dispositivos.
-- Commits LAB-1: motor `b1321cdd2ee85fd5208ea65498765accdb8e6afd`; integração Service `4aecb6887ae7ffcd588a51fe67de0940e6671279`; CLI/RED/BLUE `6668721ac012aa832448a0c1cd5d11a6823b48eb`.
-- HEAD documental LAB-1: `ee5557ff105da28dfc5702b5cc89a24289f0530a`.
+- LAB-1 parcialmente implementado: motor, persistência, evidências, fila/cancelamento/timeout, CLI `khalab` e integração RootFS/ADB/RED/BLUE. Pendências: número do sinal Unix (status bruto waitpid) e pré-condições completas de dependências/capacidades. Ver `docs/lab-1-engine.md`.
+- LAB-2 implementação concluída: inventário local/remoto, LabAssetStore, mDNS, ADB Wireless debugging, servidor persistente, operações de pareamento/conexão/consulta, pacote ADB ARM64 e integração RED/BLUE. Ver `docs/lab-2-device-connectivity.md`.
+- Pendências LAB-2: pacote ADB permanece unverified; RootFS não foi reconstruído; testes de instalação, servidor PRoot, mDNS, pareamento e dois aparelhos ficam no LAB-10.
+- Progresso do laboratório operacional: 23% (LAB-0 concluído; LAB-1 parcial; LAB-2 implementação concluída, validação pendente). Próximo módulo: LAB-3 — RED Mobile.
 - Nenhum teste/build foi executado; validações acumuladas para LAB-10. Nenhum ZIP/checkpoint gerado.
