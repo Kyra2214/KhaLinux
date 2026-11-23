@@ -85,7 +85,8 @@ fun KhaNavigationBar(current: Section, enabled: Boolean, onSelect: (Section) -> 
         NavItem(current == Section.TERMINAL, true, "⌨", stringResource(R.string.nav_terminal)) { onSelect(Section.TERMINAL) }
         NavItem(current == Section.PACKAGES, enabled, "📦", stringResource(R.string.nav_packages)) { onSelect(Section.PACKAGES) }
         NavItem(current == Section.TOOLKIT, enabled, "🛠", stringResource(R.string.nav_tools)) { onSelect(Section.TOOLKIT) }
-        NavItem(current == Section.LABS, enabled, "🧪", stringResource(R.string.nav_labs)) { onSelect(Section.LABS) }\n        NavItem(current == Section.RED, enabled, "🎯", "RED") { onSelect(Section.RED) }
+        NavItem(current == Section.LABS, enabled, "🧪", stringResource(R.string.nav_labs)) { onSelect(Section.LABS) }
+        NavItem(current == Section.RED, enabled, "🎯", "RED") { onSelect(Section.RED) }
         NavItem(moreSelected, true, "⋯", stringResource(R.string.nav_more)) { onMore() }
     }
 }
