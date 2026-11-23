@@ -113,7 +113,7 @@ class BlueViewModel(application: Application) : AndroidViewModel(application) {
                     operationEvents = operationEvents,
                     selectedSessionId = current.selectedSessionId?.takeIf { id -> all.any { it.id == id } }
                         ?: all.firstOrNull()?.id,
-                    message = if (all.isEmpty()) "Ainda não há sessões RED para analisar." else null
+                    message = if (all.isEmpty() && operationEvents.isEmpty()) "Ainda não há sessões RED nem eventos operacionais para analisar." else null
                 )
             }
         }
