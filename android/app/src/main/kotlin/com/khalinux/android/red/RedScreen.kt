@@ -169,16 +169,24 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                         }
                     }
                     item {
-                        Text("Armadilha sintética", style = MaterialTheme.typography.titleMedium)
-                        Text("SIMULAÇÃO DE LABORATÓRIO. Digite apenas valores fictícios. O conteúdo digitado não é persistido.")
-                        var email = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf("xxx@gmail.com") }
-                        var password = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf("123") }
-                        OutlinedTextField(value = email.value, onValueChange = { email.value = it.take(120) }, label = { Text("E-mail fictício") }, modifier = Modifier.fillMaxWidth())
-                        OutlinedTextField(value = password.value, onValueChange = { password.value = it.take(80) }, label = { Text("Senha fictícia") }, modifier = Modifier.fillMaxWidth())
-                        Button(onClick = { viewModel.recordDemoForm(); password.value = "" }) { Text("Enviar demonstração local") }
-                        Text("O evento registra somente que o formulário foi concluído. Nenhum valor é enviado ou salvo.")
+                        Text("Último formulário recebido", style = MaterialTheme.typography.titleMedium)
+                        state.latestSubmission?.let { submission ->
+                            Text(
+                                if (submission.accepted) "Recebido e validado localmente" else "Envio rejeitado",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = if (submission.accepted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                            )
+                            Text(submission.message, style = MaterialTheme.typography.bodySmall)
+                            submission.fields.forEach { (key, value) ->
+                                Text("$key: $value", style = MaterialTheme.typography.bodyMedium)
+                            }
+                            Text(
+                                "Valores visíveis somente nesta sessão e mantidos em memória; não entram no histórico nem no relatório.",
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        } ?: Text("Nenhum formulário foi recebido nesta sessão.", style = MaterialTheme.typography.bodySmall)
                         Text("Eventos da sessão", style = MaterialTheme.typography.titleMedium)
-                        session.events.asReversed().forEach { Text("${it.timestamp}: ${it.detail}", style = MaterialTheme.typography.bodySmall) }
+                        session.events.asReversed().forEach { Text("${it.sequence}. ${it.timestamp}: ${it.detail}", style = MaterialTheme.typography.bodySmall) }
                     }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
