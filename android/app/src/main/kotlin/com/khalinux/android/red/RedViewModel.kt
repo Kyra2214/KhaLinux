@@ -143,6 +143,8 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             detail.startsWith("Servidor local iniciado") -> RedEventType.PORTAL_STARTED
             detail.startsWith("Portal de treinamento acessado") -> RedEventType.PORTAL_OPENED
             detail.startsWith("Participante concluiu") -> RedEventType.DEMO_FORM_COMPLETED
+            detail.startsWith("Permissão simulada") -> RedEventType.PERMISSION_DEMO
+            detail.startsWith("Participante abriu") -> RedEventType.STEP_OPENED
             detail.startsWith("Sessão") || detail.startsWith("Hotspot local liberado") -> RedEventType.SESSION_ENDED
             else -> RedEventType.ERROR
         }
