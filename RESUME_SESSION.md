@@ -109,3 +109,12 @@
 - Próximo: RED-12 — fechamento da implementação e congelamento.
 - Ainda pendente após RED-12: RED-13 validação final (testes, builds e testes físicos). Não antecipar.
 - Sem ZIP, sem testes/builds, sem merge.
+
+## Execução contínua RED — fechamento RED-12
+
+- Branch: plan/area-red-wifi-publico.
+- RED-0 a RED-12 concluídos em código/documentação: **93% (13/14)**.
+- RED-12 congelou implementação e consolidou a lista de validação em docs/red-implementation-freeze.md.
+- Próxima e única fase: RED-13 — validação final. Implementação não deve ser reaberta salvo correção de falha identificada nessa fase.
+- Testes/builds/validações não foram executados durante a implementação. Agora a fase final está autorizada pelo Prompt Mestre.
+- ZIP/checkpoints desativados; branch atual é a única branch autorizada; sem merge para main.
