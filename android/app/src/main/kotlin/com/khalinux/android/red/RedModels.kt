@@ -47,7 +47,8 @@ data class RedRequestObservation(
     val statusCode: Int,
     val contentType: String? = null,
     val bodyBytes: Int = 0,
-    val remoteAddress: String? = null
+    val remoteAddress: String? = null,
+    val safeHeaders: Map<String, String> = emptyMap()
 )
 
 data class RedOperation(
