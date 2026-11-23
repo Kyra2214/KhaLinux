@@ -116,6 +116,9 @@ class LabOperationEngine(
         if (operation.executor == LabExecutorKind.ADB) require(adbClient != null) { "Adaptador ADB indisponível" }
         val targets = assetIds ?: session.assetIds
         require(session.assetIds.containsAll(targets)) { "Ativo não pertence à sessão" }
+        if (operation.targetKind == LabTargetKind.ANDROID_DEVICE) {
+            require(targets.isNotEmpty()) { "Operação exige um ativo Android associado à sessão" }
+        }
         val command = resolveCommand(operation, parameters)
         val queued = LabExecutionRecord(
             id = UUID.randomUUID().toString(), sessionId = sessionId, operationId = operation.id,
