@@ -17,16 +17,19 @@ class AndroidBindMountPolicyTest {
                 File(devRoot, it).createNewFile()
             }
             File(devRoot, "pts").mkdirs()
-            File(devRoot, "proc").mkdirs()
             File(devRoot, "sys").mkdirs()
+            val hostProc = File(devRoot, "host-proc").apply { mkdirs() }
 
-            val mounts = AndroidBindMountPolicy.defaultMounts(devRoot)
+            val mounts = AndroidBindMountPolicy.defaultMounts(devRoot, hostProc)
 
             assertEquals(
-                listOf("/dev/null", "/dev/zero", "/dev/random", "/dev/urandom", "/dev/tty", "/dev/pts"),
+                listOf("/dev/null", "/dev/zero", "/dev/random", "/dev/urandom", "/dev/tty", "/dev/pts", "/proc"),
                 mounts.map { it.guestPath }
             )
-            assertFalse(mounts.any { it.guestPath == "/proc" || it.guestPath == "/sys" || it.guestPath == "/dev" })
+            assertFalse(mounts.any { it.guestPath == "/sys" || it.guestPath == "/dev" })
+            // Sem /proc no host (ex.: ambiente de teste restrito), nenhum bind de /proc é criado.
+            val semProc = AndroidBindMountPolicy.defaultMounts(devRoot, File(devRoot, "inexistente"))
+            assertFalse(semProc.any { it.guestPath == "/proc" })
         } finally {
             devRoot.deleteRecursively()
         }

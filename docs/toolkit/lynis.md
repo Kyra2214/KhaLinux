@@ -11,7 +11,7 @@ Não exige confirmação de escopo: audita apenas o próprio RootFS local. Não 
 
 ## Limitações sem root
 
-- /proc não montado (ADR-0005): vários testes falham ou não se aplicam.
+- /proc do Android montado (ADR-0005 revisada), mas sem acesso ao kernel: alguns testes falham ou não se aplicam.
 - Audita só o RootFS, não o Android; não verificado em ARM64/PRoot.
 
 ## Exemplos seguros

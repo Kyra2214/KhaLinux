@@ -12,7 +12,7 @@ Não exige confirmação de escopo (uso passivo/local), mas só use contra alvos
 ## Limitações sem root
 
 - Alterar interfaces/rotas exige privilégios indisponíveis sem root.
-- /proc e /sys não são montados no RootFS (ADR-0005); ss e partes de ip podem falhar.
+- /sys não é montado no RootFS (ADR-0005 revisada); partes de ip e operações que alteram interfaces podem falhar sem root.
 
 ## Instalação
 

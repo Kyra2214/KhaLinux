@@ -63,7 +63,7 @@
       "requires_authorization": false,
       "root_limitations": [
         "Alterar interfaces/rotas exige privilégios indisponíveis sem root.",
-        "/proc e /sys não são montados no RootFS (ADR-0005); ss e partes de ip podem falhar."
+        "/sys não é montado no RootFS (ADR-0005 revisada); partes de ip e operações que alteram interfaces podem falhar sem root."
       ],
       "doc": "docs/toolkit/iproute2.md"
     },
@@ -270,7 +270,7 @@
       "check_command": "lynis --version",
       "requires_authorization": false,
       "root_limitations": [
-        "/proc não montado (ADR-0005): vários testes falham ou não se aplicam.",
+        "/proc do Android montado (ADR-0005 revisada), mas sem acesso ao kernel: alguns testes falham ou não se aplicam.",
         "Audita só o RootFS, não o Android; não verificado em ARM64/PRoot."
       ],
       "doc": "docs/toolkit/lynis.md"
@@ -287,7 +287,7 @@
       "check_command": "chkrootkit -V",
       "requires_authorization": false,
       "root_limitations": [
-        "/proc não montado (ADR-0005) e sem acesso ao kernel: vários testes não se aplicam.",
+        "/proc do Android montado (ADR-0005 revisada), mas sem acesso ao kernel: alguns testes não se aplicam.",
         "Resultado não prova ausência de comprometimento; não verificado em ARM64/PRoot."
       ],
       "doc": "docs/toolkit/chkrootkit.md"
@@ -304,7 +304,7 @@
       "check_command": "rkhunter --version",
       "requires_authorization": false,
       "root_limitations": [
-        "/proc não montado (ADR-0005): vários testes falham ou não se aplicam.",
+        "/proc do Android montado (ADR-0005 revisada), mas sem acesso ao kernel: alguns testes falham ou não se aplicam.",
         "Resultado não prova ausência de comprometimento; não verificado em ARM64/PRoot."
       ],
       "doc": "docs/toolkit/rkhunter.md"

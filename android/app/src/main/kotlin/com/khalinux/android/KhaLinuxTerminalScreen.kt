@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,6 +23,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.khalinux.runtime.TerminalSnapshot
 import com.khalinux.runtime.TerminalStyle
 import com.khalinux.runtime.tutor.TutorContext
@@ -42,16 +42,12 @@ fun KhaLinuxApp(
     filesViewModel: com.khalinux.android.files.FilesViewModel,
     tutorViewModel: com.khalinux.android.tutor.TutorViewModel
 ) {
-    // O release com targetSdk 28 pode montar o Compose antes de o ViewTreeLifecycleOwner
-    // estar disponível; collectAsStateWithLifecycle() então lança
-    // "LocalLifecycleOwner not present" na primeira composição. Os StateFlows continuam
-    // ativos nos ViewModels, portanto collectAsState() é seguro para esta raiz da UI.
-    val state by viewModel.uiState.collectAsState()
-    val packagesState by packagesViewModel.uiState.collectAsState()
-    val toolkitState by toolkitViewModel.uiState.collectAsState()
-    val labsState by labsViewModel.uiState.collectAsState()
-    val filesState by filesViewModel.uiState.collectAsState()
-    val tutorState by tutorViewModel.uiState.collectAsState()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val packagesState by packagesViewModel.uiState.collectAsStateWithLifecycle()
+    val toolkitState by toolkitViewModel.uiState.collectAsStateWithLifecycle()
+    val labsState by labsViewModel.uiState.collectAsStateWithLifecycle()
+    val filesState by filesViewModel.uiState.collectAsStateWithLifecycle()
+    val tutorState by tutorViewModel.uiState.collectAsStateWithLifecycle()
     var showMore by remember { mutableStateOf(false) }
 
     val section = when {

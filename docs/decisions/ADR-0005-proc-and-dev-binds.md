@@ -1,9 +1,11 @@
-# ADR-0005: /proc e /sys não são montados do Android
+# ADR-0005: /proc montado do Android; /sys não
 
-**Estado:** aceito (3.5). **Contexto:** o plano de correção pedia "avaliar bind de /proc".
+**Estado:** revisado (decisão do autor, novembro de 2026). Substitui a decisão original de não montar `/proc`.
 
-**Decisão:** manter a política atual (`AndroidBindMountPolicy`): só `/dev/null, zero, random, urandom, tty, pts` são ligados. `/proc` e `/sys` do Android **não** entram no Debian por padrão.
+**Decisão:** `AndroidBindMountPolicy` liga `/dev/null, zero, random, urandom, tty, pts` **e `/proc`** do Android. `/sys` e o `/dev` inteiro continuam fora.
 
-**Motivos:** expõem processos e informações do aparelho ao convidado; o PRoot já emula os caminhos `/proc/self/*` necessários ao próprio rastreamento; o teste `AndroidBindMountPolicyTest` fixa essa política.
+**Motivos:** `ps`, `top`, `free`, `ss`, `lynis`, `rkhunter`, `chkrootkit` e scripts de pós-instalação do `dpkg` dependem de `/proc`; sem ele a instalação de pacotes e as ferramentas do toolkit ficavam limitadas.
 
-**Consequências:** `ps`, `top`, `free` e `mount` podem mostrar dados incompletos ou falhar. Se a Fase 4/5 exigir essas ferramentas, adotar um bind **opt-in**, somente leitura de fato (o PRoot não implementa `ro`), com análise de exposição e teste dedicado. Nenhum bind novo foi implementado.
+**Exposição (análise):** o Debian passa a ler informações de `/proc` visíveis ao UID do app. No Android moderno (`hidepid`) isso não inclui processos de outros apps, mas expõe dados do próprio app e do kernel (versão, memória, CPU). O PRoot não implementa montagem somente leitura (`ro`); o convidado "root" simulado continua sem privilégios reais de escrita em `/proc`. Ferramentas ofensivas seguem atrás da confirmação de escopo.
+
+**Consequências:** limitações restantes são de privilégio (sem root real, sem raw sockets, sem `/sys`). Teste: `AndroidBindMountPolicyTest`.

@@ -30,7 +30,7 @@ Permissões aprovadas: `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_SPECIAL_USE`, `
 | Integridade | `RootfsInstaller`, `ProotInstaller` | SHA-256 de 64 hex validado antes do uso; hashes pinados no app. |
 | Extração TAR | `RootfsInstaller.resolveEntry/resolveLink` | Recusa caminho absoluto, `..`, link simbólico que escapa da raiz e pai simbólico. |
 | PRoot | `ProotInstaller` | Aceita um único ELF `proot` regular, sem link; cabeçalhos ELF validados. |
-| Binds | `ProotBindMountPreparer`, `AndroidBindMountPolicy` | Alvos canônicos dentro do RootFS, sem links simbólicos; só nós de `/dev` necessários; `/proc` e `/sys` não montados (ADR-0005). |
+| Binds | `ProotBindMountPreparer`, `AndroidBindMountPolicy` | Alvos canônicos dentro do RootFS, sem links simbólicos; nós de `/dev` necessários e `/proc` (ADR-0005 revisada); `/sys` não montado. |
 | Processos | `ProotLauncher` | `ProcessBuilder` com lista de argumentos (sem shell do usuário); ambiente limpo e explícito; script do wrapper de grupo de processos é constante, com argumentos posicionais. |
 | Comandos apt | `PackageInstaller`, `PackageRemover` | Nome (`[a-z0-9][a-z0-9+.-]+`) e versão (`[0-9][A-Za-z0-9.+~:_-]*`) validados por regex completa no manifesto; sem aspas, `;`, `$` ou espaço possíveis, logo o `'…'` do comando não é escapável. |
 | Arquivos | `HomeFileManager` | Caminho canônico confinado à raiz; recusa `.`, `..`, vazio e NUL. |

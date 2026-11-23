@@ -3,6 +3,7 @@
 ## [Não lançado] — CHECKPOINT 047
 
 ### Corrigido
+- **`/proc` agora é montado no PRoot** (ADR-0005 revisada): `AndroidBindMountPolicy` liga `/proc` do Android; `/sys` continua fora. Remove a limitação de `/proc` de chkrootkit, lynis, rkhunter e iproute2 (catálogo, toolkit, docs, tutor) e permite `ps`/`top`/`ss` e scripts de pós-instalação do dpkg. As limitações de privilégio (sem root) e "não verificado em aparelho" permanecem, pois só validação real as remove. Testes atualizados; não executados.
 - **`dpkg: error creating new backup file '/var/lib/dpkg/status-old': Permission denied`** ao instalar pacotes `debian-apt` (ex.: binwalk; `apt-get install` saía com código 100 e o dpkg com 2). Causa: o dpkg cria o backup com `link()` (hard link), que o SELinux do Android nega em `filesDir` (EACCES). `ProotConfig.commandFor` agora passa `--link2symlink` ao PRoot, que emula hard links com symlinks. Não validado em aparelho ainda; após atualizar, reinstale o pacote que falhou (um `dpkg --configure -a` pode ser necessário se o dpkg ficou em estado parcial).
 - **`Permission denied` (exit 126) ao executar o PRoot** (confirmado em aparelho: Terminal, Pacotes e Ferramentas falhavam por isso): com `targetSdk` ≥ 29 o SELinux bloqueia `execve` de arquivos em `filesDir`. `targetSdk`/`minSdk` passam a 28 (mesmo caminho do Termux; distribuição por APK fora da Play Store). `enableEdgeToEdge()` + `adjustResize` mantêm os insets corretos.
 - Ferramentas: botões "Favoritar" etc. em duas linhas de largura igual (não quebram mais o texto).

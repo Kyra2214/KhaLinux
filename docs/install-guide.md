@@ -60,4 +60,4 @@ Desinstalar o app **apaga todos os dados** (RootFS, home, scripts, relatórios, 
 
 ## Limitações do Android sem root
 
-PRoot não é uma máquina virtual nem um sandbox forte; `/proc` e `/sys` do Android não são montados (ADR-0005), então algumas ferramentas que dependem deles falham ou ficam limitadas. Veja `SECURITY.md`.
+PRoot não é uma máquina virtual nem um sandbox forte; o `/proc` do Android é montado, mas `/sys` não (ADR-0005 revisada), então algumas ferramentas que dependem do kernel falham ou ficam limitadas. Veja `SECURITY.md`.

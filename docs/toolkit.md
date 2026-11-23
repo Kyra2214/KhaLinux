@@ -28,7 +28,7 @@ sleuthkit, binwalk, hashdeep e exiftool (grupo forense; análise local, sem conf
 
 ## Ferramentas adicionadas em 5.5
 
-lynis, chkrootkit e rkhunter (grupo auditoria; `known-limited` por falta de `/proc`; auditam apenas o RootFS). Versões lidas em páginas do Debian; conferir no snapshot APT fixado em 5.6.
+lynis, chkrootkit e rkhunter (grupo auditoria; `known-limited` por falta de acesso ao kernel; auditam apenas o RootFS). Versões lidas em páginas do Debian; conferir no snapshot APT fixado em 5.6.
 
 ## Integração no app (5.6)
 

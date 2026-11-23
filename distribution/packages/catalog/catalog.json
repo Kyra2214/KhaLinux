@@ -42,7 +42,7 @@
       "verification": {},
       "validation": "known-limited",
       "limitations": [
-        "/proc não está montado no RootFS (ADR-0005) e não há acesso ao kernel nem ao Android hospedeiro; verificações que dependem de /proc, módulos do kernel ou processos do sistema falham ou não se aplicam.",
+        "O /proc do Android é montado (ADR-0005 revisada), mas não há acesso ao kernel nem ao Android hospedeiro; verificações que dependem de módulos do kernel ou de processos do sistema podem falhar ou não se aplicar.",
         "Sem acesso ao kernel e a interfaces de rede em modo promíscuo; vários testes não se aplicam; resultados não são prova de ausência de comprometimento.",
         "Funcionamento em ARM64/PRoot sem root não verificado."
       ],
@@ -154,7 +154,7 @@
         "diagnostico"
       ],
       "limitations": [
-        "Operações que alteram interfaces exigem privilégios indisponíveis sem root; /proc não está montado (ADR-0005)."
+        "Operações que alteram interfaces exigem privilégios indisponíveis sem root; /sys não é montado (ADR-0005 revisada)."
       ]
     },
     {
@@ -219,7 +219,7 @@
       "verification": {},
       "validation": "known-limited",
       "limitations": [
-        "/proc não está montado no RootFS (ADR-0005) e não há acesso ao kernel nem ao Android hospedeiro; verificações que dependem de /proc, módulos do kernel ou processos do sistema falham ou não se aplicam.",
+        "O /proc do Android é montado (ADR-0005 revisada), mas não há acesso ao kernel nem ao Android hospedeiro; verificações que dependem de módulos do kernel ou de processos do sistema podem falhar ou não se aplicar.",
         "Audita apenas o RootFS do KhaLinux; resultados não descrevem a segurança do aparelho Android.",
         "Funcionamento em ARM64/PRoot sem root não verificado."
       ],
@@ -310,7 +310,7 @@
       "verification": {},
       "validation": "known-limited",
       "limitations": [
-        "/proc não está montado no RootFS (ADR-0005) e não há acesso ao kernel nem ao Android hospedeiro; verificações que dependem de /proc, módulos do kernel ou processos do sistema falham ou não se aplicam.",
+        "O /proc do Android é montado (ADR-0005 revisada), mas não há acesso ao kernel nem ao Android hospedeiro; verificações que dependem de módulos do kernel ou de processos do sistema podem falhar ou não se aplicar.",
         "Atualização de dados e verificações de rede dependem de configuração; resultados não são prova de ausência de comprometimento.",
         "Funcionamento em ARM64/PRoot sem root não verificado."
       ],

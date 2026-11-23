@@ -34,7 +34,7 @@ Android 15+ (API 35), ARM64, rede no primeiro uso, alguns GB livres. Detalhes em
 
 ## Limitações conhecidas
 
-- PRoot não é sandbox nem VM; `/proc` e `/sys` do Android não são montados (ADR-0005). Ferramentas que dependem deles ficam limitadas.
+- PRoot não é sandbox nem VM; o `/proc` do Android é montado e o `/sys` não (ADR-0005 revisada). Ferramentas que dependem do kernel ficam limitadas.
 - Risco principal: bloqueio de execução de binários em `filesDir` no Android 15+; plano B (`libproot.so`) **não** está empacotado (`docs/diagnostics.md`).
 - Nenhuma ferramenta do toolkit foi verificada em aparelho; o catálogo marca "Não verificado em ARM64/PRoot".
 - RootFS/downloads ainda não foram reduzidos (exige nova build no CI).
