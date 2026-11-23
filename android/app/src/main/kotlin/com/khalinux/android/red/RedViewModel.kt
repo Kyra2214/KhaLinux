@@ -151,12 +151,14 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         val type = when {
             detail.startsWith("Operador solicitou hotspot") -> RedEventType.HOTSPOT_REQUESTED
             detail.startsWith("Hotspot local ativado") -> RedEventType.HOTSPOT_READY
+            detail.startsWith("Hotspot local liberado") || detail.startsWith("O Android encerrou") -> RedEventType.HOTSPOT_STOPPED
             detail.startsWith("Servidor local iniciado") -> RedEventType.PORTAL_STARTED
+            detail.startsWith("Servidor do portal local encerrado") -> RedEventType.PORTAL_STOPPED
             detail.startsWith("Portal de treinamento acessado") -> RedEventType.PORTAL_OPENED
             detail.startsWith("Participante concluiu") -> RedEventType.DEMO_FORM_COMPLETED
             detail.startsWith("Permissão simulada") -> RedEventType.PERMISSION_DEMO
             detail.startsWith("Participante abriu") -> RedEventType.STEP_OPENED
-            detail.startsWith("Sessão") || detail.startsWith("Hotspot local liberado") -> RedEventType.SESSION_ENDED
+            detail.startsWith("Sessão") -> RedEventType.SESSION_ENDED
             else -> RedEventType.ERROR
         }
         val nextState = when (type) {
