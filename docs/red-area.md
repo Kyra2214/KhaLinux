@@ -1,6 +1,6 @@
 # Área RED — laboratório de Wi-Fi e portal local
 
-**Estado da implementação:** RED-0 a RED-12 implementados em código/documentação (13/14 submódulos, 93%). RED-13 é a validação final pendente.  
+**Estado da implementação:** RED-0 a RED-12 implementados em código/documentação (100% dos 13 submódulos de implementação). RED-13 é a validação final pendente; o projeto ainda não está concluído.  
 **Branch:** `plan/area-red-wifi-publico`  
 **Roadmap mestre:** [roadmap-area-red-completa.md](roadmap-area-red-completa.md)  
 **Operação 01:** [red-operation-01.md](red-operation-01.md)
