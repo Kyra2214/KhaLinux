@@ -119,15 +119,21 @@ A interface não gera sucesso por conta própria. Não há evento de conclusão 
 **Aceite:** execução real, estado, cancelamento, timeout, saída e evidências estão integrados. Os itens 1.6 e 1.7 permanecem registrados e não são declarados concluídos. As telas finais de operação e acompanhamento serão consolidadas no LAB-9.
 
 ### LAB-2 — Inventário e conexão de dispositivos
-- Criar inventário de aparelhos e serviços do laboratório.
-- Identificar aparelho, modelo, Android, arquitetura, endereço e capacidades disponíveis.
-- Implementar pareamento ADB Wireless Debugging e conexão ADB pela rede.
-- Detectar estado da conexão, chave/pareamento, versão do ADB e comandos suportados.
-- Criar adaptador Android para inventário, shell, pacotes, logs e estado do dispositivo.
-- Criar alternativa por componente auxiliar Android quando uma operação depender de API não exposta pelo ADB.
-- Registrar a diferença entre capacidade disponível, indisponível e ainda não implementada.
 
-**Aceite:** o aparelho operador consegue descobrir, parear e operar o aparelho de teste pelo canal técnico real, exibindo resultados retornados pelo Android.
+<badge color="success">Implementação concluída</badge> **Validação final pendente.** Detalhes: [`lab-2-device-connectivity.md`](lab-2-device-connectivity.md).
+
+- [x] LAB-2.1 — Registro persistente de ativos e inventário local Android: fabricante/modelo, versão, SDK, ABI, interfaces, endereços, gateway, DNS e capacidades disponíveis. Não coleta IMEI, Android ID, MAC ou SSID.
+- [x] LAB-2.2 — Descoberta mDNS dos serviços `_adb-tls-pairing._tcp` e `_adb-tls-connect._tcp`, com alternativa de endpoint manual para redes que bloqueiam multicast.
+- [x] LAB-2.3 — ADB ARM64 34.0.5, com suporte a `adb pair`, incluído no RootFS novo e no catálogo. O instalador de pacotes provisiona a suite Debian backports fixada também em RootFS existente.
+- [x] LAB-2.4 — Servidor ADB persistente em sessão PRoot dedicada (porta 5038); chave do host permanece no home persistente. Ciclo de pareamento, conexão e desconexão sem transporte USB.
+- [x] LAB-2.5 — Operações reais ADB para listar dispositivos, consultar propriedades, interfaces, rotas, pacotes de terceiros, logcat e estado da bateria.
+- [x] LAB-2.6 — Ativos remotos identificados por hash estável do serial, estado de conexão atualizado e dispositivos ausentes marcados como `not-listed`.
+- [x] LAB-2.7 — Operações ADB executadas pelo mesmo `LabOperationEngine`; stdout/stderr, exit code, duração e evidências chegam ao RED e os eventos persistidos chegam ao BLUE.
+- [x] LAB-2.8 — Estado de disponibilidade, versão, suporte a pareamento e existência da chave do host expostos ao RED.
+
+**Decisão sobre componente auxiliar Android:** as operações de inventário e conexão previstas nesta fase são cobertas por ADB e APIs públicas do operador. Não foi criado APK auxiliar sem requisito concreto; se um módulo posterior exigir uma API indisponível via ADB, essa dependência será implementada e registrada naquele módulo.
+
+**Aceite de implementação:** descoberta, pareamento, conexão, inventário e consultas são operações reais com resultados do Android, sem eventos fixos de sucesso. A interface final fica no LAB-9. A validação do pacote ARM64/PRoot e os testes físicos com dois aparelhos ficam no LAB-10.
 
 ### LAB-3 — RED Mobile: avaliação operacional Android
 - Inventariar pacotes instalados, versões, SDK, arquitetura e origem quando disponível.
