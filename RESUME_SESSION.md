@@ -49,3 +49,19 @@
 - Ainda não implementado: bind robusto da rede hotspot, porta 8080, portal com login local/acesso direto, submissão HTTP de campos sintéticos, links/navegação, modo participante Android, painel de observabilidade completo e integração BLUE.
 - **Não executar** testes unitários, integração, instrumentados, builds, validações ou testes físicos durante a implementação. Transferir tudo para RED-13.
 - Sem ZIP. Não fazer merge. Continuar automaticamente no RED-2.
+
+## Execução contínua RED — checkpoint de implementação
+
+- Branch: `plan/area-red-wifi-publico`. Não trocar de branch e não fazer merge.
+- ZIP/checkpoints: **ignorados/desativados** conforme instrução atual do usuário.
+- RED-0 a RED-6 concluídos em documentação/código; progresso: **50% (7/14 submódulos)**.
+- RED-1: modelos de estado/eventos, observação HTTP e catálogo atualizados.
+- RED-2: LocalOnlyHotspot, estado e dados expostos pelo Android integrados; participante fica ativo após primeira requisição HTTP. Android não expõe lista universal de clientes.
+- RED-3: servidor HTTP porta 8080, bind em IPv4 Wi-Fi/AP, limites e timeout; painel mostra metadados de requisição.
+- RED-4: portal fictício natural com modo login local e modo acesso direto, páginas internas e redirect.
+- RED-5: POST recebe somente `demo_id=aluno-...` e `demo_code=LAB-0000`; valores ficam apenas em memória no painel, sem persistência.
+- RED-6: navegação/links locais e redirect 302 registrados como eventos.
+- Próximo submódulo: RED-7 — modo participante Android e permissões reais.
+- Arquivos principais alterados: `RedModels.kt`, `RedSessionStore.kt`, `RedViewModel.kt`, `RedHotspotController.kt`, `RedPortalServer.kt`, `RedScreen.kt`, `distribution/red/operations.json`, documentos RED/arquitetura/changelog.
+- Pendências: modo participante no aparelho B; câmera/microfone/localização por diálogos reais e prévia local; seletor SAF; integração BLUE; tutorial final.
+- Não executar testes, builds, validações ou testes físicos durante implementação. Transferir tudo para RED-13.
