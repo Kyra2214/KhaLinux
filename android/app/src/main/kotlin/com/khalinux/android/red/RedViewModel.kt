@@ -24,7 +24,8 @@ data class RedUiState(
     val networkRunning: Boolean = false,
     val networkState: RedNetworkState = RedNetworkState.IDLE,
     val portalMode: RedPortalMode = RedPortalMode.LOCAL_LOGIN,
-    val requests: List<RedRequestObservation> = emptyList()
+    val requests: List<RedRequestObservation> = emptyList(),
+    val latestSubmission: RedSyntheticSubmission? = null
 )
 
 class RedViewModel(application: Application) : AndroidViewModel(application) {
@@ -32,7 +33,8 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
     private val portal = RedPortalServer(
         onEvent = { detail -> recordRuntimeEvent(detail) },
         onAddress = { address -> mutableState.update { it.copy(portalAddress = address) } },
-        onRequest = { observation -> recordRequest(observation) }
+        onRequest = { observation -> recordRequest(observation) },
+        onSyntheticSubmission = { submission -> recordSyntheticSubmission(submission) }
     )
     private val hotspot = RedHotspotController(application) { snapshot ->
         val info = buildList {
@@ -123,7 +125,8 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 message = null,
                 networkState = RedNetworkState.IDLE,
                 hotspotSnapshot = null,
-                requests = emptyList()
+                requests = emptyList(),
+                latestSubmission = null
             )
         }
         viewModelScope.launch(Dispatchers.IO) {
@@ -184,6 +187,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             it.copy(
                 session = session,
                 requests = emptyList(),
+                latestSubmission = null,
                 networkState = RedNetworkState.IDLE,
                 hotspotSnapshot = null,
                 message = "Sessão local criada. A rede só será iniciada após a ação explícita do operador."
@@ -297,6 +301,16 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         refreshHistory()
     }
 
+    private fun recordSyntheticSubmission(submission: RedSyntheticSubmission) {
+        // Os valores só existem no estado de UI da sessão atual; nunca são gravados no SessionStore.
+        mutableState.update { it.copy(latestSubmission = submission) }
+        recordStructuredEvent(
+            type = if (submission.accepted) RedEventType.FORM_SUBMITTED else RedEventType.FORM_REJECTED,
+            detail = submission.message,
+            source = "local-form"
+        )
+    }
+
     fun recordRequest(observation: RedRequestObservation) {
         mutableState.update { it.copy(requests = (it.requests + observation).takeLast(100)) }
         val type = when {
@@ -322,7 +336,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         val updated = current.copy(state = RedOperationState.COMPLETED, endedAt = System.currentTimeMillis())
             .withEvent(RedEventType.SESSION_ENDED, "Sessão encerrada pelo operador.", source = "session")
         store.save(updated)
-        mutableState.update { it.copy(session = updated, message = "Sessão encerrada e relatório local atualizado.") }
+        mutableState.update { it.copy(session = updated, latestSubmission = null, message = "Sessão encerrada e relatório local atualizado.") }
         refreshHistory()
     }
 
