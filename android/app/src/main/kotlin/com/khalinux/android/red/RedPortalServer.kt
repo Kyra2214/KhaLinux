@@ -23,7 +23,8 @@ class RedPortalServer(
     private val onEvent: (String) -> Unit,
     private val onAddress: (String?) -> Unit,
     private val onRequest: (RedRequestObservation) -> Unit = {},
-    private val onSyntheticSubmission: (RedSyntheticSubmission) -> Unit = {}
+    private val onSyntheticSubmission: (RedSyntheticSubmission) -> Unit = {},
+    private val onParticipantEvent: (String, String) -> Unit = { _, _ -> }
 ) {
     @Volatile private var socket: ServerSocket? = null
     private val running = AtomicBoolean(false)
@@ -37,8 +38,10 @@ class RedPortalServer(
     @Volatile var boundPort: Int? = null
         private set
     @Volatile private var portalMode: RedPortalMode = RedPortalMode.LOCAL_LOGIN
+    @Volatile private var participantToken: String? = null
 
     fun setMode(mode: RedPortalMode) { portalMode = mode }
+    fun setParticipantToken(token: String?) { participantToken = token }
 
     @Synchronized
     fun start(preferredAddress: String? = null, mode: RedPortalMode = portalMode): String {
@@ -92,6 +95,7 @@ class RedPortalServer(
             val output = peer.getOutputStream()
             var method = "UNKNOWN"
             var path = "/"
+            var rawQuery = ""
             var contentType: String? = null
             var bodyBytes = 0
             var requestBody = ByteArray(0)
@@ -109,6 +113,7 @@ class RedPortalServer(
                 method = parts[0].uppercase(Locale.ROOT)
                 val rawTarget = parts[1]
                 path = rawTarget.substringBefore('?').take(512)
+                rawQuery = rawTarget.substringAfter('?', "").take(1024)
                 if (path.isBlank() || !path.startsWith("/") || path.contains("..") || path.contains('\\')) {
                     status = 400
                     writeResponse(output, status, "Caminho inválido.")
@@ -175,6 +180,11 @@ class RedPortalServer(
                         onEvent("Redirecionamento local executado: /go/notice → /notice.")
                         return
                     }
+                    method == "GET" && path == "/participant/event" -> {
+                        val result = processParticipantEvent(rawQuery)
+                        status = result.first
+                        result.second
+                    }
                     method == "GET" && path == "/health" -> {
                         status = 200
                         """{"status":"ok","service":"khalinux-red-local-lab"}"""
@@ -231,6 +241,35 @@ class RedPortalServer(
                 }
             }
         }
+    }
+
+    private fun processParticipantEvent(query: String): Pair<Int, String> {
+        val values = query.split('&').mapNotNull { pair ->
+            val separator = pair.indexOf('=')
+            if (separator <= 0) null else runCatching {
+                java.net.URLDecoder.decode(pair.substring(0, separator), "UTF-8") to
+                    java.net.URLDecoder.decode(pair.substring(separator + 1), "UTF-8")
+            }.getOrNull()
+        }.toMap()
+        val expected = participantToken
+        val supplied = values["token"]
+        if (expected.isNullOrBlank() || supplied.isNullOrBlank() ||
+            !java.security.MessageDigest.isEqual(
+                expected.toByteArray(StandardCharsets.UTF_8),
+                supplied.toByteArray(StandardCharsets.UTF_8)
+            )
+        ) {
+            return 403 to resultHtml("Não autorizado", "O código de sessão não corresponde ao instrutor.")
+        }
+        val kind = values["kind"].orEmpty()
+        val result = values["result"].orEmpty()
+        val allowedKinds = setOf("camera", "microphone", "location", "file")
+        val allowedResults = setOf("granted", "denied", "cancelled", "preview_started", "preview_stopped", "selected")
+        if (kind !in allowedKinds || result !in allowedResults) {
+            return 400 to resultHtml("Evento inválido", "O evento informado não faz parte desta demonstração.")
+        }
+        onParticipantEvent(kind, result)
+        return 200 to resultHtml("Registro recebido", "O instrutor recebeu somente o estado da demonstração. Nenhum conteúdo de câmera, microfone, localização ou arquivo foi enviado.")
     }
 
     private fun processSyntheticLogin(body: ByteArray, contentType: String?): Pair<Int, String> {
