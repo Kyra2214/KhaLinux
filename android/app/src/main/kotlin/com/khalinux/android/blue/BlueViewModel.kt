@@ -5,6 +5,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.khalinux.android.red.RedSession
 import com.khalinux.android.red.RedSessionStore
+import com.khalinux.android.red.RedLiveEvidenceSnapshot
+import com.khalinux.android.red.RedLiveEvidenceStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,7 +18,8 @@ data class BlueUiState(
     val visible: Boolean = false,
     val sessions: List<RedSession> = emptyList(),
     val selectedSessionId: String? = null,
-    val message: String? = null
+    val message: String? = null,
+    val liveEvidence: RedLiveEvidenceSnapshot = RedLiveEvidenceSnapshot()
 ) {
     val selectedSession: RedSession?
         get() = sessions.firstOrNull { it.id == selectedSessionId }
@@ -26,6 +29,14 @@ class BlueViewModel(application: Application) : AndroidViewModel(application) {
     private val sessions = RedSessionStore(application)
     private val mutableState = MutableStateFlow(BlueUiState())
     val uiState: StateFlow<BlueUiState> = mutableState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            RedLiveEvidenceStore.state.collect { evidence ->
+                mutableState.update { it.copy(liveEvidence = evidence) }
+            }
+        }
+    }
 
     fun open() {
         mutableState.update { it.copy(visible = true, message = null) }
