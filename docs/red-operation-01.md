@@ -1,6 +1,6 @@
 # RED-01 — Wi-Fi público, portal local e navegação
 
-**Estado:** especificação funcional revisada em 2026-11-23; implementação completa pendente.  
+**Estado:** hotspot e servidor HTTP 8080 implementados em código; portal com os dois cenários e demais experiências pendentes. Validação final não executada.  
 **Roadmap:** `docs/roadmap-area-red-estagio-01-wifi-publico.md`
 
 ## Objetivo
@@ -83,4 +83,4 @@ O portal do participante deve ser natural, sem banners ou alertas grotescos que 
 
 ## Estado atual
 
-A implementação inicial tem hotspot, servidor HTTP local, QR Code, sessões e painel básico. O formulário ainda envia somente um evento fixo, e permissões são simuladas. Login local completo, modo sem login, visualização de campos sintéticos, navegação detalhada e modo participante Android ainda precisam ser implementados e validados.
+A implementação atual tem hotspot Android, observação dos dados expostos pelo sistema, servidor HTTP local na porta 8080, QR Code, limites de requisição, timeout, registro de método/rota/status/tamanho e painel inicial. O portal natural, login local, acesso direto, recepção de campos sintéticos, navegação detalhada e modo participante Android ainda precisam ser implementados. Nenhum teste/build foi executado; validação permanece para a fase final.
