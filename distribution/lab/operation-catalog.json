@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "catalogVersion": "2026.11.23-lab0.1",
+  "operations": [
+    {
+      "id": "runtime.kernel-identity", "version": 1,
+      "title": "Identidade do runtime Linux", "domain": "DEVICE",
+      "targetKind": "LOCAL_RUNTIME", "executor": "ROOTFS_ARGV",
+      "description": "Consulta a identificação do kernel exposta ao processo dentro do RootFS.",
+      "command": ["uname", "-a"], "requiredPackages": ["coreutils"],
+      "requiredCapabilities": ["rootfs.process.exec"], "parameters": [],
+      "outputFields": ["stdout", "stderr", "exit_code", "duration_ms"],
+      "timeoutSeconds": 10, "enabled": true
+    },
+    {
+      "id": "network.interfaces", "version": 1,
+      "title": "Inventário de interfaces", "domain": "NETWORK",
+      "targetKind": "LOCAL_RUNTIME", "executor": "ROOTFS_ARGV",
+      "description": "Consulta endereços e estados das interfaces visíveis ao namespace de rede do runtime.",
+      "command": ["ip", "-j", "address", "show"], "requiredPackages": ["iproute2"],
+      "requiredCapabilities": ["rootfs.process.exec", "network.read.interfaces"], "parameters": [],
+      "outputFields": ["stdout", "stderr", "exit_code", "duration_ms"],
+      "timeoutSeconds": 15, "enabled": true
+    },
+    {
+      "id": "network.routes", "version": 1,
+      "title": "Inventário de rotas", "domain": "NETWORK",
+      "targetKind": "LOCAL_RUNTIME", "executor": "ROOTFS_ARGV",
+      "description": "Consulta as rotas visíveis ao namespace de rede do runtime.",
+      "command": ["ip", "-j", "route", "show"], "requiredPackages": ["iproute2"],
+      "requiredCapabilities": ["rootfs.process.exec", "network.read.routes"], "parameters": [],
+      "outputFields": ["stdout", "stderr", "exit_code", "duration_ms"],
+      "timeoutSeconds": 15, "enabled": true
+    },
+    {
+      "id": "network.resolver-config", "version": 1,
+      "title": "Configuração do resolvedor DNS", "domain": "NETWORK",
+      "targetKind": "LOCAL_RUNTIME", "executor": "ROOTFS_ARGV",
+      "description": "Lê /etc/resolv.conf do RootFS, sem enviar consultas DNS.",
+      "command": ["cat", "/etc/resolv.conf"], "requiredPackages": ["coreutils"],
+      "requiredCapabilities": ["rootfs.process.exec", "rootfs.filesystem.read"], "parameters": [],
+      "outputFields": ["stdout", "stderr", "exit_code", "duration_ms"],
+      "timeoutSeconds": 10, "enabled": true
+    }
+  ]
+}
