@@ -41,6 +41,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicReference
+import java.time.Duration
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.update
@@ -522,7 +523,100 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
             Triple(activeUseCases, command, tab.id)
         }
         persistCommand(start.second)
-        launchSession(tabId = start.third, interactive = false, useCases = start.first, command = start.second)
+        if (start.second == "khalab" || start.second.startsWith("khalab ")) {
+            launchLabCommand(start.third, start.second)
+        } else {
+            launchSession(tabId = start.third, interactive = false, useCases = start.first, command = start.second)
+        }
+    }
+
+    /** CLI operacional do terminal; usa o mesmo motor, persistência e evidências das futuras telas RED/BLUE. */
+    private fun launchLabCommand(tabId: String, command: String) {
+        val engineRef = AtomicReference<com.khalinux.runtime.operations.LabOperationEngine?>()
+        val sessionRef = AtomicReference<String?>()
+        val executionRef = AtomicReference<String?>()
+        val job = viewModelScope.launch {
+            try {
+                val output = withContext(Dispatchers.IO) {
+                    val gateway = synchronized(lock) { runtimeGateway }
+                        ?: throw IllegalStateException("Service local desconectado")
+                    val engine = gateway.operationEngine()
+                        ?: throw IllegalStateException("Motor operacional indisponível")
+                    engineRef.set(engine)
+                    val args = command.trim().split(Regex("\\s+")).filter { it.isNotBlank() }
+                    when {
+                        args.size == 1 || args.getOrNull(1) == "help" ->
+                            "KhaLinux Lab CLI\n  khalab list\n  khalab sessions\n  khalab run <operation-id>\n"
+                        args.size == 2 && args[1] == "list" ->
+                            engine.operations().joinToString("\n") { "${it.id}  |  ${it.title}  |  ${it.executor}" } + "\n"
+                        args.size == 2 && args[1] == "sessions" ->
+                            engine.sessions().joinToString("\n") { "${it.id}  |  ${it.state}  |  ${it.label}" }
+                                .ifBlank { "Nenhuma sessão operacional registrada." } + "\n"
+                        args.size == 3 && args[1] == "run" -> {
+                            val operation = engine.operation(args[2])
+                                ?: throw IllegalArgumentException("Operação não encontrada: ${args[2]}")
+                            val labSession = engine.createSession("Terminal: ${operation.id}")
+                            sessionRef.set(labSession.id)
+                            val queued = engine.submit(labSession.id, operation.id)
+                            executionRef.set(queued.id)
+                            var result = engine.awaitExecution(
+                                queued.id, Duration.ofSeconds(operation.timeoutSeconds.toLong() + 15L)
+                            ) ?: throw IllegalStateException("Execução não encontrada")
+                            if (result.state == com.khalinux.runtime.operations.LabExecutionState.QUEUED ||
+                                result.state == com.khalinux.runtime.operations.LabExecutionState.RUNNING
+                            ) {
+                                engine.cancel(queued.id)
+                                result = engine.awaitExecution(queued.id, Duration.ofSeconds(3)) ?: result
+                            }
+                            val evidence = engine.evidenceForExecution(queued.id)
+                            val stdout = evidence.firstOrNull { it.kind == "process.stdout" }
+                                ?.let { engine.evidenceBytes(it.id) }?.let { String(it, Charsets.UTF_8) }.orEmpty()
+                            val stderr = evidence.firstOrNull { it.kind == "process.stderr" }
+                                ?.let { engine.evidenceBytes(it.id) }?.let { String(it, Charsets.UTF_8) }.orEmpty()
+                            buildString {
+                                if (stdout.isNotEmpty()) append(stdout)
+                                if (stderr.isNotEmpty()) {
+                                    if (isNotEmpty() && last() != '\\n') append("\\n")
+                                    append("[stderr]\\n").append(stderr)
+                                }
+                                append("\\n[").append(result.state).append("]")
+                                result.exitCode?.let { append(" exit=").append(it) }
+                                result.durationMillis?.let { append(" duração=").append(it).append("ms") }
+                                result.errorSummary?.let { append("\\n").append(it) }
+                                if (isEmpty()) append("Operação concluída sem saída textual.")
+                                append("\\n")
+                            }
+                        }
+                        else -> "Sintaxe inválida. Use: khalab help\n"
+                    }
+                }
+                synchronized(lock) {
+                    tabs.get(tabId)?.let { tab ->
+                        tab.starting = false
+                        appendOutputLocked(tab, output)
+                        refreshLocked()
+                    }
+                }
+            } catch (cancelled: CancellationException) {
+                withContext(NonCancellable + Dispatchers.IO) {
+                    executionRef.get()?.let { engineRef.get()?.cancel(it) }
+                }
+                throw cancelled
+            } catch (error: Exception) {
+                synchronized(lock) {
+                    tabs.get(tabId)?.let { tab ->
+                        tab.starting = false
+                        appendOutputLocked(tab, "khalab: ${error.message ?: error.javaClass.simpleName}\\n")
+                        refreshLocked()
+                    }
+                }
+            } finally {
+                withContext(NonCancellable + Dispatchers.IO) {
+                    sessionRef.get()?.let { engineRef.get()?.closeSession(it) }
+                }
+            }
+        }
+        synchronized(lock) { startJobs[tabId] = job }
     }
 
     fun openInteractiveShell() {

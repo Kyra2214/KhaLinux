@@ -34,6 +34,9 @@ interface TerminalRuntimeGateway {
     /** Cyber Toolkit; nulo se o runtime ainda não está instalado. */
     fun toolkit(): com.khalinux.runtime.toolkit.ToolkitService? = null
 
+    /** Motor operacional compartilhado entre terminal e interfaces do laboratório. */
+    fun operationEngine(): com.khalinux.runtime.operations.LabOperationEngine? = null
+
     /** Laboratórios (Fase 6); nulo se o runtime ainda não está instalado. */
     fun labs(): com.khalinux.runtime.labs.LabProgressService? = null
 

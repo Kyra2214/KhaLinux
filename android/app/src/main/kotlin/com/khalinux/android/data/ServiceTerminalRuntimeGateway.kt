@@ -39,6 +39,8 @@ class ServiceTerminalRuntimeGateway(
 
     override fun toolkit(): com.khalinux.runtime.toolkit.ToolkitService? = service.toolkit()
 
+    override fun operationEngine(): com.khalinux.runtime.operations.LabOperationEngine? = service.operationEngine()
+
     override fun labs(): com.khalinux.runtime.labs.LabProgressService? = service.labs()
 
     override fun storage(): com.khalinux.runtime.storage.StorageHygiene? = service.storage()
