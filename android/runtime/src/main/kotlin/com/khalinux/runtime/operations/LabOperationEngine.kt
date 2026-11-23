@@ -333,6 +333,9 @@ class LabOperationEngine(
                     Regex("^(?:[A-Za-z0-9.-]+|\\[[0-9A-Fa-f:%._-]+\\]):[0-9]{1,5}$")
                 ))
                 LabParameterType.PAIRING_CODE -> require(value.matches(Regex("^[0-9]{6}$")))
+                LabParameterType.PACKAGE_NAME -> require(value.matches(
+                    Regex("^[A-Za-z0-9_]+(?:\\.[A-Za-z0-9_]+)*$")
+                ))
             }
         }
         val placeholder = Regex("^\\{\\{([a-z][a-z0-9_]*)}}$")

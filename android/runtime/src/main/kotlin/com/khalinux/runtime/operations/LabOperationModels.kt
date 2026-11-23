@@ -6,7 +6,7 @@ private val FIELD_ID = Regex("^[a-z][a-z0-9_]*$")
 enum class LabOperationDomain { DEVICE, NETWORK, WIFI, WEB, FORENSICS }
 enum class LabTargetKind { LOCAL_RUNTIME, ANDROID_DEVICE, NETWORK, WEB_SERVICE, APK_FILE, PCAP_FILE }
 enum class LabExecutorKind { ROOTFS_ARGV, TOOLKIT, ANDROID_API, ADB, HTTP_SERVICE, PCAP_ANALYZER }
-enum class LabParameterType { STRING, INTEGER, BOOLEAN, ENUM, ADB_ENDPOINT, PAIRING_CODE }
+enum class LabParameterType { STRING, INTEGER, BOOLEAN, ENUM, ADB_ENDPOINT, PAIRING_CODE, PACKAGE_NAME }
 enum class LabSessionState { ACTIVE, CLOSED, INTERRUPTED }
 enum class LabExecutionState { QUEUED, RUNNING, SUCCEEDED, FAILED, CANCELLED, TIMED_OUT, INTERRUPTED }
 enum class LabEventSeverity { INFO, LOW, MEDIUM, HIGH, CRITICAL }

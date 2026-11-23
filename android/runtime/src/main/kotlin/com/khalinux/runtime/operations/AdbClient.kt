@@ -116,6 +116,18 @@ class AdbClient(
             Duration.ofSeconds(35)
         )
 
+    fun devicePackageSecurity(serial: String, packageName: String): RuntimeSession =
+        startOperationCommand(
+            listOf("-s", validSerial(serial), "shell", "dumpsys", "package", validPackageName(packageName)),
+            Duration.ofSeconds(25)
+        )
+
+    fun devicePackageAppOps(serial: String, packageName: String): RuntimeSession =
+        startOperationCommand(
+            listOf("-s", validSerial(serial), "shell", "cmd", "appops", "get", validPackageName(packageName)),
+            Duration.ofSeconds(20)
+        )
+
     fun deviceLogs(serial: String, lineLimit: Int = 500): RuntimeSession {
         require(lineLimit in 1..5000)
         return startOperationCommand(

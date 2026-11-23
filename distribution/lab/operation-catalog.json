@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "catalogVersion": "2026.11.23-lab3.1",
+  "catalogVersion": "2026.11.23-lab3.2",
   "operations": [
     {
       "id": "runtime.kernel-identity",
@@ -541,6 +541,99 @@
         "duration_ms"
       ],
       "timeoutSeconds": 35,
+      "enabled": true
+    },
+    {
+      "id": "android.adb.package-security",
+      "version": 1,
+      "title": "Consultar permissões e detalhes do pacote Android",
+      "domain": "DEVICE",
+      "targetKind": "ANDROID_DEVICE",
+      "executor": "ADB",
+      "description": "Consulta os metadados, permissões solicitadas e estados de concessão reportados por dumpsys package.",
+      "command": [
+        "-s",
+        "{{serial}}",
+        "shell",
+        "dumpsys",
+        "package",
+        "{{package_name}}"
+      ],
+      "requiredPackages": [
+        "adb"
+      ],
+      "requiredCapabilities": [
+        "adb.shell",
+        "android.permission.read"
+      ],
+      "parameters": [
+        {
+          "id": "serial",
+          "type": "STRING",
+          "required": true,
+          "description": "Serial/endpoint do ativo Android."
+        },
+        {
+          "id": "package_name",
+          "type": "PACKAGE_NAME",
+          "required": true,
+          "description": "Nome completo do pacote Android."
+        }
+      ],
+      "outputFields": [
+        "stdout",
+        "stderr",
+        "exit_code",
+        "duration_ms"
+      ],
+      "timeoutSeconds": 25,
+      "enabled": true
+    },
+    {
+      "id": "android.adb.package-appops",
+      "version": 1,
+      "title": "Consultar AppOps do pacote Android",
+      "domain": "DEVICE",
+      "targetKind": "ANDROID_DEVICE",
+      "executor": "ADB",
+      "description": "Consulta modos AppOps e metadados de uso reportados pelo serviço AppOps do Android.",
+      "command": [
+        "-s",
+        "{{serial}}",
+        "shell",
+        "cmd",
+        "appops",
+        "get",
+        "{{package_name}}"
+      ],
+      "requiredPackages": [
+        "adb"
+      ],
+      "requiredCapabilities": [
+        "adb.shell",
+        "android.appops.read"
+      ],
+      "parameters": [
+        {
+          "id": "serial",
+          "type": "STRING",
+          "required": true,
+          "description": "Serial/endpoint do ativo Android."
+        },
+        {
+          "id": "package_name",
+          "type": "PACKAGE_NAME",
+          "required": true,
+          "description": "Nome completo do pacote Android."
+        }
+      ],
+      "outputFields": [
+        "stdout",
+        "stderr",
+        "exit_code",
+        "duration_ms"
+      ],
+      "timeoutSeconds": 20,
       "enabled": true
     }
   ],
