@@ -14,4 +14,8 @@
 - Testes físicos com dois aparelhos continuam reservados à etapa final.
 - Não gerar ZIP/checkpoints. Não fazer merge para `main` sem autorização explícita.
 - Não executar testes/builds intermediários durante a implementação; acumular validação para LAB-10.
-- Próxima ação obrigatória: LAB-0 — auditar o estado atual do repositório, mapear o código reutilizável e classificar infraestrutura, conteúdo didático, protótipos e lacunas operacionais.
+- LAB-0 concluído em código/documentação: inventário em `docs/lab-0-inventory.md`, contratos em `android/runtime/.../operations/LabOperationModels.kt`, parser em `android/app/.../operations/OperationCatalogJson.kt` e catálogo em `distribution/lab/operation-catalog.json`.
+- Progresso do laboratório operacional: 9% (1 de 11 módulos principais); infraestrutura anterior não foi recontada como RED/BLUE/PURPLE.
+- Próximo submódulo: LAB-1 — motor de execução do laboratório.
+- Commit de implementação LAB-0: `7e4e17db49cce03936db664740cdd1cf98b25da8`; integração do catálogo no Service: `f2c6711c1e71bfc3da991b1291c6a783b2e6c96b`.
+- Nenhum teste/build foi executado; validações acumuladas para LAB-10. Nenhum ZIP/checkpoint gerado.

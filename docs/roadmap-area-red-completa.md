@@ -83,7 +83,18 @@ A interface não gera sucesso por conta própria. Não há evento de conclusão 
 - Identificar ferramentas já presentes no RootFS e dependências ausentes.
 - Remover do caminho operacional telas e eventos que simulem execução.
 
-**Aceite:** inventário técnico e matriz de reutilização completos; nenhuma funcionalidade existente é declarada operacional sem executar uma ação real.
+**Estado:** CONCLUÍDO em código e documentação. Inventário, matriz de reutilização, contrato de domínio e catálogo operacional versionado implementados. Ver [`lab-0-inventory.md`](lab-0-inventory.md).
+
+**Submódulos LAB-0**
+- [x] LAB-0.1 — auditoria da árvore, módulos e pontos de entrada.
+- [x] LAB-0.2 — classificação de infraestrutura, protótipos e conteúdo complementar.
+- [x] LAB-0.3 — matriz de reutilização, dependências e lacunas.
+- [x] LAB-0.4 — modelos comuns e contrato de operação.
+- [x] LAB-0.5 — catálogo operacional versionado e parser estrito.
+- [x] LAB-0.6 — inventário de ferramentas e capacidades declaradas.
+- [x] LAB-0.7 — transferência de validações para LAB-10.
+
+**Aceite:** atendido em documentação e código de contrato/catálogo. A execução das quatro operações iniciais será implementada no LAB-1; ainda não é declarada pronta.
 
 ### LAB-1 — Motor de execução do laboratório
 - Criar serviço central de operações com fila, cancelamento, timeout e estado.
