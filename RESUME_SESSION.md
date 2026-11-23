@@ -14,7 +14,7 @@
 - Branch: `plan/area-red-wifi-publico`; não mesclada em `main`.
 - Roadmap mestre: `docs/roadmap-area-red-completa.md`.
 - Operação 01: `docs/roadmap-area-red-estagio-01-wifi-publico.md`.
-- Implementação em código: navegação RED, catálogo asset/parser, ficha/tutorial, ViewModel, sessões/eventos, persistência isolada, histórico limitado, recuperação de sessão interrompida, hotspot Android LocalOnlyHotspot, portal HTTP local vinculado à interface Wi-Fi, QR Code/endereço, formulário sintético com envio fixo sem campos, relatório Markdown e exportação manual.
+- Implementação em código: navegação RED, catálogo asset/parser, ficha/tutorial, ViewModel, sessões/eventos, persistência isolada, histórico limitado, recuperação de sessão interrompida, hotspot Android LocalOnlyHotspot, portal HTTP local vinculado à interface Wi-Fi, QR Code/endereço, formulário sintético com envio fixo sem campos, fluxo genérico de rede social, permissões simuladas sem acesso ao aparelho, relatório Markdown e exportação manual.
 - Arquivos principais: `android/app/src/main/kotlin/com/khalinux/android/red/`; catálogo em `distribution/red/operations.json`.
 - Documentação: `docs/red-area.md`, `docs/red-operation-01.md`; arquitetura, guia e changelog atualizados.
 - **Validação pendente:** nenhuma compilação, teste automatizado, verificação de CI ou teste físico foi executado nesta implementação, conforme a regra do projeto. Validar integração Compose, parser, persistência, estados/eventos, permissões/hotspot, vínculo de interface, servidor HTTP, QR, segundo aparelho e exportação somente no fechamento.
