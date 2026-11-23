@@ -98,7 +98,7 @@ class LabOperationEngine(
     fun submit(
         sessionId: String,
         operationId: String,
-        assetIds: Set<String> = emptySet(),
+        assetIds: Set<String>? = null,
         parameters: Map<String, String> = emptyMap()
     ): LabExecutionRecord {
         check(!closed.get()) { "motor de operações encerrado" }
@@ -114,7 +114,7 @@ class LabOperationEngine(
         }
         require(supportedTarget) { "Executor " + operation.executor + " ainda não foi conectado ao motor" }
         if (operation.executor == LabExecutorKind.ADB) require(adbClient != null) { "Adaptador ADB indisponível" }
-        val targets = if (assetIds.isEmpty()) session.assetIds else assetIds
+        val targets = assetIds ?: session.assetIds
         require(session.assetIds.containsAll(targets)) { "Ativo não pertence à sessão" }
         val command = resolveCommand(operation, parameters)
         val queued = LabExecutionRecord(
