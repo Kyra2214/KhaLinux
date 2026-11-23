@@ -4,7 +4,7 @@
 **Branch:** `plan/area-red-wifi-publico`  
 **Repositório:** `Kyra2214/KhaLinux`  
 **Escopo:** protótipo pessoal de laboratório, com dois aparelhos Android controlados pelo instrutor.  
-**Progresso de implementação:** RED-0 a RED-9 concluídos em documentação/código (10 de 14 submódulos, 71%); RED-10 é o próximo. A execução continua na mesma branch, sem ZIP e sem validações antecipadas. Validação permanece pendente e será feita somente ao final.  
+**Progresso de implementação:** RED-0 a RED-10 concluídos em documentação/código (11 de 14 submódulos, 79%); RED-11 é o próximo. A execução continua na mesma branch, sem ZIP e sem validações antecipadas. Validação permanece pendente e será feita somente ao final.  
 **Validação:** reservada para depois de concluir todo o roadmap. Nenhum teste/build será executado durante a implementação.
 
 ---
@@ -18,7 +18,7 @@
 | RED-2 — hotspot e conexão | Concluído em código | LocalOnlyHotspot, dados expostos pelo Android e atividade do participante inferida por requisição real; Android não expõe lista universal de clientes |
 | RED-3 a RED-13 | Pendente | executar em sequência após RED-2 |
 
-**Percentual de implementação do roadmap RED:** 71% (10/14 submódulos).  
+**Percentual de implementação do roadmap RED:** 79% (11/14 submódulos).  
 **Validação:** não executada por instrução; todos os testes e builds permanecem acumulados para RED-13.  
 **Checkpoint ZIP:** desativado por instrução explícita do usuário; trabalhar somente na branch Git indicada.
 
@@ -286,15 +286,13 @@ O BLUE não deve inventar alertas ou detecções. Cada conclusão deve apontar p
 - Não inclui valores de formulário, códigos, cookies, tokens, arquivos, áudio, vídeo ou coordenadas.
 - Exportação manual e exclusão completa do histórico disponíveis.
 
-### RED-10 — Integração BLUE
-- Definir referência compartilhada entre a operação RED e aula BLUE.
-- Reutilizar a linha do tempo como evidência, sem compartilhar dados desnecessários.
-- Criar roteiro BLUE para o cenário com login local.
-- Criar roteiro BLUE para o cenário sem login.
-- Criar roteiro BLUE sobre links, redirecionamentos e navegação.
-- Criar roteiro BLUE sobre permissões Android.
-- Criar roteiro BLUE sobre HTTP/HTTPS e visibilidade de rede.
-- Incluir ações de resposta: recusar, desconectar, esquecer rede, revisar permissões e verificar URLs.
+### RED-10 — Integração BLUE <sub>CONCLUÍDO EM CÓDIGO</sub>
+- Área BLUE adicionada à navegação principal e ao menu Mais.
+- BLUE lê as mesmas sessões e eventos persistidos pelo RED.
+- Canal de evidências ao vivo compartilha requisições, campos sintéticos temporários e eventos durante a sessão ativa.
+- Alternância RED → BLUE preserva a sessão e o hotspot; retorno BLUE → RED reabre a sessão ativa.
+- Tela BLUE apresenta interpretação defensiva por tipo de evento, modos login/acesso direto, navegação, redirecionamentos, permissões, HTTP e recursos locais.
+- BLUE não inventa detecções: distingue eventos observados de recomendações defensivas.
 
 ### RED-11 — Documentação e experiência de aula
 - Tutorial completo no app.
