@@ -15,7 +15,9 @@
 - Não gerar ZIP/checkpoints. Não fazer merge para `main` sem autorização explícita.
 - Não executar testes/builds intermediários durante a implementação; acumular validação para LAB-10.
 - LAB-0 concluído em código/documentação: inventário em `docs/lab-0-inventory.md`, contratos em `android/runtime/.../operations/LabOperationModels.kt`, parser em `android/app/.../operations/OperationCatalogJson.kt` e catálogo em `distribution/lab/operation-catalog.json`.
-- Progresso do laboratório operacional: 9% (1 de 11 módulos principais); infraestrutura anterior não foi recontada como RED/BLUE/PURPLE.
-- Próximo submódulo: LAB-1 — motor de execução do laboratório.
-- Commit de implementação LAB-0: `7e4e17db49cce03936db664740cdd1cf98b25da8`; integração do catálogo no Service: `f2c6711c1e71bfc3da991b1291c6a783b2e6c96b`.
+- LAB-1 parcialmente implementado: motor, persistência, evidências, fila/cancelamento/timeout, CLI `khalab` e ligação aos ViewModels RED/BLUE. Detalhes em `docs/lab-1-engine.md`.
+- Pendências LAB-1: número do sinal Unix (exige status bruto nativo de waitpid) e verificação completa de dependências/capacidades. Não declaradas concluídas.
+- Progresso do laboratório operacional: 15% (LAB-0 concluído; LAB-1 parcial). Próximo módulo executável: LAB-2 — inventário e conexão de dispositivos.
+- Commits LAB-1: motor `b1321cdd2ee85fd5208ea65498765accdb8e6afd`; integração Service `4aecb6887ae7ffcd588a51fe67de0940e6671279`; CLI/RED/BLUE `6668721ac012aa832448a0c1cd5d11a6823b48eb`.
+- HEAD documental LAB-1: `ee5557ff105da28dfc5702b5cc89a24289f0530a`.
 - Nenhum teste/build foi executado; validações acumuladas para LAB-10. Nenhum ZIP/checkpoint gerado.

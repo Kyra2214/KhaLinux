@@ -1,3 +1,26 @@
+## [Não lançado] — LAB-1: motor operacional parcial
+
+### Implementado
+- Motor com fila limitada, concorrência padrão 2, cancelamento, timeout e recuperação de estados interrompidos.
+- Execução RootFS com argumentos escapados e pré-verificação `command -v`.
+- Captura de stdout/stderr, exit code e duração; evidências binárias com SHA-256 e metadados persistidos.
+- Persistência local de sessões, execuções, eventos e referências de evidência.
+- Integração no Service Android; terminal recebe `khalab help/list/sessions/run`.
+- ViewModels RED e BLUE ligados ao motor comum; RED pode iniciar/cancelar operações e BLUE recebe eventos operacionais.
+
+### Pendências preservadas
+- Número do sinal Unix: o backend Java atual não expõe o status bruto de `waitpid`; requer extensão nativa.
+- Pré-condições completas: verificação atual cobre o executável principal, ainda não todas as dependências e capacidades.
+- Executores TOOLKIT, ANDROID_API, ADB, HTTP_SERVICE e PCAP_ANALYZER ainda serão conectados nas fases correspondentes.
+- Interface operacional final permanece no LAB-9.
+
+### Estado
+- LAB-1 parcialmente implementado; ver `docs/lab-1-engine.md`.
+- Nenhum teste, build, compilação ou validação foi executado. Tudo acumulado para LAB-10.
+- Próximo módulo executável: LAB-2 — inventário e conexão de dispositivos.
+
+---
+
 ## [Não lançado] — LAB-0: auditoria, contratos e catálogo operacional
 
 ### Implementado
@@ -5,11 +28,11 @@
 - Contratos de domínio para operações versionadas, ativos, sessões, execuções, eventos e referências de evidência em `android/runtime/.../operations/LabOperationModels.kt`.
 - Parser estrito `OperationCatalogJson` e asset `distribution/lab/operation-catalog.json`, separados do catálogo RED legado.
 - Quatro operações declarativas iniciais de leitura local: identidade do runtime, interfaces, rotas e configuração DNS.
-- Catálogo acessível por `KhaLinuxRuntimeService.operationCatalog()`; execução reservada ao LAB-1.
+- Catálogo acessível por `KhaLinuxRuntimeService.operationCatalog()`; motor de execução implementado parcialmente no LAB-1.
 - Gradle embarca o novo catálogo operacional como asset.
 
 ### Estado
-- LAB-0 concluído em código/documentação. LAB-1 é o próximo módulo.
+- LAB-0 concluído em código/documentação. LAB-1 parcialmente implementado; LAB-2 é o próximo módulo executável.
 - Nenhum teste, build ou validação foi executado. Validações acumuladas para LAB-10.
 - Nenhum ZIP/checkpoint gerado; alterações aplicadas diretamente na branch `plan/laboratorio-operacional`.
 
