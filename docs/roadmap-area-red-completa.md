@@ -105,7 +105,18 @@ A interface não gera sucesso por conta própria. Não há evento de conclusão 
 - Permitir execução pelo terminal e pela interface, usando o mesmo backend.
 - Controlar concorrência e encerrar processos filhos ao fechar a sessão.
 
-**Aceite:** uma operação de ferramenta real pode ser iniciada, acompanhada, cancelada, encerrada e consultada pela interface e pelo terminal sem caminhos paralelos fictícios.
+**Estado:** PARCIALMENTE IMPLEMENTADO. O núcleo de execução, persistência, evidências, cancelamento, timeout, CLI do terminal e ponte dos ViewModels RED/BLUE estão no código. Ver [`lab-1-engine.md`](lab-1-engine.md).
+
+**Submódulos LAB-1**
+- [x] LAB-1.1 — motor central com fila limitada, concorrência configurável e ciclo de vida.
+- [x] LAB-1.2 — execução RootFS, pré-verificação do executável, stdout/stderr, exit code e duração.
+- [x] LAB-1.3 — persistência de sessões/execuções/eventos e evidências com SHA-256.
+- [x] LAB-1.4 — integração no Service Android e CLI `khalab` no terminal.
+- [x] LAB-1.5 — contratos compartilhados e conexão dos ViewModels RED/BLUE.
+- [ ] LAB-1.6 — código do sinal de término do processo; pendente de extensão do backend nativo porque `Process.waitFor()` não expõe o sinal.
+- [ ] LAB-1.7 — pré-condições completas de pacote/capacidade; por enquanto há verificação real de disponibilidade do executável, não inventário de todas as dependências transitivas.
+
+**Aceite:** execução real, estado, cancelamento, timeout, saída e evidências estão integrados. Os itens 1.6 e 1.7 permanecem registrados e não são declarados concluídos. As telas finais de operação e acompanhamento serão consolidadas no LAB-9.
 
 ### LAB-2 — Inventário e conexão de dispositivos
 - Criar inventário de aparelhos e serviços do laboratório.
