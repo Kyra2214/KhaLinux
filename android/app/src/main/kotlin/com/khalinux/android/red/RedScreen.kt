@@ -16,7 +16,13 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
@@ -25,6 +31,10 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
     val clipboard = LocalClipboardManager.current
+    val context = LocalContext.current
+    val hotspotPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) viewModel.startNetworkLab()
+    }
     Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Column(Modifier.weight(1f)) {
@@ -78,6 +88,19 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
             Text("Ambiente: ${operation.environment}", style = MaterialTheme.typography.bodySmall)
             state.session?.let { session ->
                 Text("Sessão: ${session.state} · ${session.completedSteps.size}/${operation.steps.size} etapas")
+                if (state.networkRunning) {
+                    Text("Portal: ${state.portalAddress ?: "endereço local não identificado"}", style = MaterialTheme.typography.bodySmall)
+                    state.hotspotInfo?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+                    OutlinedButton(onClick = viewModel::stopNetworkLab) { Text("Parar hotspot e portal") }
+                } else {
+                    Button(onClick = {
+                        if (context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                            viewModel.startNetworkLab()
+                        } else {
+                            hotspotPermission.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                        }
+                    }) { Text("Iniciar hotspot e portal local") }
+                }
                 LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(operation.steps, key = { it.id }) { step ->
                         Card(Modifier.fillMaxWidth()) {
