@@ -1,3 +1,16 @@
+## [Não lançado] — RED-12: fechamento do ciclo de implementação
+
+### Confirmado na implementação existente
+- Encerramento do servidor HTTP e do hotspot pode ser chamado repetidamente sem exigir recursos ativos.
+- Parar a rede preserva o token temporário dentro da sessão para permitir reinício; encerrar/interromper a sessão limpa o token e os dados efêmeros.
+- Documentação de operação, instrutor, guia do usuário, roadmap e retomada foi alinhada ao escopo atual.
+- Nenhum ZIP/checkpoint é gerado; alterações são aplicadas diretamente na branch indicada.
+
+### Estado
+- Implementação: 93% (RED-0 a RED-12 em código/documentação; 13/14 submódulos).
+- RED-13 é a validação final e permanece pendente.
+- Nenhum build, teste ou validação foi executado nesta retomada.
+
 ## [Não lançado] — RED-11: documentação e roteiro de aula
 
 ### Atualizado
