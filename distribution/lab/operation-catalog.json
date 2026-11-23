@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "catalogVersion": "2026.11.23-lab0.1",
+  "catalogVersion": "2026.11.23-lab2.2",
   "operations": [
     {
       "id": "runtime.kernel-identity",
@@ -379,6 +379,126 @@
       ],
       "timeoutSeconds": 20,
       "enabled": true
+    },
+    {
+      "id": "android.adb.device-packages",
+      "version": 1,
+      "title": "Listar pacotes de terceiros do Android",
+      "domain": "DEVICE",
+      "targetKind": "ANDROID_DEVICE",
+      "executor": "ADB",
+      "description": "Consulta os pacotes de terceiros instalados no dispositivo conectado.",
+      "command": [
+        "-s",
+        "{{serial}}",
+        "shell",
+        "pm",
+        "list",
+        "packages",
+        "-3"
+      ],
+      "requiredPackages": [
+        "adb"
+      ],
+      "requiredCapabilities": [
+        "adb.shell",
+        "android.package.read"
+      ],
+      "parameters": [
+        {
+          "id": "serial",
+          "type": "STRING",
+          "required": true,
+          "description": "Serial/endpoint apresentado por adb devices."
+        }
+      ],
+      "outputFields": [
+        "stdout",
+        "stderr",
+        "exit_code",
+        "duration_ms"
+      ],
+      "timeoutSeconds": 30,
+      "enabled": true
+    },
+    {
+      "id": "android.adb.device-logs",
+      "version": 1,
+      "title": "Consultar logcat recente do Android",
+      "domain": "DEVICE",
+      "targetKind": "ANDROID_DEVICE",
+      "executor": "ADB",
+      "description": "Coleta até 500 linhas recentes do logcat do dispositivo selecionado.",
+      "command": [
+        "-s",
+        "{{serial}}",
+        "logcat",
+        "-d",
+        "-t",
+        "500"
+      ],
+      "requiredPackages": [
+        "adb"
+      ],
+      "requiredCapabilities": [
+        "adb.log.read"
+      ],
+      "parameters": [
+        {
+          "id": "serial",
+          "type": "STRING",
+          "required": true,
+          "description": "Serial/endpoint apresentado por adb devices."
+        }
+      ],
+      "outputFields": [
+        "stdout",
+        "stderr",
+        "exit_code",
+        "duration_ms"
+      ],
+      "timeoutSeconds": 30,
+      "enabled": true
+    },
+    {
+      "id": "android.adb.device-battery",
+      "version": 1,
+      "title": "Consultar estado da bateria Android",
+      "domain": "DEVICE",
+      "targetKind": "ANDROID_DEVICE",
+      "executor": "ADB",
+      "description": "Consulta o estado reportado por dumpsys battery no dispositivo selecionado.",
+      "command": [
+        "-s",
+        "{{serial}}",
+        "shell",
+        "dumpsys",
+        "battery"
+      ],
+      "requiredPackages": [
+        "adb"
+      ],
+      "requiredCapabilities": [
+        "adb.shell",
+        "android.state.read"
+      ],
+      "parameters": [
+        {
+          "id": "serial",
+          "type": "STRING",
+          "required": true,
+          "description": "Serial/endpoint apresentado por adb devices."
+        }
+      ],
+      "outputFields": [
+        "stdout",
+        "stderr",
+        "exit_code",
+        "duration_ms"
+      ],
+      "timeoutSeconds": 15,
+      "enabled": true
     }
-  ]
+  ],
+  "description": "Catálogo de operações reais do RootFS e ADB sem fio. Cada entrada define executor, alvo, parâmetros, timeout e evidências esperadas."
 }
