@@ -1,3 +1,20 @@
+## [Não lançado] — RED-2 a RED-6: hotspot, servidor, portal e navegação
+
+### Implementado
+- Hotspot Android com estado tipado e exibição dos parâmetros que o sistema realmente disponibiliza.
+- Identificação indicativa de interface Wi-Fi/AP e IPv4; atividade do participante é confirmada por requisição HTTP, sem varredura.
+- Servidor HTTP local fixo na porta 8080, bind a IPv4 Wi-Fi/AP identificado, limites de cabeçalho/corpo/conexões e timeouts.
+- Painel com método, rota, status, tipo de conteúdo, bytes e endereço remoto da requisição.
+- Portal fictício natural com seletor entre login local e acesso direto.
+- Páginas locais, termos, conteúdo, destinos e redirecionamento 302.
+- Formulário POST recebe somente `demo_id` (padrão `aluno-...`) e `demo_code` (padrão `LAB-0000`); demais campos/formato são rejeitados.
+- Valores sintéticos válidos aparecem apenas em memória no painel da sessão; não são persistidos no histórico nem no relatório.
+
+### Limitações e pendências
+- Android não oferece lista universal de clientes do LocalOnlyHotspot; a conexão do participante é confirmada pelo primeiro acesso HTTP.
+- Modo participante Android e permissões nativas reais continuam pendentes.
+- Nenhum teste/build/validação foi executado; tudo fica para RED-13.
+
 ## [Não lançado] — RED-1: fundação e catálogo
 
 ### Implementado
