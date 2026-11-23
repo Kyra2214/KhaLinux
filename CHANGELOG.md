@@ -1,3 +1,18 @@
+## [Não lançado] — RED-8: painel de observabilidade
+
+### Implementado
+- Painel apresenta estado do hotspot, servidor e atividade HTTP do participante.
+- Exibição da interface de bind e porta efetiva.
+- Lista de requisições com timestamp, método, rota, status, bytes, content-type e endereço remoto.
+- Cabeçalhos de baixo risco em allowlist; Cookie e Authorization não são capturados.
+- Linha do tempo sequenciada com eventos HTTP, navegação, redirecionamento, formulários e permissões.
+- Valores sintéticos temporários exibidos em memória e botão para removê-los do painel.
+- Respostas rejeitadas e erros permanecem diferenciados de sucesso.
+
+### Limites
+- Observações de requisição e cabeçalhos são mantidos apenas em memória; relatório persiste metadados de eventos.
+- Nenhum teste/build foi executado.
+
 ## [Não lançado] — RED-7: modo participante Android
 
 ### Implementado
