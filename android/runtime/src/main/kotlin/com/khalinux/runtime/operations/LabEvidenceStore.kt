@@ -41,7 +41,15 @@ class LabEvidenceStore(private val root: File) {
         return FileInputStream(file)
     }
 
-    fun read(reference: LabEvidenceReference): ByteArray = open(reference).use { it.readBytes() }
+    fun read(reference: LabEvidenceReference): ByteArray {
+        val bytes = open(reference).use { it.readBytes() }
+        reference.sha256?.let { expected ->
+            val actual = MessageDigest.getInstance("SHA-256").digest(bytes)
+                .joinToString("") { byte -> "%02x".format(byte.toInt() and 0xff) }
+            require(actual.equals(expected, ignoreCase = true)) { "Hash da evidência não confere: " + reference.id }
+        }
+        return bytes
+    }
 
     private companion object { val SAFE_ID = Regex("^[A-Za-z0-9-]{1,80}$") }
 }

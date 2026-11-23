@@ -95,7 +95,8 @@ data class LabExecutionRecord(
     val id: String, val sessionId: String, val operationId: String, val operationVersion: Int,
     val assetIds: Set<String>, val state: LabExecutionState, val queuedAtEpochMillis: Long,
     val startedAtEpochMillis: Long? = null, val endedAtEpochMillis: Long? = null,
-    val exitCode: Int? = null, val errorSummary: String? = null, val evidenceIds: List<String> = emptyList()
+    val exitCode: Int? = null, val errorSummary: String? = null, val evidenceIds: List<String> = emptyList(),
+    val durationMillis: Long? = null
 ) {
     init {
         require(id.isNotBlank() && sessionId.isNotBlank() && operationId.isNotBlank() && operationVersion > 0)
@@ -103,6 +104,7 @@ data class LabExecutionRecord(
         require(startedAtEpochMillis == null || startedAtEpochMillis >= queuedAtEpochMillis)
         require(endedAtEpochMillis == null || endedAtEpochMillis >= (startedAtEpochMillis ?: queuedAtEpochMillis))
         require(evidenceIds.distinct().size == evidenceIds.size)
+        require(durationMillis == null || durationMillis >= 0)
     }
 }
 

@@ -182,11 +182,34 @@ class LabOperationEngine(
     private fun execute(
         control: JobControl, operation: LabOperationDefinition, queued: LabExecutionRecord, argv: List<String>
     ) {
+        try {
+            executeInternal(control, operation, queued, argv)
+        } catch (error: Throwable) {
+            control.session?.cancel()
+            val current = store.execution(queued.id)
+            if (current != null && current.state in ACTIVE_STATES) {
+                val state = if (control.cancellationRequested.get()) LabExecutionState.CANCELLED else LabExecutionState.FAILED
+                val failed = current.copy(state = state, endedAtEpochMillis = clock(),
+                    errorSummary = error.message ?: error.javaClass.simpleName)
+                runCatching { store.saveExecution(failed) }
+                runCatching {
+                    publish(current.sessionId, current.id, current.assetIds.singleOrNull(),
+                        "operation." + state.name.lowercase(), LabEventSeverity.MEDIUM,
+                        failed.errorSummary ?: "Falha na operação")
+                }
+            }
+        } finally {
+            jobs.remove(queued.id)
+            control.finished.countDown()
+        }
+    }
+
+    private fun executeInternal(
+        control: JobControl, operation: LabOperationDefinition, queued: LabExecutionRecord, argv: List<String>
+    ) {
         var record = store.execution(queued.id) ?: queued
         if (control.cancellationRequested.get()) {
             store.saveExecution(record.copy(state = LabExecutionState.CANCELLED, endedAtEpochMillis = clock()))
-            jobs.remove(record.id)
-            control.finished.countDown()
             return
         }
         val startedNanos = System.nanoTime()
@@ -252,9 +275,10 @@ class LabOperationEngine(
         }
         val summary = failure ?: evidenceFailure ?: if (finalState == LabExecutionState.FAILED)
             "Processo terminou com código " + (exitCode ?: -1) else null
+        val durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedNanos)
         val completed = record.copy(
             state = finalState, endedAtEpochMillis = clock(), exitCode = exitCode,
-            errorSummary = summary, evidenceIds = references.map { it.id }
+            errorSummary = summary, evidenceIds = references.map { it.id }, durationMillis = durationMillis
         )
         store.saveExecution(completed)
         references.forEach { reference ->
@@ -266,12 +290,9 @@ class LabOperationEngine(
                 LabEventSeverity.MEDIUM, "Saída limitada a " + maxOutputBytes + " bytes por fluxo")
         }
         val severity = if (finalState == LabExecutionState.SUCCEEDED) LabEventSeverity.INFO else LabEventSeverity.MEDIUM
-        val duration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedNanos)
         publish(record.sessionId, record.id, record.assetIds.singleOrNull(),
             "operation." + finalState.name.lowercase(), severity,
-            summary ?: "Operação concluída; duração " + duration + " ms", references.map { it.id })
-        jobs.remove(record.id)
-        control.finished.countDown()
+            summary ?: "Operação concluída; duração " + durationMillis + " ms", references.map { it.id })
     }
 
     private fun resolveCommand(operation: LabOperationDefinition, values: Map<String, String>): List<String> {

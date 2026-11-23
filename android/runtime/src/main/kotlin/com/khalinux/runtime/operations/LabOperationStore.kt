@@ -48,6 +48,7 @@ class LabOperationStore(private val root: File) {
             value.exitCode?.let { setProperty("exitCode", it.toString()) }
             value.errorSummary?.let { setProperty("errorSummary", it) }
             setProperty("evidenceIds", pack(value.evidenceIds))
+            value.durationMillis?.let { setProperty("durationMillis", it.toString()) }
         }
         write(executionsDir, value.id, p)
     }
@@ -59,7 +60,8 @@ class LabOperationStore(private val root: File) {
                 LabExecutionState.valueOf(p.getProperty("state")), p.getProperty("queuedAt").toLong(),
                 p.getProperty("startedAt")?.toLong(), p.getProperty("endedAt")?.toLong(),
                 p.getProperty("exitCode")?.toInt(), p.getProperty("errorSummary"),
-                unpack(p.getProperty("evidenceIds", "")))
+                unpack(p.getProperty("evidenceIds", "")),
+                durationMillis = p.getProperty("durationMillis")?.toLong())
         }.getOrNull()
     }
 
@@ -138,7 +140,11 @@ class LabOperationStore(private val root: File) {
         if (!SAFE_ID.matches(id)) return null
         val file = File(directory, "$id.properties")
         if (!file.isFile) return null
-        return runCatching { Properties().also { p -> FileInputStream(file).use(p::load) } }.getOrNull()
+        return runCatching {
+            val properties = Properties()
+            FileInputStream(file).use { input -> properties.load(input) }
+            properties
+        }.getOrNull()
     }
 
     private fun files(directory: File): List<File> =
