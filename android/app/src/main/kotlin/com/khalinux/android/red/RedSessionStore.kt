@@ -4,7 +4,7 @@ import android.content.Context
 import org.json.JSONArray
 import org.json.JSONObject
 
-/** Persistência local mínima: não recebe nem grava valores de senha, tokens ou cookies. */
+/** Persistência local de metadados. Nunca grava corpos HTTP ou valores de formulários. */
 class RedSessionStore(context: Context) {
     private val preferences = context.getSharedPreferences("red_sessions_v1", Context.MODE_PRIVATE)
 
@@ -18,9 +18,19 @@ class RedSessionStore(context: Context) {
             .put("completedSteps", JSONArray(session.completedSteps.toList()))
         val events = JSONArray()
         session.events.takeLast(MAX_EVENTS).forEach { event ->
-            events.put(JSONObject().put("id", event.id).put("sessionId", event.sessionId)
-                .put("type", event.type.name).put("timestamp", event.timestamp)
-                .put("stepId", event.stepId ?: JSONObject.NULL).put("detail", event.detail.take(240)))
+            events.put(JSONObject()
+                .put("id", event.id)
+                .put("sessionId", event.sessionId)
+                .put("type", event.type.name)
+                .put("timestamp", event.timestamp)
+                .put("stepId", event.stepId ?: JSONObject.NULL)
+                .put("detail", event.detail.take(240))
+                .put("sequence", event.sequence)
+                .put("source", event.source ?: JSONObject.NULL)
+                .put("httpMethod", event.httpMethod ?: JSONObject.NULL)
+                .put("route", event.route?.take(160) ?: JSONObject.NULL)
+                .put("httpStatus", event.httpStatus ?: JSONObject.NULL)
+                .put("bytesReceived", event.bytesReceived ?: JSONObject.NULL))
         }
         root.put("events", events)
         preferences.edit().putString(session.id, root.toString()).apply()
@@ -49,8 +59,20 @@ class RedSessionStore(context: Context) {
                 completedSteps = (0 until steps.length()).map { steps.getString(it) }.toSet(),
                 events = (0 until events.length()).map { i ->
                     val item = events.getJSONObject(i)
-                    RedEvent(item.getString("id"), item.getString("sessionId"), RedEventType.valueOf(item.getString("type")),
-                        item.getLong("timestamp"), if (item.isNull("stepId")) null else item.getString("stepId"), item.getString("detail"))
+                    RedEvent(
+                        id = item.getString("id"),
+                        sessionId = item.getString("sessionId"),
+                        type = RedEventType.valueOf(item.getString("type")),
+                        timestamp = item.getLong("timestamp"),
+                        stepId = if (item.isNull("stepId")) null else item.getString("stepId"),
+                        detail = item.getString("detail"),
+                        sequence = item.optInt("sequence", i + 1),
+                        source = item.optString("source").takeIf { it.isNotBlank() && it != "null" },
+                        httpMethod = item.optString("httpMethod").takeIf { it.isNotBlank() && it != "null" },
+                        route = item.optString("route").takeIf { it.isNotBlank() && it != "null" },
+                        httpStatus = if (item.isNull("httpStatus")) null else item.optInt("httpStatus"),
+                        bytesReceived = if (item.isNull("bytesReceived")) null else item.optInt("bytesReceived")
+                    )
                 }
             )
         }.getOrNull()
