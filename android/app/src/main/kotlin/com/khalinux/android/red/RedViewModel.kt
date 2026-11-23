@@ -165,10 +165,12 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 operationEngine = next
                 operationEventSubscription = next.addEventListener { event ->
                     viewModelScope.launch(Dispatchers.IO) {
-                        val sessionId = mutableState.value.operationalSessionId
-                        if (sessionId != null && sessionId == event.sessionId) {
+                        val currentId = mutableState.value.operationalSessionId
+                        if (currentId == null || currentId == event.sessionId) {
+                            val sessionId = currentId ?: event.sessionId
                             mutableState.update {
                                 it.copy(
+                                    operationalSessionId = sessionId,
                                     operationalExecutions = next.executions(sessionId),
                                     operationalEvents = next.events(sessionId)
                                 )
@@ -186,9 +188,14 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             val engine = connectOperationEngine() ?: return@launch
             mutableState.update { it.copy(operationalOperations = engine.operations(), operationalMessage = null) }
             val sessionId = mutableState.value.operationalSessionId
+                ?: engine.sessions().firstOrNull()?.id
             if (sessionId != null) {
                 mutableState.update {
-                    it.copy(operationalExecutions = engine.executions(sessionId), operationalEvents = engine.events(sessionId))
+                    it.copy(
+                        operationalSessionId = sessionId,
+                        operationalExecutions = engine.executions(sessionId),
+                        operationalEvents = engine.events(sessionId)
+                    )
                 }
             }
         }
