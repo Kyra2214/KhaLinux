@@ -122,7 +122,6 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                     Text("Aparelho A: inicie a sessão, escolha o modo do portal, ative o hotspot e compartilhe SSID, endereço e código temporário.", style = MaterialTheme.typography.bodySmall)
                     Text("Aparelho B: conecte-se ao Wi-Fi, abra o endereço local e percorra as páginas. Para permissões, abra RED > Modo participante e informe endereço e código.", style = MaterialTheme.typography.bodySmall)
                     Text("BLUE: alterne para a análise defensiva sem encerrar a sessão RED. Volte ao RED para continuar a operação.", style = MaterialTheme.typography.bodySmall)
-                    TextButton(onClick = { viewModel.markStep("prepare") }) { Text("Registrar preparação do instrutor") }
                 }
             }
             state.session?.let { session ->
