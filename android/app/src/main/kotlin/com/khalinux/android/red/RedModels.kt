@@ -20,6 +20,17 @@ enum class RedCategory { NETWORKS, WEB, SOCIAL_ENGINEERING, LOCAL_ANALYSIS }
 enum class RedDifficulty { BEGINNER, INTERMEDIATE, ADVANCED }
 
 /** Observação de uma requisição local. Valores de formulário nunca pertencem a este modelo persistente. */
+data class RedHotspotSnapshot(
+    val state: RedNetworkState,
+    val message: String,
+    val ssid: String? = null,
+    val passphrase: String? = null,
+    val interfaceName: String? = null,
+    val ipv4Address: String? = null,
+    val androidFailureCode: Int? = null
+)
+
+/** Observação de uma requisição local. Valores de formulário nunca pertencem a este modelo persistente. */
 data class RedRequestObservation(
     val id: String = UUID.randomUUID().toString(),
     val timestamp: Long = System.currentTimeMillis(),
