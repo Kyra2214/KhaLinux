@@ -446,6 +446,8 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun deleteHistory() {
+        stopNetworkLab()
+        portal.setParticipantToken(null)
         store.deleteAll()
         RedLiveEvidenceStore.clear()
         mutableState.update { it.copy(history = emptyList(), session = null, message = "Histórico RED apagado.") }
