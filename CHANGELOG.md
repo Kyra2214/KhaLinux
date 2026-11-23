@@ -5,7 +5,7 @@
 ### Adicionado
 - Entrada **RED** na navegação principal, com catálogo versionado, filtros, ficha de operação, tutorial disponível antes da execução, progresso e histórico.
 - Motor local de sessões RED com eventos tipados, persistência isolada, limite de 300 eventos por sessão/100 sessões e recuperação de sessões interrompidas.
-- Operação 01 **Nunca Conecte à Wi-Fi Pública**: solicitação de hotspot local pelo Android, portal HTTP vinculado à interface Wi-Fi do laboratório, endereço manual, QR Code, formulário sintético, painel de eventos e relatório Markdown copiável/exportável.
+- Operação 01 **Nunca Conecte à Wi-Fi Pública**: solicitação de hotspot local pelo Android, portal HTTP vinculado à interface Wi-Fi do laboratório, endereço manual, QR Code, formulário sintético, fluxo genérico de rede social, demonstrações de permissão (localização/câmera/arquivos) sem acesso real, painel de eventos e relatório Markdown copiável/exportável.
 - Catálogo inicial em `distribution/red/operations.json`; documentação em `docs/red-area.md` e `docs/red-operation-01.md`.
 
 ### Segurança e limitações
