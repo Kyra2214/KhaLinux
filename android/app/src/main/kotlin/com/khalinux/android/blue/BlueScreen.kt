@@ -73,10 +73,20 @@ fun BlueScreen(state: BlueUiState, viewModel: BlueViewModel) {
                                 Text("Evidências ao vivo do RED", style = MaterialTheme.typography.titleMedium)
                                 Text("Requisições HTTP observadas: ${state.liveEvidence.requests.size}")
                                 state.liveEvidence.requests.takeLast(8).asReversed().forEach { request ->
-                                    Text(
-                                        "${request.method} ${request.path} · HTTP ${request.statusCode} · ${request.bodyBytes} bytes",
-                                        style = MaterialTheme.typography.bodySmall
-                                    )
+                                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                        Text(
+                                            "${request.method} ${request.path} · HTTP ${request.statusCode}",
+                                            style = MaterialTheme.typography.labelLarge
+                                        )
+                                        Text(
+                                            "Hora: ${request.timestamp} · ${request.bodyBytes} bytes · ${request.contentType ?: "tipo não informado"}",
+                                            style = MaterialTheme.typography.bodySmall
+                                        )
+                                        Text("Origem: ${request.remoteAddress ?: "não identificada"}", style = MaterialTheme.typography.bodySmall)
+                                        request.safeHeaders.forEach { (name, value) ->
+                                            Text("$name: $value", style = MaterialTheme.typography.bodySmall)
+                                        }
+                                    }
                                 }
                                 state.liveEvidence.latestSubmission?.let { submission ->
                                     Text(
@@ -89,6 +99,31 @@ fun BlueScreen(state: BlueUiState, viewModel: BlueViewModel) {
                                     Text("Estes valores são dados de teste efêmeros, não credenciais reais.", style = MaterialTheme.typography.bodySmall)
                                 }
                             }
+                        }
+                    }
+                }
+                item {
+                    val resourceEventTypes = setOf(
+                        RedEventType.PERMISSION_REQUESTED,
+                        RedEventType.PERMISSION_GRANTED,
+                        RedEventType.PERMISSION_DENIED,
+                        RedEventType.PERMISSION_CANCELLED,
+                        RedEventType.RESOURCE_PREVIEW_STARTED,
+                        RedEventType.RESOURCE_PREVIEW_STOPPED,
+                        RedEventType.FILE_PICKER_OPENED,
+                        RedEventType.FILE_SELECTED
+                    )
+                    val resourceLabels = listOf("câmera", "microfone", "localização", "seletor de arquivos")
+                    val latestResourceEvents = resourceLabels.mapNotNull { resource ->
+                        displayEvents.lastOrNull { it.type in resourceEventTypes && it.detail.contains(resource, ignoreCase = true) }
+                            ?.let { resource to it }
+                    }
+                    Text("Permissões e recursos observados", style = MaterialTheme.typography.titleMedium)
+                    if (latestResourceEvents.isEmpty()) {
+                        Text("Nenhum pedido ou uso de recurso foi registrado neste cenário.", style = MaterialTheme.typography.bodySmall)
+                    } else {
+                        latestResourceEvents.forEach { (resource, event) ->
+                            Text("$resource: ${event.type} · ${event.detail}", style = MaterialTheme.typography.bodySmall)
                         }
                     }
                 }
