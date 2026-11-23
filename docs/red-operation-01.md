@@ -21,7 +21,7 @@ Executar uma simulação controlada de risco em redes Wi-Fi públicas usando doi
 5. Toque em **Iniciar hotspot e portal local**. O app solicita ao Android um hotspot local; SSID e senha são definidos pelo sistema e mostrados quando disponíveis.
 6. No aparelho B, abra as configurações Wi-Fi e conecte-se ao hotspot do laboratório usando os dados apresentados.
 7. No aparelho B, leia o QR Code ou digite o endereço local mostrado pelo aparelho A.
-8. Percorra o formulário demonstrativo usando apenas valores fictícios.
+8. Percorra o formulário demonstrativo usando apenas valores fictícios; abra também a simulação genérica de rede social e os botões de localização, câmera e arquivos. Essas telas são demonstrativas e não solicitam permissões reais.
 9. O envio da página é um evento fixo de conclusão. Os campos de e-mail e senha não são incluídos na requisição; o servidor não interpreta nem persiste o corpo recebido.
 10. No aparelho A, acompanhe eventos e progresso, copie ou exporte o relatório Markdown.
 11. Toque em **Parar hotspot e portal** e depois em **Encerrar sessão**.
@@ -30,7 +30,7 @@ Executar uma simulação controlada de risco em redes Wi-Fi públicas usando doi
 
 A página está marcada de forma permanente como **SIMULAÇÃO DE LABORATÓRIO**. Ela demonstra como uma tela de acesso a Wi-Fi pode induzir o usuário a preencher um formulário. Não representa Google, Facebook, Instagram ou qualquer outro serviço real.
 
-O navegador envia apenas o evento sintético `demo=completed`. Os valores exibidos nos campos são locais à página e não são enviados ao servidor. O servidor registra a visita e a conclusão, não os valores digitados.
+O navegador envia apenas eventos sintéticos fixos (`demo=completed`). Os valores exibidos nos campos são locais à página e não são enviados ao servidor. O servidor registra a visita, a conclusão e a escolha de demonstração, não os valores digitados. Os botões de localização, câmera e arquivos não acionam permissões Android nem acessam recursos do aparelho.
 
 ## Limitações do Android
 
