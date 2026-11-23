@@ -1,235 +1,133 @@
-# RED-01 — Wi-Fi público, portal local e navegação
+# RED-01 — Operação Wi-Fi de laboratório
 
-**Estado:** RED-0 a RED-12 implementados em código/documentação (100% da implementação); RED-13 validação final pendente. Nenhum build/teste será executado antes de concluir a implementação integral.  
-**Branch:** `plan/area-red-wifi-publico`  
-**Aparelhos:** dois Android dedicados/controlados pelo instrutor.  
-**Servidor:** HTTP local na porta TCP 8080.  
-**Validação:** somente após concluir toda a implementação RED, conforme regra do projeto.
+**Revisão:** 2026-11-23  
+**Classificação atual:** protótipo existente; precisa evoluir para operação de rede real.  
+**Roadmap mestre:** [roadmap-area-red-completa.md](roadmap-area-red-completa.md)  
+**Prioridade:** LAB-5, depois de concluir motor de execução, inventário e adaptadores de dispositivo/rede.
 
----
+## 1. Objetivo operacional
 
-## 1. Objetivo da operação
+Transformar o cenário Wi-Fi atual em uma operação técnica reproduzível. O laboratório deve criar ou utilizar uma rede de teste, conectar o aparelho participante, observar o comportamento real da conexão e executar análises RED. O BLUE deve receber telemetria da mesma sessão e realizar detecção/resposta. O PURPLE deve correlacionar a execução com os resultados defensivos.
 
-Demonstrar, de ponta a ponta, como um hotspot de laboratório e um portal local funcionam, como o segundo aparelho se conecta, como o usuário navega e o que o servidor realmente recebe.
+O objetivo não é apresentar uma aula guiada de portal. O portal é apenas um componente de um cenário de rede que também envolve descoberta, DNS, HTTP, TLS, serviços, conexões e telemetria.
 
-A aula não deve depender de um formulário de login. Deve mostrar também o cenário em que o usuário conecta e navega sem autenticar. O foco inclui links, redirecionamentos e páginas visitadas, pois o risco pode aparecer depois da conexão.
+## 2. Topologias suportadas
 
-A interface do participante deve parecer um portal Wi-Fi convencional e manter a experiência natural. A identificação de laboratório, os eventos completos e os resultados técnicos ficam no painel do instrutor. Os vídeos mostram o comportamento e os resultados, não código-fonte.
+### Topologia A — rede local criada pelo Android
+- Aparelho A executa KhaLinux e solicita o hotspot por API Android compatível.
+- Aparelho B conecta-se à rede criada.
+- O KhaLinux identifica os parâmetros e interfaces que o Android realmente expõe.
+- O servidor de laboratório inicia na interface e porta selecionadas.
+- A operação registra requisições e conexões destinadas aos serviços do laboratório.
 
-## 2. Dispositivos
+### Topologia B — ponto de acesso/roteador externo
+- Aparelho A executa o KhaLinux como estação operadora.
+- Aparelho B é o dispositivo de teste.
+- Um AP/roteador dedicado fornece a rede e, quando necessário, acesso à internet.
+- O KhaLinux executa descoberta e análise a partir do ponto de observação disponível.
+- Quando a topologia exigir visibilidade de tráfego que o Android não fornece, usar um ponto de captura compatível, como gateway instrumentado ou espelhamento de porta.
 
-### Aparelho A — operador RED
-- KhaLinux em modo instrutor.
-- Cria o hotspot pelo fluxo suportado pelo Android.
-- Inicia o servidor HTTP local na porta 8080.
-- Mostra SSID, senha e parâmetros disponibilizados pelo Android.
-- Mostra endereço e QR Code para o portal.
-- Acompanha conexão, requisições, formulários de teste, links, permissões e erros.
-- Encerra hotspot, servidor e sessão.
+A interface deve identificar a topologia em uso. LocalOnlyHotspot não deve ser apresentado como uma rede com internet nem como captura geral do tráfego do participante.
 
-### Aparelho B — participante
-- Android dedicado ao laboratório, sob controle do instrutor.
-- Conecta-se à rede pelo seletor Wi-Fi do sistema.
-- Abre o portal no navegador.
-- Navega, clica nos links e interage com formulários.
-- Quando a aula exigir permissões nativas, usa o modo participante Android no próprio aparelho B e autoriza cada solicitação no diálogo real do sistema.
+## 3. Operações RED
 
-## 3. Topologia e comportamento de rede
+### RED-WIFI-01 — Preparação e inventário
+- Detectar interfaces, endereços, rotas, DNS e gateway.
+- Criar ou selecionar a topologia do laboratório.
+- Registrar SSID, banda, canal e parâmetros quando disponíveis.
+- Identificar os dispositivos presentes por métodos de descoberta efetivamente executados.
+- Exibir o método e a origem de cada identificação.
 
-1. O operador solicita `LocalOnlyHotspot` ou o fluxo público compatível com a versão Android.
-2. O Android decide parâmetros que o aplicativo pode ou não configurar. O KhaLinux mostra somente valores efetivamente fornecidos.
-3. O aparelho B conecta-se manualmente.
-4. O aparelho A inicia/expõe o servidor local na porta 8080, vinculado à interface de laboratório identificada.
-5. O participante abre `http://<IP-local-do-A>:8080`.
-6. O QR Code e a digitação manual são alternativas quando o sistema não abre automaticamente o portal.
-7. Toda a experiência básica funciona sem internet e sem servidor externo.
+### RED-WIFI-02 — Descoberta e enumeração
+- Descobrir hosts ativos.
+- Enumerar portas e serviços.
+- Identificar versões e banners disponíveis.
+- Consultar DNS e resolução de nomes.
+- Produzir resultados exportáveis e evidências de comando.
 
-Não presumir que um aplicativo comum consiga clonar SSID de estabelecimento, configurar qualquer senha, forçar a abertura do portal ou observar todos os clientes. Se o Android não disponibilizar determinado dado, mostrar “não disponível” em vez de inventá-lo.
+### RED-WIFI-03 — Portal e DNS
+- Hospedar portal local com páginas de teste configuráveis.
+- Implementar DNS de laboratório quando a topologia permitir.
+- Testar resolução, redirecionamento e comportamento de abertura do portal.
+- Registrar requisições HTTP e respostas reais.
+- Exibir URLs, métodos, rotas, códigos, horários e origem observável.
+- Permitir cenários com acesso direto, aceite de termos e autenticação local de laboratório.
 
-## 4. Cenários obrigatórios
+### RED-WIFI-04 — Análise HTTP/TLS
+- Inspecionar cabeçalhos e metadados HTTP efetivamente recebidos.
+- Consultar certificados e parâmetros TLS dos serviços selecionados.
+- Comparar HTTP e HTTPS com resultados reais.
+- Registrar falhas de certificado, redirecionamentos e destinos.
+- Não afirmar que o conteúdo de uma sessão TLS foi observado quando não houve ponto de inspeção apropriado.
 
-### Cenário A — login local
-- Portal com identidade fictícia de estabelecimento.
-- Página inicial e formulário de acesso local.
-- Validação feita exclusivamente pelo servidor do laboratório.
-- Campos preenchidos com valores sintéticos de teste.
-- O painel RED mostra os valores sintéticos recebidos durante a sessão ativa, o método/rota/status e o resultado da validação.
-- Nenhuma conta externa, OAuth ou serviço real.
-- Senhas de teste não são persistidas no histórico ou relatório.
+### RED-WIFI-05 — Análise de tráfego
+- Integrar ferramentas de captura e leitura de PCAP compatíveis com o ambiente.
+- Identificar protocolos, fluxos, endpoints, DNS e metadados.
+- Suportar importação de PCAP para análise offline.
+- Registrar origem da captura e limitações da interface utilizada.
+- Não confundir tráfego destinado ao portal com todo o tráfego do aparelho B.
 
-### Cenário B — sem login
-- Portal de boas-vindas, aceite de termos ou acesso direto.
-- O participante consegue navegar sem preencher credenciais.
-- Links e páginas locais demonstram que a interação após a conexão também importa.
-- O painel mostra a sequência de navegação, os destinos locais, os redirecionamentos e os eventos observados.
+### RED-WIFI-06 — BLUE e resposta
+- Receber eventos de conexão, DNS, HTTP, TLS e descoberta produzidos pelos adaptadores.
+- Correlacionar eventos com o ativo e a sessão.
+- Aplicar regras de detecção com evidências e origem.
+- Executar ações de resposta que o adaptador de rede realmente suporte.
+- Registrar antes/depois da resposta.
 
-### Cenário C — links e redirecionamentos
-- Páginas locais interligadas.
-- Links com destinos distintos e contexto de origem.
-- Registro do clique, rota solicitada, horário, status HTTP e redirecionamento realizado.
-- Demonstração de link inesperado e página informativa.
-- Não usar domínios externos nem páginas que imitem serviços reais.
+### RED-WIFI-07 — PURPLE
+- Correlacionar operações RED com detecções BLUE.
+- Medir eventos detectados, não detectados e sem telemetria.
+- Repetir o cenário após alteração defensiva.
+- Comparar resultados e gerar relatório.
 
-### Cenário D — permissões e recursos do aparelho
-A página HTTP local não recebe poderes nativos do Android. Em particular, câmera, microfone e geolocalização pelo navegador dependem de contexto seguro; HTTP em IP de LAN normalmente não é contexto seguro. Login ou conexão Wi-Fi não concede permissões.
+## 4. Painéis operacionais
 
-Implementar uma trilha web e uma trilha nativa:
-- Portal web: seletor de arquivos do navegador com escolha explícita, sem envio do conteúdo por padrão.
-- Modo participante Android no aparelho B: solicitações reais de câmera, microfone e localização, acionadas no próprio aparelho e apenas para funções demonstrativas.
-- Câmera/microfone: prévia local com controles de início/parada; sem transmissão contínua ao aparelho A.
-- Localização: apresentada no aparelho B; o aparelho A recebe apenas o estado da permissão e o evento de conclusão, não coordenadas precisas.
-- Arquivos: seleção pelo seletor do Android; não enumerar diretórios nem ler arquivos sem escolha. O conteúdo não é enviado ao A por padrão.
-- Painel registra solicitado, concedido, negado, cancelado, revogado e executado, distinguindo cada estado.
+**RED**
+- Topologia e interfaces.
+- Ativos detectados.
+- Ferramentas e operações disponíveis.
+- Processos em execução, saída e código de retorno.
+- Resultados de descoberta, serviços, DNS, HTTP, TLS e PCAP.
+- Evidências originais e exportação.
 
-## 5. O que o painel RED precisa mostrar
+**BLUE**
+- Eventos recebidos por fonte.
+- Linha do tempo por ativo.
+- Regras acionadas e evidências que as sustentam.
+- Investigação e resposta aplicada.
+- Estado anterior e posterior à resposta.
 
-- Hotspot: iniciando, ativo, indisponível, encerrando.
-- SSID, senha e banda quando o Android fornecer.
-- Estado de conexão do participante e dados de rede realmente disponíveis.
-- Endereço/porta do portal e estado do servidor.
-- Requisições: timestamp, método, rota, status, tipo e tamanho.
-- Cabeçalhos de baixo risco permitidos por allowlist.
-- Campos sintéticos recebidos em memória durante a sessão ativa.
-- Resultado da validação local.
-- Sequência de páginas, cliques e redirecionamentos.
-- Estado das permissões e função executada no aparelho B.
-- Erros e limitações observados.
-- Separação visual entre solicitado, autorizado, executado e recebido.
+**PURPLE**
+- Operação RED correspondente.
+- Eventos BLUE correlacionados.
+- Cobertura de detecção.
+- Resultado antes/depois.
+- Relatório comparativo.
 
-O painel não pode alegar que recebeu senha, cookie, token, arquivo, localização ou conteúdo de câmera se isso não foi efetivamente transmitido e autorizado. Não coletar credenciais reais, tokens, cookies, conteúdo privado de outros aplicativos ou tráfego de terceiros. Campos não previstos devem ser rejeitados e descartados.
+## 5. Requisitos técnicos
 
-## 6. Diretriz de apresentação
+- Operações devem usar o motor comum de execução LAB-1.
+- Ferramentas devem vir do catálogo APT/Toolkit e ter arquitetura e versão verificadas.
+- Adaptadores Android devem informar capacidades e limitações detectadas.
+- Cada resultado deve conter ferramenta/API, parâmetros, horário, status e evidência.
+- A sessão deve permitir cancelar e encerrar processos.
+- A captura deve identificar a interface e o ponto de observação.
+- A operação deve funcionar sem internet quando o cenário não exigir serviços externos.
 
-- Portal do participante natural, sem banners grotescos ou alertas artificiais repetidos.
-- Identificação do laboratório na preparação da aula e no painel do instrutor.
-- Diálogos de permissão devem ser os verdadeiros diálogos do Android/navegador.
-- Nenhum diálogo de sistema falso ou imitado.
-- Vídeos mostram criação da rede, conexão, portal, navegação, permissões e o que foi recebido.
-- Código-fonte e scripts internos não fazem parte da apresentação.
+## 6. Critérios de aceite
 
-## 7. Estado de implementação em 2026-11-23\n\n- RED-1: contratos de estado/eventos e catálogo revisados.\n- RED-2: hotspot Android integrado; SSID/senha e dados de interface exibidos quando disponíveis; participante passa a ser considerado ativo após requisição real. A API Android não fornece lista universal de clientes.\n- RED-3: servidor HTTP na porta 8080, bind por IPv4 de interface Wi-Fi/AP, limites de requisição, timeout e telemetria HTTP conectados ao painel.\n- RED-4: portal natural fictício, login local e acesso direto sem login implementados.\n- RED-5: POST real recebe apenas identificador/código sintéticos permitidos; painel mostra os valores durante a sessão, sem persistência.\n- RED-6: navegação por páginas locais e redirecionamento 302 registrados na linha do tempo.\n- RED-7: modo participante Android no aparelho B, permissões reais, prévia local de câmera/microfone, consulta local de localização, seletor SAF e relay autenticado de estados ao painel A.\n- RED-8: painel ampliado com estado de rede, interface/porta, requisições, cabeçalhos filtrados, campos sintéticos em memória, permissões e linha do tempo.\n- RED-9: histórico com modo do portal, retenção limitada, recuperação de sessão e relatório sem valores de formulários ou dados privados.\n- RED-10: Área BLUE integrada às mesmas sessões/evidências, com análise defensiva e alternância sem interromper RED.\n- RED-11: guia do instrutor, roteiro de dois aparelhos, vídeo e troubleshooting.\n- RED-12: integração consolidada, ciclo de encerramento idempotente e lista de validação final congelada em docs/red-implementation-freeze.md.\n- Nenhum teste/build executado; validação reservada à fase final.\n\n## 8. Roadmap por fases
+- Criar ou selecionar uma topologia e identificar suas interfaces.
+- Conectar o aparelho B e confirmar a atividade por evidência real.
+- Descobrir ativos e serviços com ferramentas reais.
+- Executar portal/DNS e receber requisições reais.
+- Analisar HTTP/TLS e PCAP conforme o ponto de captura disponível.
+- Disponibilizar os eventos ao BLUE com origem rastreável.
+- Aplicar pelo menos uma resposta técnica real e verificar seu efeito.
+- Correlacionar operação e resposta no PURPLE.
+- Exportar relatório reproduzível.
 
-### 01.1 — Revisar modelos e estados
-- Atualizar modelos de cenário, dispositivo, requisição e evento.
-- Estados separados para hotspot, servidor, participante e sessão.
-- Identificador de cenário compartilhável com BLUE.
-- Campos desconhecidos e indisponíveis representados corretamente.
+## 7. Estado do protótipo atual
 
-### 01.2 — Hotspot e dados de rede
-- Iniciar/parar hotspot pelo Android.
-- Mostrar SSID/senha/banda fornecidos pelo sistema.
-- Mostrar instruções para conexão do segundo aparelho.
-- Tratar perda de rede, cancelamento e restrições do fabricante.
-- Não executar varredura de dispositivos.
+O código atual já possui criação de LocalOnlyHotspot, servidor HTTP local, portal, rotas, formulário de demonstração, linha do tempo e compartilhamento de alguns eventos com BLUE. Esses componentes são reaproveitáveis, mas não satisfazem sozinhos os critérios operacionais deste documento.
 
-### 01.3 — Servidor HTTP 8080
-- Porta padrão 8080.
-- Bind apenas na interface de laboratório identificada.
-- Rotas allowlist, limites de corpo, timeout e limite de conexões.
-- Encerrar o socket junto com a sessão.
-- Mostrar endereço e QR Code.
-- Registrar status e metadados das requisições.
-
-### 01.4 — Portal e experiência do participante
-- Layout natural de portal Wi-Fi fictício.
-- Páginas de boas-vindas, termos, login local e conclusão.
-- Modo com autenticação local.
-- Modo sem login e acesso direto.
-- Navegação local e páginas de demonstração.
-- Não imitar marca/serviço real.
-
-### 01.5 — Recepção de formulário sintético
-- Campos de teste claramente definidos no material do instrutor.
-- Requisição HTTP real para o servidor local.
-- Validação local e resposta real.
-- Mostrar campos sintéticos recebidos no painel durante a sessão.
-- Descartar campos desconhecidos e dados sensíveis.
-- Não persistir valores de senha.
-
-### 01.6 — Links, navegação e redirecionamento
-- Registrar sequência de navegação.
-- Mostrar origem, destino local, método, horário e status.
-- Demonstrar acesso direto sem login.
-- Demonstrar links inesperados e redirecionamentos internos.
-- Exibir ao participante a URL real do destino no navegador.
-
-### 01.7 — Modo participante Android
-- Definir componente Android instalável/ativável no aparelho B.
-- Solicitar permissões no aparelho B, não remotamente pelo A.
-- Implementar demonstrações de câmera, microfone e localização com prévia/resultado local.
-- Implementar seletor Android de arquivos.
-- Transmitir ao A somente estados/eventos mínimos da demonstração.
-- Cobrir concessão, recusa, cancelamento e revogação.
-- Explicar limitações de contexto seguro do navegador.
-
-### 01.8 — Painel de eventos e evidências
-- Linha do tempo em tempo real.
-- Detalhes da requisição recebida.
-- Valores sintéticos temporários.
-- Estado de conexão e permissões.
-- Erros, bloqueios e ações não disponíveis.
-- Nunca converter falha em sucesso.
-
-### 01.9 — Histórico e relatório
-- Relatório local sem segredos ou dados pessoais desnecessários.
-- Exportação manual.
-- Limpeza de dados temporários.
-- Histórico limitado e exclusão manual.
-- Sessão interrompida não reabre hotspot/servidor automaticamente.
-
-### 01.10 — Integração BLUE
-- Link para aula BLUE correspondente.
-- Mesma identificação de cenário e sequência de evidências.
-- BLUE explica login local, acesso direto, links, HTTP/HTTPS, permissões e resposta defensiva.
-- BLUE não executa a operação RED nem altera o dispositivo participante.
-
-### 01.11 — Tutorial e documentação
-- Tutorial dentro do app para o instrutor.
-- Roteiro do aparelho B.
-- Requisitos, limitações e solução de problemas.
-- Conteúdo de aula sem código-fonte.
-- Atualizar arquitetura, guia, changelog, roadmap e retomada.
-
-### 01.12 — Fechamento da implementação
-- Revisar integração e consistência.
-- Consolidar backlog de validação.
-- Gerar checkpoint completo.
-- Não executar testes/builds.
-- Não fazer merge para main sem autorização.
-
-### 01.13 — Validação final
-Somente após todas as fases anteriores:
-- Testes unitários/integrados.
-- Build Android.
-- Testes do servidor e limites.
-- Testes de hotspot e ciclo de vida.
-- Testes de formulário, navegação e eventos.
-- Testes de permissões reais no aparelho B.
-- Teste físico com os dois aparelhos.
-- Regressão nas demais áreas.
-
-## 8. Critérios de conclusão
-
-- Dois aparelhos conectam e participam do cenário.
-- Portal local acessível na porta 8080.
-- Cenário com login local e cenário sem login funcionam.
-- Requisições reais chegam ao servidor e aparecem no painel.
-- Valores sintéticos aparecem na sessão ativa, sem persistência de segredos.
-- Links e redirecionamentos locais geram eventos.
-- Permissões reais são solicitadas no aparelho B e o resultado é registrado corretamente.
-- Interface do participante é natural.
-- Relatório e histórico respeitam minimização de dados.
-- Tutorial permite repetir a aula.
-- Limitações técnicas estão documentadas.
-- Validação final é concluída separadamente.
-
-## 9. Estado atual conhecido
-
-A primeira versão de código possui hotspot Android, servidor HTTP local, QR Code, sessões e painel inicial. O formulário atual envia apenas um evento fixo e não transmite campos; permissões são apenas demonstrativas. Portanto, o fluxo completo especificado acima ainda não está implementado nem validado.
-
-## 10. Processo de desenvolvimento
-
-- Implementar em sequência, sem pedir autorização entre subfases.
-- Não executar testes, builds, verificações ou testes físicos durante a implementação.
-- Anotar tudo para validação final.
-- Não fazer merge em `main` sem autorização explícita.
+O fluxo atual não equivale a inventário de rede, descoberta de hosts/serviços, captura geral do tráfego do aparelho, inspeção de sessões TLS, detecção BLUE baseada em telemetria de rede, resposta de rede ou correlação PURPLE. Esses itens permanecem no roadmap e não devem ser marcados como concluídos por causa da existência do portal ou do painel atual.
