@@ -125,6 +125,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             it.copy(
                 visible = true,
                 participantMode = false,
+                participantToken = null,
                 selectedOperationId = null,
                 session = null,
                 message = null,
@@ -321,16 +322,16 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             "file" -> "seletor de arquivos"
             else -> "recurso"
         }
-        if (result in setOf("granted", "denied", "cancelled")) {
-            recordStructuredEvent(
-                RedEventType.PERMISSION_REQUESTED,
-                "O aparelho participante solicitou acesso a $resource.",
-                source = "participant"
-            )
-        } else if (kind == "file" && result in setOf("selected", "cancelled")) {
+        if (kind == "file" && result in setOf("selected", "cancelled")) {
             recordStructuredEvent(
                 RedEventType.FILE_PICKER_OPENED,
                 "O aparelho participante abriu o seletor de arquivos do Android.",
+                source = "participant"
+            )
+        } else if (result in setOf("granted", "denied", "cancelled")) {
+            recordStructuredEvent(
+                RedEventType.PERMISSION_REQUESTED,
+                "O aparelho participante solicitou acesso a $resource.",
                 source = "participant"
             )
         }
@@ -389,6 +390,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
 
     fun finishSession() {
         stopNetworkLab()
+        portal.setParticipantToken(null)
         val current = mutableState.value.session ?: return
         val updated = current.copy(state = RedOperationState.COMPLETED, endedAt = System.currentTimeMillis())
             .withEvent(RedEventType.SESSION_ENDED, "Sessão encerrada pelo operador.", source = "session")
