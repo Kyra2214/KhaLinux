@@ -295,6 +295,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun discoverAdbEndpoints() {
+        mutableState.update { it.copy(adbEndpoints = emptyList(), operationalMessage = null) }
         val discovery = AdbMdnsDiscovery(getApplication())
         synchronized(operationLock) {
             adbDiscovery?.close()
