@@ -7,7 +7,7 @@
 - `android/app/build.gradle.kts`: build type `release` com R8/`shrinkResources` (desligável por `-PkhalinuxMinify=false`), `abiFilters = arm64-v8a`, versão por `-PkhalinuxVersionName`/`-PkhalinuxVersionCode` e assinatura **somente por variáveis de ambiente**. Sem elas, `assembleRelease` gera APK **não assinado**.
 - `android/app/proguard-rules.pro`: mantém `NativePty` (símbolos JNI) e `commons-compress`; `-dontwarn` das dependências opcionais ausentes; preserva números de linha.
 - `.github/workflows/release-apk.yml`: workflow manual (`workflow_dispatch`) que valida entradas, recusa tag existente (`v<versão>`; imutável), exige os secrets, roda a auditoria estática, assina, **verifica com `apksigner`**, gera `KhaLinux-<versão>.apk` e `.apk.sha256`, publica a release com `RELEASE_NOTES.md`.
-- `.github/workflows/ci.yml`: após testes passarem em um push para `main`, também compila e assina um APK `release` minificado, verifica assinatura e envia APK + SHA-256 como artefato privado do Actions por 30 dias. Esse job não publica uma release/tag pública e não roda para PRs ou branches de trabalho.
+- `.github/workflows/ci.yml`: executa os testes unitários sem empacotar APK `debug`; após validações passarem em um push para `main`, compila e assina um APK `release` minificado, verifica a assinatura e envia APK + SHA-256 como artefato privado do Actions por 30 dias. O CI não publica APK `debug` nem cria uma release/tag pública; o job release não roda para PRs ou branches de trabalho.
 
 ## Chave de assinatura (uma vez, fora do repositório)
 
@@ -24,7 +24,7 @@ Cadastre em *Settings → Secrets and variables → Actions*: `KHALINUX_KEYSTORE
 
 ## APK release automático da main (CI)
 
-- Cada push em `main` que passe os testes gera o artefato `khalinux-release-main-<run_number>` com `KhaLinux-main-<commit>.apk` e seu `.sha256`.
+- Cada push em `main` que passe os testes gera somente o artefato `khalinux-release-main-<run_number>` com APK `release` assinado (`KhaLinux-main-<commit>.apk`) e seu `.sha256`; o CI não monta nem publica APK `debug`.
 - O workflow usa a mesma chave de assinatura da distribuição, R8/minificação ativada, `versionName` `1.0.0-main.<run_number>` e `versionCode=8` (reservado para os APKs automáticos da main). O artefato fica disponível em *Actions → KhaLinux CI → Artifacts* por 30 dias.
 - A geração automática não cria uma release pública. Para publicar uma nova release/tag, use o workflow manual abaixo e escolha `version_code` maior que 8.
 
@@ -43,7 +43,9 @@ apksigner verify --print-certs KhaLinux-1.0.0.apk
 
 Compare o resumo do certificado com o publicado nas notas da release.
 
-## Build local não assinado / depuração
+## Build local para desenvolvimento (fora do CI)
+
+Os comandos abaixo são opcionais para desenvolvimento local. O CI não gera nem envia APK `debug`; os APKs distribuídos pelo pipeline são da variante `release`.
 
 ```bash
 ./gradlew :android:app:assembleDebug                        # APK de depuração

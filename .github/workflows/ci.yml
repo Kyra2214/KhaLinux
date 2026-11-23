@@ -55,8 +55,8 @@ jobs:
       - name: Smoke test ARM64 RootFS with host PRoot and device binds
         run: bash distribution/scripts/test-proot-runtime.sh
 
-  android-build:
-    name: Android debug compilation
+  android-tests:
+    name: Android unit tests (no APK)
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
@@ -90,21 +90,10 @@ jobs:
       - name: Run runtime unit tests
         run: ./gradlew --no-daemon :android:runtime:testDebugUnitTest :android:app:testDebugUnitTest
 
-      - name: Compile debug APK
-        run: ./gradlew --no-daemon :android:app:assembleDebug
-
-      - name: Upload debug APK for CI inspection
-        uses: actions/upload-artifact@v4
-        with:
-          name: khalinux-debug-apk
-          path: android/app/build/outputs/apk/debug/*.apk
-          if-no-files-found: error
-          retention-days: 7
-
   android-release-apk:
     name: Android signed release APK (main)
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
-    needs: [host-validation, android-build]
+    needs: [host-validation, android-tests]
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
