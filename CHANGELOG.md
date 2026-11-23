@@ -1,3 +1,16 @@
+## [Não lançado] — RED-9: histórico e relatórios locais
+
+### Confirmado na implementação existente
+- Histórico persiste sessões e eventos tipados, com limite de 100 sessões e 300 eventos por sessão.
+- Recuperação marca sessões abertas como interrompidas e não reativa a rede.
+- Relatório Markdown contém cenário, modo, contagens, metadados HTTP e linha do tempo.
+- Valores dos formulários, códigos, tokens, cookies, arquivos, áudio, vídeo e coordenadas não são incluídos no relatório.
+- Exportação manual e exclusão do histórico estão disponíveis na interface.
+
+### Validação
+- Confirmação por inspeção estática; nenhum teste/build executado.
+- Validação funcional reservada a RED-13.
+
 ## [Não lançado] — RED-8: observabilidade de permissões e recursos
 
 ### Implementado
