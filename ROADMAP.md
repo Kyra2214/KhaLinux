@@ -1,10 +1,16 @@
 # Roadmap do KhaLinux
 
+> **Correção de direção — 2026-11-23:** o produto principal é o laboratório operacional RED/BLUE/PURPLE. O Debian ARM64, PRoot, terminal, APT, toolkit e integração Android são a infraestrutura que prepara e executa esse laboratório. O motor de exercícios e os conteúdos guiados da antiga Fase 6 são complementares; não substituem operações reais.
+>
+> Roadmap operacional vigente: [docs/roadmap-area-red-completa.md](docs/roadmap-area-red-completa.md). A operação Wi-Fi foi reclassificada como protótipo e seu plano operacional está em [docs/roadmap-area-red-estagio-01-wifi-publico.md](docs/roadmap-area-red-estagio-01-wifi-publico.md).
+>
+> Ordem: LAB-0 auditoria e inventário → LAB-1 motor de execução → LAB-2 conexão/inventário Android → LAB-3 RED Mobile → LAB-4 RED Network → LAB-5 RED Wi-Fi → LAB-6 RED Web → LAB-7 BLUE operacional → LAB-8 PURPLE → LAB-9 interface/relatórios → LAB-10 validação integrada, testes físicos e release.
+
 ## Progresso de execução
 
-**Implementação: 100%** (47 de 47 submódulos concluídos em código). **Validação final: PARCIAL** — runtime validado no host (166/166 testes, auditoria estática 0 erros, PTY nativo OK); `:android:app`, build release, CI e aparelho físico pendentes; registrada separadamente em `docs/final-validation.md`; o projeto só é declarado concluído (100% validado) quando os testes acumulados, as pendências transferidas e os testes físicos forem resolvidos. Ver `docs/phase6-validation.md`, `docs/phase8-validation.md`, `docs/security-audit.md`.
+**Infraestrutura e módulos-base:** implementados em código em grande parte; validação integrada e física ainda pendentes. **Laboratório operacional:** replanejado em 2026-11-23; não está concluído. **Validação final: PARCIAL** — runtime validado no host (166/166 testes, auditoria estática 0 erros, PTY nativo OK); `:android:app`, build release, CI e aparelho físico pendentes; registrada separadamente em `docs/final-validation.md`; o projeto só é declarado concluído (100% validado) quando os testes acumulados, as pendências transferidas e os testes físicos forem resolvidos. Ver `docs/phase6-validation.md`, `docs/phase8-validation.md`, `docs/security-audit.md`.
 
-**Último ZIP:** `KhaLinux_CHECKPOINT_045.zip` · **Submódulo atual:** pendências da validação final · **Bloqueios:** sem Android SDK/rede neste ambiente; testes em aparelho físico dependem do usuário.
+**Branch da revisão operacional:** `plan/laboratorio-operacional` · **Próximo submódulo:** LAB-0 — auditoria e inventário técnico. Não gerar ZIP/checkpoints.
 
 | # | Submódulo | Estado |
 |---|---|---|
@@ -33,10 +39,10 @@
 | 6.1 | Fase 6 — Modelo de laboratório/exercício, catálogo e parser (escopo só loopback) | [x] concluído (compilado no host; sem testes por política; ver `docs/labs.md`) |
 | 6.2 | Fase 6 — Motor de exercícios (sessão, verificação de resposta por hash, dicas, tentativas) | [x] concluído (compilado no host; sem testes por política; ver `docs/labs.md`) |
 | 6.3 | Fase 6 — Pontuação e progresso persistido | [x] concluído (**não compilado**: sem `kotlinc`/rede nesta sessão; sem testes por política; ver `docs/labs.md`) |
-| 6.4 | Fase 6 — Laboratórios Linux (conteúdo) | [x] concluído (3 laboratórios, 13 exercícios em `labs.json`; hashes e respostas conferidos no host com os próprios comandos; **não compilado/testado no Kotlin**; ver `docs/labs.md`) |
-| 6.5 | Fase 6 — Laboratórios de rede (conteúdo, localhost) | [x] concluído (3 laboratórios, 14 exercícios; só loopback; 404 do `http.server` conferido no host; **não compilado/testado no Kotlin**; ver `docs/labs.md`) |
+| 6.4 | Fase 6 — Exercícios Linux complementares (conteúdo) | [x] concluído (3 laboratórios, 13 exercícios em `labs.json`; hashes e respostas conferidos no host com os próprios comandos; **não compilado/testado no Kotlin**; ver `docs/labs.md`) |
+| 6.5 | Fase 6 — Exercícios de rede complementares (localhost) | [x] concluído (3 laboratórios, 14 exercícios; só loopback; 404 do `http.server` conferido no host; **não compilado/testado no Kotlin**; ver `docs/labs.md`) |
 | 6.6 | Fase 6 — Laboratórios Web (serviços vulneráveis só em loopback) | [x] concluído (3 laboratórios, 12 exercícios; fixtures Python em `distribution/labs/fixtures/web/` executadas e conferidas com curl no host; **não compilado/testado no Kotlin**; ver `docs/labs.md`) |
-| 6.7 | Fase 6 — Laboratórios de forense (conteúdo) | [x] concluído (3 laboratórios, 12 exercícios; evidências determinísticas geradas por script e respostas conferidas no host; **não compilado/testado no Kotlin**; ver `docs/labs.md`) |
+| 6.7 | Fase 6 — Exercícios de forense complementares (conteúdo) | [x] concluído (3 laboratórios, 12 exercícios; evidências determinísticas geradas por script e respostas conferidas no host; **não compilado/testado no Kotlin**; ver `docs/labs.md`) |
 | 6.8 | Fase 6 — Desafios progressivos/trilhas, UI, asset `labs.json` e validação da fase | [x] concluído em código (testes escritos, **não executados**: sem `kotlinc`/rede; `:android:app` não compilado; ver `docs/phase6-validation.md`) |
 | 7.1 | Fase 7 — Múltiplas sessões (abas de terminal: criar, trocar, renomear, fechar; sessão, saída e rascunho por aba; foreground com várias sessões) | [x] concluído em código (`TerminalTabs` + teste escrito, **não compilado/executado**: sem `kotlinc`/rede; `:android:app` só validável no CI; ver `docs/sessions.md`) |
 | 7.2 | Fase 7 — Personalização (5 temas de cores do terminal, fonte e tamanho já existentes; persistência Room v3 com migração 2→3) | [x] concluído em código (`TerminalThemesTest` escrito, **não compilado/executado**; esquema Room v3 só gerado no CI; ver `docs/customization.md`) |
@@ -120,7 +126,7 @@ Este roadmap é a referência oficial de evolução do projeto. Uma fase só pod
 
 **Critério:** ferramentas funcionais e verificadas; nenhuma compatibilidade presumida.
 
-## Fase 6 — Laboratórios
+## Fase 6 — Conteúdo de exercícios complementares
 
 **Estado:** concluída em código (6.1–6.8); suíte não executada nesta sessão (ver `docs/phase6-validation.md`).
 
