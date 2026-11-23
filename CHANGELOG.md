@@ -1,3 +1,19 @@
+## [Não lançado] — RED-12: fechamento da implementação
+
+### Implementado
+- Ciclo de encerramento do hotspot e servidor HTTP tornado idempotente.
+- Cancelamento de solicitação de hotspot em andamento tratado.
+- Token temporário preservado ao parar/reiniciar rede dentro da mesma sessão e limpo ao encerrar/interromper.
+- Eventos duplicados de solicitação/inicialização removidos.
+- Integração RED/BLUE, documentação e retomada consolidadas.
+- Lista final de validação congelada em docs/red-implementation-freeze.md.
+- ZIP/checkpoints omitidos conforme instrução do usuário.
+
+### Estado
+- Implementação: 93% (13/14 submódulos).
+- Única fase restante: RED-13 — validação final.
+- Nenhum teste/build executado durante a implementação.
+
 ## [Não lançado] — RED-11: tutorial e documentação de aula
 
 ### Implementado
