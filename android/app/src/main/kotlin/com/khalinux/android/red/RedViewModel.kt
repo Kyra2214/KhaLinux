@@ -129,6 +129,15 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun open() {
+        val currentSession = mutableState.value.session
+        if (currentSession != null && currentSession.endedAt == null &&
+            currentSession.state != RedOperationState.COMPLETED &&
+            currentSession.state != RedOperationState.INTERRUPTED
+        ) {
+            mutableState.update { it.copy(visible = true, participantMode = false, message = null) }
+            refreshHistory()
+            return
+        }
         mutableState.update {
             it.copy(
                 visible = true,
@@ -161,6 +170,10 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             }
             mutableState.update { it.copy(history = store.all()) }
         }
+    }
+
+    fun hideForBlue() {
+        mutableState.update { it.copy(visible = false) }
     }
 
     fun close() {
