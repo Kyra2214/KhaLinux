@@ -3,9 +3,33 @@ package com.khalinux.android.red
 import java.util.UUID
 
 enum class RedOperationState { NOT_STARTED, PREPARING, WAITING_PARTICIPANT, ACTIVE, ENDING, COMPLETED, INTERRUPTED }
-enum class RedEventType { SESSION_STARTED, HOTSPOT_REQUESTED, HOTSPOT_READY, HOTSPOT_STOPPED, PORTAL_STARTED, PORTAL_STOPPED, PORTAL_OPENED, STEP_OPENED, STEP_COMPLETED, DEMO_FORM_COMPLETED, PERMISSION_DEMO, ERROR, SESSION_ENDED }
+enum class RedNetworkState { IDLE, REQUESTING_HOTSPOT, HOTSPOT_READY, STARTING_SERVER, WAITING_PARTICIPANT, PARTICIPANT_ACTIVE, STOPPING, ERROR }
+enum class RedPortalMode { LOCAL_LOGIN, OPEN_ACCESS }
+enum class RedEventType {
+    SESSION_STARTED,
+    HOTSPOT_REQUESTED, HOTSPOT_READY, HOTSPOT_STOPPED, HOTSPOT_FAILED,
+    PORTAL_STARTING, PORTAL_STARTED, PORTAL_STOPPED, PORTAL_OPENED, PORTAL_ERROR,
+    HTTP_REQUEST_RECEIVED, HTTP_RESPONSE_SENT, NAVIGATION, REDIRECT,
+    FORM_SUBMITTED, FORM_REJECTED, DEMO_FORM_COMPLETED,
+    PERMISSION_REQUESTED, PERMISSION_GRANTED, PERMISSION_DENIED, PERMISSION_CANCELLED,
+    PERMISSION_DEMO, RESOURCE_PREVIEW_STARTED, RESOURCE_PREVIEW_STOPPED,
+    FILE_PICKER_OPENED, FILE_SELECTED, STEP_OPENED, STEP_COMPLETED,
+    ERROR, SESSION_ENDED
+}
 enum class RedCategory { NETWORKS, WEB, SOCIAL_ENGINEERING, LOCAL_ANALYSIS }
 enum class RedDifficulty { BEGINNER, INTERMEDIATE, ADVANCED }
+
+/** Observação de uma requisição local. Valores de formulário nunca pertencem a este modelo persistente. */
+data class RedRequestObservation(
+    val id: String = UUID.randomUUID().toString(),
+    val timestamp: Long = System.currentTimeMillis(),
+    val method: String,
+    val path: String,
+    val statusCode: Int,
+    val contentType: String? = null,
+    val bodyBytes: Int = 0,
+    val remoteAddress: String? = null
+)
 
 data class RedOperation(
     val id: String,
@@ -33,7 +57,13 @@ data class RedEvent(
     val type: RedEventType,
     val timestamp: Long = System.currentTimeMillis(),
     val stepId: String? = null,
-    val detail: String
+    val detail: String,
+    val sequence: Int = 0,
+    val source: String? = null,
+    val httpMethod: String? = null,
+    val route: String? = null,
+    val httpStatus: Int? = null,
+    val bytesReceived: Int? = null
 )
 
 data class RedSession(
@@ -51,21 +81,38 @@ object RedCatalog {
         RedOperation(
             id = "red-wifi-public-01",
             number = 1,
-            title = "Nunca Conecte à Wi-Fi Pública",
+            title = "Wi-Fi público: conexão, portal e navegação",
             category = RedCategory.NETWORKS,
             difficulty = RedDifficulty.BEGINNER,
-            summary = "Laboratório de dois aparelhos com hotspot próprio e portal local de treinamento.",
-            objectives = listOf("Preparar uma rede de laboratório", "Abrir um portal local", "Executar interações com dados sintéticos", "Analisar os eventos gerados"),
-            prerequisites = listOf("Dois aparelhos Android sob controle ou autorização explícita", "Wi-Fi habilitado", "Participante informado de que está em um laboratório"),
-            steps = listOf(
-                RedTutorialStep("prepare", "Preparar o operador", "Confirme que os dois aparelhos pertencem ao laboratório. Escolha um nome identificável para a rede e leia as limitações do Android."),
-                RedTutorialStep("hotspot", "Ativar a rede de laboratório", "Solicite a ativação do hotspot local pelo Android. A rede e a senha são fornecidas pelo sistema."),
-                RedTutorialStep("connect", "Conectar o participante", "No segundo aparelho, abra as configurações Wi-Fi e conecte-se à rede exibida pelo operador."),
-                RedTutorialStep("portal", "Abrir o portal de treinamento", "Use o endereço local mostrado pelo operador. A abertura automática não é garantida pelo Android."),
-                RedTutorialStep("traps", "Percorrer as simulações", "Abra cada cenário identificado como SIMULAÇÃO. Use somente os dados fictícios fornecidos na própria aula."),
-                RedTutorialStep("report", "Encerrar e revisar", "Finalize a sessão, confira a linha do tempo de eventos e gere o relatório local.")
+            summary = "Laboratório de dois aparelhos com hotspot próprio, portal HTTP local e observação do que o servidor realmente recebe.",
+            objectives = listOf(
+                "Preparar uma rede de laboratório no aparelho operador",
+                "Conectar um segundo aparelho e abrir o portal local",
+                "Comparar autenticação local com acesso direto sem login",
+                "Observar navegação, requisições e resultados de permissões"
             ),
-            completionCriteria = listOf("Sessão iniciada e encerrada", "Etapas do tutorial concluídas", "Formulário sintético demonstrado", "Relatório local disponível"),
+            prerequisites = listOf(
+                "Dois aparelhos Android dedicados ou explicitamente autorizados",
+                "Wi-Fi habilitado nos dois aparelhos",
+                "Dados de teste fictícios preparados para a aula"
+            ),
+            steps = listOf(
+                RedTutorialStep("prepare", "Preparar o operador", "Confirme que os dois aparelhos pertencem ao laboratório e escolha o cenário da aula."),
+                RedTutorialStep("hotspot", "Ativar a rede de laboratório", "Solicite ao Android a criação do hotspot local. O sistema informa os parâmetros que o aplicativo pode exibir."),
+                RedTutorialStep("connect", "Conectar o participante", "No segundo aparelho, abra as configurações Wi-Fi e conecte-se à rede exibida pelo operador."),
+                RedTutorialStep("portal", "Abrir o portal local", "Use o endereço HTTP e o QR Code mostrados pelo operador. A abertura automática depende do Android."),
+                RedTutorialStep("access", "Comparar os modos de acesso", "Percorra o portal com autenticação local fictícia e o modo de acesso direto sem login."),
+                RedTutorialStep("navigation", "Explorar navegação", "Abra os links locais e observe no painel as rotas e respostas efetivamente recebidas."),
+                RedTutorialStep("permissions", "Observar permissões", "No aparelho participante, execute as demonstrações nativas e observe os diálogos reais do Android."),
+                RedTutorialStep("report", "Encerrar e revisar", "Encerre a sessão e revise a linha do tempo e o relatório local.")
+            ),
+            completionCriteria = listOf(
+                "Hotspot solicitado e estado real apresentado",
+                "Segundo aparelho conectado e portal local acessível",
+                "Modo com login local e modo sem login demonstrados",
+                "Requisições locais observadas no painel",
+                "Relatório local disponível"
+            ),
             environment = "Dois aparelhos Android em rede de laboratório própria"
         )
     )
