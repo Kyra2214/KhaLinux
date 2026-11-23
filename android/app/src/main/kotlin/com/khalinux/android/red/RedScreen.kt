@@ -139,13 +139,25 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                         TextButton(onClick = { clipboard.setText(AnnotatedString(address)) }) { Text("Copiar endereço do portal") }
                     }
                     state.hotspotInfo?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
-                    Text("Servidor HTTP local · porta 8080", style = MaterialTheme.typography.labelLarge)
+                    Text("Servidor HTTP local · porta ${state.serverPort ?: 8080}", style = MaterialTheme.typography.labelLarge)
+                    Text("Interface: ${state.serverInterface ?: "não identificada"}", style = MaterialTheme.typography.bodySmall)
+                    Text(
+                        if (state.networkState == RedNetworkState.PARTICIPANT_ACTIVE) "Participante: atividade HTTP observada"
+                        else "Participante: aguardando primeiro acesso ao portal",
+                        style = MaterialTheme.typography.bodySmall
+                    )
                     Text("Requisições recebidas: ${state.requests.size}", style = MaterialTheme.typography.bodySmall)
                     state.requests.asReversed().take(12).forEach { request ->
-                        Text(
-                            "${request.method} ${request.path} · HTTP ${request.statusCode} · ${request.bodyBytes} bytes",
-                            style = MaterialTheme.typography.bodySmall
-                        )
+                        Card(Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text("${request.method} ${request.path} · HTTP ${request.statusCode}", style = MaterialTheme.typography.labelLarge)
+                                Text("Hora: ${request.timestamp} · ${request.bodyBytes} bytes · ${request.contentType ?: "tipo não informado"}", style = MaterialTheme.typography.bodySmall)
+                                Text("Origem: ${request.remoteAddress ?: "não identificada"}", style = MaterialTheme.typography.bodySmall)
+                                request.safeHeaders.forEach { (name, value) ->
+                                    Text("$name: $value", style = MaterialTheme.typography.bodySmall)
+                                }
+                            }
+                        }
                     }
                     OutlinedButton(onClick = viewModel::stopNetworkLab) { Text("Parar hotspot e portal") }
                 } else {
@@ -197,6 +209,7 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                                 "Valores visíveis somente nesta sessão e mantidos em memória; não entram no histórico nem no relatório.",
                                 style = MaterialTheme.typography.bodySmall
                             )
+                            OutlinedButton(onClick = viewModel::clearSensitivePanelData) { Text("Limpar valores temporários") }
                         } ?: Text("Nenhum formulário foi recebido nesta sessão.", style = MaterialTheme.typography.bodySmall)
                         Text("Eventos da sessão", style = MaterialTheme.typography.titleMedium)
                         session.events.asReversed().forEach { Text("${it.sequence}. ${it.timestamp}: ${it.detail}", style = MaterialTheme.typography.bodySmall) }
