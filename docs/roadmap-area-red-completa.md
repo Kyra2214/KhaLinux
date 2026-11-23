@@ -4,7 +4,7 @@
 **Branch:** `plan/area-red-wifi-publico`  
 **Repositório:** `Kyra2214/KhaLinux`  
 **Escopo:** protótipo pessoal de laboratório, com dois aparelhos Android controlados pelo instrutor.  
-**Progresso de implementação:** RED-0 a RED-9 concluídos em código/documentação (10 de 14 submódulos, 71%). RED-10 é o próximo submódulo de implementação. RED-13 permanece reservado à validação final. A execução continua na mesma branch, sem ZIP e sem validações antecipadas.  
+**Progresso de implementação:** RED-0 a RED-10 concluídos em código/documentação (11 de 14 submódulos, 79%). RED-11 é o próximo submódulo de implementação. RED-13 permanece reservado à validação final. A execução continua na mesma branch, sem ZIP e sem validações antecipadas.  
 **Validação:** reservada para depois de concluir todo o roadmap. Nenhum teste/build será executado durante a implementação.
 
 ---
@@ -293,8 +293,10 @@ O BLUE não deve inventar alertas ou detecções. Cada conclusão deve apontar p
 - BLUE lê as mesmas sessões e eventos persistidos pelo RED.
 - Canal de evidências ao vivo compartilha requisições, campos sintéticos temporários e eventos durante a sessão ativa.
 - Alternância RED → BLUE preserva a sessão e o hotspot; retorno BLUE → RED reabre a sessão ativa.
-- Tela BLUE apresenta interpretação defensiva por tipo de evento, modos login/acesso direto, navegação, redirecionamentos, permissões, HTTP e recursos locais.
-- BLUE não inventa detecções: distingue eventos observados de recomendações defensivas.
+- BLUE apresenta método, rota, status, horário, bytes, tipo, origem e cabeçalhos permitidos das requisições.
+- BLUE mostra campos sintéticos efêmeros e o estado mais recente de câmera, microfone, localização e seletor de arquivos.
+- Cada evento apresenta fato registrado e leitura defensiva; eventos não observados não são apresentados como detecções.
+- Validação da alternância e atualização ao vivo permanece acumulada para RED-13.
 
 ### RED-11 — Documentação e experiência de aula
 - Tutorial completo no app.
