@@ -92,7 +92,10 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                     Text("Histórico recente", style = MaterialTheme.typography.titleMedium)
                     state.history.take(5).forEach { session ->
                         Text("${session.operationId} · ${session.state} · ${session.events.size} eventos", style = MaterialTheme.typography.bodySmall)
-                        TextButton(onClick = { clipboard.setText(AnnotatedString(viewModel.report(session))) }) { Text("Copiar relatório") }
+                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            TextButton(onClick = { clipboard.setText(AnnotatedString(viewModel.report(session))) }) { Text("Copiar relatório") }
+                            TextButton(onClick = { reportContent.value = viewModel.report(session); exportReport.launch("relatorio-red.md") }) { Text("Exportar") }
+                        }
                     }
                     if (state.history.isNotEmpty()) TextButton(onClick = viewModel::deleteHistory) { Text("Apagar histórico") }
                 }
