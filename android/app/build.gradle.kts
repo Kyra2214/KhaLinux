@@ -75,6 +75,8 @@ android {
         getByName("main").assets.srcDir("../../distribution/labs")
         // Tutor didático offline (Fase 7.8): asset `knowledge.tsv`.
         getByName("main").assets.srcDir("../../distribution/tutor")
+        // Catálogo versionado da Área RED.
+        getByName("main").assets.srcDir("../../distribution/red")
     }
 }
 
