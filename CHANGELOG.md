@@ -1,3 +1,17 @@
+## [Não lançado] — RED-10: integração pedagógica RED ↔ BLUE
+
+### Implementado
+- Área BLUE criada como módulo Compose próprio e adicionada ao menu Mais.
+- BlueViewModel lê as mesmas sessões/eventos persistidos do RED.
+- RedLiveEvidenceStore compartilha em memória requisições e campos sintéticos da sessão ativa.
+- Tela BLUE mostra evidências e interpretação defensiva por evento para hotspot, portal, login, acesso direto, links, redirecionamentos, HTTP e permissões.
+- Alternância RED → BLUE preserva a sessão ativa; retorno BLUE → RED restaura a operação.
+- Documentação específica em docs/blue-area.md e guia do usuário atualizado.
+
+### Limites
+- BLUE não realiza captura geral de rede nem inspeção HTTPS; mostra somente eventos observados no laboratório.
+- Nenhum teste/build foi executado.
+
 ## [Não lançado] — RED-9: histórico e relatórios
 
 ### Implementado
