@@ -227,7 +227,12 @@ class LabOperationEngine(
         var failure: String? = null
         var process: RuntimeSession? = null
         try {
-            val shellCommand = argv.joinToString(" ") { quoteShellArgument(it) }
+            val executable = quoteShellArgument(argv.first())
+            val arguments = argv.joinToString(" ") { quoteShellArgument(it) }
+            val shellCommand = "command -v " + executable +
+                " >/dev/null 2>&1 || { printf '%s\\n' " +
+                quoteShellArgument("Executável ausente no RootFS: " + argv.first()) +
+                " >&2; exit 127; }; exec " + arguments
             process = runtime.start(CommandRequest(
                 shellCommand = shellCommand,
                 workingDirectory = "/home/khalinux",
