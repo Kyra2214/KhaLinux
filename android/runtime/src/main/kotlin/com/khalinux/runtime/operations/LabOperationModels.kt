@@ -8,7 +8,7 @@ enum class LabTargetKind { LOCAL_RUNTIME, ANDROID_DEVICE, NETWORK, WEB_SERVICE, 
 enum class LabExecutorKind { ROOTFS_ARGV, TOOLKIT, ANDROID_API, ADB, HTTP_SERVICE, PCAP_ANALYZER }
 enum class LabParameterType { STRING, INTEGER, BOOLEAN, ENUM }
 enum class LabSessionState { ACTIVE, CLOSED, INTERRUPTED }
-enum class LabExecutionState { QUEUED, RUNNING, SUCCEEDED, FAILED, CANCELLED, TIMED_OUT }
+enum class LabExecutionState { QUEUED, RUNNING, SUCCEEDED, FAILED, CANCELLED, TIMED_OUT, INTERRUPTED }
 enum class LabEventSeverity { INFO, LOW, MEDIUM, HIGH, CRITICAL }
 
 data class LabOperationParameter(
@@ -101,7 +101,7 @@ data class LabExecutionRecord(
         require(id.isNotBlank() && sessionId.isNotBlank() && operationId.isNotBlank() && operationVersion > 0)
         require(queuedAtEpochMillis > 0)
         require(startedAtEpochMillis == null || startedAtEpochMillis >= queuedAtEpochMillis)
-        require(endedAtEpochMillis == null || (startedAtEpochMillis != null && endedAtEpochMillis >= startedAtEpochMillis))
+        require(endedAtEpochMillis == null || endedAtEpochMillis >= (startedAtEpochMillis ?: queuedAtEpochMillis))
         require(evidenceIds.distinct().size == evidenceIds.size)
     }
 }
