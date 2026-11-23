@@ -4,7 +4,7 @@
 **Branch:** `plan/area-red-wifi-publico`  
 **Repositório:** `Kyra2214/KhaLinux`  
 **Escopo:** protótipo pessoal de laboratório, com dois aparelhos Android controlados pelo instrutor.  
-**Progresso de implementação:** RED-0 a RED-5 concluídos em código/documentação (6 de 14 submódulos, 43%). RED-6 é o próximo submódulo de implementação. RED-13 permanece reservado à validação final. A execução continua na mesma branch, sem ZIP e sem validações antecipadas.  
+**Progresso de implementação:** RED-0 a RED-6 concluídos em código/documentação (7 de 14 submódulos, 50%). RED-7 é o próximo submódulo de implementação. RED-13 permanece reservado à validação final. A execução continua na mesma branch, sem ZIP e sem validações antecipadas.  
 **Validação:** reservada para depois de concluir todo o roadmap. Nenhum teste/build será executado durante a implementação.
 
 ---
@@ -251,13 +251,14 @@ O BLUE não deve inventar alertas ou detecções. Cada conclusão deve apontar p
 - Submissões e resultados são registrados como eventos; valores não entram no SessionStore nem no relatório.
 - Validação funcional/compilação permanece acumulada para RED-13.
 
-### RED-6 — Navegação, links e comportamento após conexão
-- Criar páginas locais com links e destinos distintos.
-- Demonstrar que uma sessão pode não ter login.
-- Registrar sequência de cliques e páginas abertas.
-- Demonstrar redirecionamentos locais e páginas inesperadas.
-- Explicar no conteúdo o que HTTP permite observar e o que HTTPS protege.
-- Não redirecionar para domínios externos nem realizar coleta fora do laboratório.
+### RED-6 — Navegação, links e comportamento após conexão <sub>CONCLUÍDO EM CÓDIGO</sub>
+- Portal oferece modo de acesso direto sem formulário/login.
+- Páginas locais de termos, conteúdo, notícias e ofertas com navegação de ida/volta.
+- Rota `/go/notice` responde com HTTP 302 para página local de aviso.
+- Cada requisição registra método, caminho, status, bytes, origem e cabeçalhos permitidos; `Referer` é reduzido ao caminho local.
+- O painel apresenta a sequência de requisições e identifica redirecionamentos por rota/status.
+- Nenhum destino externo é aberto pelo cenário.
+- Validação funcional permanece acumulada para RED-13.
 
 ### RED-7 — Modo participante e permissões reais
 - Definir a arquitetura do modo participante Android para o aparelho B.
