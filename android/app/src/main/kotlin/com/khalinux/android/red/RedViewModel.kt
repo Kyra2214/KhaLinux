@@ -32,6 +32,21 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
     private val hotspot = RedHotspotController(application) { message, info ->
         mutableState.update { it.copy(message = message, hotspotInfo = info) }
         recordRuntimeEvent(message)
+        if (message.startsWith("Hotspot local ativado")) {
+            try {
+                val address = portal.start()
+                mutableState.update { it.copy(networkRunning = true, portalAddress = address) }
+                val current = mutableState.value.session
+                if (current != null) {
+                    val updated = current.withEvent(RedEventType.PORTAL_STARTED, "Portal local vinculado à interface Wi-Fi do laboratório.")
+                    store.save(updated)
+                    mutableState.update { it.copy(session = updated) }
+                }
+            } catch (error: Exception) {
+                mutableState.update { it.copy(message = "Hotspot ativo, mas o portal não pôde ser vinculado à rede do laboratório: " + (error.message ?: "erro desconhecido")) }
+                recordRuntimeEvent("Portal não iniciado: interface Wi-Fi indisponível.")
+            }
+        }
     }
     private val mutableState = MutableStateFlow(RedUiState())
     val uiState: StateFlow<RedUiState> = mutableState.asStateFlow()
@@ -81,20 +96,9 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             mutableState.update { it.copy(message = "Inicie uma sessão antes de ativar recursos de rede.") }
             return
         }
-        try {
-            val address = portal.start()
-            mutableState.update { it.copy(networkRunning = true, portalAddress = address) }
-            val current = mutableState.value.session
-            if (current != null) {
-                val updated = current.withEvent(RedEventType.PORTAL_STARTED, "Portal HTTP local iniciado.")
-                store.save(updated)
-                mutableState.update { it.copy(session = updated) }
-            }
-            hotspot.start()
-        } catch (error: Exception) {
-            mutableState.update { it.copy(message = "Não foi possível iniciar o portal: " + (error.message ?: "erro desconhecido")) }
-            recordRuntimeEvent("Falha ao iniciar o portal local.")
-        }
+        mutableState.update { it.copy(message = "Solicitando hotspot local ao Android...") }
+        recordRuntimeEvent("Operador solicitou hotspot local.")
+        hotspot.start()
     }
 
     fun stopNetworkLab() {
