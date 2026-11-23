@@ -44,6 +44,12 @@ A primeira implementação utiliza PRoot para execução sem root, com a abstra�
 
 PRoot não fornece isolamento forte. O produto deverá comunicar essa limitação e não prometer segurança equivalente a VM ou contêiner privilegiado.
 
+## Área RED
+
+A Área RED é uma camada Android independente do runtime Linux, com catálogo versionado em `distribution/red/operations.json`, parser próprio, ViewModel/StateFlow e persistência local isolada. A Operação 01 usa o adaptador Android `LocalOnlyHotspot` e um servidor HTTP local vinculado à interface Wi-Fi do laboratório. O portal só registra eventos sintéticos; o corpo dos formulários é descartado e a página envia apenas um evento fixo de conclusão. A UI não executa lógica de rede diretamente.
+
+A documentação operacional está em `docs/red-area.md` e `docs/red-operation-01.md`. A abertura automática do portal não é garantida pelo Android; endereço local e QR Code são as alternativas assistidas.
+
 ## Persistência
 
 Room/SQLite deverá armazenar, com migrações versionadas: ferramentas instaladas, catálogo, histórico de comandos, progresso e exercícios, configurações, versões do RootFS, histórico de instalação e preferências. Segredos e tokens não podem entrar no histórico.
