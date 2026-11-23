@@ -134,7 +134,8 @@ class KhaLinuxRuntimeService : Service() {
                     prootEnvironment = prootLocation.environment
                 ),
                 interactiveProcessLauncher = AndroidPtyProcessLauncher()
-            )
+            ),
+            maxSessions = 8
         )
     }
 
