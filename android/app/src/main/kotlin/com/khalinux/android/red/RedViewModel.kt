@@ -52,6 +52,15 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
     private val mutableState = MutableStateFlow(RedUiState())
     val uiState: StateFlow<RedUiState> = mutableState.asStateFlow()
 
+    init {
+        runCatching {
+            val json = application.assets.open("operations.json").bufferedReader().use { it.readText() }
+            RedCatalog.replace(RedCatalogJson.parse(json))
+        }.onFailure { error ->
+            mutableState.update { it.copy(message = "Catálogo RED embarcado inválido; usando catálogo interno de contingência: " + (error.message ?: "erro de leitura")) }
+        }
+    }
+
     fun open() {
         mutableState.update { it.copy(visible = true, selectedOperationId = null, session = null, message = null) }
         viewModelScope.launch(Dispatchers.IO) {
