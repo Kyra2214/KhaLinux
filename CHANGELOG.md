@@ -1,3 +1,16 @@
+## [Não lançado] — RED-11: tutorial e documentação de aula
+
+### Implementado
+- Roteiro rápido de dois aparelhos incorporado à tela RED.
+- Guia completo do instrutor em docs/red-instructor-guide.md.
+- Preparação do aparelho A e B, cenários de login/acesso direto, permissões, pareamento e envio de estado documentados.
+- Roteiro de vídeo focado em comportamento e resultados, sem código-fonte.
+- Troubleshooting de hotspot, endereço, porta 8080, navegador e permissões.
+- Documentação de RED, BLUE e guia do usuário atualizada com referências cruzadas.
+
+### Limites
+- Nenhum teste/build foi executado.
+
 ## [Não lançado] — RED-10: integração pedagógica RED ↔ BLUE
 
 ### Implementado
