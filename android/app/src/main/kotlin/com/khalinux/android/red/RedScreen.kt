@@ -10,6 +10,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
@@ -32,6 +34,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
+import com.khalinux.android.devices.AdbMdnsKind
 
 @Composable
 fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
@@ -52,19 +55,14 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Column(Modifier.weight(1f)) {
                 Text("ÁREA RED", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.error)
-                Text("Operações práticas em laboratório autorizado.", style = MaterialTheme.typography.bodySmall)
+                Text("Operações RED e inventário do laboratório.", style = MaterialTheme.typography.bodySmall)
             }
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 TextButton(onClick = viewModel::enterParticipantMode) { Text("Modo participante") }
                 TextButton(onClick = viewModel::refreshHistory) { Text("Histórico") }
             }
         }
-        Card(Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("ESCOPO CONTROLADO", style = MaterialTheme.typography.labelLarge)
-                Text("Use somente aparelhos, contas e redes próprias ou com autorização explícita. Todas as páginas de demonstração são identificadas como simulação.")
-            }
-        }
+        AndroidDevicePanel(state, viewModel)
         val operation = state.selectedOperationId?.let(RedCatalog::find)
         if (operation == null) {
             Text("Catálogo de operações", style = MaterialTheme.typography.titleLarge)
@@ -290,4 +288,139 @@ private fun RedQrCode(value: String) {
         }.getOrNull()
     }
     bitmap?.let { Image(bitmap = it.asImageBitmap(), contentDescription = "QR Code do portal local", modifier = Modifier.fillMaxWidth().padding(12.dp)) }
+}
+
+
+@Composable
+private fun AndroidDevicePanel(state: RedUiState, viewModel: RedViewModel) {
+    val pairingCode = remember { androidx.compose.runtime.mutableStateOf("") }
+    val manualHost = remember { androidx.compose.runtime.mutableStateOf("") }
+    val manualPairPort = remember { androidx.compose.runtime.mutableStateOf("") }
+    val manualConnectPort = remember { androidx.compose.runtime.mutableStateOf("") }
+    Card(Modifier.fillMaxWidth()) {
+        Column(
+            Modifier.fillMaxWidth().heightIn(max = 300.dp).verticalScroll(rememberScrollState()).padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(7.dp)
+        ) {
+            Text("ANDROID · INVENTÁRIO E ADB", style = MaterialTheme.typography.titleMedium)
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Button(onClick = viewModel::refreshDeviceInventory) { Text("Atualizar inventário") }
+                OutlinedButton(onClick = viewModel::discoverAdbEndpoints) { Text("Descobrir ADB") }
+                TextButton(onClick = viewModel::stopAdbDiscovery) { Text("Parar") }
+            }
+            state.adbCapabilities?.let { capabilities ->
+                Text(
+                    "ADB: " + if (capabilities.installed) "instalado" else "não instalado" +
+                        " · pareamento: " + if (capabilities.wirelessPairing) "disponível" else "indisponível" +
+                        " · chave do host: " + if (capabilities.hostKeyPresent) "presente" else "ausente",
+                    style = MaterialTheme.typography.bodySmall
+                )
+                if (capabilities.versionOutput.isNotBlank()) {
+                    Text(capabilities.versionOutput.lines().first(), style = MaterialTheme.typography.bodySmall)
+                }
+            }
+            state.operationalMessage?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+            if (state.adbEndpoints.isNotEmpty()) {
+                Text("Serviços mDNS encontrados", style = MaterialTheme.typography.titleSmall)
+                state.adbEndpoints.forEach { endpoint ->
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Column(Modifier.weight(1f)) {
+                            Text(endpoint.kind.name + " · " + endpoint.serviceName, style = MaterialTheme.typography.labelMedium)
+                            Text(endpoint.endpoint, style = MaterialTheme.typography.bodySmall)
+                        }
+                        when (endpoint.kind) {
+                            AdbMdnsKind.PAIRING -> Button(
+                                enabled = pairingCode.value.length == 6,
+                                onClick = { viewModel.pairDiscoveredDevice(endpoint, pairingCode.value) }
+                            ) { Text("Parear") }
+                            AdbMdnsKind.CONNECT -> Button(onClick = { viewModel.connectDiscoveredDevice(endpoint) }) {
+                                Text("Conectar")
+                            }
+                        }
+                    }
+                }
+            }
+            OutlinedTextField(
+                value = pairingCode.value,
+                onValueChange = { value ->
+                    if (value.length <= 6 && value.all(Char::isDigit)) pairingCode.value = value
+                },
+                label = { Text("Código de pareamento") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Text("Endpoint manual", style = MaterialTheme.typography.titleSmall)
+            OutlinedTextField(
+                value = manualHost.value,
+                onValueChange = { manualHost.value = it.trim() },
+                label = { Text("IP ou host do Android") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = manualPairPort.value,
+                    onValueChange = { value -> if (value.all(Char::isDigit) && value.length <= 5) manualPairPort.value = value },
+                    label = { Text("Porta de pareamento") },
+                    singleLine = true,
+                    modifier = Modifier.weight(1f)
+                )
+                OutlinedTextField(
+                    value = manualConnectPort.value,
+                    onValueChange = { value -> if (value.all(Char::isDigit) && value.length <= 5) manualConnectPort.value = value },
+                    label = { Text("Porta de conexão") },
+                    singleLine = true,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Button(
+                    enabled = manualHost.value.isNotBlank() && manualPairPort.value.toIntOrNull() in 1..65535 &&
+                        pairingCode.value.length == 6,
+                    onClick = {
+                        viewModel.pairDevice(manualHost.value, manualPairPort.value.toInt(), pairingCode.value)
+                    }
+                ) { Text("Parear manual") }
+                OutlinedButton(
+                    enabled = manualHost.value.isNotBlank() && manualConnectPort.value.toIntOrNull() in 1..65535,
+                    onClick = {
+                        viewModel.connectDevice(manualHost.value, manualConnectPort.value.toInt())
+                    }
+                ) { Text("Conectar manual") }
+            }
+            if (state.operationalAssets.isNotEmpty()) {
+                Text("Ativos", style = MaterialTheme.typography.titleSmall)
+                state.operationalAssets.forEach { asset ->
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Column(Modifier.weight(1f)) {
+                            Text(asset.displayName, style = MaterialTheme.typography.bodyMedium)
+                            Text(
+                                listOfNotNull(asset.primaryAddress, asset.attributes["adb_state"]).joinToString(" · "),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                        if (asset.attributes["adb_serial"] != null) {
+                            TextButton(onClick = { viewModel.loadPackageInventory(asset.id) }) { Text("Pacotes") }
+                        }
+                    }
+                    if (state.packageInventoryAssetId == asset.id) {
+                        if (state.packageInventoryLoading) Text("Consultando Package Manager…")
+                        state.packageInventoryError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                        if (state.packageInventory.isNotEmpty()) {
+                            Text("Pacotes encontrados: ${state.packageInventory.size}", style = MaterialTheme.typography.labelMedium)
+                            state.packageInventory.take(30).forEach { item ->
+                                Text(
+                                    "${item.packageName} · ${item.origin.name} · UID ${item.uid ?: "?"} · v${item.versionCode ?: "?"}",
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                            if (state.packageInventory.size > 30) {
+                                Text("Exibindo 30 de ${state.packageInventory.size}; a saída completa permanece nas evidências.", style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
