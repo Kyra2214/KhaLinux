@@ -1,3 +1,15 @@
+## [Não lançado] — RED-6: navegação local e redirecionamentos
+
+### Confirmado na implementação existente
+- Modo de acesso direto sem login e páginas locais interligadas.
+- Destinos locais de notícias/ofertas e página de aviso.
+- Rota de redirecionamento HTTP 302 com destino restrito ao próprio portal.
+- Painel recebe a sequência de requisições com método, rota, status, bytes e cabeçalhos permitidos; Referer é limitado ao caminho.
+
+### Validação
+- Confirmação por inspeção estática; nenhum teste ou build foi executado.
+- Validação funcional fica reservada para RED-13.
+
 ## [Não lançado] — RED-5: formulário local e dados sintéticos recebidos
 
 ### Confirmado na implementação existente
