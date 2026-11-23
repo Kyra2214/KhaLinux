@@ -35,10 +35,14 @@ class RedPortalServer(
         private set
     @Volatile var boundPort: Int? = null
         private set
+    @Volatile private var portalMode: RedPortalMode = RedPortalMode.LOCAL_LOGIN
+
+    fun setMode(mode: RedPortalMode) { portalMode = mode }
 
     @Synchronized
-    fun start(preferredAddress: String? = null): String {
+    fun start(preferredAddress: String? = null, mode: RedPortalMode = portalMode): String {
         if (running.get()) return address ?: error("Portal sem endereço disponível")
+        portalMode = mode
         val binding = resolveLabAddress(preferredAddress)
             ?: error("O Android não expôs um IPv4 de interface Wi-Fi/AP do laboratório.")
         val server = ServerSocket(PORT, BACKLOG, InetAddress.getByName(binding.second))
@@ -131,7 +135,42 @@ class RedPortalServer(
                 val response = when {
                     method == "GET" && path == "/" -> {
                         status = 200
-                        portalHtml()
+                        portalHtml(portalMode)
+                    }
+                    method == "GET" && path == "/login" -> {
+                        status = 200
+                        loginHtml()
+                    }
+                    method == "GET" && path == "/open" -> {
+                        status = 200
+                        openAccessHtml()
+                    }
+                    method == "GET" && path == "/terms" -> {
+                        status = 200
+                        termsHtml()
+                    }
+                    method == "GET" && path == "/links" -> {
+                        status = 200
+                        linksHtml()
+                    }
+                    method == "GET" && path == "/destination/news" -> {
+                        status = 200
+                        destinationHtml("Notícias locais", "Página de conteúdo do laboratório.")
+                    }
+                    method == "GET" && path == "/destination/offers" -> {
+                        status = 200
+                        destinationHtml("Ofertas locais", "Página de conteúdo demonstrativa do laboratório.")
+                    }
+                    method == "GET" && path == "/notice" -> {
+                        status = 200
+                        destinationHtml("Aviso de navegação", "Você chegou a uma página local por um redirecionamento do laboratório.")
+                    }
+                    method == "GET" && path == "/go/notice" -> {
+                        status = 302
+                        writeRedirect(output, "/notice")
+                        onRequest(RedRequestObservation(method = method, path = path, statusCode = status, contentType = contentType, bodyBytes = bodyBytes, remoteAddress = peer.inetAddress?.hostAddress))
+                        onEvent("Redirecionamento local executado: /go/notice → /notice.")
+                        return
                     }
                     method == "GET" && path == "/health" -> {
                         status = 200
@@ -140,6 +179,10 @@ class RedPortalServer(
                     method == "GET" && path == "/favicon.ico" -> {
                         status = 204
                         ""
+                    }
+                    method == "POST" && path == "/login" -> {
+                        status = 501
+                        "O processamento do formulário local será habilitado no próximo componente do laboratório."
                     }
                     method == "HEAD" -> {
                         status = 200
@@ -229,6 +272,12 @@ class RedPortalServer(
         return body
     }
 
+    private fun writeRedirect(output: java.io.OutputStream, location: String) {
+        val response = "HTTP/1.1 302 Found\\r\\nLocation: $location\\r\\nCache-Control: no-store\\r\\nConnection: close\\r\\nContent-Length: 0\\r\\n\\r\\n"
+        output.write(response.toByteArray(StandardCharsets.US_ASCII))
+        output.flush()
+    }
+
     private fun writeResponse(
         output: java.io.OutputStream,
         status: Int,
@@ -261,11 +310,62 @@ class RedPortalServer(
         output.flush()
     }
 
-    private fun portalHtml() = """
-        <!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-        <title>Wi-Fi</title><body style="font:16px system-ui;max-width:560px;margin:36px auto;padding:0 18px;color:#202124">
-        <h1>Bem-vindo</h1><p>Conecte-se para continuar navegando.</p>
-        <p>O portal de treinamento está sendo preparado.</p></body></html>
+    private fun portalHtml(mode: RedPortalMode) = """
+        <!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>Conecta Local</title><style>
+        body{font:16px system-ui;background:#f4f6f8;color:#202124;margin:0}.wrap{max-width:520px;margin:7vh auto;padding:28px}
+        .card{background:#fff;border:1px solid #e2e5e9;border-radius:14px;padding:26px;box-shadow:0 5px 24px #0000000b}
+        h1{font-size:25px;margin:0 0 8px}.muted{color:#5f6368;line-height:1.5}.actions{display:grid;gap:12px;margin-top:24px}
+        a{display:block;padding:13px 16px;border-radius:8px;background:#2457a6;color:white;text-decoration:none;text-align:center}
+        a.secondary{background:#eef2f7;color:#23364d}.foot{font-size:12px;color:#73777d;margin-top:22px}
+        </style></head><body><main class="wrap"><section class="card">
+        <h1>Conecta Local</h1><p class="muted">Acesso à rede de visitantes.</p>
+        <p class="muted">${if (mode == RedPortalMode.LOCAL_LOGIN) "Entre para continuar." else "A conexão está disponível. Você já pode continuar."}</p>
+        <div class="actions">
+        <a href="${if (mode == RedPortalMode.LOCAL_LOGIN) "/login" else "/open"}">${if (mode == RedPortalMode.LOCAL_LOGIN) "Acessar Wi-Fi" else "Continuar navegando"}</a>
+        <a class="secondary" href="/terms">Termos de utilização</a><a class="secondary" href="/links">Conteúdo e navegação</a>
+        </div><p class="foot">Conecta Local · Acesso de visitantes</p></section></main></body></html>
+    """.trimIndent()
+
+    private fun loginHtml() = """
+        <!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>Acesso Wi-Fi</title><style>body{font:16px system-ui;background:#f4f6f8;color:#202124;margin:0}.wrap{max-width:480px;margin:7vh auto;padding:24px}
+        .card{background:#fff;border:1px solid #e2e5e9;border-radius:14px;padding:26px}label{display:block;margin:14px 0 6px}
+        input{box-sizing:border-box;width:100%;padding:12px;border:1px solid #c8cdd3;border-radius:7px;font:inherit}
+        button{width:100%;padding:13px;border:0;border-radius:8px;background:#2457a6;color:white;font:inherit;margin-top:20px}
+        .muted{color:#5f6368;font-size:13px}</style></head><body><main class="wrap"><section class="card">
+        <h1>Acesso Wi-Fi</h1><p class="muted">Informe os dados de acesso fornecidos para esta demonstração.</p>
+        <form method="post" action="/login"><label for="demo_id">Identificação de teste</label><input id="demo_id" name="demo_id" maxlength="80" autocomplete="off" required>
+        <label for="demo_code">Código de acesso de teste</label><input id="demo_code" name="demo_code" maxlength="32" autocomplete="off" required>
+        <button type="submit">Conectar</button></form><p class="muted">Use somente os valores fictícios preparados pelo instrutor.</p>
+        <p><a href="/">Voltar</a></p></section></main></body></html>
+    """.trimIndent()
+
+    private fun openAccessHtml() = """
+        <!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Acesso liberado</title></head>
+        <body style="font:16px system-ui;max-width:520px;margin:8vh auto;padding:24px;color:#202124">
+        <h1>Conexão disponível</h1><p>Você já pode utilizar o acesso de visitantes.</p>
+        <p><a href="/links">Continuar para a internet</a></p><p><a href="/terms">Termos de utilização</a></p></body></html>
+    """.trimIndent()
+
+    private fun termsHtml() = """
+        <!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Termos</title>
+        <body style="font:16px system-ui;max-width:520px;margin:8vh auto;padding:24px;color:#202124">
+        <h1>Termos de utilização</h1><p>Use a rede de visitantes de acordo com as regras do estabelecimento.</p>
+        <p>Proteja seus dados e confirme o endereço das páginas que acessar.</p><p><a href="/">Voltar ao portal</a></p></body></html>
+    """.trimIndent()
+
+    private fun linksHtml() = """
+        <!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Conteúdo</title>
+        <body style="font:16px system-ui;max-width:520px;margin:8vh auto;padding:24px;color:#202124">
+        <h1>Conteúdo para visitantes</h1><p><a href="/destination/news">Notícias</a></p>
+        <p><a href="/destination/offers">Ofertas</a></p><p><a href="/go/notice">Continuar</a></p><p><a href="/">Voltar</a></p></body></html>
+    """.trimIndent()
+
+    private fun destinationHtml(title: String, message: String) = """
+        <!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>$title</title>
+        <body style="font:16px system-ui;max-width:520px;margin:8vh auto;padding:24px;color:#202124">
+        <h1>$title</h1><p>$message</p><p><a href="/links">Voltar ao conteúdo</a></p></body></html>
     """.trimIndent()
 
     private fun resolveLabAddress(preferredAddress: String?): Pair<String, String>? {
