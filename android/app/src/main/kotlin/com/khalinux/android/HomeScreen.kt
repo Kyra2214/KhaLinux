@@ -80,7 +80,7 @@ private val QUICK_COMMANDS = listOf("ls -la", "uname -a", "cat /etc/os-release",
 
 @Composable
 fun KhaNavigationBar(current: Section, enabled: Boolean, onSelect: (Section) -> Unit, onMore: () -> Unit) {
-    val moreSelected = current == Section.TUTOR || current == Section.FILES || current == Section.DIAGNOSTICS
+    val moreSelected = current == Section.BLUE || current == Section.TUTOR || current == Section.FILES || current == Section.DIAGNOSTICS
     NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
         NavItem(current == Section.TERMINAL, true, "⌨", stringResource(R.string.nav_terminal)) { onSelect(Section.TERMINAL) }
         NavItem(current == Section.PACKAGES, enabled, "📦", stringResource(R.string.nav_packages)) { onSelect(Section.PACKAGES) }
