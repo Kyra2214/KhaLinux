@@ -50,13 +50,13 @@ fun KhaLinuxApp(
     val toolkitState by toolkitViewModel.uiState.collectAsState()
     val labsState by labsViewModel.uiState.collectAsState()
     val filesState by filesViewModel.uiState.collectAsState()
-    val tutorState by tutorViewModel.uiState.collectAsState()
+    val tutorState by tutorViewModel.uiState.collectAsState()\n    val redState by redViewModel.uiState.collectAsState()
     var showMore by remember { mutableStateOf(false) }
 
     val section = when {
         packagesState.visible -> Section.PACKAGES
         toolkitState.visible -> Section.TOOLKIT
-        tutorState.visible -> Section.TUTOR
+        tutorState.visible -> Section.TUTOR\n        redState.visible -> Section.RED
         labsState.visible -> Section.LABS
         filesState.visible -> Section.FILES
         state.showDiagnostics -> Section.DIAGNOSTICS
@@ -68,14 +68,14 @@ fun KhaLinuxApp(
             packagesViewModel.close()
             toolkitViewModel.close()
             labsViewModel.close()
-            tutorViewModel.close()
+            tutorViewModel.close()\n            redViewModel.close()
             filesViewModel.close()
             viewModel.closeDiagnostics()
             when (target) {
                 Section.TERMINAL -> Unit
                 Section.PACKAGES -> packagesViewModel.open()
                 Section.TOOLKIT -> toolkitViewModel.open()
-                Section.LABS -> labsViewModel.open()
+                Section.LABS -> labsViewModel.open()\n                Section.RED -> redViewModel.open()
                 Section.TUTOR -> tutorViewModel.open()
                 Section.FILES -> filesViewModel.open()
                 Section.DIAGNOSTICS -> viewModel.openDiagnostics()
@@ -105,7 +105,7 @@ fun KhaLinuxApp(
                             }
                         )
                         Section.TUTOR -> com.khalinux.android.tutor.TutorScreen(tutorState, tutorViewModel)
-                        Section.LABS -> com.khalinux.android.labs.LabsScreen(
+                        Section.RED -> com.khalinux.android.red.RedScreen(redState, redViewModel)\n                        Section.LABS -> com.khalinux.android.labs.LabsScreen(
                             labsState,
                             labsViewModel,
                             onAskTutor = { lab, exercise ->
