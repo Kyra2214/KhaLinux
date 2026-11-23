@@ -93,7 +93,8 @@ data class RedSession(
     val endedAt: Long? = null,
     val state: RedOperationState = RedOperationState.PREPARING,
     val completedSteps: Set<String> = emptySet(),
-    val events: List<RedEvent> = emptyList()
+    val events: List<RedEvent> = emptyList(),
+    val portalMode: RedPortalMode = RedPortalMode.LOCAL_LOGIN
 )
 
 object RedCatalog {
