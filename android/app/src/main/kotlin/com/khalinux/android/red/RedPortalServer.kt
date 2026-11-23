@@ -208,7 +208,7 @@ class RedPortalServer(
                         remoteAddress = peer.inetAddress?.hostAddress
                     )
                 )
-                if (method == "GET" && path == "/") onEvent("O aparelho participante abriu o portal local.")
+                if (method == "GET" && path == "/") onEvent("Portal de treinamento acessado pelo aparelho participante.")
             } catch (error: Exception) {
                 status = if (error is SocketTimeoutException) 408 else 400
                 runCatching { writeResponse(output, status, "Não foi possível processar a requisição.") }
@@ -273,7 +273,7 @@ class RedPortalServer(
     }
 
     private fun writeRedirect(output: java.io.OutputStream, location: String) {
-        val response = "HTTP/1.1 302 Found\\r\\nLocation: $location\\r\\nCache-Control: no-store\\r\\nConnection: close\\r\\nContent-Length: 0\\r\\n\\r\\n"
+        val response = "HTTP/1.1 302 Found\r\nLocation: $location\r\nCache-Control: no-store\r\nConnection: close\r\nContent-Length: 0\r\n\r\n"
         output.write(response.toByteArray(StandardCharsets.US_ASCII))
         output.flush()
     }
