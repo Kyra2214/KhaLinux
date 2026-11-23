@@ -68,6 +68,27 @@ class PackageInstaller(
         }
         val installedNow = mutableListOf<InstalledPackage>()
         var indexUpdated = false
+        val aptPackages = plan.toInstall.withIndex().filter {
+            it.value.source.type == PackageSourceType.DEBIAN_APT
+        }
+        if (aptPackages.isNotEmpty()) {
+            val firstApt = aptPackages.first()
+            try {
+                if (isCancelled()) throw InstallCancelledException()
+                aptPackages.map { it.value.source }
+                    .distinctBy { it.aptUri to it.aptSuite }
+                    .forEach { source -> ensureAptSource(source) }
+                onEvent(PackageInstallEvent(
+                    PackageInstallStep.UPDATING_INDEX, firstApt.value.name, firstApt.index + 1, plan.toInstall.size
+                ))
+                requireOk(runner.run("DEBIAN_FRONTEND=noninteractive apt-get update", aptTimeout), "apt-get update")
+                indexUpdated = true
+            } catch (e: InstallCancelledException) {
+                throw e
+            } catch (e: Exception) {
+                throw PackageInstallException(firstApt.value.name, e.message ?: "falha ao atualizar índices APT", e)
+            }
+        }
         plan.toInstall.forEachIndexed { i, manifest ->
             if (isCancelled()) throw InstallCancelledException()
             val position = i + 1
@@ -150,6 +171,29 @@ class PackageInstaller(
         }
         return actual
     }
+
+    private fun ensureAptSource(source: PackageSource) {
+        val suite = source.aptSuite ?: return
+        val uri = source.aptUri ?: return
+        val file = "/etc/apt/sources.list.d/khalinux-$suite.sources"
+        val sourceLines = listOf(
+            "Types: deb",
+            "URIs: $uri",
+            "Suites: $suite",
+            "Components: main",
+            "Architectures: arm64",
+            "Check-Valid-Until: no"
+        )
+        val command = "mkdir -p /etc/apt/sources.list.d && " +
+            "if ! (grep -RqsF -- " + shellQuote("Suites: $suite") +
+            " /etc/apt/sources.list.d && grep -RqsF -- " + shellQuote("URIs: $uri") +
+            " /etc/apt/sources.list.d); then printf '%s\\n' " +
+            sourceLines.joinToString(" ") { shellQuote(it) } + " > " + shellQuote(file) + "; fi"
+        requireOk(runner.run(command, Duration.ofSeconds(20)), "configurar suite APT $suite")
+    }
+
+    private fun shellQuote(value: String): String =
+        "'" + value.replace("'", "'\"'\"'") + "'"
 
     /**
      * `apt-get install nome=versão` exata. Pacotes com binários por arquitetura (hashdeep, chkrootkit, sleuthkit…)
