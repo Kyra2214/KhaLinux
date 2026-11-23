@@ -229,8 +229,11 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 val engine = connectOperationEngine()
                     ?: throw IllegalStateException("Motor operacional indisponível")
                 val currentId = mutableState.value.operationalSessionId
-                val active = currentId?.let(engine::session)?.takeIf { it.state == LabSessionState.ACTIVE }
-                val session = active ?: engine.createSession("RED operacional")
+                val requestedAssets = assetIds ?: currentId?.let(engine::session)?.assetIds.orEmpty()
+                val active = currentId?.let(engine::session)?.takeIf {
+                    it.state == LabSessionState.ACTIVE && it.assetIds.containsAll(requestedAssets)
+                }
+                val session = active ?: engine.createSession("RED operacional", requestedAssets)
                 mutableState.update {
                     it.copy(operationalSessionId = session.id, operationalMessage = null)
                 }
