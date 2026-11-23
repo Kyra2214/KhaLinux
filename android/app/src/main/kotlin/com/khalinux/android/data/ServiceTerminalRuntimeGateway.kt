@@ -42,6 +42,8 @@ class ServiceTerminalRuntimeGateway(
     override fun operationEngine(): com.khalinux.runtime.operations.LabOperationEngine? = service.operationEngine()
     override fun refreshLocalDeviceInventory(): com.khalinux.runtime.operations.LabAsset = service.refreshLocalDeviceInventory()
     override fun deviceAssets(): List<com.khalinux.runtime.operations.LabAsset> = service.deviceAssets()
+    override fun refreshAdbDeviceInventory(): List<com.khalinux.runtime.operations.LabAsset> =
+        service.refreshAdbDeviceInventory()
     override fun adbClient(): com.khalinux.runtime.operations.AdbClient? = service.adbClient()
 
     override fun labs(): com.khalinux.runtime.labs.LabProgressService? = service.labs()

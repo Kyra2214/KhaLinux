@@ -17,6 +17,7 @@ import com.khalinux.runtime.operations.LabOperationDefinition
 import com.khalinux.runtime.operations.LabExecutionRecord
 import com.khalinux.runtime.operations.LabEventRecord
 import com.khalinux.runtime.operations.LabSessionState
+import com.khalinux.runtime.operations.LabAsset
 
 data class RedUiState(
     val visible: Boolean = false,
@@ -39,6 +40,7 @@ data class RedUiState(
     val participantMode: Boolean = false,
     val participantToken: String? = null,
     val operationalOperations: List<LabOperationDefinition> = emptyList(),
+    val operationalAssets: List<LabAsset> = emptyList(),
     val operationalSessionId: String? = null,
     val operationalExecutions: List<LabExecutionRecord> = emptyList(),
     val operationalEvents: List<LabEventRecord> = emptyList(),
@@ -186,7 +188,10 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
     fun refreshOperationalCatalog() {
         viewModelScope.launch(Dispatchers.IO) {
             val engine = connectOperationEngine() ?: return@launch
-            mutableState.update { it.copy(operationalOperations = engine.operations(), operationalMessage = null) }
+            val assets = runtimeGateway?.deviceAssets().orEmpty()
+            mutableState.update {
+                it.copy(operationalOperations = engine.operations(), operationalAssets = assets, operationalMessage = null)
+            }
             val sessionId = mutableState.value.operationalSessionId
                 ?: engine.sessions().firstOrNull()?.id
             if (sessionId != null) {
@@ -221,6 +226,26 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 }
             } catch (error: Exception) {
                 mutableState.update { it.copy(operationalMessage = error.message ?: "Falha ao iniciar operação") }
+            }
+        }
+    }
+
+    /** Atualiza o inventário local e tenta descobrir os dispositivos conectados por ADB. */
+    fun refreshDeviceInventory() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val gateway = runtimeGateway ?: throw IllegalStateException("Service local desconectado")
+                gateway.refreshLocalDeviceInventory()
+                gateway.refreshAdbDeviceInventory()
+                mutableState.update { it.copy(operationalAssets = gateway.deviceAssets(), operationalMessage = null) }
+            } catch (error: Exception) {
+                val assets = runtimeGateway?.deviceAssets().orEmpty()
+                mutableState.update {
+                    it.copy(
+                        operationalAssets = assets,
+                        operationalMessage = error.message ?: "Falha ao atualizar inventário ADB"
+                    )
+                }
             }
         }
     }

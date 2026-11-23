@@ -40,6 +40,7 @@ interface TerminalRuntimeGateway {
     /** Inventário local e ativos já registrados; nulos/vazios quando o Service não está disponível. */
     fun refreshLocalDeviceInventory(): com.khalinux.runtime.operations.LabAsset? = null
     fun deviceAssets(): List<com.khalinux.runtime.operations.LabAsset> = emptyList()
+    fun refreshAdbDeviceInventory(): List<com.khalinux.runtime.operations.LabAsset> = emptyList()
     fun adbClient(): com.khalinux.runtime.operations.AdbClient? = null
 
     /** Laboratórios (Fase 6); nulo se o runtime ainda não está instalado. */
