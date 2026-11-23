@@ -24,6 +24,14 @@ class RedSessionStore(context: Context) {
         }
         root.put("events", events)
         preferences.edit().putString(session.id, root.toString()).apply()
+        val oldest = preferences.all.entries.mapNotNull { entry ->
+            runCatching { entry.key to JSONObject(entry.value as String).getLong("startedAt") }.getOrNull()
+        }.sortedByDescending { it.second }.drop(MAX_SESSIONS).map { it.first }
+        if (oldest.isNotEmpty()) {
+            val editor = preferences.edit()
+            oldest.forEach(editor::remove)
+            editor.apply()
+        }
     }
 
     @Synchronized
@@ -50,5 +58,5 @@ class RedSessionStore(context: Context) {
 
     fun deleteAll() { preferences.edit().clear().apply() }
 
-    companion object { private const val MAX_EVENTS = 300 }
+    companion object { private const val MAX_EVENTS = 300; private const val MAX_SESSIONS = 100 }
 }
