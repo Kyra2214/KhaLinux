@@ -1,12 +1,17 @@
-# RESUME_SESSION — KhaLinux / Área RED
+# RESUME_SESSION — KhaLinux / Laboratório operacional
 
 - Repositório: `Kyra2214/KhaLinux`.
-- Branch de trabalho: `plan/area-red-wifi-publico` (não alterar `main`; não gerar ZIP/checkpoints).
-- Última alteração confirmada nesta retomada: `6e726d52d5ed47f2b5c920b6a763fb8e29e24d10` — documentação de congelamento atualizada com implementação 100% e bloqueio de validação atual.
-- Estado do roadmap RED: RED-0 a RED-12 implementados em código/documentação (100% da implementação, 13/13); RED-13 validação final pendente. Projeto ainda não concluído. RED-13 é exclusivamente a validação final.
-- RED-3: `RedPortalServer` aceita `configuredPort`, valida 1024..65535 e mantém bind apenas no IPv4 da interface Wi-Fi/AP identificada.
-- RED-4: servidor contém portal local com modo de login de laboratório e acesso direto, páginas locais e redirecionamento 302.
-- RED-5 confirmado por inspeção: POST local, validação estrita de `demo_id`/`demo_code`, visualização efêmera no painel e ausência dos valores no histórico/relatório. RED-6 confirmado por inspeção: páginas locais, modo sem login, links internos, redirect 302 e linha do tempo de requisições. RED-7 confirmado e complementado: permissões Android reais, prévia local de câmera, medidor local de microfone, localização local, seletor SAF e reporte de estado; revogação agora é atualizada ao retomar o app. RED-8: painel exibe requisições, metadados, eventos e resumo por recurso do último estado de câmera/microfone/localização/arquivos. RED-9 confirmado: histórico com limites, recuperação de sessão, relatório Markdown sem valores sensíveis e exportação/exclusão. RED-10: BLUE lê a mesma sessão e evidências RED; agora exibe metadados HTTP permitidos e estado mais recente dos recursos com leitura defensiva. RED-11: guia do instrutor, roteiro de vídeo e guia do usuário alinhados aos fluxos atuais. RED-12: encerramento idempotente do hotspot/servidor e limpeza do token/dados efêmeros revisados; documentação consolidada. Próximo: RED-13 validação final somente após conclusão de toda implementação. RED-7 permissões reais no aparelho participante, RED-8 observabilidade, RED-9 relatórios/retensão, RED-10 integração BLUE, RED-11 aulas/documentação e RED-12 fechamento.
-- Regras ativas: não executar testes, builds, compilação, auditorias, simulações ou testes físicos até RED-0..RED-12 estarem integralmente implementados. Não remover os requisitos de validação; acumular em RED-13.
-- Nenhum teste/build foi executado nesta retomada. Implementação RED-0..RED-12 concluída em código/documentação; RED-13 bloqueada nesta sessão porque não há ação de dispatch de workflow nem checkout local executável. Para retomar, disparar GitHub Actions na branch ou disponibilizar checkout local. Testes físicos permanecem por último. Não declarar funcionalidades validadas. Não fazer merge sem autorização.
-- Próxima ação: iniciar RED-5, inspecionando `RedLabInputValidator`, `RedPortalServer`, `RedViewModel`, `RedScreen` e os modelos de submissão antes de alterar código.
+- Base integrada: `main`, merge do PR #18 em 2026-11-23, commit `b14812e934d10fa81af890be9aea461badc4ce69`.
+- Branch atual de planejamento: `plan/laboratorio-operacional`.
+- Direção corrigida: o laboratório operacional RED/BLUE/PURPLE é o produto principal. Debian ARM64, PRoot, runtime Android, terminal, APT, toolkit e integração Android são a infraestrutura para executá-lo.
+- Roadmap mestre: `docs/roadmap-area-red-completa.md`.
+- Roadmap principal: `ROADMAP.md`.
+- Operação Wi-Fi: `docs/roadmap-area-red-estagio-01-wifi-publico.md`.
+- O RED Wi-Fi existente é protótipo de hotspot/portal local e painel; não representa uma suíte operacional de avaliação de dispositivos e redes.
+- O BLUE atual é primeira integração de evidências; detecção, investigação e resposta operacionais ainda precisam ser construídas.
+- O conteúdo de exercícios da antiga Fase 6 é complementar e não conta como laboratório operacional.
+- CI nº 284 passou no commit anterior ao merge, incluindo testes unitários Android e build APK Debug. Isso não comprova APK Release nem validação física.
+- Testes físicos com dois aparelhos continuam reservados à etapa final.
+- Não gerar ZIP/checkpoints. Não fazer merge para `main` sem autorização explícita.
+- Não executar testes/builds intermediários durante a implementação; acumular validação para LAB-10.
+- Próxima ação obrigatória: LAB-0 — auditar o estado atual do repositório, mapear o código reutilizável e classificar infraestrutura, conteúdo didático, protótipos e lacunas operacionais.
