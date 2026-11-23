@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 data class RedUiState(
     val visible: Boolean = false,
@@ -25,7 +26,9 @@ data class RedUiState(
     val networkState: RedNetworkState = RedNetworkState.IDLE,
     val portalMode: RedPortalMode = RedPortalMode.LOCAL_LOGIN,
     val requests: List<RedRequestObservation> = emptyList(),
-    val latestSubmission: RedSyntheticSubmission? = null
+    val latestSubmission: RedSyntheticSubmission? = null,
+    val participantMode: Boolean = false,
+    val participantToken: String? = null
 )
 
 class RedViewModel(application: Application) : AndroidViewModel(application) {
@@ -34,7 +37,8 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         onEvent = { detail -> recordRuntimeEvent(detail) },
         onAddress = { address -> mutableState.update { it.copy(portalAddress = address) } },
         onRequest = { observation -> recordRequest(observation) },
-        onSyntheticSubmission = { submission -> recordSyntheticSubmission(submission) }
+        onSyntheticSubmission = { submission -> recordSyntheticSubmission(submission) },
+        onParticipantEvent = { kind, result -> recordParticipantEvent(kind, result) }
     )
     private val hotspot = RedHotspotController(application) { snapshot ->
         val info = buildList {
@@ -120,6 +124,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         mutableState.update {
             it.copy(
                 visible = true,
+                participantMode = false,
                 selectedOperationId = null,
                 session = null,
                 message = null,
@@ -157,6 +162,8 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
     fun filter(category: RedCategory?, difficulty: RedDifficulty?) =
         mutableState.update { it.copy(category = category, difficulty = difficulty) }
     fun select(id: String) = mutableState.update { it.copy(selectedOperationId = id, message = null) }
+    fun enterParticipantMode() = mutableState.update { it.copy(participantMode = true) }
+    fun exitParticipantMode() = mutableState.update { it.copy(participantMode = false) }
     fun setPortalMode(mode: RedPortalMode) {
         mutableState.update { it.copy(portalMode = mode) }
         portal.setMode(mode)
@@ -180,12 +187,15 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
     fun startSession() {
         val operationId = mutableState.value.selectedOperationId ?: return
         if (RedCatalog.find(operationId) == null) return
+        val participantToken = UUID.randomUUID().toString().replace("-", "").take(12).uppercase()
+        portal.setParticipantToken(participantToken)
         val session = RedSession(operationId = operationId, state = RedOperationState.PREPARING)
             .withEvent(RedEventType.SESSION_STARTED, "Sessão de laboratório iniciada.", source = "session")
         store.save(session)
         mutableState.update {
             it.copy(
                 session = session,
+                participantToken = participantToken,
                 requests = emptyList(),
                 latestSubmission = null,
                 networkState = RedNetworkState.IDLE,
@@ -238,6 +248,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 portalAddress = null,
                 hotspotInfo = null,
                 latestSubmission = null,
+                participantToken = null,
                 networkState = RedNetworkState.IDLE
             )
         }
@@ -300,6 +311,34 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             mutableState.update { it.copy(networkState = RedNetworkState.PARTICIPANT_ACTIVE) }
         }
         refreshHistory()
+    }
+
+    private fun recordParticipantEvent(kind: String, result: String) {
+        val type = when (result) {
+            "denied" -> RedEventType.PERMISSION_DENIED
+            "cancelled" -> RedEventType.PERMISSION_CANCELLED
+            "preview_started" -> RedEventType.RESOURCE_PREVIEW_STARTED
+            "preview_stopped" -> RedEventType.RESOURCE_PREVIEW_STOPPED
+            "selected" -> RedEventType.FILE_SELECTED
+            else -> RedEventType.PERMISSION_GRANTED
+        }
+        val resource = when (kind) {
+            "camera" -> "câmera"
+            "microphone" -> "microfone"
+            "location" -> "localização"
+            "file" -> "seletor de arquivos"
+            else -> "recurso"
+        }
+        val action = when (result) {
+            "granted" -> "permissão concedida"
+            "denied" -> "permissão negada"
+            "cancelled" -> "solicitação cancelada"
+            "preview_started" -> "prévia iniciada localmente"
+            "preview_stopped" -> "prévia encerrada"
+            "selected" -> "seletor concluído"
+            else -> "evento recebido"
+        }
+        recordStructuredEvent(type, "Aparelho participante: $resource — $action. Nenhum conteúdo privado foi transmitido.", source = "participant")
     }
 
     private fun recordSyntheticSubmission(submission: RedSyntheticSubmission) {
