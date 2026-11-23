@@ -4,7 +4,7 @@
 **Branch:** `plan/area-red-wifi-publico`  
 **Repositório:** `Kyra2214/KhaLinux`  
 **Escopo:** protótipo pessoal de laboratório, com dois aparelhos Android controlados pelo instrutor.  
-**Progresso de implementação:** RED-0 a RED-8 concluídos em documentação/código (9 de 14 submódulos, 64%); RED-9 é o próximo. A execução continua na mesma branch, sem ZIP e sem validações antecipadas. Validação permanece pendente e será feita somente ao final.  
+**Progresso de implementação:** RED-0 a RED-9 concluídos em documentação/código (10 de 14 submódulos, 71%); RED-10 é o próximo. A execução continua na mesma branch, sem ZIP e sem validações antecipadas. Validação permanece pendente e será feita somente ao final.  
 **Validação:** reservada para depois de concluir todo o roadmap. Nenhum teste/build será executado durante a implementação.
 
 ---
@@ -18,7 +18,7 @@
 | RED-2 — hotspot e conexão | Concluído em código | LocalOnlyHotspot, dados expostos pelo Android e atividade do participante inferida por requisição real; Android não expõe lista universal de clientes |
 | RED-3 a RED-13 | Pendente | executar em sequência após RED-2 |
 
-**Percentual de implementação do roadmap RED:** 64% (9/14 submódulos).  
+**Percentual de implementação do roadmap RED:** 71% (10/14 submódulos).  
 **Validação:** não executada por instrução; todos os testes e builds permanecem acumulados para RED-13.  
 **Checkpoint ZIP:** desativado por instrução explícita do usuário; trabalhar somente na branch Git indicada.
 
@@ -279,12 +279,12 @@ O BLUE não deve inventar alertas ou detecções. Cada conclusão deve apontar p
 - Permitir limpar dados temporários e encerrar sessão.
 - Garantir que falhas sejam visíveis e não convertidas em sucesso.
 
-### RED-9 — Relatórios e histórico
-- Relatório por sessão com cenário, dispositivos identificados apenas por rótulos locais, horários, eventos, requisições e resultados.
-- Não incluir valores de senha, cookies, tokens, arquivos ou localização precisa.
-- Exportação manual pelo usuário.
-- Retenção limitada e exclusão completa do histórico da operação.
-- Recuperação de sessão interrompida sem reabrir hotspot/servidor automaticamente.
+### RED-9 — Relatórios e histórico <sub>CONCLUÍDO EM CÓDIGO</sub>
+- Sessões guardam o modo do portal e a linha do tempo sequenciada.
+- Histórico limitado a 100 sessões e 300 eventos por sessão; recuperação marca sessões abertas como interrompidas sem reabrir rede.
+- Relatório por sessão inclui cenário, modo, contagem de requisições/eventos de permissões, metadados HTTP e linha do tempo.
+- Não inclui valores de formulário, códigos, cookies, tokens, arquivos, áudio, vídeo ou coordenadas.
+- Exportação manual e exclusão completa do histórico disponíveis.
 
 ### RED-10 — Integração BLUE
 - Definir referência compartilhada entre a operação RED e aula BLUE.
