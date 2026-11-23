@@ -140,6 +140,19 @@ class KhaLinuxRuntimeService : Service() {
 
     fun isRuntimeInstalled(): Boolean = runtime != null
 
+    @Volatile private var operationCatalogCache: com.khalinux.runtime.operations.LabOperationCatalog? = null
+
+    /** Catálogo operacional LAB-0, independente da instalação do RootFS. */
+    @Synchronized
+    fun operationCatalog(): com.khalinux.runtime.operations.LabOperationCatalog {
+        operationCatalogCache?.let { return it }
+        val parsed = assets.open("operation-catalog.json").use {
+            com.khalinux.android.operations.OperationCatalogJson.parse(String(it.readBytes(), Charsets.UTF_8))
+        }
+        operationCatalogCache = parsed
+        return parsed
+    }
+
     private var packageManagerInstance: com.khalinux.runtime.packages.PackageManager? = null
     private var packageManagerRuntime: LinuxRuntime? = null
 
