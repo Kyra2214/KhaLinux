@@ -10,7 +10,7 @@
 
 **Infraestrutura e módulos-base:** implementados em código em grande parte; validação integrada e física ainda pendentes. **Laboratório operacional:** replanejado em 2026-11-23; não está concluído. **Validação final: PARCIAL** — CI nº 284 passou no commit `49648c9a7bed05fddce2053aae28ebab0aa9902c`: testes unitários Android, compilação APK Debug, verificações host, auditoria estática, JNI/PTy e smoke test PRoot. APK Release assinado e testes físicos ainda pendentes; detalhes em `docs/final-validation.md`.
 
-**Branch da revisão operacional:** `plan/laboratorio-operacional` · **Próximo submódulo:** LAB-0 — auditoria e inventário técnico. Não gerar ZIP/checkpoints.
+**Branch da revisão operacional:** `plan/laboratorio-operacional` · **Laboratório operacional:** 9% (LAB-0 concluído em código/documentação; LAB-1 a LAB-10 pendentes). **Próximo submódulo:** LAB-1 — motor de execução do laboratório. Não gerar ZIP/checkpoints.
 
 | # | Submódulo | Estado |
 |---|---|---|

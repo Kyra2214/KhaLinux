@@ -1,3 +1,20 @@
+## [Não lançado] — LAB-0: auditoria, contratos e catálogo operacional
+
+### Implementado
+- Auditoria da árvore atual e matriz de reutilização em `docs/lab-0-inventory.md`.
+- Contratos de domínio para operações versionadas, ativos, sessões, execuções, eventos e referências de evidência em `android/runtime/.../operations/LabOperationModels.kt`.
+- Parser estrito `OperationCatalogJson` e asset `distribution/lab/operation-catalog.json`, separados do catálogo RED legado.
+- Quatro operações declarativas iniciais de leitura local: identidade do runtime, interfaces, rotas e configuração DNS.
+- Catálogo acessível por `KhaLinuxRuntimeService.operationCatalog()`; execução reservada ao LAB-1.
+- Gradle embarca o novo catálogo operacional como asset.
+
+### Estado
+- LAB-0 concluído em código/documentação. LAB-1 é o próximo módulo.
+- Nenhum teste, build ou validação foi executado. Validações acumuladas para LAB-10.
+- Nenhum ZIP/checkpoint gerado; alterações aplicadas diretamente na branch `plan/laboratorio-operacional`.
+
+---
+
 ## [Não lançado] — RED-13: bloqueio de validação do HEAD atual
 
 - Implementação RED-0 a RED-12: 100% concluída em código/documentação.
