@@ -70,11 +70,15 @@ class MainActivity : ComponentActivity() {
             labsViewModel.attach(gateway)
             filesViewModel.attach(gateway)
             tutorViewModel.attach(gateway)
+            redViewModel.attachRuntime(gateway)
+            blueViewModel.attachRuntime(gateway)
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
             // The binding remains registered; Android may reconnect this ServiceConnection.
             viewModel.serviceDisconnected()
+            redViewModel.detachRuntime()
+            blueViewModel.detachRuntime()
         }
     }
 
@@ -99,7 +103,11 @@ class MainActivity : ComponentActivity() {
             connection,
             Context.BIND_AUTO_CREATE
         )
-        if (!bound) viewModel.bindingUnavailable()
+        if (!bound) {
+            viewModel.bindingUnavailable()
+            redViewModel.detachRuntime()
+            blueViewModel.detachRuntime()
+        }
     }
 
     override fun onDestroy() {

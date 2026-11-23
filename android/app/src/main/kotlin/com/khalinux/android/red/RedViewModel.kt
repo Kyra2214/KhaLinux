@@ -10,6 +10,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
+import java.io.Closeable
+import com.khalinux.android.domain.TerminalRuntimeGateway
+import com.khalinux.runtime.operations.LabOperationEngine
+import com.khalinux.runtime.operations.LabOperationDefinition
+import com.khalinux.runtime.operations.LabExecutionRecord
+import com.khalinux.runtime.operations.LabEventRecord
+import com.khalinux.runtime.operations.LabSessionState
 
 data class RedUiState(
     val visible: Boolean = false,
@@ -30,11 +37,20 @@ data class RedUiState(
     val requests: List<RedRequestObservation> = emptyList(),
     val latestSubmission: RedSyntheticSubmission? = null,
     val participantMode: Boolean = false,
-    val participantToken: String? = null
+    val participantToken: String? = null,
+    val operationalOperations: List<LabOperationDefinition> = emptyList(),
+    val operationalSessionId: String? = null,
+    val operationalExecutions: List<LabExecutionRecord> = emptyList(),
+    val operationalEvents: List<LabEventRecord> = emptyList(),
+    val operationalMessage: String? = null
 )
 
 class RedViewModel(application: Application) : AndroidViewModel(application) {
     private val store = RedSessionStore(application)
+    private val operationLock = Any()
+    @Volatile private var runtimeGateway: TerminalRuntimeGateway? = null
+    private var operationEngine: LabOperationEngine? = null
+    private var operationEventSubscription: Closeable? = null
     private val portal = RedPortalServer(
         onEvent = { detail -> recordRuntimeEvent(detail) },
         onAddress = { address -> mutableState.update { it.copy(portalAddress = address) } },
@@ -123,7 +139,111 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun attachRuntime(gateway: TerminalRuntimeGateway) {
+        runtimeGateway = gateway
+        refreshOperationalCatalog()
+    }
+
+    fun detachRuntime() {
+        runtimeGateway = null
+        synchronized(operationLock) {
+            operationEventSubscription?.close()
+            operationEventSubscription = null
+            operationEngine = null
+        }
+        mutableState.update {
+            it.copy(operationalOperations = emptyList(), operationalSessionId = null,
+                operationalExecutions = emptyList(), operationalEvents = emptyList())
+        }
+    }
+
+    private fun connectOperationEngine(): LabOperationEngine? {
+        val next = runtimeGateway?.operationEngine() ?: return null
+        synchronized(operationLock) {
+            if (operationEngine !== next) {
+                operationEventSubscription?.close()
+                operationEngine = next
+                operationEventSubscription = next.addEventListener { event ->
+                    viewModelScope.launch(Dispatchers.IO) {
+                        val sessionId = mutableState.value.operationalSessionId
+                        if (sessionId == event.sessionId) {
+                            mutableState.update {
+                                it.copy(
+                                    operationalExecutions = next.executions(sessionId),
+                                    operationalEvents = next.events(sessionId)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return next
+    }
+
+    fun refreshOperationalCatalog() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val engine = connectOperationEngine() ?: return@launch
+            mutableState.update { it.copy(operationalOperations = engine.operations(), operationalMessage = null) }
+            val sessionId = mutableState.value.operationalSessionId
+            if (sessionId != null) {
+                mutableState.update {
+                    it.copy(operationalExecutions = engine.executions(sessionId), operationalEvents = engine.events(sessionId))
+                }
+            }
+        }
+    }
+
+    fun runOperationalOperation(operationId: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val engine = connectOperationEngine()
+                    ?: throw IllegalStateException("Motor operacional indisponível")
+                val currentId = mutableState.value.operationalSessionId
+                val active = currentId?.let(engine::session)?.takeIf { it.state == LabSessionState.ACTIVE }
+                val session = active ?: engine.createSession("RED operacional")
+                mutableState.update {
+                    it.copy(operationalSessionId = session.id, operationalMessage = null)
+                }
+                engine.submit(session.id, operationId)
+                mutableState.update {
+                    it.copy(
+                        operationalExecutions = engine.executions(session.id),
+                        operationalEvents = engine.events(session.id)
+                    )
+                }
+            } catch (error: Exception) {
+                mutableState.update { it.copy(operationalMessage = error.message ?: "Falha ao iniciar operação") }
+            }
+        }
+    }
+
+    fun cancelOperationalOperation(executionId: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val engine = connectOperationEngine() ?: return@launch
+            engine.cancel(executionId)
+        }
+    }
+
+    fun closeOperationalSession() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val engine = connectOperationEngine() ?: return@launch
+            val id = mutableState.value.operationalSessionId ?: return@launch
+            engine.closeSession(id)
+            mutableState.update {
+                it.copy(operationalSessionId = null, operationalExecutions = emptyList(), operationalEvents = emptyList())
+            }
+        }
+    }
+
+    override fun onCleared() {
+        operationEventSubscription?.close()
+        operationEventSubscription = null
+        super.onCleared()
+    }
+
     fun open() {
+        refreshOperationalCatalog()
         val currentSession = mutableState.value.session
         if (currentSession != null && currentSession.endedAt == null &&
             currentSession.state != RedOperationState.COMPLETED &&
