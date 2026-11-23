@@ -22,11 +22,11 @@ class RedPortalServer(
     @Synchronized
     fun start(): String {
         if (running.get()) return address ?: error("Portal sem endereço disponível")
-        val server = ServerSocket(0, 16, java.net.InetAddress.getByName("0.0.0.0"))
+        val bindAddress = localIpv4() ?: error("O Android não expôs um endereço IPv4 da interface Wi-Fi do laboratório.")
+        val server = ServerSocket(0, 16, java.net.InetAddress.getByName(bindAddress))
         socket = server
         running.set(true)
-        val ip = localIpv4()
-        val url = ip?.let { "http://$it:${server.localPort}/" }
+        val url = "http://$bindAddress:${server.localPort}/"
         address = url
         onAddress(url)
         onEvent("Servidor local iniciado na porta ${server.localPort}.")
@@ -102,7 +102,7 @@ class RedPortalServer(
 
     private fun localIpv4(): String? = runCatching {
         NetworkInterface.getNetworkInterfaces().toList().asSequence()
-            .filter { it.isUp && !it.isLoopback }
+            .filter { it.isUp && !it.isLoopback && (it.name.startsWith("wlan", true) || it.name.startsWith("ap", true)) }
             .flatMap { it.inetAddresses.toList().asSequence() }
             .filterIsInstance<Inet4Address>()
             .firstOrNull { !it.isLoopbackAddress && !it.isLinkLocalAddress }
