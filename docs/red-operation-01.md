@@ -1,6 +1,6 @@
 # RED-01 — Wi-Fi público, portal local e navegação
 
-**Estado:** RED-0 a RED-5 implementados em código: hotspot, servidor HTTP local (porta padrão 8080), portal natural, login de laboratório, acesso direto e POST local com campos sintéticos exibidos temporariamente no painel. RED-6 é o próximo submódulo; observabilidade ampliada, integração RED/BLUE e validação final não devem ser presumidas concluídas.  
+**Estado:** RED-0 a RED-6 implementados em código: hotspot, servidor HTTP local (porta padrão 8080), portal natural, login de laboratório, acesso direto, POST local com campos sintéticos exibidos temporariamente no painel, páginas locais e redirecionamento 302. RED-7 é o próximo submódulo; observabilidade ampliada, integração RED/BLUE e validação final não devem ser presumidas concluídas.  
 **Roadmap:** `docs/roadmap-area-red-estagio-01-wifi-publico.md`
 
 ## Objetivo
