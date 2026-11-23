@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "catalog_version": "2026.11.23-6",
-  "description": "Catálogo: pacotes do RootFS base e ferramentas do Cyber Toolkit (5.2–5.5). Versões do Debian bookworm lidas em packages.debian.org/sources.debian.org (a conferir no snapshot fixo do APT em 5.6); tamanhos aproximados quando informados; nenhuma compatibilidade em PRoot presumida.",
+  "description": "Catálogo: pacotes do RootFS base e Cyber Toolkit (5.2–5.6). Inclui ADB ARM64 de bookworm-backports; versões e compatibilidade em PRoot devem ser confirmadas na validação final.",
   "packages": [
     {
       "schema": 1,

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "catalogVersion": "2026.11.23-lab2.2",
+  "catalogVersion": "2026.11.23-lab2.3",
   "operations": [
     {
       "id": "runtime.kernel-identity",
