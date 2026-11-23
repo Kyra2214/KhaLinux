@@ -7,3 +7,16 @@
 - Suposições: nameservers 1.1.1.1/8.8.8.8; percentual de extração aproximado; plano B (`libproot.so`) não empacotado; `/proc` montado, `/sys` não (ADR-0005 revisada); hashes pinados nas releases `-v1`; fixtures dos labs em `/opt/khalinux-labs`; serviços de lab iniciados manualmente; no máximo 4 abas/sessões; tutor sem modelo (ADR-0006).
 - Pendências abertas: nenhuma ferramenta do toolkit verificada em aparelho; commitar esquemas Room; testes de ViewModel/Room (precisam de Android); teste físico via Diagnóstico; revisão de `native_pty.c`; reduzir RootFS/downloads exige nova build no CI.
 - Bloqueios: PRoot em filesDir (targetSdk 35) só em aparelho físico; `kotlinc`/rede ausentes; o ZIP de entrada não contém `.git` (sem histórico Git nesta sessão).
+
+
+## Área RED — checkpoint 2026-11-22
+
+- Branch: `plan/area-red-wifi-publico`; não mesclada em `main`.
+- Roadmap mestre: `docs/roadmap-area-red-completa.md`.
+- Operação 01: `docs/roadmap-area-red-estagio-01-wifi-publico.md`.
+- Implementação em código: navegação RED, catálogo asset/parser, ficha/tutorial, ViewModel, sessões/eventos, persistência isolada, histórico limitado, recuperação de sessão interrompida, hotspot Android LocalOnlyHotspot, portal HTTP local vinculado à interface Wi-Fi, QR Code/endereço, formulário sintético com envio fixo sem campos, relatório Markdown e exportação manual.
+- Arquivos principais: `android/app/src/main/kotlin/com/khalinux/android/red/`; catálogo em `distribution/red/operations.json`.
+- Documentação: `docs/red-area.md`, `docs/red-operation-01.md`; arquitetura, guia e changelog atualizados.
+- **Validação pendente:** nenhuma compilação, teste automatizado, verificação de CI ou teste físico foi executado nesta implementação, conforme a regra do projeto. Validar integração Compose, parser, persistência, estados/eventos, permissões/hotspot, vínculo de interface, servidor HTTP, QR, segundo aparelho e exportação somente no fechamento.
+- Limitações conhecidas: LocalOnlyHotspot e interface IPv4 variam por Android/fabricante; abertura automática do portal não é garantida; se não for possível identificar a interface Wi-Fi, o portal não abre em todas as interfaces como fallback.
+- Próxima ação: executar a validação final acumulada da Área RED, corrigir achados, gerar checkpoint completo e só então solicitar autorização separada para eventual merge em `main`.
