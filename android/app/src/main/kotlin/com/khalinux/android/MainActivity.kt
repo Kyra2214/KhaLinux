@@ -42,7 +42,8 @@ class MainActivity : ComponentActivity() {
     }
     private val redViewModel: RedViewModel by viewModels {
         ViewModelProvider.AndroidViewModelFactory.getInstance(application)
-    }\n    private val tutorViewModel: TutorViewModel by viewModels {
+    }
+    private val tutorViewModel: TutorViewModel by viewModels {
         ViewModelProvider.AndroidViewModelFactory.getInstance(application)
     }
     private var bound = false
