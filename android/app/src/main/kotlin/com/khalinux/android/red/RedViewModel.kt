@@ -33,6 +33,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         mutableState.update { it.copy(message = message, hotspotInfo = info) }
         recordRuntimeEvent(message)
         if (message.startsWith("Hotspot local ativado")) {
+            mutableState.update { it.copy(networkRunning = true) }
             try {
                 val address = portal.start()
                 mutableState.update { it.copy(networkRunning = true, portalAddress = address) }
