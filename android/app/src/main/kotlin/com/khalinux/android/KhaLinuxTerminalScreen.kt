@@ -40,7 +40,8 @@ fun KhaLinuxApp(
     toolkitViewModel: com.khalinux.android.toolkit.ToolkitViewModel,
     labsViewModel: com.khalinux.android.labs.LabsViewModel,
     filesViewModel: com.khalinux.android.files.FilesViewModel,
-    tutorViewModel: com.khalinux.android.tutor.TutorViewModel
+    tutorViewModel: com.khalinux.android.tutor.TutorViewModel,
+    redViewModel: com.khalinux.android.red.RedViewModel
 ) {
     // Evita consultar LocalLifecycleOwner durante a composição inicial. Em alguns aparelhos,
     // a árvore de Views ainda não expôs o owner ao montar a raiz Compose; os StateFlows nos
