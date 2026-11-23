@@ -1,3 +1,13 @@
+## [Não lançado] — RED-11: documentação e roteiro de aula
+
+### Atualizado
+- Guia do usuário corrigido para descrever o POST HTTP local com campos sintéticos e sua visualização temporária no painel.
+- Guia do instrutor e roteiro de vídeo cobrem hotspot, conexão do aparelho B, login local, acesso direto, links, permissões reais e resultados observados.
+- Documentação mantém limitações reais do Android e do navegador e não promete abertura automática do portal ou lista universal de clientes.
+
+### Validação
+- Revisão documental; nenhum teste/build executado.
+
 ## [Não lançado] — RED-10: integração de evidências na Área BLUE
 
 ### Implementado / complementado
