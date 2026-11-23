@@ -18,6 +18,7 @@ import com.khalinux.runtime.operations.LabExecutionRecord
 import com.khalinux.runtime.operations.LabEventRecord
 import com.khalinux.runtime.operations.LabSessionState
 import com.khalinux.runtime.operations.LabAsset
+import com.khalinux.runtime.operations.AdbCapabilities
 import com.khalinux.android.devices.AdbMdnsDiscovery
 import com.khalinux.android.devices.AdbMdnsEndpoint
 import com.khalinux.android.devices.AdbMdnsKind
@@ -45,6 +46,7 @@ data class RedUiState(
     val operationalOperations: List<LabOperationDefinition> = emptyList(),
     val operationalAssets: List<LabAsset> = emptyList(),
     val adbEndpoints: List<AdbMdnsEndpoint> = emptyList(),
+    val adbCapabilities: AdbCapabilities? = null,
     val operationalSessionId: String? = null,
     val operationalExecutions: List<LabExecutionRecord> = emptyList(),
     val operationalEvents: List<LabEventRecord> = emptyList(),
@@ -161,7 +163,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             adbDiscovery = null
         }
         mutableState.update {
-            it.copy(operationalOperations = emptyList(), operationalAssets = emptyList(), adbEndpoints = emptyList(), operationalSessionId = null,
+            it.copy(operationalOperations = emptyList(), operationalAssets = emptyList(), adbEndpoints = emptyList(), adbCapabilities = null, operationalSessionId = null,
                 operationalExecutions = emptyList(), operationalEvents = emptyList())
         }
     }
@@ -251,8 +253,14 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 val gateway = runtimeGateway ?: throw IllegalStateException("Service local desconectado")
                 gateway.refreshLocalDeviceInventory()
+                val adb = gateway.adbClient() ?: throw IllegalStateException("Runtime Linux indisponível para ADB")
+                val capabilities = adb.capabilities()
+                mutableState.update { it.copy(adbCapabilities = capabilities) }
+                if (!capabilities.installed) throw IllegalStateException(capabilities.detail)
                 gateway.refreshAdbDeviceInventory()
-                mutableState.update { it.copy(operationalAssets = gateway.deviceAssets(), operationalMessage = null) }
+                mutableState.update {
+                    it.copy(operationalAssets = gateway.deviceAssets(), operationalMessage = null)
+                }
             } catch (error: Exception) {
                 val assets = runtimeGateway?.deviceAssets().orEmpty()
                 mutableState.update {
