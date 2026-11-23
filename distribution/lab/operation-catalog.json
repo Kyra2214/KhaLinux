@@ -3,44 +3,382 @@
   "catalogVersion": "2026.11.23-lab0.1",
   "operations": [
     {
-      "id": "runtime.kernel-identity", "version": 1,
-      "title": "Identidade do runtime Linux", "domain": "DEVICE",
-      "targetKind": "LOCAL_RUNTIME", "executor": "ROOTFS_ARGV",
+      "id": "runtime.kernel-identity",
+      "version": 1,
+      "title": "Identidade do runtime Linux",
+      "domain": "DEVICE",
+      "targetKind": "LOCAL_RUNTIME",
+      "executor": "ROOTFS_ARGV",
       "description": "Consulta a identificação do kernel exposta ao processo dentro do RootFS.",
-      "command": ["uname", "-a"], "requiredPackages": ["coreutils"],
-      "requiredCapabilities": ["rootfs.process.exec"], "parameters": [],
-      "outputFields": ["stdout", "stderr", "exit_code", "duration_ms"],
-      "timeoutSeconds": 10, "enabled": true
+      "command": [
+        "uname",
+        "-a"
+      ],
+      "requiredPackages": [
+        "coreutils"
+      ],
+      "requiredCapabilities": [
+        "rootfs.process.exec"
+      ],
+      "parameters": [],
+      "outputFields": [
+        "stdout",
+        "stderr",
+        "exit_code",
+        "duration_ms"
+      ],
+      "timeoutSeconds": 10,
+      "enabled": true
     },
     {
-      "id": "network.interfaces", "version": 1,
-      "title": "Inventário de interfaces", "domain": "NETWORK",
-      "targetKind": "LOCAL_RUNTIME", "executor": "ROOTFS_ARGV",
+      "id": "network.interfaces",
+      "version": 1,
+      "title": "Inventário de interfaces",
+      "domain": "NETWORK",
+      "targetKind": "LOCAL_RUNTIME",
+      "executor": "ROOTFS_ARGV",
       "description": "Consulta endereços e estados das interfaces visíveis ao namespace de rede do runtime.",
-      "command": ["ip", "-j", "address", "show"], "requiredPackages": ["iproute2"],
-      "requiredCapabilities": ["rootfs.process.exec", "network.read.interfaces"], "parameters": [],
-      "outputFields": ["stdout", "stderr", "exit_code", "duration_ms"],
-      "timeoutSeconds": 15, "enabled": true
+      "command": [
+        "ip",
+        "-j",
+        "address",
+        "show"
+      ],
+      "requiredPackages": [
+        "iproute2"
+      ],
+      "requiredCapabilities": [
+        "rootfs.process.exec",
+        "network.read.interfaces"
+      ],
+      "parameters": [],
+      "outputFields": [
+        "stdout",
+        "stderr",
+        "exit_code",
+        "duration_ms"
+      ],
+      "timeoutSeconds": 15,
+      "enabled": true
     },
     {
-      "id": "network.routes", "version": 1,
-      "title": "Inventário de rotas", "domain": "NETWORK",
-      "targetKind": "LOCAL_RUNTIME", "executor": "ROOTFS_ARGV",
+      "id": "network.routes",
+      "version": 1,
+      "title": "Inventário de rotas",
+      "domain": "NETWORK",
+      "targetKind": "LOCAL_RUNTIME",
+      "executor": "ROOTFS_ARGV",
       "description": "Consulta as rotas visíveis ao namespace de rede do runtime.",
-      "command": ["ip", "-j", "route", "show"], "requiredPackages": ["iproute2"],
-      "requiredCapabilities": ["rootfs.process.exec", "network.read.routes"], "parameters": [],
-      "outputFields": ["stdout", "stderr", "exit_code", "duration_ms"],
-      "timeoutSeconds": 15, "enabled": true
+      "command": [
+        "ip",
+        "-j",
+        "route",
+        "show"
+      ],
+      "requiredPackages": [
+        "iproute2"
+      ],
+      "requiredCapabilities": [
+        "rootfs.process.exec",
+        "network.read.routes"
+      ],
+      "parameters": [],
+      "outputFields": [
+        "stdout",
+        "stderr",
+        "exit_code",
+        "duration_ms"
+      ],
+      "timeoutSeconds": 15,
+      "enabled": true
     },
     {
-      "id": "network.resolver-config", "version": 1,
-      "title": "Configuração do resolvedor DNS", "domain": "NETWORK",
-      "targetKind": "LOCAL_RUNTIME", "executor": "ROOTFS_ARGV",
+      "id": "network.resolver-config",
+      "version": 1,
+      "title": "Configuração do resolvedor DNS",
+      "domain": "NETWORK",
+      "targetKind": "LOCAL_RUNTIME",
+      "executor": "ROOTFS_ARGV",
       "description": "Lê /etc/resolv.conf do RootFS, sem enviar consultas DNS.",
-      "command": ["cat", "/etc/resolv.conf"], "requiredPackages": ["coreutils"],
-      "requiredCapabilities": ["rootfs.process.exec", "rootfs.filesystem.read"], "parameters": [],
-      "outputFields": ["stdout", "stderr", "exit_code", "duration_ms"],
-      "timeoutSeconds": 10, "enabled": true
+      "command": [
+        "cat",
+        "/etc/resolv.conf"
+      ],
+      "requiredPackages": [
+        "coreutils"
+      ],
+      "requiredCapabilities": [
+        "rootfs.process.exec",
+        "rootfs.filesystem.read"
+      ],
+      "parameters": [],
+      "outputFields": [
+        "stdout",
+        "stderr",
+        "exit_code",
+        "duration_ms"
+      ],
+      "timeoutSeconds": 10,
+      "enabled": true
+    },
+    {
+      "id": "android.adb.pair",
+      "version": 1,
+      "title": "Parear dispositivo Android por Wi-Fi",
+      "domain": "DEVICE",
+      "targetKind": "LOCAL_RUNTIME",
+      "executor": "ADB",
+      "description": "Executa adb pair usando o endpoint da porta de pareamento e o código temporário informado no aparelho.",
+      "command": [
+        "pair",
+        "{{endpoint}}",
+        "{{pairing_code}}"
+      ],
+      "requiredPackages": [
+        "adb"
+      ],
+      "requiredCapabilities": [
+        "adb.wireless.pairing"
+      ],
+      "parameters": [
+        {
+          "id": "endpoint",
+          "type": "ADB_ENDPOINT",
+          "required": true,
+          "description": "IP/host e porta de pareamento exibidos em Wireless debugging."
+        },
+        {
+          "id": "pairing_code",
+          "type": "PAIRING_CODE",
+          "required": true,
+          "description": "Código temporário de seis dígitos exibido no aparelho."
+        }
+      ],
+      "outputFields": [
+        "stdout",
+        "stderr",
+        "exit_code",
+        "duration_ms"
+      ],
+      "timeoutSeconds": 45,
+      "enabled": true
+    },
+    {
+      "id": "android.adb.connect",
+      "version": 1,
+      "title": "Conectar dispositivo Android por Wi-Fi",
+      "domain": "DEVICE",
+      "targetKind": "LOCAL_RUNTIME",
+      "executor": "ADB",
+      "description": "Conecta ao endpoint TCP de Wireless debugging após o pareamento.",
+      "command": [
+        "connect",
+        "{{endpoint}}"
+      ],
+      "requiredPackages": [
+        "adb"
+      ],
+      "requiredCapabilities": [
+        "adb.wireless.connect"
+      ],
+      "parameters": [
+        {
+          "id": "endpoint",
+          "type": "ADB_ENDPOINT",
+          "required": true,
+          "description": "IP/host e porta de conexão exibidos em Wireless debugging."
+        }
+      ],
+      "outputFields": [
+        "stdout",
+        "stderr",
+        "exit_code",
+        "duration_ms"
+      ],
+      "timeoutSeconds": 20,
+      "enabled": true
+    },
+    {
+      "id": "android.adb.disconnect",
+      "version": 1,
+      "title": "Desconectar dispositivo Android",
+      "domain": "DEVICE",
+      "targetKind": "LOCAL_RUNTIME",
+      "executor": "ADB",
+      "description": "Encerra a conexão ADB TCP do endpoint informado.",
+      "command": [
+        "disconnect",
+        "{{endpoint}}"
+      ],
+      "requiredPackages": [
+        "adb"
+      ],
+      "requiredCapabilities": [
+        "adb.wireless.connect"
+      ],
+      "parameters": [
+        {
+          "id": "endpoint",
+          "type": "ADB_ENDPOINT",
+          "required": true,
+          "description": "Endpoint IP/host e porta da conexão ADB."
+        }
+      ],
+      "outputFields": [
+        "stdout",
+        "stderr",
+        "exit_code",
+        "duration_ms"
+      ],
+      "timeoutSeconds": 10,
+      "enabled": true
+    },
+    {
+      "id": "android.adb.devices",
+      "version": 1,
+      "title": "Listar dispositivos ADB",
+      "domain": "DEVICE",
+      "targetKind": "LOCAL_RUNTIME",
+      "executor": "ADB",
+      "description": "Lista dispositivos pareados/conectados e seus estados reportados pelo servidor ADB.",
+      "command": [
+        "devices",
+        "-l"
+      ],
+      "requiredPackages": [
+        "adb"
+      ],
+      "requiredCapabilities": [
+        "adb.wireless.connect"
+      ],
+      "parameters": [],
+      "outputFields": [
+        "stdout",
+        "stderr",
+        "exit_code",
+        "duration_ms"
+      ],
+      "timeoutSeconds": 10,
+      "enabled": true
+    },
+    {
+      "id": "android.adb.device-properties",
+      "version": 1,
+      "title": "Inventário de propriedades Android",
+      "domain": "DEVICE",
+      "targetKind": "ANDROID_DEVICE",
+      "executor": "ADB",
+      "description": "Consulta propriedades de sistema do dispositivo selecionado por ADB.",
+      "command": [
+        "-s",
+        "{{serial}}",
+        "shell",
+        "getprop"
+      ],
+      "requiredPackages": [
+        "adb"
+      ],
+      "requiredCapabilities": [
+        "adb.shell"
+      ],
+      "parameters": [
+        {
+          "id": "serial",
+          "type": "STRING",
+          "required": true,
+          "description": "Serial/endpoint apresentado por adb devices."
+        }
+      ],
+      "outputFields": [
+        "stdout",
+        "stderr",
+        "exit_code",
+        "duration_ms"
+      ],
+      "timeoutSeconds": 20,
+      "enabled": true
+    },
+    {
+      "id": "android.adb.device-interfaces",
+      "version": 1,
+      "title": "Inventário de interfaces do Android remoto",
+      "domain": "NETWORK",
+      "targetKind": "ANDROID_DEVICE",
+      "executor": "ADB",
+      "description": "Consulta interfaces e endereços do dispositivo selecionado, sem alterar sua configuração.",
+      "command": [
+        "-s",
+        "{{serial}}",
+        "shell",
+        "ip",
+        "-j",
+        "address",
+        "show"
+      ],
+      "requiredPackages": [
+        "adb"
+      ],
+      "requiredCapabilities": [
+        "adb.shell",
+        "android.network.read"
+      ],
+      "parameters": [
+        {
+          "id": "serial",
+          "type": "STRING",
+          "required": true,
+          "description": "Serial/endpoint apresentado por adb devices."
+        }
+      ],
+      "outputFields": [
+        "stdout",
+        "stderr",
+        "exit_code",
+        "duration_ms"
+      ],
+      "timeoutSeconds": 20,
+      "enabled": true
+    },
+    {
+      "id": "android.adb.device-routes",
+      "version": 1,
+      "title": "Inventário de rotas do Android remoto",
+      "domain": "NETWORK",
+      "targetKind": "ANDROID_DEVICE",
+      "executor": "ADB",
+      "description": "Consulta as rotas do dispositivo selecionado, sem alterar sua configuração.",
+      "command": [
+        "-s",
+        "{{serial}}",
+        "shell",
+        "ip",
+        "-j",
+        "route",
+        "show"
+      ],
+      "requiredPackages": [
+        "adb"
+      ],
+      "requiredCapabilities": [
+        "adb.shell",
+        "android.network.read"
+      ],
+      "parameters": [
+        {
+          "id": "serial",
+          "type": "STRING",
+          "required": true,
+          "description": "Serial/endpoint apresentado por adb devices."
+        }
+      ],
+      "outputFields": [
+        "stdout",
+        "stderr",
+        "exit_code",
+        "duration_ms"
+      ],
+      "timeoutSeconds": 20,
+      "enabled": true
     }
   ]
 }

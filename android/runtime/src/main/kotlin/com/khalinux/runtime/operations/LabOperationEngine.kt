@@ -326,6 +326,10 @@ class LabOperationEngine(
                 LabParameterType.INTEGER -> require(value.toLongOrNull() != null)
                 LabParameterType.BOOLEAN -> require(value == "true" || value == "false")
                 LabParameterType.ENUM -> require(value in parameter.choices)
+                LabParameterType.ADB_ENDPOINT -> require(value.matches(
+                    Regex("^(?:[A-Za-z0-9.-]+|\\\\[[0-9A-Fa-f:]+\\\\]):[0-9]{1,5}$")
+                ))
+                LabParameterType.PAIRING_CODE -> require(value.matches(Regex("^[0-9]{6}$")))
             }
         }
         val placeholder = Regex("^\\{\\{([a-z][a-z0-9_]*)}}$")
