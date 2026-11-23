@@ -26,6 +26,9 @@ import com.khalinux.android.red.RedSession
 @Composable
 fun BlueScreen(state: BlueUiState, viewModel: BlueViewModel) {
     val session = state.selectedSession
+    val displayEvents = if (session != null && state.liveEvidence.sessionId == session.id) {
+        state.liveEvidence.events
+    } else session?.events.orEmpty()
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -58,7 +61,7 @@ fun BlueScreen(state: BlueUiState, viewModel: BlueViewModel) {
                             Text("Cenário observado", style = MaterialTheme.typography.titleMedium)
                             Text(session.operationId)
                             Text("Estado: ${session.state} · modo: ${if (session.portalMode.name == "LOCAL_LOGIN") "login local" else "acesso direto"}")
-                            Text("Eventos registrados: ${session.events.size}")
+                            Text("Eventos registrados: ${displayEvents.size}")
                             Text("Início: ${session.startedAt}")
                         }
                     }
@@ -99,7 +102,7 @@ fun BlueScreen(state: BlueUiState, viewModel: BlueViewModel) {
                     Text("• Ao terminar, desconecte-se e remova a rede se não for confiável.")
                 }
                 item { Text("Linha do tempo e análise", style = MaterialTheme.typography.titleMedium) }
-                items(session.events.sortedBy { it.sequence }, key = { it.id }) { event ->
+                items(displayEvents.sortedBy { it.sequence }, key = { it.id }) { event ->
                     BlueEventCard(event)
                 }
             }
