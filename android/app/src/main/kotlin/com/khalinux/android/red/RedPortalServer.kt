@@ -94,9 +94,9 @@ class RedPortalServer(
         <div style="border:2px solid #ffb74d;padding:8px;text-align:center;font-weight:bold">SIMULAÇÃO DE LABORATÓRIO · DADOS FICTÍCIOS</div>
         <h1>Portal Wi-Fi de Treinamento</h1><p>Este portal demonstra como uma rede pública pode induzir alguém a preencher formulários.</p>
         <h2>Etapa demonstrativa</h2><p>Use somente dados fictícios. Não informe senhas reais.</p>
-        <form method="post" action="/submit"><label>E-mail fictício<br><input name="demo_email" autocomplete="off" value="xxx@gmail.com"></label><br><br>
-        <label>Senha fictícia<br><input name="demo_password" type="password" autocomplete="off" value="123"></label><br><br>
-        <button type="submit">Concluir simulação</button></form>
+        <form id="demo"><label>E-mail fictício<br><input autocomplete="off" value="xxx@gmail.com"></label><br><br>
+        <label>Senha fictícia<br><input type="password" autocomplete="off" value="123"></label><br><br>
+        <button type="submit">Concluir simulação</button></form><script>document.getElementById("demo").addEventListener("submit",async e=>{e.preventDefault();await fetch("/submit",{method:"POST",headers:{"Content-Type":"text/plain"},body:"demo=completed"});document.body.innerHTML="<h1>Etapa concluída</h1><p>Simulação encerrada. Nenhum campo foi transmitido.</p>";});</script>
         <p style="margin-top:28px;font-size:13px">Este laboratório não imita serviços reais e não valida nem armazena credenciais.</p></body></html>
     """.trimIndent()
 
