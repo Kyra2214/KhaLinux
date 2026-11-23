@@ -1,3 +1,17 @@
+## [Não lançado] — RED-9: histórico e relatórios
+
+### Implementado
+- Modo do portal gravado em cada sessão, com leitura retrocompatível para sessões antigas.
+- Relatório ampliado com cenário, modo, etapas, contagem de requisições/eventos de permissão e linha do tempo sequenciada.
+- Eventos HTTP incluem método, rota, status, bytes e origem.
+- Histórico permanece limitado a 100 sessões e 300 eventos por sessão.
+- Recuperação marca sessões incompletas como interrompidas sem reativar hotspot ou servidor.
+- Exportação e exclusão manual continuam disponíveis.
+- Valores sintéticos, tokens, cookies, arquivos, áudio, vídeo e coordenadas não são incluídos no relatório.
+
+### Limites
+- Nenhum teste/build foi executado.
+
 ## [Não lançado] — RED-8: painel de observabilidade
 
 ### Implementado
