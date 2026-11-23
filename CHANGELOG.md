@@ -1,3 +1,15 @@
+## [Não lançado] — RED-3: servidor HTTP local configurável
+
+### Implementado
+- Porta do servidor configurável por parâmetro, mantendo 8080 como padrão.
+- Validação da porta configurada no intervalo 1024–65535.
+- Bind permanece limitado ao IPv4 da interface Wi-Fi/AP do laboratório, sem exposição por `0.0.0.0`.
+- Mantidos os limites de requisição, rotas locais permitidas, timeouts e encerramento do servidor.
+
+### Validação
+- Nenhum build, teste ou validação foi executado nesta etapa, conforme o Prompt Mestre 3.0.
+- Compilação e comportamento real ficam acumulados para a fase final RED-13.
+
 ## [Não lançado] — RED-13: validação automatizada
 
 ### Aprovado no GitHub Actions
