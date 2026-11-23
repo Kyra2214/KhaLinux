@@ -1,64 +1,93 @@
 # Área RED
 
-**Status:** implementação em andamento na branch `plan/area-red-wifi-publico`.
+**Estado:** fundação inicial existente; roadmap de laboratório completo revisado em 2026-11-23.  
+**Branch:** `plan/area-red-wifi-publico`  
+**Documento mestre:** `docs/roadmap-area-red-completa.md`  
+**Operação 01:** `docs/roadmap-area-red-estagio-01-wifi-publico.md`
 
-## Escopo entregue nesta etapa
+## Direção
 
-- Entrada RED na navegação inferior principal.
-- Catálogo de operações carregado do asset versionado `distribution/red/operations.json`.
-- Parser com validação de versão, ids e etapas duplicadas.
-- Ficha da operação, objetivos, pré-requisitos, ambiente, tutorial e critérios de conclusão.
-- Filtros por categoria e dificuldade.
-- Sessões locais com estados, eventos cronológicos, progresso e recuperação de sessões interrompidas.
-- Histórico local limitado a 100 sessões e 300 eventos por sessão.
-- Relatório Markdown copiável e exportável manualmente pelo seletor de documentos do Android.
-- Exclusão manual do histórico.
+RED é a área de preparação e execução prática. BLUE é a área defensiva correspondente. As duas áreas devem compartilhar identificador de cenário e evidências, mas manter interfaces e roteiros pedagógicos próprios.
+
+O KhaLinux está sendo desenvolvido como protótipo pessoal de laboratório com dois aparelhos Android dedicados/controlados pelo instrutor. Nas aulas, mostrar comportamento e resultados: criação da rede, conexão do segundo aparelho, portal, navegação, permissões e o que efetivamente chegou ao servidor. Código-fonte e scripts internos não fazem parte dos vídeos.
+
+## Fundação já presente no código
+
+- Entrada RED na navegação principal.
+- Catálogo versionado em `distribution/red/operations.json`.
+- Parser, ficha de operação, tutorial e filtros.
+- Sessões locais, eventos, progresso e recuperação de sessões interrompidas.
+- Histórico limitado e relatório Markdown copiável/exportável.
 - Adaptador Android para solicitar `LocalOnlyHotspot`.
-- Portal HTTP local vinculado a uma interface Wi-Fi identificada, endereço copiável e QR Code.
-- Portal de demonstração explicitamente identificado como laboratório, com formulário sintético, fluxo genérico de rede social e botões de permissão simulada (localização/câmera/arquivos), sem solicitar permissões reais.
+- Servidor HTTP local inicial, endereço e QR Code.
+- Painel inicial de eventos.
 
-## Organização
+## Lacunas reconhecidas
+
+A primeira versão ainda não representa o laboratório completo decidido em 2026-11-23:
+- Formulário atual envia somente um evento fixo; não mostra os campos recebidos.
+- O portal ainda não oferece os dois cenários completos (login local e acesso direto).
+- A navegação/linkagem e os redirecionamentos ainda não formam uma linha do tempo detalhada.
+- As permissões estão representadas por botões simulados, não por fluxo real no aparelho participante.
+- O servidor deve evoluir para porta padrão 8080, observabilidade de requisições e vínculo estrito à interface do laboratório.
+- A integração didática RED ↔ BLUE ainda precisa ser especificada e implementada.
+
+## Organização existente
 
 `android/app/src/main/kotlin/com/khalinux/android/red/`
 
 - `RedModels.kt`: catálogo, operação, etapas, sessão e eventos.
-- `RedCatalogJson.kt`: parser do catálogo versionado.
-- `RedSessionStore.kt`: persistência local mínima.
-- `RedViewModel.kt`: estados, transições, histórico e coordenação.
-- `RedHotspotController.kt`: adaptador para o hotspot local do Android.
-- `RedPortalServer.kt`: servidor HTTP local de escopo restrito.
+- `RedCatalogJson.kt`: parser do catálogo.
+- `RedSessionStore.kt`: persistência local.
+- `RedViewModel.kt`: estado, transições e coordenação.
+- `RedHotspotController.kt`: adaptador de hotspot Android.
+- `RedPortalServer.kt`: servidor HTTP local inicial.
 - `RedScreen.kt`: catálogo, ficha, tutorial, execução e relatório.
 
-## Limites de segurança
+## Diretrizes de experiência
 
-- O hotspot é solicitado por ação explícita e gerenciado pelo Android.
-- O app não clona SSIDs de estabelecimentos, não varre redes e não intercepta tráfego.
-- O portal só aceita `GET /`, `POST /submit` e `POST /event/{location,camera,files,social}` com allowlist fixa.
-- O formulário do portal transmite somente o literal fixo `demo=completed`; os campos não têm nomes e seus valores nunca são serializados para a requisição.
-- O servidor descarta o corpo recebido e registra apenas a conclusão sintética.
-- Nenhuma senha, token, cookie ou dado de outro aplicativo é persistido.
-- O servidor vincula o socket ao IPv4 de interface Wi-Fi identificada (`wlan*` ou `ap*`), não a todas as interfaces. Se o Android não expuser essa interface, a operação informa a falha em vez de abrir o serviço em todas as redes.
-- O portal usa HTTP local porque não depende de infraestrutura externa; não deve ser exposto por encaminhamento de portas.
-- O Android pode impedir hotspot local, exigir serviços/permissões ou não expor a interface de rede. O app deve mostrar o erro real, sem simular sucesso.
+- Portal do participante com apresentação natural de portal Wi-Fi convencional.
+- Evitar avisos grotescos e banners artificiais durante a demonstração.
+- Identificação do laboratório e observabilidade completa no painel do instrutor.
+- Não falsificar diálogos de sistema.
+- O painel diferencia solicitado, autorizado, executado e recebido.
+- Não alegar recebimento de dados que não chegaram ao servidor.
+- Login é opcional no cenário; também haverá acesso direto e navegação sem autenticação.
 
-## Pendências para a validação final
+## Arquitetura da Operação 01
 
-Nenhuma validação foi executada durante a implementação, conforme o processo do projeto. A lista a seguir fica reservada para o fechamento:
+- Aparelho A: operador, hotspot, servidor local e painel RED.
+- Aparelho B: participante, conexão Wi-Fi, navegador e modo participante Android para demonstração de permissões nativas.
+- Portal HTTP local na porta TCP 8080.
+- Cenários: autenticação local fictícia e acesso direto sem login.
+- Formulários recebem somente valores sintéticos de teste, exibidos temporariamente no painel durante a sessão.
+- Links e navegação são registrados como eventos locais.
+- Permissões nativas são solicitadas no aparelho B; a conexão Wi-Fi ou o login não concedem acesso a câmera, microfone, localização ou arquivos.
+- O navegador em HTTP/IP de LAN tem restrições de contexto seguro para APIs como câmera, microfone e geolocalização; essas demonstrações exigem modo participante Android ou outra solução tecnicamente compatível.
+- Arquivos são selecionados explicitamente pelo seletor do sistema; conteúdo não é transmitido por padrão.
+- Nenhum tráfego de terceiros é interceptado e nenhuma informação é enviada automaticamente à internet.
 
-1. Compilar o módulo Android e corrigir erros de integração.
-2. Testar parsing e validação do catálogo.
-3. Testar serialização, limite de histórico e recuperação de sessões.
-4. Testar máquina de estados e eventos concorrentes.
-5. Testar servidor HTTP: rotas permitidas, descarte do corpo, encerramento e vinculação à interface Wi-Fi.
-6. Testar permissões e ciclo de vida de `LocalOnlyHotspot` em versões/fabricantes suportados.
-7. Testar QR Code, endereço local e conexão do segundo aparelho.
-8. Testar exportação e exclusão de relatórios/histórico.
-9. Testes físicos com dois aparelhos Android somente nesta fase final.
-10. Verificar regressões na navegação, Terminal, Toolkit, Labs e Tutor.
+## Validação final pendente
+
+Conforme a regra do projeto, nenhum teste, build, validação ou teste físico será executado durante a implementação do roadmap. Ao final, validar:
+1. integração Compose e navegação;
+2. parser, catálogo e estados;
+3. persistência, retenção e recuperação;
+4. hotspot e ciclo de vida;
+5. servidor 8080, interface de bind, rotas e limites;
+6. comunicação entre dois aparelhos;
+7. portal com login local e acesso direto;
+8. formulários sintéticos e visualização de requisições recebidas;
+9. navegação, links e redirecionamentos;
+10. permissões reais e modo participante;
+11. relatório e limpeza;
+12. integração RED/BLUE e regressões gerais.
 
 ## Limitações conhecidas
 
-- A abertura automática do portal cativo não é garantida. O QR Code e o endereço manual são o caminho de contingência.
-- A atribuição de endereço IPv4 à interface de hotspot varia por fabricante. A implementação só publica o portal quando consegue identificar e vincular a interface Wi-Fi.
-- O catálogo inicial contém somente a Operação 01. Operações futuras não são cadastradas como disponíveis sem especificação própria.
-- A persistência RED usa SharedPreferences isolado, sem alterar o esquema Room atual. Os dados são locais e mínimos.
+- `LocalOnlyHotspot`, configuração e endereço variam por Android/fabricante.
+- A abertura automática do portal não é garantida.
+- A interface Wi-Fi pode não ser exposta ao app em todos os dispositivos.
+- HTTP em IP local não é HTTPS e não deve ser apresentado como conexão protegida.
+- O portal web não obtém permissões nativas só porque o participante está conectado.
+- Nenhuma capacidade nova descrita no roadmap está validada até a fase final.
