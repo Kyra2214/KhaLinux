@@ -1,5 +1,18 @@
 # Changelog
 
+## [Não lançado] — Área RED (roadmap revisado 2026-11-23)
+
+### Planejado
+- Revisão completa da Operação 01 para laboratório pessoal de dois aparelhos Android: aparelho A como operador/hotspot/servidor/painel e aparelho B como participante.
+- Portal HTTP local na porta 8080 com dois cenários: autenticação local fictícia e acesso direto sem login.
+- Navegação por links locais, redirecionamentos e registro de requisições; visualização temporária no painel dos campos sintéticos efetivamente recebidos.
+- Modo participante Android para permissões reais solicitadas no próprio aparelho B, respeitando limitações de contexto seguro do navegador.
+- Integração pedagógica RED/BLUE com o mesmo cenário e evidências, perspectivas separadas.
+- Diretriz visual: experiência natural no aparelho participante; observabilidade e identificação do laboratório no painel do instrutor; vídeos mostram comportamento e resultados, não código.
+
+### Estado honesto
+- Este commit atualiza o planejamento e a documentação, não implementa os novos fluxos. O formulário atual continua enviando apenas um evento fixo e as permissões continuam demonstrativas. Nenhum teste/build foi executado; validação permanece reservada ao final.
+
 ## [Não lançado] — Área RED (implementação inicial)
 
 ### Adicionado
