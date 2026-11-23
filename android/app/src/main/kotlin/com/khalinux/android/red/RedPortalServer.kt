@@ -145,11 +145,11 @@ class RedPortalServer(
                         status = 200
                         portalHtml(portalMode)
                     }
-                    method == "GET" && path == "/login" -> {
+                    method == "GET" && path == "/login" && portalMode == RedPortalMode.LOCAL_LOGIN -> {
                         status = 200
                         loginHtml()
                     }
-                    method == "GET" && path == "/open" -> {
+                    method == "GET" && path == "/open" && portalMode == RedPortalMode.OPEN_ACCESS -> {
                         status = 200
                         openAccessHtml()
                     }
@@ -193,7 +193,7 @@ class RedPortalServer(
                         status = 204
                         ""
                     }
-                    method == "POST" && path == "/login" -> {
+                    method == "POST" && path == "/login" && portalMode == RedPortalMode.LOCAL_LOGIN -> {
                         val result = processSyntheticLogin(requestBody, contentType)
                         status = result.first
                         result.second
