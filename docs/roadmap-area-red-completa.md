@@ -4,10 +4,23 @@
 **Branch:** `plan/area-red-wifi-publico`  
 **Repositório:** `Kyra2214/KhaLinux`  
 **Escopo:** protótipo pessoal de laboratório, com dois aparelhos Android controlados pelo instrutor.  
-**Implementação atual:** fundação RED e primeira versão da Operação 01 já existem; o fluxo completo descrito aqui ainda precisa ser implementado.  
+**Progresso de implementação:** RED-0 e RED-1 concluídos em código/documentação (2 de 14 submódulos, 14%); RED-2 é o próximo. Validação permanece pendente e será feita somente ao final.  
 **Validação:** reservada para depois de concluir todo o roadmap. Nenhum teste/build será executado durante a implementação.
 
 ---
+
+## 0.1. Registro de execução contínua
+
+| Submódulo | Estado | Registro |
+|---|---|---|
+| RED-0 — escopo e arquitetura | Concluído | contratos, topologia, retenção e limites registrados |
+| RED-1 — fundação e catálogo | Concluído em código | modelos de estado/evento, observações HTTP, sequência persistida e catálogo da Operação 01 atualizados |
+| RED-2 — hotspot e conexão | Pendente | próximo submódulo |
+| RED-3 a RED-13 | Pendente | executar em sequência após RED-2 |
+
+**Percentual de implementação do roadmap RED:** 14% (2/14 submódulos).  
+**Validação:** não executada por instrução; todos os testes e builds permanecem acumulados para RED-13.  
+**Checkpoint ZIP:** desativado por instrução explícita do usuário; trabalhar somente na branch Git indicada.
 
 ## 1. Direção do produto
 
@@ -190,19 +203,21 @@ O BLUE não deve inventar alertas ou detecções. Cada conclusão deve apontar p
 
 ## 9. Roadmap de implementação completo
 
-### RED-0 — Revisão de escopo e arquitetura
-- Atualizar documentação que descrevia a primeira versão simplificada.
-- Mapear os arquivos RED atuais e pontos de integração.
-- Definir contratos entre hotspot, servidor, portal, painel e modo participante.
-- Definir modelo de eventos e política de retenção.
-- Registrar as limitações reais de Android, navegador e HTTP local.
+### RED-0 — Revisão de escopo e arquitetura <sub>CONCLUÍDO</sub>
+- Documentação da primeira versão simplificada atualizada.
+- Arquivos RED existentes e pontos de integração mapeados.
+- Contratos iniciais e topologia de dois aparelhos definidos.
+- Modelo de eventos, observabilidade e política de retenção registrados.
+- Limitações reais de Android, navegador e HTTP local documentadas.
 
-### RED-1 — Fundação RED e catálogo
-- Preservar navegação e catálogo atuais.
-- Revisar metadados das operações.
-- Implementar estados claros de preparação, hotspot ativo, servidor ativo, participante conectado, sessão ativa, encerramento e erro.
-- Diferenciar estado conhecido, desconhecido e indisponível.
-- Manter histórico e progresso isolados.
+### RED-1 — Fundação RED e catálogo <sub>CONCLUÍDO EM CÓDIGO</sub>
+- Navegação e catálogo existentes preservados.
+- Metadados e roteiro da Operação 01 atualizados para os dois cenários.
+- Estados de rede e portal modelados separadamente.
+- Eventos tipados ampliados para hotspot, portal, HTTP, navegação, formulários e permissões.
+- Observação HTTP modelada sem conteúdo de formulário persistente.
+- Linha do tempo ganhou sequência e metadados de rota/status/bytes; persistência retrocompatível com sessões anteriores.
+- Histórico e progresso continuam isolados.
 
 ### RED-2 — Hotspot e conexão de dois aparelhos
 - Integrar fluxo público do Android para iniciar/parar hotspot.
