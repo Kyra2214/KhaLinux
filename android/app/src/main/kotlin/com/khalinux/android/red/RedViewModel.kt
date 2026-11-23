@@ -201,7 +201,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun runOperationalOperation(operationId: String) {
+    fun runOperationalOperation(operationId: String, parameters: Map<String, String> = emptyMap()) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val engine = connectOperationEngine()
@@ -212,7 +212,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 mutableState.update {
                     it.copy(operationalSessionId = session.id, operationalMessage = null)
                 }
-                engine.submit(session.id, operationId)
+                engine.submit(session.id, operationId, parameters = parameters)
                 mutableState.update {
                     it.copy(
                         operationalExecutions = engine.executions(session.id),
