@@ -4,7 +4,7 @@
 **Branch:** `plan/area-red-wifi-publico`  
 **Repositório:** `Kyra2214/KhaLinux`  
 **Escopo:** protótipo pessoal de laboratório, com dois aparelhos Android controlados pelo instrutor.  
-**Progresso de implementação:** RED-0 e RED-1 concluídos em código/documentação (2 de 14 submódulos, 14%); RED-2 é o próximo. Validação permanece pendente e será feita somente ao final.  
+**Progresso de implementação:** RED-0 a RED-3 concluídos em documentação/código (4 de 14 submódulos, 29%); RED-4 é o próximo. Validação permanece pendente e será feita somente ao final.  
 **Validação:** reservada para depois de concluir todo o roadmap. Nenhum teste/build será executado durante a implementação.
 
 ---
@@ -15,10 +15,10 @@
 |---|---|---|
 | RED-0 — escopo e arquitetura | Concluído | contratos, topologia, retenção e limites registrados |
 | RED-1 — fundação e catálogo | Concluído em código | modelos de estado/evento, observações HTTP, sequência persistida e catálogo da Operação 01 atualizados |
-| RED-2 — hotspot e conexão | Pendente | próximo submódulo |
+| RED-2 — hotspot e conexão | Concluído em código | LocalOnlyHotspot, dados expostos pelo Android e atividade do participante inferida por requisição real; Android não expõe lista universal de clientes |
 | RED-3 a RED-13 | Pendente | executar em sequência após RED-2 |
 
-**Percentual de implementação do roadmap RED:** 14% (2/14 submódulos).  
+**Percentual de implementação do roadmap RED:** 29% (4/14 submódulos).  
 **Validação:** não executada por instrução; todos os testes e builds permanecem acumulados para RED-13.  
 **Checkpoint ZIP:** desativado por instrução explícita do usuário; trabalhar somente na branch Git indicada.
 
@@ -219,14 +219,13 @@ O BLUE não deve inventar alertas ou detecções. Cada conclusão deve apontar p
 - Linha do tempo ganhou sequência e metadados de rota/status/bytes; persistência retrocompatível com sessões anteriores.
 - Histórico e progresso continuam isolados.
 
-### RED-2 — Hotspot e conexão de dois aparelhos
-- Integrar fluxo público do Android para iniciar/parar hotspot.
-- Exibir SSID, senha, banda e parâmetros somente quando fornecidos pelo sistema.
-- Mostrar instruções para o aparelho B.
-- Identificar conectividade local sem varrer outros dispositivos.
-- Mostrar IP/interface quando o Android expuser esses dados.
-- Tratar conflito de rede, ausência de interface, perda de conexão e encerramento do hotspot.
-- Registrar limitações por fabricante/versão.
+### RED-2 — Hotspot e conexão de dois aparelhos <sub>CONCLUÍDO EM CÓDIGO</sub>
+- Integrado o fluxo público `LocalOnlyHotspot` para iniciar/parar o hotspot.
+- Exibição do SSID e senha somente quando fornecidos pelo Android.
+- Identificação indicativa de interface Wi-Fi/AP e IPv4 quando expostos pelo sistema.
+- Estado de hotspot solicitado, ativo, encerrado ou falho modelado e exibido.
+- A atividade do aparelho participante é confirmada por requisição HTTP real ao portal, sem varredura de dispositivos.
+- Limitação registrada: Android não oferece uma API universal para listar clientes conectados ao `LocalOnlyHotspot`; desconexão silenciosa do participante não pode ser afirmada sem evento observável.
 
 ### RED-3 — Servidor HTTP local na porta 8080
 - Evoluir servidor atual para porta 8080 configurável com padrão fixo.
