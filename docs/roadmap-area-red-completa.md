@@ -4,7 +4,7 @@
 **Branch:** `plan/area-red-wifi-publico`  
 **Repositório:** `Kyra2214/KhaLinux`  
 **Escopo:** protótipo pessoal de laboratório, com dois aparelhos Android controlados pelo instrutor.  
-**Progresso de implementação:** RED-0 a RED-8 concluídos em código/documentação (9 de 14 submódulos, 64%). RED-9 é o próximo submódulo de implementação. RED-13 permanece reservado à validação final. A execução continua na mesma branch, sem ZIP e sem validações antecipadas.  
+**Progresso de implementação:** RED-0 a RED-9 concluídos em código/documentação (10 de 14 submódulos, 71%). RED-10 é o próximo submódulo de implementação. RED-13 permanece reservado à validação final. A execução continua na mesma branch, sem ZIP e sem validações antecipadas.  
 **Validação:** reservada para depois de concluir todo o roadmap. Nenhum teste/build será executado durante a implementação.
 
 ---
