@@ -37,6 +37,10 @@ import androidx.compose.ui.unit.dp
 fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
     val clipboard = LocalClipboardManager.current
     val context = LocalContext.current
+    val reportContent = remember { androidx.compose.runtime.mutableStateOf("") }
+    val exportReport = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/markdown")) { uri ->
+        if (uri != null) runCatching { context.contentResolver.openOutputStream(uri)?.use { it.write(reportContent.value.toByteArray(Charsets.UTF_8)) } }
+    }
     val hotspotPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) viewModel.startNetworkLab()
     }
@@ -77,6 +81,9 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                             Text("OPERAÇÃO ${item.number.toString().padStart(2, '0')} · ${item.title}", style = MaterialTheme.typography.titleMedium)
                             Text(item.summary, style = MaterialTheme.typography.bodyMedium)
                             Text("${item.category.name} · ${item.difficulty.name}", style = MaterialTheme.typography.labelSmall)
+                            state.history.firstOrNull { it.operationId == item.id }?.let { latest ->
+                                Text("Última sessão: ${latest.state} · ${latest.completedSteps.size}/${item.steps.size} etapas", style = MaterialTheme.typography.bodySmall)
+                            }
                             Button(onClick = { viewModel.select(item.id) }) { Text("Abrir operação") }
                         }
                     }
@@ -144,6 +151,7 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(onClick = { clipboard.setText(AnnotatedString(viewModel.report(session))) }) { Text("Copiar relatório") }
+                    OutlinedButton(onClick = { reportContent.value = viewModel.report(session); exportReport.launch("relatorio-red.md") }) { Text("Exportar arquivo") }
                     Button(onClick = viewModel::finishSession) { Text("Encerrar sessão") }
                 }
             } ?: run {
