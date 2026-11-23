@@ -24,6 +24,15 @@ PERMISSOES_PERMITIDAS = {
     "android.permission.FOREGROUND_SERVICE_DATA_SYNC",
     "android.permission.POST_NOTIFICATIONS",
     "android.permission.INTERNET",
+    # RED/BLUE: hotspot local, observação da rede e permissões demonstradas no aparelho participante.
+    "android.permission.ACCESS_WIFI_STATE",
+    "android.permission.CHANGE_WIFI_STATE",
+    "android.permission.ACCESS_NETWORK_STATE",
+    "android.permission.CHANGE_NETWORK_STATE",
+    "android.permission.ACCESS_FINE_LOCATION",
+    "android.permission.ACCESS_COARSE_LOCATION",
+    "android.permission.CAMERA",
+    "android.permission.RECORD_AUDIO",
 }
 
 PADROES_SEGREDO = [

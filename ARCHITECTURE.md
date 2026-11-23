@@ -15,6 +15,7 @@ distribution/
 ├── bootstrap/       # preparação do ambiente de build
 ├── base/            # configuração da base Debian ARM64
 ├── packages/        # seleção e metadados de pacotes
+├── red/             # catálogo versionado de operações RED
 ├── repositories/    # origens verificadas
 ├── configuration/   # configurações do ambiente
 ├── services/        # serviços suportados
@@ -43,6 +44,12 @@ A camada de UI não executará comandos diretamente. Casos de uso e interfaces d
 A primeira implementação utiliza PRoot para execução sem root, com a abstração `LinuxRuntime`, `ProotLauncher` e `SessionManager` em `android/runtime/`. O núcleo separa launcher, sessões, processos, stdout/stderr, timeout e cancelamento. Pipes e PTY (JNI) estão implementados, com fila de saída limitada e fechamento seguro do fd. `ProotLocator` abstrai a origem do PRoot (plano A `filesDir`, plano B `libproot.so` em jniLibs) e `RuntimeDiagnostics` verifica PRoot, shell, DNS, rede e PTY no aparelho (tela Diagnóstico). A persistência local usa Room (histórico e configurações).
 
 PRoot não fornece isolamento forte. O produto deverá comunicar essa limitação e não prometer segurança equivalente a VM ou contêiner privilegiado.
+
+## Área RED
+
+A Área RED é uma camada Android independente do runtime Linux, com catálogo versionado em `distribution/red/operations.json`, parser próprio, ViewModel/StateFlow e persistência local isolada. A Operação 01 usa o adaptador Android `LocalOnlyHotspot` e um servidor HTTP local vinculado à interface Wi-Fi do laboratório. O portal só registra eventos sintéticos; o corpo dos formulários é descartado e a página envia apenas um evento fixo de conclusão. A UI não executa lógica de rede diretamente.
+
+A documentação operacional está em `docs/red-area.md` e `docs/red-operation-01.md`. A abertura automática do portal não é garantida pelo Android; endereço local e QR Code são as alternativas assistidas.
 
 ## Persistência
 

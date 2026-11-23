@@ -70,7 +70,7 @@ import com.khalinux.runtime.TerminalKey
 import com.khalinux.runtime.settings.TerminalThemes
 
 /** Seções de topo da navegação inferior. As telas "Mais" ficam agrupadas sob um único item. */
-enum class Section { TERMINAL, PACKAGES, TOOLKIT, LABS, TUTOR, FILES, DIAGNOSTICS }
+enum class Section { TERMINAL, PACKAGES, TOOLKIT, LABS, RED, BLUE, TUTOR, FILES, DIAGNOSTICS }
 
 private val QUICK_COMMANDS = listOf("ls -la", "uname -a", "cat /etc/os-release", "whoami", "df -h", "apt update")
 
@@ -80,12 +80,13 @@ private val QUICK_COMMANDS = listOf("ls -la", "uname -a", "cat /etc/os-release",
 
 @Composable
 fun KhaNavigationBar(current: Section, enabled: Boolean, onSelect: (Section) -> Unit, onMore: () -> Unit) {
-    val moreSelected = current == Section.TUTOR || current == Section.FILES || current == Section.DIAGNOSTICS
+    val moreSelected = current == Section.BLUE || current == Section.TUTOR || current == Section.FILES || current == Section.DIAGNOSTICS
     NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
         NavItem(current == Section.TERMINAL, true, "⌨", stringResource(R.string.nav_terminal)) { onSelect(Section.TERMINAL) }
         NavItem(current == Section.PACKAGES, enabled, "📦", stringResource(R.string.nav_packages)) { onSelect(Section.PACKAGES) }
         NavItem(current == Section.TOOLKIT, enabled, "🛠", stringResource(R.string.nav_tools)) { onSelect(Section.TOOLKIT) }
         NavItem(current == Section.LABS, enabled, "🧪", stringResource(R.string.nav_labs)) { onSelect(Section.LABS) }
+        NavItem(current == Section.RED, enabled, "🎯", "RED") { onSelect(Section.RED) }
         NavItem(moreSelected, true, "⋯", stringResource(R.string.nav_more)) { onMore() }
     }
 }
@@ -116,6 +117,7 @@ fun MoreSheet(onDismiss: () -> Unit, onSelect: (Section) -> Unit) {
         Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 20.dp, vertical = 4.dp)) {
             Text(stringResource(R.string.more_title), style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(8.dp))
+            MoreRow("🛡", "BLUE", "Análise defensiva dos cenários e evidências do RED") { onSelect(Section.BLUE) }
             MoreRow("🎓", stringResource(R.string.action_tutor), stringResource(R.string.more_tutor_desc)) { onSelect(Section.TUTOR) }
             MoreRow("📁", stringResource(R.string.action_files), stringResource(R.string.more_files_desc)) { onSelect(Section.FILES) }
             MoreRow("🩺", stringResource(R.string.action_diagnostics), stringResource(R.string.more_diag_desc)) { onSelect(Section.DIAGNOSTICS) }

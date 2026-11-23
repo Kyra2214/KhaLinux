@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "operations": [
+    {
+      "id": "red-wifi-public-01",
+      "number": 1,
+      "title": "Wi-Fi público: conexão, portal e navegação",
+      "category": "NETWORKS",
+      "difficulty": "BEGINNER",
+      "summary": "Laboratório de dois aparelhos com hotspot próprio, portal HTTP local e observação do que o servidor realmente recebe.",
+      "objectives": [
+        "Preparar uma rede de laboratório no aparelho operador",
+        "Conectar um segundo aparelho e abrir o portal local",
+        "Comparar autenticação local com acesso direto sem login",
+        "Observar navegação, requisições e resultados de permissões"
+      ],
+      "prerequisites": [
+        "Dois aparelhos Android dedicados ou explicitamente autorizados",
+        "Wi-Fi habilitado nos dois aparelhos",
+        "Dados de teste fictícios preparados para a aula"
+      ],
+      "steps": [
+        {"id":"prepare","title":"Preparar o operador","instructions":"Confirme que os dois aparelhos pertencem ao laboratório e escolha o cenário da aula."},
+        {"id":"hotspot","title":"Ativar a rede de laboratório","instructions":"Solicite ao Android a criação do hotspot local. O sistema informa os parâmetros que o aplicativo pode exibir."},
+        {"id":"connect","title":"Conectar o participante","instructions":"No segundo aparelho, abra as configurações Wi-Fi e conecte-se à rede exibida pelo operador."},
+        {"id":"portal","title":"Abrir o portal local","instructions":"Use o endereço HTTP e o QR Code mostrados pelo operador. A abertura automática depende do Android."},
+        {"id":"access","title":"Comparar os modos de acesso","instructions":"Percorra o portal com autenticação local fictícia e o modo de acesso direto sem login."},
+        {"id":"navigation","title":"Explorar navegação","instructions":"Abra os links locais e observe no painel as rotas e respostas efetivamente recebidas."},
+        {"id":"permissions","title":"Observar permissões","instructions":"No aparelho participante, execute as demonstrações nativas e observe os diálogos reais do Android."},
+        {"id":"report","title":"Encerrar e revisar","instructions":"Encerre a sessão e revise a linha do tempo e o relatório local."}
+      ],
+      "completionCriteria": [
+        "Hotspot solicitado e estado real apresentado",
+        "Segundo aparelho conectado e portal local acessível",
+        "Modo com login local e modo sem login demonstrados",
+        "Requisições locais observadas no painel",
+        "Relatório local disponível"
+      ],
+      "environment": "Dois aparelhos Android em rede de laboratório própria"
+    }
+  ]
+}

@@ -1,4 +1,290 @@
+## [Não lançado] — RED-13: bloqueio de validação do HEAD atual
+
+- Implementação RED-0 a RED-12: 100% concluída em código/documentação.
+- A validação histórica do commit `cf1c16d` não cobre o HEAD atual e não foi usada como aprovação.
+- Status consultado para o commit anterior à atualização do freeze: sem checks e sem workflow run associado.
+- O conector disponível não oferece dispatch de workflow e não há checkout local nesta sessão para executar Gradle/testes.
+- Nenhum teste/build foi executado nesta retomada. RED-13 permanece pendente; teste físico será a última etapa.
+
+## [Não lançado] — RED: implementação concluída, validação pendente
+
+- RED-0 a RED-12: 100% dos submódulos de implementação concluídos em código/documentação.
+- RED-13: validação final ainda pendente; o projeto não deve ser declarado concluído até a execução e resolução dos testes acumulados.
+- Testes físicos com os dois aparelhos permanecem como última etapa da validação.
+- Nenhum ZIP/checkpoint gerado; alterações aplicadas diretamente na branch `plan/area-red-wifi-publico`.
+
+## [Não lançado] — RED-12: fechamento do ciclo de implementação
+
+### Confirmado na implementação existente
+- Encerramento do servidor HTTP e do hotspot pode ser chamado repetidamente sem exigir recursos ativos.
+- Parar a rede preserva o token temporário dentro da sessão para permitir reinício; encerrar/interromper a sessão limpa o token e os dados efêmeros.
+- Documentação de operação, instrutor, guia do usuário, roadmap e retomada foi alinhada ao escopo atual.
+- Nenhum ZIP/checkpoint é gerado; alterações são aplicadas diretamente na branch indicada.
+
+### Estado
+- Implementação: 93% (RED-0 a RED-12 em código/documentação; 13/14 submódulos).
+- RED-13 é a validação final e permanece pendente.
+- Nenhum build, teste ou validação foi executado nesta retomada.
+
+## [Não lançado] — RED-11: documentação e roteiro de aula
+
+### Atualizado
+- Guia do usuário corrigido para descrever o POST HTTP local com campos sintéticos e sua visualização temporária no painel.
+- Guia do instrutor e roteiro de vídeo cobrem hotspot, conexão do aparelho B, login local, acesso direto, links, permissões reais e resultados observados.
+- Documentação mantém limitações reais do Android e do navegador e não promete abertura automática do portal ou lista universal de clientes.
+
+### Validação
+- Revisão documental; nenhum teste/build executado.
+
+## [Não lançado] — RED-10: integração de evidências na Área BLUE
+
+### Implementado / complementado
+- BLUE apresenta requisições HTTP com horário, bytes, tipo de conteúdo, origem e cabeçalhos permitidos.
+- BLUE resume o evento mais recente de câmera, microfone, localização e seletor de arquivos.
+- Mantida a interpretação defensiva por evento, separando fato observado e orientação.
+- Evidências ao vivo e histórico continuam compartilhados a partir da sessão RED.
+
+### Validação
+- Nenhum build/teste executado; alternância e atualização ao vivo serão verificadas em RED-13.
+
+## [Não lançado] — RED-9: histórico e relatórios locais
+
+### Confirmado na implementação existente
+- Histórico persiste sessões e eventos tipados, com limite de 100 sessões e 300 eventos por sessão.
+- Recuperação marca sessões abertas como interrompidas e não reativa a rede.
+- Relatório Markdown contém cenário, modo, contagens, metadados HTTP e linha do tempo.
+- Valores dos formulários, códigos, tokens, cookies, arquivos, áudio, vídeo e coordenadas não são incluídos no relatório.
+- Exportação manual e exclusão do histórico estão disponíveis na interface.
+
+### Validação
+- Confirmação por inspeção estática; nenhum teste/build executado.
+- Validação funcional reservada a RED-13.
+
+## [Não lançado] — RED-8: observabilidade de permissões e recursos
+
+### Implementado
+- Painel RED ganhou seção dedicada com o evento mais recente por câmera, microfone, localização e seletor de arquivos.
+- Estados são derivados da linha do tempo real da sessão; sem evento, a interface informa que nenhum recurso foi solicitado.
+- Requisições HTTP e valores sintéticos continuam exibidos em áreas próprias, com limpeza de dados temporários.
+
+### Validação
+- Nenhum build ou teste executado; validação funcional fica para RED-13.
+
+## [Não lançado] — RED-7: modo participante e permissões Android
+
+### Implementado / complementado
+- Modo participante usa permissões reais no aparelho B.
+- Câmera apresenta prévia local; microfone calcula nível e descarta amostras; localização permanece exibida no próprio aparelho; arquivos usam seletor SAF sem leitura/envio.
+- O operador recebe somente o tipo e o estado da ação por endpoint local autenticado com token temporário.
+- Ao retornar de Configurações, o estado das permissões é atualizado; prévia/medição são interrompidas quando o acesso foi revogado.
+
+### Validação
+- Inspeção estática e implementação de tratamento de revogação; nenhum build/teste executado.
+- Teste real de permissões nos dois aparelhos fica reservado a RED-13.
+
+## [Não lançado] — RED-6: navegação local e redirecionamentos
+
+### Confirmado na implementação existente
+- Modo de acesso direto sem login e páginas locais interligadas.
+- Destinos locais de notícias/ofertas e página de aviso.
+- Rota de redirecionamento HTTP 302 com destino restrito ao próprio portal.
+- Painel recebe a sequência de requisições com método, rota, status, bytes e cabeçalhos permitidos; Referer é limitado ao caminho.
+
+### Validação
+- Confirmação por inspeção estática; nenhum teste ou build foi executado.
+- Validação funcional fica reservada para RED-13.
+
+## [Não lançado] — RED-5: formulário local e dados sintéticos recebidos
+
+### Confirmado na implementação existente
+- O portal envia formulário por POST HTTP local para `/login`.
+- O backend permite somente os campos `demo_id` e `demo_code` e valida seus formatos de demonstração.
+- O painel exibe os valores aceitos apenas durante a sessão ativa e oferece limpeza manual.
+- O SessionStore e o relatório persistem metadados/eventos, não os valores do formulário.
+
+### Validação
+- Confirmação feita por inspeção estática dos arquivos; nenhum teste ou build foi executado.
+- Exercício funcional fica reservado para RED-13.
+
+## [Não lançado] — RED-3: servidor HTTP local configurável
+
+### Implementado
+- Porta do servidor configurável por parâmetro, mantendo 8080 como padrão.
+- Validação da porta configurada no intervalo 1024–65535.
+- Bind permanece limitado ao IPv4 da interface Wi-Fi/AP do laboratório, sem exposição por `0.0.0.0`.
+- Mantidos os limites de requisição, rotas locais permitidas, timeouts e encerramento do servidor.
+
+### Validação
+- Nenhum build, teste ou validação foi executado nesta etapa, conforme o Prompt Mestre 3.0.
+- Compilação e comportamento real ficam acumulados para a fase final RED-13.
+
+## [Não lançado] — RED-13: validação automatizada
+
+### Aprovado no GitHub Actions
+- Verificação de configuração RootFS e sintaxe shell.
+- Auditoria estática de segurança, após aprovação documentada das permissões necessárias.
+- Teste JNI PTY no host.
+- Smoke test PRoot/ARM64.
+- Testes unitários dos módulos Android runtime e app.
+- Compilação do APK debug e upload do artefato de inspeção.
+
+Workflow: https://github.com/Kyra2214/KhaLinux/actions/runs/45099843828  
+Commit validado: cf1c16d68d6706f912ee856d3753efd935077a26.
+
+### Pendente
+- Teste físico com os dois aparelhos Android.
+- Verificação de LocalOnlyHotspot, portal 8080, formulários, navegação, permissões reais, relay, alternância RED/BLUE e compatibilidade por fabricante/versão.
+- Projeto permanece sem declaração de 100% até concluir os testes físicos.
+
+## [Não lançado] — RED-12: fechamento da implementação
+
+### Implementado
+- Ciclo de encerramento do hotspot e servidor HTTP tornado idempotente.
+- Cancelamento de solicitação de hotspot em andamento tratado.
+- Token temporário preservado ao parar/reiniciar rede dentro da mesma sessão e limpo ao encerrar/interromper.
+- Eventos duplicados de solicitação/inicialização removidos.
+- Integração RED/BLUE, documentação e retomada consolidadas.
+- Lista final de validação congelada em docs/red-implementation-freeze.md.
+- ZIP/checkpoints omitidos conforme instrução do usuário.
+
+### Estado
+- Implementação: 93% (13/14 submódulos).
+- Única fase restante: RED-13 — validação final.
+- Nenhum teste/build executado durante a implementação.
+
+## [Não lançado] — RED-11: tutorial e documentação de aula
+
+### Implementado
+- Roteiro rápido de dois aparelhos incorporado à tela RED.
+- Guia completo do instrutor em docs/red-instructor-guide.md.
+- Preparação do aparelho A e B, cenários de login/acesso direto, permissões, pareamento e envio de estado documentados.
+- Roteiro de vídeo focado em comportamento e resultados, sem código-fonte.
+- Troubleshooting de hotspot, endereço, porta 8080, navegador e permissões.
+- Documentação de RED, BLUE e guia do usuário atualizada com referências cruzadas.
+
+### Limites
+- Nenhum teste/build foi executado.
+
+## [Não lançado] — RED-10: integração pedagógica RED ↔ BLUE
+
+### Implementado
+- Área BLUE criada como módulo Compose próprio e adicionada ao menu Mais.
+- BlueViewModel lê as mesmas sessões/eventos persistidos do RED.
+- RedLiveEvidenceStore compartilha em memória requisições e campos sintéticos da sessão ativa.
+- Tela BLUE mostra evidências e interpretação defensiva por evento para hotspot, portal, login, acesso direto, links, redirecionamentos, HTTP e permissões.
+- Alternância RED → BLUE preserva a sessão ativa; retorno BLUE → RED restaura a operação.
+- Documentação específica em docs/blue-area.md e guia do usuário atualizado.
+
+### Limites
+- BLUE não realiza captura geral de rede nem inspeção HTTPS; mostra somente eventos observados no laboratório.
+- Nenhum teste/build foi executado.
+
+## [Não lançado] — RED-9: histórico e relatórios
+
+### Implementado
+- Modo do portal gravado em cada sessão, com leitura retrocompatível para sessões antigas.
+- Relatório ampliado com cenário, modo, etapas, contagem de requisições/eventos de permissão e linha do tempo sequenciada.
+- Eventos HTTP incluem método, rota, status, bytes e origem.
+- Histórico permanece limitado a 100 sessões e 300 eventos por sessão.
+- Recuperação marca sessões incompletas como interrompidas sem reativar hotspot ou servidor.
+- Exportação e exclusão manual continuam disponíveis.
+- Valores sintéticos, tokens, cookies, arquivos, áudio, vídeo e coordenadas não são incluídos no relatório.
+
+### Limites
+- Nenhum teste/build foi executado.
+
+## [Não lançado] — RED-8: painel de observabilidade
+
+### Implementado
+- Painel apresenta estado do hotspot, servidor e atividade HTTP do participante.
+- Exibição da interface de bind e porta efetiva.
+- Lista de requisições com timestamp, método, rota, status, bytes, content-type e endereço remoto.
+- Cabeçalhos de baixo risco em allowlist; Cookie e Authorization não são capturados.
+- Linha do tempo sequenciada com eventos HTTP, navegação, redirecionamento, formulários e permissões.
+- Valores sintéticos temporários exibidos em memória e botão para removê-los do painel.
+- Respostas rejeitadas e erros permanecem diferenciados de sucesso.
+
+### Limites
+- Observações de requisição e cabeçalhos são mantidos apenas em memória; relatório persiste metadados de eventos.
+- Nenhum teste/build foi executado.
+
+## [Não lançado] — RED-7: modo participante Android
+
+### Implementado
+- Modo participante acessível na própria Área RED, para uso no segundo aparelho Android.
+- Solicitações reais de permissões de câmera, microfone e localização no aparelho participante.
+- Prévia de câmera local via CameraX.
+- Medidor de nível de microfone via AudioRecord, sem gravação ou transmissão de áudio.
+- Consulta de localização apresentada somente no aparelho participante.
+- Seletor de arquivos do Android (SAF), sem ler nome/conteúdo.
+- Token temporário por sessão e endpoint local que recebe somente tipo/estado da demonstração; nenhum conteúdo de recurso é enviado.
+- Painel RED registra pedido e resultado dos recursos.
+
+### Limites
+- Dependências CameraX adicionadas ao módulo Android.
+- A compatibilidade real por fabricante/versão e o ciclo de revogação permanecem para validação final.
+- Nenhum teste/build foi executado.
+
+## [Não lançado] — RED-2 a RED-6: hotspot, servidor, portal e navegação
+
+### Implementado
+- Hotspot Android com estado tipado e exibição dos parâmetros que o sistema realmente disponibiliza.
+- Identificação indicativa de interface Wi-Fi/AP e IPv4; atividade do participante é confirmada por requisição HTTP, sem varredura.
+- Servidor HTTP local fixo na porta 8080, bind a IPv4 Wi-Fi/AP identificado, limites de cabeçalho/corpo/conexões e timeouts.
+- Painel com método, rota, status, tipo de conteúdo, bytes e endereço remoto da requisição.
+- Portal fictício natural com seletor entre login local e acesso direto.
+- Páginas locais, termos, conteúdo, destinos e redirecionamento 302.
+- Formulário POST recebe somente `demo_id` (padrão `aluno-...`) e `demo_code` (padrão `LAB-0000`); demais campos/formato são rejeitados.
+- Valores sintéticos válidos aparecem apenas em memória no painel da sessão; não são persistidos no histórico nem no relatório.
+
+### Limitações e pendências
+- Android não oferece lista universal de clientes do LocalOnlyHotspot; a conexão do participante é confirmada pelo primeiro acesso HTTP.
+- Modo participante Android e permissões nativas reais continuam pendentes.
+- Nenhum teste/build/validação foi executado; tudo fica para RED-13.
+
+## [Não lançado] — RED-1: fundação e catálogo
+
+### Implementado
+- Modelo de estados de rede separado do estado da sessão.
+- Tipos de eventos ampliados para hotspot, portal, requisições HTTP, navegação, redirecionamentos, formulários e permissões.
+- Modelo de observação HTTP com método, rota, status, tipo, tamanho e endereço remoto opcional.
+- Linha do tempo com sequência e metadados HTTP; armazenamento retrocompatível com sessões anteriores.
+- Estado de UI preparado para modo do portal, observações de requisição e ciclo de rede.
+- Catálogo da Operação 01 revisado com autenticação local fictícia, acesso direto sem login, navegação e permissões no aparelho participante.
+
+### Limites
+- Valores de formulários não fazem parte do modelo persistente.
+- Esta entrega não altera ainda o servidor HTTP nem implementa os fluxos de portal; esses requisitos pertencem aos próximos submódulos.
+- Nenhum teste, build ou validação foi executado. A validação permanece reservada à fase final.
+
 # Changelog
+
+## [Não lançado] — Área RED (roadmap revisado 2026-11-23)
+
+### Planejado
+- Revisão completa da Operação 01 para laboratório pessoal de dois aparelhos Android: aparelho A como operador/hotspot/servidor/painel e aparelho B como participante.
+- Portal HTTP local na porta 8080 com dois cenários: autenticação local fictícia e acesso direto sem login.
+- Navegação por links locais, redirecionamentos e registro de requisições; visualização temporária no painel dos campos sintéticos efetivamente recebidos.
+- Modo participante Android para permissões reais solicitadas no próprio aparelho B, respeitando limitações de contexto seguro do navegador.
+- Integração pedagógica RED/BLUE com o mesmo cenário e evidências, perspectivas separadas.
+- Diretriz visual: experiência natural no aparelho participante; observabilidade e identificação do laboratório no painel do instrutor; vídeos mostram comportamento e resultados, não código.
+
+### Estado honesto
+- Este commit atualiza o planejamento e a documentação, não implementa os novos fluxos. O formulário atual continua enviando apenas um evento fixo e as permissões continuam demonstrativas. Nenhum teste/build foi executado; validação permanece reservada ao final.
+
+## [Não lançado] — Área RED (implementação inicial)
+
+### Adicionado
+- Entrada **RED** na navegação principal, com catálogo versionado, filtros, ficha de operação, tutorial disponível antes da execução, progresso e histórico.
+- Motor local de sessões RED com eventos tipados, persistência isolada, limite de 300 eventos por sessão/100 sessões e recuperação de sessões interrompidas.
+- Operação 01 **Nunca Conecte à Wi-Fi Pública**: solicitação de hotspot local pelo Android, portal HTTP vinculado à interface Wi-Fi do laboratório, endereço manual, QR Code, formulário sintético, fluxo genérico de rede social, demonstrações de permissão (localização/câmera/arquivos) sem acesso real, painel de eventos e relatório Markdown copiável/exportável.
+- Catálogo inicial em `distribution/red/operations.json`; documentação em `docs/red-area.md` e `docs/red-operation-01.md`.
+
+### Segurança e limitações
+- Portal identificado como simulação; campos de demonstração não são serializados. A página envia somente `demo=completed`; o servidor descarta o corpo e registra apenas o evento.
+- Sem login real, coleta de credenciais, tokens, cookies, interceptação ou varredura de dispositivos.
+- Hotspot, permissões e endereço de rede dependem do Android/fabricante. A abertura automática do portal não é garantida.
+- Nenhum teste, build ou teste físico executado durante esta implementação. Toda validação da Área RED está reservada para a fase final.
 
 ## [Não lançado] — CHECKPOINT 047
 

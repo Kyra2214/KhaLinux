@@ -1,0 +1,293 @@
+package com.khalinux.android.red
+
+import android.graphics.Bitmap
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.unit.dp
+
+@Composable
+fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
+    if (state.participantMode) {
+        RedParticipantScreen(onExit = viewModel::exitParticipantMode)
+        return
+    }
+    val clipboard = LocalClipboardManager.current
+    val context = LocalContext.current
+    val reportContent = remember { androidx.compose.runtime.mutableStateOf("") }
+    val exportReport = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/markdown")) { uri ->
+        if (uri != null) runCatching { context.contentResolver.openOutputStream(uri)?.use { it.write(reportContent.value.toByteArray(Charsets.UTF_8)) } }
+    }
+    val hotspotPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) viewModel.startNetworkLab()
+    }
+    Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Column(Modifier.weight(1f)) {
+                Text("ÁREA RED", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.error)
+                Text("Operações práticas em laboratório autorizado.", style = MaterialTheme.typography.bodySmall)
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                TextButton(onClick = viewModel::enterParticipantMode) { Text("Modo participante") }
+                TextButton(onClick = viewModel::refreshHistory) { Text("Histórico") }
+            }
+        }
+        Card(Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("ESCOPO CONTROLADO", style = MaterialTheme.typography.labelLarge)
+                Text("Use somente aparelhos, contas e redes próprias ou com autorização explícita. Todas as páginas de demonstração são identificadas como simulação.")
+            }
+        }
+        val operation = state.selectedOperationId?.let(RedCatalog::find)
+        if (operation == null) {
+            Text("Catálogo de operações", style = MaterialTheme.typography.titleLarge)
+            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                FilterChip(selected = state.category == null, onClick = { viewModel.filter(null, state.difficulty) }, label = { Text("Todas") })
+                FilterChip(selected = state.category == RedCategory.NETWORKS, onClick = { viewModel.filter(RedCategory.NETWORKS, state.difficulty) }, label = { Text("Redes") })
+                FilterChip(selected = state.category == RedCategory.WEB, onClick = { viewModel.filter(RedCategory.WEB, state.difficulty) }, label = { Text("Web") })
+                FilterChip(selected = state.category == RedCategory.SOCIAL_ENGINEERING, onClick = { viewModel.filter(RedCategory.SOCIAL_ENGINEERING, state.difficulty) }, label = { Text("Eng. social") })
+                FilterChip(selected = state.category == RedCategory.LOCAL_ANALYSIS, onClick = { viewModel.filter(RedCategory.LOCAL_ANALYSIS, state.difficulty) }, label = { Text("Análise local") })
+            }
+            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                FilterChip(selected = state.difficulty == null, onClick = { viewModel.filter(state.category, null) }, label = { Text("Todos níveis") })
+                FilterChip(selected = state.difficulty == RedDifficulty.BEGINNER, onClick = { viewModel.filter(state.category, RedDifficulty.BEGINNER) }, label = { Text("Iniciante") })
+                FilterChip(selected = state.difficulty == RedDifficulty.INTERMEDIATE, onClick = { viewModel.filter(state.category, RedDifficulty.INTERMEDIATE) }, label = { Text("Intermediário") })
+                FilterChip(selected = state.difficulty == RedDifficulty.ADVANCED, onClick = { viewModel.filter(state.category, RedDifficulty.ADVANCED) }, label = { Text("Avançado") })
+            }
+            LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                items(RedCatalog.operations.filter { (state.category == null || it.category == state.category) && (state.difficulty == null || it.difficulty == state.difficulty) }, key = { it.id }) { item ->
+                    Card(Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text("OPERAÇÃO ${item.number.toString().padStart(2, '0')} · ${item.title}", style = MaterialTheme.typography.titleMedium)
+                            Text(item.summary, style = MaterialTheme.typography.bodyMedium)
+                            Text("${item.category.name} · ${item.difficulty.name}", style = MaterialTheme.typography.labelSmall)
+                            state.history.firstOrNull { it.operationId == item.id }?.let { latest ->
+                                Text("Última sessão: ${latest.state} · ${latest.completedSteps.size}/${item.steps.size} etapas", style = MaterialTheme.typography.bodySmall)
+                            }
+                            Button(onClick = { viewModel.select(item.id) }) { Text("Abrir operação") }
+                        }
+                    }
+                }
+                item {
+                    Text("Histórico recente", style = MaterialTheme.typography.titleMedium)
+                    state.history.take(100).forEach { session ->
+                        Text("${session.operationId} · ${session.state} · ${session.portalMode} · ${session.events.size} eventos", style = MaterialTheme.typography.bodySmall)
+                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            TextButton(onClick = { clipboard.setText(AnnotatedString(viewModel.report(session))) }) { Text("Copiar relatório") }
+                            TextButton(onClick = { reportContent.value = viewModel.report(session); exportReport.launch("relatorio-red.md") }) { Text("Exportar") }
+                        }
+                    }
+                    if (state.history.isNotEmpty()) TextButton(onClick = viewModel::deleteHistory) { Text("Apagar histórico") }
+                }
+            }
+        } else {
+            Text("OPERAÇÃO ${operation.number.toString().padStart(2, '0')}", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.error)
+            Text(operation.title, style = MaterialTheme.typography.headlineSmall)
+            Text(operation.summary)
+            Text("Objetivos", style = MaterialTheme.typography.titleMedium)
+            operation.objectives.forEach { Text("• $it", style = MaterialTheme.typography.bodySmall) }
+            Text("Pré-requisitos", style = MaterialTheme.typography.titleMedium)
+            operation.prerequisites.forEach { Text("• $it", style = MaterialTheme.typography.bodySmall) }
+            Text("Ambiente: ${operation.environment}", style = MaterialTheme.typography.bodySmall)
+            Card(Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                    Text("Roteiro rápido de dois aparelhos", style = MaterialTheme.typography.titleSmall)
+                    Text("Aparelho A: inicie a sessão, escolha o modo do portal, ative o hotspot e compartilhe SSID, endereço e código temporário.", style = MaterialTheme.typography.bodySmall)
+                    Text("Aparelho B: conecte-se ao Wi-Fi, abra o endereço local e percorra as páginas. Para permissões, abra RED > Modo participante e informe endereço e código.", style = MaterialTheme.typography.bodySmall)
+                    Text("BLUE: alterne para a análise defensiva sem encerrar a sessão RED. Volte ao RED para continuar a operação.", style = MaterialTheme.typography.bodySmall)
+                }
+            }
+            state.session?.let { session ->
+                Text("Sessão: ${session.state} · ${session.completedSteps.size}/${operation.steps.size} etapas")
+                Text("Rede: ${state.networkState}", style = MaterialTheme.typography.bodySmall)
+                state.participantToken?.let { token ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text("Código de pareamento: $token", style = MaterialTheme.typography.bodySmall)
+                        TextButton(onClick = { clipboard.setText(AnnotatedString(token)) }) { Text("Copiar") }
+                    }
+                }
+                state.hotspotSnapshot?.let { snapshot ->
+                    Text(snapshot.message, style = MaterialTheme.typography.bodySmall)
+                    snapshot.ssid?.let { Text("SSID: $it", style = MaterialTheme.typography.bodySmall) }
+                    snapshot.interfaceName?.let { Text("Interface: $it", style = MaterialTheme.typography.bodySmall) }
+                    snapshot.ipv4Address?.let { Text("IPv4 detectado: $it", style = MaterialTheme.typography.bodySmall) }
+                    if (snapshot.ssid == null) Text("SSID não disponibilizado pela API do Android.", style = MaterialTheme.typography.bodySmall)
+                }
+                if (state.networkRunning) {
+                    Text("Portal: ${state.portalAddress ?: "endereço local não identificado"}", style = MaterialTheme.typography.bodySmall)
+                    state.portalAddress?.let { address ->
+                        RedQrCode(address)
+                        TextButton(onClick = { clipboard.setText(AnnotatedString(address)) }) { Text("Copiar endereço do portal") }
+                    }
+                    state.hotspotInfo?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+                    Text("Servidor HTTP local · porta ${state.serverPort ?: 8080}", style = MaterialTheme.typography.labelLarge)
+                    Text("Interface: ${state.serverInterface ?: "não identificada"}", style = MaterialTheme.typography.bodySmall)
+                    Text(
+                        if (state.networkState == RedNetworkState.PARTICIPANT_ACTIVE) "Participante: atividade HTTP observada"
+                        else "Participante: aguardando primeiro acesso ao portal",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Text("Requisições recebidas: ${state.requests.size}", style = MaterialTheme.typography.bodySmall)
+                    state.requests.asReversed().take(12).forEach { request ->
+                        Card(Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text("${request.method} ${request.path} · HTTP ${request.statusCode}", style = MaterialTheme.typography.labelLarge)
+                                Text("Hora: ${request.timestamp} · ${request.bodyBytes} bytes · ${request.contentType ?: "tipo não informado"}", style = MaterialTheme.typography.bodySmall)
+                                Text("Origem: ${request.remoteAddress ?: "não identificada"}", style = MaterialTheme.typography.bodySmall)
+                                request.safeHeaders.forEach { (name, value) ->
+                                    Text("$name: $value", style = MaterialTheme.typography.bodySmall)
+                                }
+                            }
+                        }
+                    }
+                    OutlinedButton(onClick = viewModel::stopNetworkLab) { Text("Parar hotspot e portal") }
+                } else {
+                    Text("Modo do portal", style = MaterialTheme.typography.titleSmall)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FilterChip(
+                            selected = state.portalMode == RedPortalMode.LOCAL_LOGIN,
+                            onClick = { viewModel.setPortalMode(RedPortalMode.LOCAL_LOGIN) },
+                            label = { Text("Login local") }
+                        )
+                        FilterChip(
+                            selected = state.portalMode == RedPortalMode.OPEN_ACCESS,
+                            onClick = { viewModel.setPortalMode(RedPortalMode.OPEN_ACCESS) },
+                            label = { Text("Acesso direto") }
+                        )
+                    }
+                    Button(onClick = {
+                        if (context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                            viewModel.startNetworkLab()
+                        } else {
+                            hotspotPermission.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                        }
+                    }) { Text("Iniciar hotspot e portal local") }
+                }
+                LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(operation.steps, key = { it.id }) { step ->
+                        Card(Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text(step.title, style = MaterialTheme.typography.titleSmall)
+                                Text(step.instructions, style = MaterialTheme.typography.bodySmall)
+                                Text(if (step.id in session.completedSteps) "Concluída" else "Pendente", style = MaterialTheme.typography.labelSmall)
+                                if (step.id !in session.completedSteps) OutlinedButton(onClick = { viewModel.markStep(step.id) }) { Text("Marcar etapa concluída") }
+                            }
+                        }
+                    }
+                    item {
+                        Text("Último formulário recebido", style = MaterialTheme.typography.titleMedium)
+                        state.latestSubmission?.let { submission ->
+                            Text(
+                                if (submission.accepted) "Recebido e validado localmente" else "Envio rejeitado",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = if (submission.accepted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                            )
+                            Text(submission.message, style = MaterialTheme.typography.bodySmall)
+                            submission.fields.forEach { (key, value) ->
+                                Text("$key: $value", style = MaterialTheme.typography.bodyMedium)
+                            }
+                            Text(
+                                "Valores visíveis somente nesta sessão e mantidos em memória; não entram no histórico nem no relatório.",
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                            OutlinedButton(onClick = viewModel::clearSensitivePanelData) { Text("Limpar valores temporários") }
+                        } ?: Text("Nenhum formulário foi recebido nesta sessão.", style = MaterialTheme.typography.bodySmall)
+                        Text("Permissões e recursos do aparelho participante", style = MaterialTheme.typography.titleMedium)
+                        val resourceEventTypes = setOf(
+                            RedEventType.PERMISSION_REQUESTED,
+                            RedEventType.PERMISSION_GRANTED,
+                            RedEventType.PERMISSION_DENIED,
+                            RedEventType.PERMISSION_CANCELLED,
+                            RedEventType.RESOURCE_PREVIEW_STARTED,
+                            RedEventType.RESOURCE_PREVIEW_STOPPED,
+                            RedEventType.FILE_PICKER_OPENED,
+                            RedEventType.FILE_SELECTED
+                        )
+                        val resourceLabels = listOf("câmera", "microfone", "localização", "seletor de arquivos")
+                        val latestResourceEvents = resourceLabels.mapNotNull { resource ->
+                            session.events.lastOrNull { it.type in resourceEventTypes && it.detail.contains(resource, ignoreCase = true) }
+                                ?.let { resource to it }
+                        }
+                        if (latestResourceEvents.isEmpty()) {
+                            Text("Nenhuma permissão ou recurso foi solicitado nesta sessão.", style = MaterialTheme.typography.bodySmall)
+                        } else {
+                            latestResourceEvents.forEach { (resource, event) ->
+                                Text("$resource: ${event.type} · ${event.detail}", style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                        Text("Eventos da sessão", style = MaterialTheme.typography.titleMedium)
+                        session.events.asReversed().forEach { Text("${it.sequence}. ${it.timestamp}: ${it.detail}", style = MaterialTheme.typography.bodySmall) }
+                    }
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(onClick = { clipboard.setText(AnnotatedString(viewModel.report(session))) }) { Text("Copiar relatório") }
+                    OutlinedButton(onClick = { reportContent.value = viewModel.report(session); exportReport.launch("relatorio-red.md") }) { Text("Exportar arquivo") }
+                    Button(onClick = viewModel::finishSession) { Text("Encerrar sessão") }
+                }
+            } ?: run {
+                Text("Tutorial de execução", style = MaterialTheme.typography.titleMedium)
+                LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(operation.steps, key = { it.id }) { step ->
+                        Card(Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text(step.title, style = MaterialTheme.typography.titleSmall)
+                                Text(step.instructions, style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    }
+                    item {
+                        Text("Critérios de conclusão", style = MaterialTheme.typography.titleMedium)
+                        operation.completionCriteria.forEach { Text("• $it", style = MaterialTheme.typography.bodySmall) }
+                    }
+                }
+                Text("A sessão de estudo não ativa recursos de rede. O hotspot só será solicitado após a ação explícita do operador.", style = MaterialTheme.typography.bodySmall)
+                Button(onClick = viewModel::startSession) { Text("Iniciar sessão") }
+            }
+            TextButton(onClick = viewModel::backToCatalog) { Text("Voltar ao catálogo") }
+        }
+        state.message?.let { Text(it, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall) }
+    }
+}
+
+
+@Composable
+private fun RedQrCode(value: String) {
+    val bitmap = androidx.compose.runtime.remember(value) {
+        runCatching {
+            val matrix = com.google.zxing.MultiFormatWriter().encode(value, com.google.zxing.BarcodeFormat.QR_CODE, 420, 420)
+            Bitmap.createBitmap(420, 420, Bitmap.Config.ARGB_8888).also { image ->
+                for (x in 0 until 420) for (y in 0 until 420) {
+                    image.setPixel(x, y, if (matrix[x, y]) android.graphics.Color.BLACK else android.graphics.Color.WHITE)
+                }
+            }
+        }.getOrNull()
+    }
+    bitmap?.let { Image(bitmap = it.asImageBitmap(), contentDescription = "QR Code do portal local", modifier = Modifier.fillMaxWidth().padding(12.dp)) }
+}

@@ -40,7 +40,9 @@ fun KhaLinuxApp(
     toolkitViewModel: com.khalinux.android.toolkit.ToolkitViewModel,
     labsViewModel: com.khalinux.android.labs.LabsViewModel,
     filesViewModel: com.khalinux.android.files.FilesViewModel,
-    tutorViewModel: com.khalinux.android.tutor.TutorViewModel
+    tutorViewModel: com.khalinux.android.tutor.TutorViewModel,
+    redViewModel: com.khalinux.android.red.RedViewModel,
+    blueViewModel: com.khalinux.android.blue.BlueViewModel
 ) {
     // Evita consultar LocalLifecycleOwner durante a composição inicial. Em alguns aparelhos,
     // a árvore de Views ainda não expôs o owner ao montar a raiz Compose; os StateFlows nos
@@ -51,12 +53,16 @@ fun KhaLinuxApp(
     val labsState by labsViewModel.uiState.collectAsState()
     val filesState by filesViewModel.uiState.collectAsState()
     val tutorState by tutorViewModel.uiState.collectAsState()
+    val redState by redViewModel.uiState.collectAsState()
+    val blueState by blueViewModel.uiState.collectAsState()
     var showMore by remember { mutableStateOf(false) }
 
     val section = when {
         packagesState.visible -> Section.PACKAGES
         toolkitState.visible -> Section.TOOLKIT
         tutorState.visible -> Section.TUTOR
+        blueState.visible -> Section.BLUE
+        redState.visible -> Section.RED
         labsState.visible -> Section.LABS
         filesState.visible -> Section.FILES
         state.showDiagnostics -> Section.DIAGNOSTICS
@@ -69,6 +75,12 @@ fun KhaLinuxApp(
             toolkitViewModel.close()
             labsViewModel.close()
             tutorViewModel.close()
+            if (section == Section.RED && target == Section.BLUE) {
+                redViewModel.hideForBlue()
+            } else if (!(section == Section.BLUE && target == Section.RED)) {
+                redViewModel.close()
+            }
+            blueViewModel.close()
             filesViewModel.close()
             viewModel.closeDiagnostics()
             when (target) {
@@ -76,6 +88,8 @@ fun KhaLinuxApp(
                 Section.PACKAGES -> packagesViewModel.open()
                 Section.TOOLKIT -> toolkitViewModel.open()
                 Section.LABS -> labsViewModel.open()
+                Section.RED -> redViewModel.open()
+                Section.BLUE -> blueViewModel.open()
                 Section.TUTOR -> tutorViewModel.open()
                 Section.FILES -> filesViewModel.open()
                 Section.DIAGNOSTICS -> viewModel.openDiagnostics()
@@ -105,6 +119,8 @@ fun KhaLinuxApp(
                             }
                         )
                         Section.TUTOR -> com.khalinux.android.tutor.TutorScreen(tutorState, tutorViewModel)
+                        Section.RED -> com.khalinux.android.red.RedScreen(redState, redViewModel)
+                        Section.BLUE -> com.khalinux.android.blue.BlueScreen(blueState, blueViewModel)
                         Section.LABS -> com.khalinux.android.labs.LabsScreen(
                             labsState,
                             labsViewModel,

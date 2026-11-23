@@ -20,7 +20,7 @@
 | Laboratórios | fixtures sem `0.0.0.0`/`INADDR_ANY`; serviços do `labs.json` só em loopback | ERRO |
 | Shell/CI | `pipefail` (AVISO); `curl \| sh`; `pull_request_target`; workflow sem `permissions`; ação com `@main/@master/@latest` | ERRO |
 
-Permissões aprovadas: `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_SPECIAL_USE`, `FOREGROUND_SERVICE_DATA_SYNC` (sessão interativa e instalação), `POST_NOTIFICATIONS` (notificação do foreground service) e `INTERNET` (download de RootFS/PRoot e rede dentro do convidado).
+Permissões aprovadas: `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_SPECIAL_USE`, `FOREGROUND_SERVICE_DATA_SYNC` (sessão interativa e instalação), `POST_NOTIFICATIONS` (notificação do foreground service), `INTERNET` (download de RootFS/PRoot e rede dentro do convidado), `ACCESS_WIFI_STATE`/`CHANGE_WIFI_STATE` (LocalOnlyHotspot e leitura do estado Wi-Fi), `ACCESS_NETWORK_STATE`/`CHANGE_NETWORK_STATE` (estado e ciclo de rede do laboratório), `ACCESS_FINE_LOCATION`/`ACCESS_COARSE_LOCATION` (requisitos de versões Android e demonstração de localização solicitada no aparelho participante), `CAMERA` (prévia local CameraX) e `RECORD_AUDIO` (medidor local de nível de áudio, sem gravação). As permissões de câmera, microfone e localização são solicitadas no próprio aparelho participante, no momento da ação; conteúdo de mídia e coordenadas não são transmitidos ao operador.
 
 ## Revisão manual (leitura de código, sem execução)
 
