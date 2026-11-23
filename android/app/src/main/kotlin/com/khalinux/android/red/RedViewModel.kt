@@ -19,6 +19,8 @@ import com.khalinux.runtime.operations.LabEventRecord
 import com.khalinux.runtime.operations.LabSessionState
 import com.khalinux.runtime.operations.LabAsset
 import com.khalinux.runtime.operations.AdbCapabilities
+import com.khalinux.runtime.operations.AndroidPackageEntry
+import com.khalinux.runtime.operations.AndroidPackageInventoryParser
 import com.khalinux.android.devices.AdbMdnsDiscovery
 import com.khalinux.android.devices.AdbMdnsEndpoint
 import com.khalinux.android.devices.AdbMdnsKind
@@ -47,6 +49,10 @@ data class RedUiState(
     val operationalAssets: List<LabAsset> = emptyList(),
     val adbEndpoints: List<AdbMdnsEndpoint> = emptyList(),
     val adbCapabilities: AdbCapabilities? = null,
+    val packageInventory: List<AndroidPackageEntry> = emptyList(),
+    val packageInventoryAssetId: String? = null,
+    val packageInventoryLoading: Boolean = false,
+    val packageInventoryError: String? = null,
     val operationalSessionId: String? = null,
     val operationalExecutions: List<LabExecutionRecord> = emptyList(),
     val operationalEvents: List<LabEventRecord> = emptyList(),
@@ -163,7 +169,9 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             adbDiscovery = null
         }
         mutableState.update {
-            it.copy(operationalOperations = emptyList(), operationalAssets = emptyList(), adbEndpoints = emptyList(), adbCapabilities = null, operationalSessionId = null,
+            it.copy(operationalOperations = emptyList(), operationalAssets = emptyList(), adbEndpoints = emptyList(), adbCapabilities = null, packageInventory = emptyList(),
+                packageInventoryAssetId = null, packageInventoryLoading = false, packageInventoryError = null,
+                operationalSessionId = null,
                 operationalExecutions = emptyList(), operationalEvents = emptyList())
         }
     }
@@ -272,6 +280,65 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                         operationalMessage = error.message ?: "Falha ao atualizar inventário ADB"
                     )
                 }
+            }
+        }
+    }
+
+    /** Executa inventário real de pacotes no Android selecionado e preserva a saída como evidência. */
+    fun loadPackageInventory(assetId: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            var engine: LabOperationEngine? = null
+            var sessionId: String? = null
+            mutableState.update {
+                it.copy(packageInventoryLoading = true, packageInventoryError = null, packageInventoryAssetId = assetId)
+            }
+            try {
+                val gateway = runtimeGateway ?: throw IllegalStateException("Service local desconectado")
+                val asset = gateway.deviceAssets().firstOrNull { it.id == assetId }
+                    ?: throw IllegalArgumentException("Ativo Android não encontrado no inventário")
+                val serial = asset.attributes["adb_serial"]
+                    ?: throw IllegalStateException("O ativo não possui serial ADB")
+                engine = connectOperationEngine()
+                    ?: throw IllegalStateException("Motor operacional indisponível")
+                val session = engine.createSession("RED Mobile: inventário de pacotes", setOf(assetId))
+                sessionId = session.id
+                mutableState.update { it.copy(operationalSessionId = session.id, operationalMessage = null) }
+                val execution = engine.submit(
+                    session.id,
+                    "android.adb.package-inventory",
+                    assetIds = setOf(assetId),
+                    parameters = mapOf("serial" to serial)
+                )
+                val result = engine.awaitExecution(execution.id, java.time.Duration.ofSeconds(50))
+                    ?: throw IllegalStateException("Inventário de pacotes não retornou resultado")
+                if (result.state != com.khalinux.runtime.operations.LabExecutionState.SUCCEEDED) {
+                    throw IllegalStateException(result.errorSummary ?: "Falha no inventário de pacotes")
+                }
+                val output = engine.evidenceForExecution(execution.id)
+                    .firstOrNull { it.kind == "process.stdout" }
+                    ?.let { engine.evidenceBytes(it.id) }
+                    ?.let { String(it, Charsets.UTF_8) }.orEmpty()
+                val packages = AndroidPackageInventoryParser.parse(output)
+                if (packages.isEmpty()) throw IllegalStateException("O Package Manager não retornou pacotes interpretáveis")
+                mutableState.update {
+                    it.copy(
+                        packageInventory = packages,
+                        packageInventoryAssetId = assetId,
+                        packageInventoryLoading = false,
+                        packageInventoryError = null,
+                        operationalExecutions = engine.executions(session.id),
+                        operationalEvents = engine.events(session.id)
+                    )
+                }
+            } catch (error: Exception) {
+                mutableState.update {
+                    it.copy(
+                        packageInventoryLoading = false,
+                        packageInventoryError = error.message ?: "Falha ao inventariar pacotes Android"
+                    )
+                }
+            } finally {
+                sessionId?.let { id -> engine?.closeSession(id) }
             }
         }
     }
