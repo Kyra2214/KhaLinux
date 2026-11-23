@@ -1,6 +1,6 @@
 # RED-01 — Wi-Fi público, portal local e navegação
 
-**Estado:** RED-2 a RED-7 implementados em código: hotspot, servidor 8080, portal natural, login local fictício, acesso direto, formulário sintético, navegação local e modo participante Android. RED-13 (validação final) pendente; implementação RED-0 a RED-12 concluída em código/documentação.  
+**Estado:** RED-2 a RED-7 implementados em código: hotspot, servidor 8080, portal natural, login local fictício, acesso direto, formulário sintético, navegação local e modo participante Android. Implementação RED-0 a RED-12 concluída. CI automatizado RED-13 aprovado; validação física com dois aparelhos e compatibilidade ainda pendentes.  
 **Roadmap:** `docs/roadmap-area-red-estagio-01-wifi-publico.md`
 
 ## Objetivo
