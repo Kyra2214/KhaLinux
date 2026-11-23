@@ -35,6 +35,10 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
+    if (state.participantMode) {
+        RedParticipantScreen(onExit = viewModel::exitParticipantMode)
+        return
+    }
     val clipboard = LocalClipboardManager.current
     val context = LocalContext.current
     val reportContent = remember { androidx.compose.runtime.mutableStateOf("") }
@@ -50,7 +54,10 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                 Text("ÁREA RED", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.error)
                 Text("Operações práticas em laboratório autorizado.", style = MaterialTheme.typography.bodySmall)
             }
-            TextButton(onClick = viewModel::refreshHistory) { Text("Histórico") }
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                TextButton(onClick = viewModel::enterParticipantMode) { Text("Modo participante") }
+                TextButton(onClick = viewModel::refreshHistory) { Text("Histórico") }
+            }
         }
         Card(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -112,6 +119,12 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
             state.session?.let { session ->
                 Text("Sessão: ${session.state} · ${session.completedSteps.size}/${operation.steps.size} etapas")
                 Text("Rede: ${state.networkState}", style = MaterialTheme.typography.bodySmall)
+                state.participantToken?.let { token ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text("Código de pareamento: $token", style = MaterialTheme.typography.bodySmall)
+                        TextButton(onClick = { clipboard.setText(AnnotatedString(token)) }) { Text("Copiar") }
+                    }
+                }
                 state.hotspotSnapshot?.let { snapshot ->
                     Text(snapshot.message, style = MaterialTheme.typography.bodySmall)
                     snapshot.ssid?.let { Text("SSID: $it", style = MaterialTheme.typography.bodySmall) }
