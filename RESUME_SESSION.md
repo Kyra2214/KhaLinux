@@ -101,3 +101,11 @@
 - Documentação: docs/blue-area.md, docs/red-area.md, docs/red-operation-01.md, docs/user-guide.md e ARCHITECTURE.md.
 - Próximo: RED-11 — tutorial e documentação de aula.
 - Sem ZIP, sem testes/builds, sem merge.
+
+## Execução contínua RED — atualização após RED-11
+
+- RED-0 a RED-11 concluídos em código/documentação: **86% (12/14)**.
+- RED-11: guia do instrutor em docs/red-instructor-guide.md, roteiro rápido dentro da tela RED, user guide e documentos RED/BLUE atualizados.
+- Próximo: RED-12 — fechamento da implementação e congelamento.
+- Ainda pendente após RED-12: RED-13 validação final (testes, builds e testes físicos). Não antecipar.
+- Sem ZIP, sem testes/builds, sem merge.
