@@ -30,6 +30,14 @@ data class RedHotspotSnapshot(
     val androidFailureCode: Int? = null
 )
 
+/** Submissão com valores de laboratório, mantida somente em memória durante a sessão ativa. */
+data class RedSyntheticSubmission(
+    val timestamp: Long = System.currentTimeMillis(),
+    val fields: Map<String, String>,
+    val accepted: Boolean,
+    val message: String
+)
+
 /** Observação de uma requisição local. Valores de formulário nunca pertencem a este modelo persistente. */
 data class RedRequestObservation(
     val id: String = UUID.randomUUID().toString(),
