@@ -13,7 +13,7 @@ object PackageManifestParser {
         "download_bytes", "installed_bytes", "verification", "validation", "dependencies",
         "limitations", "requires_network", "tags"
     )
-    private val SOURCE_KEYS = setOf("type", "url", "apt_name")
+    private val SOURCE_KEYS = setOf("type", "url", "apt_name", "apt_suite", "apt_uri")
     private val VERIFICATION_KEYS = setOf("sha256", "evidence")
     private val DEPENDENCY_KEYS = setOf("name", "min_version")
 
@@ -34,7 +34,9 @@ object PackageManifestParser {
             source = PackageSource(
                 type = PackageSourceType.fromId(string(source, "type")),
                 url = optionalString(source, "url"),
-                aptName = optionalString(source, "apt_name")
+                aptName = optionalString(source, "apt_name"),
+                aptSuite = optionalString(source, "apt_suite"),
+                aptUri = optionalString(source, "apt_uri")
             ),
             downloadBytes = optionalLong(root, "download_bytes"),
             installedBytes = optionalLong(root, "installed_bytes"),

@@ -70,7 +70,11 @@ data class PackageSource(
     /** URL HTTPS do artefato (github-release / khalinux-repository) ou nulo para debian-apt. */
     val url: String?,
     /** Nome do pacote no repositório APT (apenas debian-apt). */
-    val aptName: String?
+    val aptName: String?,
+    /** Suite APT adicional exigida por este pacote, ex.: bookworm-backports. */
+    val aptSuite: String? = null,
+    /** Snapshot HTTPS fixado da suite adicional. */
+    val aptUri: String? = null
 ) {
     init {
         when (type) {
@@ -79,6 +83,19 @@ data class PackageSource(
                     throw PackageManifestException("Nome APT inválido: '$aptName'")
                 }
                 if (url != null) throw PackageManifestException("debian-apt não aceita URL direta")
+                if ((aptSuite == null) != (aptUri == null)) {
+                    throw PackageManifestException("aptSuite e aptUri devem ser informados juntos")
+                }
+                if (aptSuite != null && !APT_SUITE.matches(aptSuite)) {
+                    throw PackageManifestException("Suite APT inválida: '$aptSuite'")
+                }
+                if (aptUri != null) {
+                    val uri = runCatching { URI(aptUri) }.getOrNull()
+                        ?: throw PackageManifestException("URI APT inválida: '$aptUri'")
+                    if (!"https".equals(uri.scheme, ignoreCase = true) || uri.host.isNullOrBlank() || uri.userInfo != null) {
+                        throw PackageManifestException("Suite APT adicional exige URI HTTPS sem credenciais")
+                    }
+                }
             }
             PackageSourceType.GITHUB_RELEASE, PackageSourceType.KHALINUX_REPOSITORY -> {
                 if (url.isNullOrBlank()) throw PackageManifestException("URL ausente para origem ${type.id}")
@@ -89,12 +106,14 @@ data class PackageSource(
                 }
                 if (uri.userInfo != null) throw PackageManifestException("URL não pode conter credenciais")
                 if (aptName != null) throw PackageManifestException("${type.id} não aceita aptName")
+                if (aptSuite != null || aptUri != null) throw PackageManifestException("${type.id} não aceita suite APT")
             }
         }
     }
 
     private companion object {
         val APT_NAME = Regex("[a-z0-9][a-z0-9+.-]+")
+        val APT_SUITE = Regex("[a-z0-9][a-z0-9-]{0,31}")
     }
 }
 
