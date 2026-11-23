@@ -51,3 +51,5 @@ A direção do produto foi corrigida em 2026-11-23. O roadmap operacional está 
 - [ ] Confirmar comportamento IPv4/IPv6, incluindo endereços IPv6 com escopo quando suportados pelo ADB/rede.
 
 O pacote ADB permanece `unverified` até a execução dessas verificações. Nenhuma atividade desta lista foi executada durante a implementação.
+
+- [ ] LAB-3.1: conferir parser de `pm list packages -f -i -U --show-versioncode` em versões Android distintas, campos opcionais, caminhos de sistema/dados/APEX e preservação da evidência integral.

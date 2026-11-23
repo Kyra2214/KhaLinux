@@ -2,7 +2,7 @@
 
 **Direção revisada:** 2026-11-23  
 **Roadmap operacional:** [roadmap-area-red-completa.md](roadmap-area-red-completa.md)  
-**Estado:** o motor de operações e a base de inventário/conexão Android (LAB-1/LAB-2) estão implementados. O RED Mobile operacional começa no LAB-3; reconhecimento de rede, Wi-Fi e Web seguem nos módulos seguintes. O protótipo antigo de hotspot/portal permanece classificado como protótipo.
+**Estado:** o motor de operações e a base de inventário/conexão Android (LAB-1/LAB-2) estão implementados. O LAB-3.1 já consulta e estrutura o inventário real de pacotes Android; permissões/AppOps e avaliação de APK seguem no LAB-3. O protótipo antigo de hotspot/portal permanece classificado como protótipo.
 
 ## Função
 

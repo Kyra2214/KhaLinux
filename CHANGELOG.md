@@ -1,3 +1,18 @@
+## [Não lançado] — LAB-3.1: inventário de pacotes Android
+
+### Implementado
+- Operação ADB `pm list packages -f -i -U --show-versioncode` integrada ao catálogo.
+- Parser estruturado de nome, caminho, instalador, UID, versionCode e partição de origem.
+- Execução associada ao ativo Android, com stdout/stderr, exit code, duração e evidência persistida.
+- RED ViewModel e painel operacional com atualização de inventário, descoberta mDNS, pareamento/conexão e consulta de pacotes.
+- Removido o card repetitivo de avisos de autorização do RED; erros e estados técnicos continuam disponíveis.
+
+### Estado
+- LAB-3.1 concluído; LAB-3.2 (permissões e AppOps) é o próximo submódulo.
+- Nenhum teste, build, compilação ou validação executado. Validação acumulada para LAB-10.
+
+---
+
 ## [Não lançado] — LAB-2: inventário e conectividade Android
 
 ### Implementado

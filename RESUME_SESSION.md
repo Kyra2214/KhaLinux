@@ -17,8 +17,9 @@
 - LAB-0 concluído em código/documentação: inventário em `docs/lab-0-inventory.md`, contratos em `android/runtime/.../operations/LabOperationModels.kt`, parser em `android/app/.../operations/OperationCatalogJson.kt` e catálogo em `distribution/lab/operation-catalog.json`.
 - LAB-1 parcialmente implementado: motor, persistência, evidências, fila/cancelamento/timeout, CLI `khalab` e integração RootFS/ADB/RED/BLUE. Pendências: número do sinal Unix (status bruto waitpid) e pré-condições completas de dependências/capacidades. Ver `docs/lab-1-engine.md`.
 - LAB-2 implementação concluída: inventário local/remoto, LabAssetStore, mDNS, ADB Wireless debugging, servidor persistente, operações de pareamento/conexão/consulta, pacote ADB ARM64 e integração RED/BLUE. Ver `docs/lab-2-device-connectivity.md`.
-- Pendências LAB-2: pacote ADB permanece unverified; RootFS não foi reconstruído; testes de instalação, servidor PRoot, mDNS, pareamento e dois aparelhos ficam no LAB-10.
-- Progresso do laboratório operacional: 23% (LAB-0 concluído; LAB-1 parcial; LAB-2 implementação concluída, validação pendente). Próximo módulo: LAB-3 — RED Mobile.
+- LAB-3.1 concluído: inventário de pacotes Android via `pm list packages -f -i -U --show-versioncode`, parser estruturado, evidência persistida e painel RED para dispositivos/pacotes. Ver `docs/lab-3-mobile.md`.
+- Próximo submódulo: LAB-3.2 — permissões solicitadas/concedidas/negadas, flags e AppOps.
+- Progresso do laboratório operacional: 26% (LAB-0 concluído; LAB-1 parcial; LAB-2 implementação concluída; LAB-3.1 concluído). Nenhum teste/build foi executado; validações acumuladas para LAB-10.
 - Nenhum teste/build foi executado; validações acumuladas para LAB-10. Nenhum ZIP/checkpoint gerado.
 - HEAD de referência: `5e80c80b669f484985b4e1c880c70a460b4641b6` antes desta atualização de retomada.
 - Comparação Git verificada: `plan/laboratorio-operacional` 69 commits à frente e 0 atrás de `main`; base `main` em `e5a19c8aa969f8616bda99d4cd23628c682b764e`. Nenhum PR criado; `main` permanece inalterada.

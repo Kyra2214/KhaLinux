@@ -136,18 +136,19 @@ A interface não gera sucesso por conta própria. Não há evento de conclusão 
 **Aceite de implementação:** descoberta, pareamento, conexão, inventário e consultas são operações reais com resultados do Android, sem eventos fixos de sucesso. A interface final fica no LAB-9. A validação do pacote ARM64/PRoot e os testes físicos com dois aparelhos ficam no LAB-10.
 
 ### LAB-3 — RED Mobile: avaliação operacional Android
-- Inventariar pacotes instalados, versões, SDK, arquitetura e origem quando disponível.
-- Consultar permissões concedidas, recusadas e configurações relevantes.
-- Inspecionar manifests e componentes declarados de APKs fornecidos ao laboratório.
-- Analisar componentes exportados, intents, deep links e superfícies de interação.
-- Consultar logs do sistema e da aplicação disponíveis pelo canal conectado.
-- Instalar, atualizar, iniciar, parar e remover APKs de teste.
-- Executar verificações dinâmicas sobre aplicativos e serviços de teste.
-- Verificar armazenamento, backups, configurações de rede e superfícies de exposição disponíveis.
-- Integrar ferramentas reais do toolkit e registrar comandos, versões e resultados.
-- Organizar cada avaliação em operações independentes, repetíveis e comparáveis.
 
-**Aceite:** o RED produz inventário, achados e evidências originados do aparelho e das ferramentas, sem preencher resultados de exemplo.
+<badge color="warning">Em implementação</badge> **LAB-3.1 concluído; próximo LAB-3.2.** Detalhes: [`lab-3-mobile.md`](lab-3-mobile.md).
+
+- [x] LAB-3.1 — Inventário de pacotes: nome, caminho, instalador, UID, versionCode e partição, coletados pelo Package Manager real do aparelho. Saída original preservada como evidência e resultado estruturado exibido no RED.
+- [ ] LAB-3.2 — Permissões: solicitadas, instaladas, runtime concedidas/negadas, flags, AppOps e privilégios relevantes por pacote.
+- [ ] LAB-3.3 — Entrada de APK: seleção de arquivo, staging íntegro no home compartilhado, hash e inspeção estática do manifesto.
+- [ ] LAB-3.4 — Componentes: activities, aliases, services, receivers, providers, exported, permissões de componente, intent-filters e deep links.
+- [ ] LAB-3.5 — Logs: logcat filtrado por pacote/processo, eventos de atividade, falhas e evidências com janela temporal.
+- [ ] LAB-3.6 — Ciclo de APK: instalar, atualizar, iniciar, parar e desinstalar APKs de teste via ADB, registrando o resultado real de cada operação.
+- [ ] LAB-3.7 — Verificações dinâmicas: superfícies de interação, armazenamento, backups, configurações de rede e comportamento observável no dispositivo.
+- [ ] LAB-3.8 — Ferramentas e relatório: integrar toolkit disponível, normalizar achados, comparar execuções e relacionar evidências.
+
+**Aceite:** o RED produz inventário, achados e evidências originados do aparelho e das ferramentas, sem preencher resultados de exemplo. A interface completa e relatórios consolidados permanecem no LAB-9; testes e validação física ficam no LAB-10.
 
 ### LAB-4 — RED Network: reconhecimento e análise de rede
 - Inventariar interfaces, rotas, DNS, gateway e endereços.

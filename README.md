@@ -2,7 +2,7 @@
 
 Ambiente Linux ARM64 para Android, executado localmente e sem root, cuja finalidade principal é executar um laboratório operacional de cibersegurança RED/BLUE/PURPLE. O Linux, o runtime Android, o terminal e o toolkit formam a infraestrutura do laboratório.
 
-> **Status:** LAB-0 concluído; LAB-1 parcialmente implementado; LAB-2 com implementação concluída e validação final pendente. O próximo módulo é RED Mobile (LAB-3). APK Release e testes físicos continuam reservados à etapa final (ver [`ROADMAP.md`](ROADMAP.md) e [`docs/roadmap-area-red-completa.md`](docs/roadmap-area-red-completa.md)).
+> **Status:** LAB-0 concluído; LAB-1 parcialmente implementado; LAB-2 implementado; LAB-3.1 (inventário de pacotes Android) concluído. O próximo submódulo é LAB-3.2 (permissões e AppOps). APK Release e testes físicos continuam reservados à etapa final (ver [`ROADMAP.md`](ROADMAP.md) e [`docs/roadmap-area-red-completa.md`](docs/roadmap-area-red-completa.md)).
 
 ## Visão
 

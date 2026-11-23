@@ -10,7 +10,7 @@
 
 **Infraestrutura e módulos-base:** implementados em código em grande parte; validação integrada e física ainda pendentes. **Laboratório operacional:** replanejado em 2026-11-23; não está concluído. **Validação final: PARCIAL** — CI nº 284 passou no commit `49648c9a7bed05fddce2053aae28ebab0aa9902c`: testes unitários Android, compilação APK Debug, verificações host, auditoria estática, JNI/PTy e smoke test PRoot. APK Release assinado e testes físicos ainda pendentes; detalhes em `docs/final-validation.md`.
 
-**Branch da revisão operacional:** `plan/laboratorio-operacional` · **Laboratório operacional:** 23% (LAB-0 concluído; LAB-1 parcial com duas pendências técnicas; LAB-2 implementação concluída, validação final pendente). **Próximo submódulo:** LAB-3 — RED Mobile. Não gerar ZIP/checkpoints.
+**Branch da revisão operacional:** `plan/laboratorio-operacional` · **Laboratório operacional:** 26% (LAB-0 concluído; LAB-1 parcial; LAB-2 implementação concluída; LAB-3.1 concluído). **Próximo submódulo:** LAB-3.2 — permissões e AppOps Android. Não gerar ZIP/checkpoints.
 
 | # | Submódulo | Estado |
 |---|---|---|
