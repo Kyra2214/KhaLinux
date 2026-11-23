@@ -98,7 +98,7 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                 item {
                     Text("Histórico recente", style = MaterialTheme.typography.titleMedium)
                     state.history.take(100).forEach { session ->
-                        Text("${session.operationId} · ${session.state} · ${session.events.size} eventos", style = MaterialTheme.typography.bodySmall)
+                        Text("${session.operationId} · ${session.state} · ${session.portalMode} · ${session.events.size} eventos", style = MaterialTheme.typography.bodySmall)
                         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                             TextButton(onClick = { clipboard.setText(AnnotatedString(viewModel.report(session))) }) { Text("Copiar relatório") }
                             TextButton(onClick = { reportContent.value = viewModel.report(session); exportReport.launch("relatorio-red.md") }) { Text("Exportar") }
