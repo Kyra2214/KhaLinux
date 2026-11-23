@@ -31,7 +31,8 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
     private val store = RedSessionStore(application)
     private val portal = RedPortalServer(
         onEvent = { detail -> recordRuntimeEvent(detail) },
-        onAddress = { address -> mutableState.update { it.copy(portalAddress = address) } }
+        onAddress = { address -> mutableState.update { it.copy(portalAddress = address) } },
+        onRequest = { observation -> recordRequest(observation) }
     )
     private val hotspot = RedHotspotController(application) { snapshot ->
         val info = buildList {
@@ -76,7 +77,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         if (snapshot.state == RedNetworkState.HOTSPOT_READY) {
             mutableState.update { it.copy(networkState = RedNetworkState.STARTING_SERVER) }
             try {
-                val address = portal.start()
+                val address = portal.start(snapshot.ipv4Address)
                 mutableState.update {
                     it.copy(networkRunning = true, portalAddress = address, networkState = RedNetworkState.WAITING_PARTICIPANT)
                 }
