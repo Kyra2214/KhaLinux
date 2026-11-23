@@ -225,6 +225,8 @@ class RedPortalServer(
                 )
                 if (method == "GET" && path == "/") {
                     onEvent("Portal de treinamento acessado pelo aparelho participante.")
+                } else {
+                    Unit
                 }
             } catch (error: Exception) {
                 status = if (error is SocketTimeoutException) 408 else 400
