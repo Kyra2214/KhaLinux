@@ -4,7 +4,7 @@
 **Branch:** `plan/area-red-wifi-publico`  
 **Repositório:** `Kyra2214/KhaLinux`  
 **Escopo:** protótipo pessoal de laboratório, com dois aparelhos Android controlados pelo instrutor.  
-**Progresso de implementação:** RED-0 a RED-11 concluídos em documentação/código (12 de 14 submódulos, 86%); RED-12 é o próximo. A execução continua na mesma branch, sem ZIP e sem validações antecipadas. Validação permanece pendente e será feita somente ao final.  
+**Progresso de implementação:** RED-0 a RED-12 concluídos em documentação/código (13 de 14 submódulos, 93%); RED-13 é a única fase pendente e corresponde à validação final. A execução continua na mesma branch, sem ZIP e sem validações antecipadas. Validação permanece pendente e será feita somente ao final.  
 **Validação:** reservada para depois de concluir todo o roadmap. Nenhum teste/build será executado durante a implementação.
 
 ---
@@ -18,7 +18,7 @@
 | RED-2 — hotspot e conexão | Concluído em código | LocalOnlyHotspot, dados expostos pelo Android e atividade do participante inferida por requisição real; Android não expõe lista universal de clientes |
 | RED-3 a RED-13 | Pendente | executar em sequência após RED-2 |
 
-**Percentual de implementação do roadmap RED:** 86% (12/14 submódulos).  
+**Percentual de implementação do roadmap RED:** 93% (13/14 submódulos).  
 **Validação:** não executada por instrução; todos os testes e builds permanecem acumulados para RED-13.  
 **Checkpoint ZIP:** desativado por instrução explícita do usuário; trabalhar somente na branch Git indicada.
 
@@ -303,13 +303,12 @@ O BLUE não deve inventar alertas ou detecções. Cada conclusão deve apontar p
 - Guia de gravação de vídeo focado na experiência e nos resultados, sem exibir código.
 - Solução de problemas de hotspot, endereço, porta 8080, navegador e permissões.
 
-### RED-12 — Fechamento da implementação e congelamento
-- Revisar integração e consistência documental.
-- Atualizar changelog, arquitetura, guia e retomada.
-- Marcar cada fase como implementada somente após alteração de código/documentação correspondente.
-- Consolidar lista única de validação final.
-- Gerar checkpoint completo.
-- Não fazer merge em `main` sem autorização explícita.
+### RED-12 — Fechamento da implementação e congelamento <sub>CONCLUÍDO</sub>
+- Integração RED/BLUE e ciclo de encerramento revisados no código.
+- Changelog, arquitetura, guias, roadmap e retomada atualizados.
+- Pendências de validação consolidadas em `docs/red-implementation-freeze.md`.
+- ZIP/checkpoints omitidos por instrução explícita do usuário.
+- Branch preservada; nenhum merge em `main`.
 
 ### RED-13 — Validação final (somente após RED-0 a RED-12)
 - Testes unitários e de integração.
