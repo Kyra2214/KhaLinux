@@ -350,6 +350,20 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         runOperationalOperation("android.adb.disconnect", mapOf("endpoint" to endpoint.endpoint), emptySet())
     }
 
+    /** Fallback manual quando o roteador/hotspot não propaga mDNS. */
+    fun pairDevice(host: String, port: Int, pairingCode: String) {
+        pairDiscoveredDevice(
+            AdbMdnsEndpoint("manual-pairing", "Manual", "_adb-tls-pairing._tcp.", host, port, AdbMdnsKind.PAIRING),
+            pairingCode
+        )
+    }
+
+    fun connectDevice(host: String, port: Int) {
+        connectDiscoveredDevice(
+            AdbMdnsEndpoint("manual-connect", "Manual", "_adb-tls-connect._tcp.", host, port, AdbMdnsKind.CONNECT)
+        )
+    }
+
     override fun onCleared() {
         operationEventSubscription?.close()
         operationEventSubscription = null
