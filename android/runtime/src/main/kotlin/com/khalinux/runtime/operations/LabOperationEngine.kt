@@ -26,11 +26,11 @@ class LabOperationEngine(
     private val catalog: LabOperationCatalog,
     private val store: LabOperationStore,
     private val evidence: LabEvidenceStore,
-    private val adbClient: AdbClient? = null,
     maxConcurrent: Int = 2,
     maxQueued: Int = 32,
     private val clock: () -> Long = System::currentTimeMillis,
-    private val maxOutputBytes: Int = 2 * 1024 * 1024
+    private val maxOutputBytes: Int = 2 * 1024 * 1024,
+    private val adbClient: AdbClient? = null
 ) : Closeable {
     private class JobControl {
         val cancellationRequested = AtomicBoolean(false)
