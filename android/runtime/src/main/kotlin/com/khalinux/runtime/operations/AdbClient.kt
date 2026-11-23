@@ -58,8 +58,7 @@ class AdbClient(
             }
             val help = collect(startOperationCommand(listOf("help"), Duration.ofSeconds(8)))
             val helpText = (help.stdout + "\n" + help.stderr).lowercase()
-            val pairing = help.exitCode == 0 && helpText.contains("adb pair") &&
-                !helpText.contains("unknown command")
+            val pairing = helpText.contains("adb pair") && !helpText.contains("unknown command")
             AdbCapabilities(
                 installed = true,
                 versionOutput = version.stdout.ifBlank { version.stderr }.trim(),
@@ -136,12 +135,8 @@ class AdbClient(
                     try {
                         for (event in started.events()) {
                             when (event) {
-                                is RuntimeEvent.Stdout -> synchronized(lock) {
-                                    serverOutput.append(String(event.bytes, Charsets.UTF_8).take(8192))
-                                }
-                                is RuntimeEvent.Stderr -> synchronized(lock) {
-                                    serverOutput.append(String(event.bytes, Charsets.UTF_8).take(8192))
-                                }
+                                is RuntimeEvent.Stdout -> appendServerOutput(event.bytes)
+                                is RuntimeEvent.Stderr -> appendServerOutput(event.bytes)
                                 is RuntimeEvent.Exited, is RuntimeEvent.Failed -> break
                                 is RuntimeEvent.Started -> Unit
                             }
@@ -157,6 +152,14 @@ class AdbClient(
             }
         }
         awaitServerReady(session)
+    }
+
+    private fun appendServerOutput(bytes: ByteArray) {
+        val text = String(bytes, Charsets.UTF_8)
+        synchronized(lock) {
+            val remaining = 64 * 1024 - serverOutput.length
+            if (remaining > 0) serverOutput.append(text.take(remaining))
+        }
     }
 
     private fun awaitServerReady(session: RuntimeSession) {
