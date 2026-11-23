@@ -21,6 +21,8 @@ import com.khalinux.runtime.operations.LabAsset
 import com.khalinux.runtime.operations.AdbCapabilities
 import com.khalinux.runtime.operations.AndroidPackageEntry
 import com.khalinux.runtime.operations.AndroidPackageInventoryParser
+import com.khalinux.runtime.operations.AndroidPackageSecurityParser
+import com.khalinux.runtime.operations.AndroidPackageSecurityReport
 import com.khalinux.android.devices.AdbMdnsDiscovery
 import com.khalinux.android.devices.AdbMdnsEndpoint
 import com.khalinux.android.devices.AdbMdnsKind
@@ -53,6 +55,9 @@ data class RedUiState(
     val packageInventoryAssetId: String? = null,
     val packageInventoryLoading: Boolean = false,
     val packageInventoryError: String? = null,
+    val packageSecurityReport: AndroidPackageSecurityReport? = null,
+    val packageSecurityLoading: Boolean = false,
+    val packageSecurityError: String? = null,
     val operationalSessionId: String? = null,
     val operationalExecutions: List<LabExecutionRecord> = emptyList(),
     val operationalEvents: List<LabEventRecord> = emptyList(),
@@ -341,6 +346,89 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                     it.copy(
                         packageInventoryLoading = false,
                         packageInventoryError = error.message ?: "Falha ao inventariar pacotes Android"
+                    )
+                }
+            } finally {
+                sessionId?.let { id -> engine?.closeSession(id) }
+            }
+        }
+    }
+
+
+    /** Coleta permissões declaradas/concedidas e modos AppOps do pacote no Android conectado. */
+    fun loadPackageSecurity(assetId: String, packageName: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            var engine: LabOperationEngine? = null
+            var sessionId: String? = null
+            mutableState.update {
+                it.copy(packageSecurityReport = null, packageSecurityLoading = true, packageSecurityError = null)
+            }
+            try {
+                require(packageName.matches(Regex("^[A-Za-z0-9_]+(?:\\\\.[A-Za-z0-9_]+)*$"))) {
+                    "Nome de pacote Android inválido"
+                }
+                val gateway = runtimeGateway ?: throw IllegalStateException("Service local desconectado")
+                val asset = gateway.deviceAssets().firstOrNull { it.id == assetId }
+                    ?: throw IllegalArgumentException("Ativo Android não encontrado no inventário")
+                val serial = asset.attributes["adb_serial"]
+                    ?: throw IllegalStateException("O ativo não possui serial ADB")
+                val activeEngine = connectOperationEngine()
+                    ?: throw IllegalStateException("Motor operacional indisponível")
+                engine = activeEngine
+                val session = activeEngine.createSession("RED Mobile: permissões e AppOps", setOf(assetId))
+                sessionId = session.id
+                mutableState.update { it.copy(operationalSessionId = session.id, operationalMessage = null) }
+
+                fun outputFor(executionId: String): String =
+                    activeEngine.evidenceForExecution(executionId)
+                        .firstOrNull { it.kind == "process.stdout" }
+                        ?.let { activeEngine.evidenceBytes(it.id) }
+                        ?.let { String(it, Charsets.UTF_8) }.orEmpty()
+
+                val permissionExecution = activeEngine.submit(
+                    session.id, "android.adb.package-security",
+                    assetIds = setOf(assetId),
+                    parameters = mapOf("serial" to serial, "package_name" to packageName)
+                )
+                val permissionResult = activeEngine.awaitExecution(permissionExecution.id, java.time.Duration.ofSeconds(35))
+                    ?: throw IllegalStateException("Consulta de permissões não retornou resultado")
+                if (permissionResult.state != com.khalinux.runtime.operations.LabExecutionState.SUCCEEDED) {
+                    throw IllegalStateException(permissionResult.errorSummary ?: "Falha ao consultar permissões")
+                }
+                val packageOutput = outputFor(permissionExecution.id)
+
+                val appOpsExecution = activeEngine.submit(
+                    session.id, "android.adb.package-appops",
+                    assetIds = setOf(assetId),
+                    parameters = mapOf("serial" to serial, "package_name" to packageName)
+                )
+                val appOpsResult = activeEngine.awaitExecution(appOpsExecution.id, java.time.Duration.ofSeconds(30))
+                    ?: throw IllegalStateException("Consulta AppOps não retornou resultado")
+                if (appOpsResult.state != com.khalinux.runtime.operations.LabExecutionState.SUCCEEDED) {
+                    throw IllegalStateException(appOpsResult.errorSummary ?: "Falha ao consultar AppOps")
+                }
+                val appOpsOutput = outputFor(appOpsExecution.id)
+                val report = AndroidPackageSecurityReport(
+                    packageName = packageName,
+                    permissions = AndroidPackageSecurityParser.permissions(packageOutput),
+                    appOps = AndroidPackageSecurityParser.appOps(appOpsOutput),
+                    rawPackageDetails = packageOutput,
+                    rawAppOps = appOpsOutput
+                )
+                mutableState.update {
+                    it.copy(
+                        packageSecurityReport = report,
+                        packageSecurityLoading = false,
+                        packageSecurityError = null,
+                        operationalExecutions = activeEngine.executions(session.id),
+                        operationalEvents = activeEngine.events(session.id)
+                    )
+                }
+            } catch (error: Exception) {
+                mutableState.update {
+                    it.copy(
+                        packageSecurityLoading = false,
+                        packageSecurityError = error.message ?: "Falha ao consultar permissões e AppOps"
                     )
                 }
             } finally {

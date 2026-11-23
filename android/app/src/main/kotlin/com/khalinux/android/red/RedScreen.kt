@@ -412,10 +412,41 @@ private fun AndroidDevicePanel(state: RedUiState, viewModel: RedViewModel) {
                         if (state.packageInventory.isNotEmpty()) {
                             Text("Pacotes encontrados: ${state.packageInventory.size}", style = MaterialTheme.typography.labelMedium)
                             state.packageInventory.take(30).forEach { item ->
-                                Text(
-                                    "${item.packageName} · ${item.origin.name} · UID ${item.uid ?: "?"} · v${item.versionCode ?: "?"}",
-                                    style = MaterialTheme.typography.bodySmall
-                                )
+                                Row(
+                                    Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Column(Modifier.weight(1f)) {
+                                        Text(item.packageName, style = MaterialTheme.typography.bodySmall)
+                                        Text(
+                                            "${item.origin.name} · UID ${item.uid ?: "?"} · v${item.versionCode ?: "?"}",
+                                            style = MaterialTheme.typography.labelSmall
+                                        )
+                                    }
+                                    TextButton(onClick = { viewModel.loadPackageSecurity(asset.id, item.packageName) }) {
+                                        Text("Permissões")
+                                    }
+                                }
+                            }
+
+                            if (state.packageSecurityLoading) Text("Consultando permissões e AppOps…")
+                            state.packageSecurityError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                            state.packageSecurityReport?.takeIf { it.packageName.isNotBlank() }?.let { report ->
+                                Text("Permissões · ${report.packageName}", style = MaterialTheme.typography.titleSmall)
+                                Text("Registros: ${report.permissions.size} permissões · ${report.appOps.size} AppOps", style = MaterialTheme.typography.labelSmall)
+                                report.permissions.take(40).forEach { permission ->
+                                    Text(
+                                        "${permission.name} · ${permission.granted?.let { if (it) "concedida" else "negada" } ?: "estado não informado"}" +
+                                            if (permission.flags.isEmpty()) "" else " · ${permission.flags.joinToString("|")}",
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
+                                }
+                                report.appOps.take(40).forEach { op ->
+                                    Text("AppOp ${op.operation}: ${op.mode}" + if (op.detail.isBlank()) "" else " · ${op.detail}", style = MaterialTheme.typography.bodySmall)
+                                }
+                                if (report.permissions.size > 40 || report.appOps.size > 40) {
+                                    Text("Amostra exibida. Saídas completas de dumpsys e AppOps preservadas nas evidências.", style = MaterialTheme.typography.labelSmall)
+                                }
                             }
                             if (state.packageInventory.size > 30) {
                                 Text("Exibindo 30 de ${state.packageInventory.size}; a saída completa permanece nas evidências.", style = MaterialTheme.typography.bodySmall)
