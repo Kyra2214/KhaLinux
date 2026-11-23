@@ -31,3 +31,10 @@ Catálogo `2026.11.22-5` inclui lynis, chkrootkit e rkhunter (categoria auditori
 - A fonte `bookworm-backports` foi adicionada a `distribution/repositories/debian-bookworm.sources`; a versão fica instalada sob demanda pelo gerenciador de pacotes.
 - A versão 34.0.5 atende ao requisito de pareamento sem fio introduzido no Platform Tools 30.0.0. O pacote permanece `unverified` até a validação final no RootFS ARM64/PRoot e nos dois aparelhos.
 - A integração do KhaLinux usa o transporte sem fio; não presume acesso USB nem root no Android.
+
+## Atualização 5.7 — provisionamento de repositórios APT adicionais
+
+- Manifestos APT podem declarar `apt_suite` e `apt_uri` HTTPS fixados.
+- Antes de atualizar o índice, o instalador provisiona a suite declarada no RootFS e só então resolve a versão exata.
+- O pacote `adb` declara `bookworm-backports` no snapshot `20251122T000000Z`; isso também habilita instalação em RootFS já existente, sem exigir reinstalação.
+- O RootFS novo inclui ADB na base. O manifesto de versões do RootFS só será atualizado quando o artefato for reconstruído na etapa final.

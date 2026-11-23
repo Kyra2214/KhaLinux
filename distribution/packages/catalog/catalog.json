@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "catalog_version": "2026.11.23-6",
+  "catalog_version": "2026.11.23-7",
   "description": "Catálogo: pacotes do RootFS base e Cyber Toolkit (5.2–5.6). Inclui ADB ARM64 de bookworm-backports; versões e compatibilidade em PRoot devem ser confirmadas na validação final.",
   "packages": [
     {
