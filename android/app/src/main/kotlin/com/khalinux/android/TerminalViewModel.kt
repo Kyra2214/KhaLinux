@@ -576,15 +576,15 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
                             buildString {
                                 if (stdout.isNotEmpty()) append(stdout)
                                 if (stderr.isNotEmpty()) {
-                                    if (isNotEmpty() && last() != '\\n') append("\\n")
-                                    append("[stderr]\\n").append(stderr)
+                                    if (isNotEmpty() && last() != '\n') append("\n")
+                                    append("[stderr]\n").append(stderr)
                                 }
                                 append("\\n[").append(result.state).append("]")
                                 result.exitCode?.let { append(" exit=").append(it) }
                                 result.durationMillis?.let { append(" duração=").append(it).append("ms") }
-                                result.errorSummary?.let { append("\\n").append(it) }
+                                result.errorSummary?.let { append("\n").append(it) }
                                 if (isEmpty()) append("Operação concluída sem saída textual.")
-                                append("\\n")
+                                append("\n")
                             }
                         }
                         else -> "Sintaxe inválida. Use: khalab help\n"
@@ -606,7 +606,7 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
                 synchronized(lock) {
                     tabs.get(tabId)?.let { tab ->
                         tab.starting = false
-                        appendOutputLocked(tab, "khalab: ${error.message ?: error.javaClass.simpleName}\\n")
+                        appendOutputLocked(tab, "khalab: ${error.message ?: error.javaClass.simpleName}\n")
                         refreshLocked()
                     }
                 }
