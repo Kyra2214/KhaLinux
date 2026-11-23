@@ -18,6 +18,9 @@ import com.khalinux.runtime.operations.LabExecutionRecord
 import com.khalinux.runtime.operations.LabEventRecord
 import com.khalinux.runtime.operations.LabSessionState
 import com.khalinux.runtime.operations.LabAsset
+import com.khalinux.android.devices.AdbMdnsDiscovery
+import com.khalinux.android.devices.AdbMdnsEndpoint
+import com.khalinux.android.devices.AdbMdnsKind
 
 data class RedUiState(
     val visible: Boolean = false,
@@ -41,6 +44,7 @@ data class RedUiState(
     val participantToken: String? = null,
     val operationalOperations: List<LabOperationDefinition> = emptyList(),
     val operationalAssets: List<LabAsset> = emptyList(),
+    val adbEndpoints: List<AdbMdnsEndpoint> = emptyList(),
     val operationalSessionId: String? = null,
     val operationalExecutions: List<LabExecutionRecord> = emptyList(),
     val operationalEvents: List<LabEventRecord> = emptyList(),
@@ -53,6 +57,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
     @Volatile private var runtimeGateway: TerminalRuntimeGateway? = null
     private var operationEngine: LabOperationEngine? = null
     private var operationEventSubscription: Closeable? = null
+    private var adbDiscovery: AdbMdnsDiscovery? = null
     private val portal = RedPortalServer(
         onEvent = { detail -> recordRuntimeEvent(detail) },
         onAddress = { address -> mutableState.update { it.copy(portalAddress = address) } },
@@ -152,9 +157,11 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             operationEventSubscription?.close()
             operationEventSubscription = null
             operationEngine = null
+            adbDiscovery?.close()
+            adbDiscovery = null
         }
         mutableState.update {
-            it.copy(operationalOperations = emptyList(), operationalAssets = emptyList(), operationalSessionId = null,
+            it.copy(operationalOperations = emptyList(), operationalAssets = emptyList(), adbEndpoints = emptyList(), operationalSessionId = null,
                 operationalExecutions = emptyList(), operationalEvents = emptyList())
         }
     }
@@ -210,7 +217,11 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun runOperationalOperation(operationId: String, parameters: Map<String, String> = emptyMap()) {
+    fun runOperationalOperation(
+        operationId: String,
+        parameters: Map<String, String> = emptyMap(),
+        assetIds: Set<String>? = null
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val engine = connectOperationEngine()
@@ -221,7 +232,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 mutableState.update {
                     it.copy(operationalSessionId = session.id, operationalMessage = null)
                 }
-                engine.submit(session.id, operationId, parameters = parameters)
+                engine.submit(session.id, operationId, assetIds = assetIds, parameters = parameters)
                 mutableState.update {
                     it.copy(
                         operationalExecutions = engine.executions(session.id),
@@ -272,9 +283,70 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun discoverAdbEndpoints() {
+        val discovery = AdbMdnsDiscovery(getApplication())
+        synchronized(operationLock) {
+            adbDiscovery?.close()
+            adbDiscovery = discovery
+        }
+        try {
+            discovery.start(
+                onFound = { endpoint ->
+                    mutableState.update { current ->
+                        current.copy(adbEndpoints =
+                            (current.adbEndpoints.filterNot { it.id == endpoint.id } + endpoint)
+                                .sortedWith(compareBy<AdbMdnsEndpoint> { it.kind.name }.thenBy { it.host }.thenBy { it.port }))
+                    }
+                },
+                onLost = { id ->
+                    mutableState.update { current ->
+                        current.copy(adbEndpoints = current.adbEndpoints.filterNot { it.id == id })
+                    }
+                },
+                onError = { message -> mutableState.update { it.copy(operationalMessage = message) } }
+            )
+        } catch (error: Exception) {
+            mutableState.update { it.copy(operationalMessage = error.message ?: "Falha na descoberta mDNS") }
+        }
+    }
+
+    fun stopAdbDiscovery() {
+        synchronized(operationLock) {
+            adbDiscovery?.close()
+            adbDiscovery = null
+        }
+        mutableState.update { it.copy(adbEndpoints = emptyList()) }
+    }
+
+    fun pairDiscoveredDevice(endpoint: AdbMdnsEndpoint, pairingCode: String) {
+        if (endpoint.kind != AdbMdnsKind.PAIRING) {
+            mutableState.update { it.copy(operationalMessage = "Selecione o endpoint de pareamento do dispositivo") }
+            return
+        }
+        runOperationalOperation(
+            "android.adb.pair",
+            mapOf("endpoint" to endpoint.endpoint, "pairing_code" to pairingCode),
+            emptySet()
+        )
+    }
+
+    fun connectDiscoveredDevice(endpoint: AdbMdnsEndpoint) {
+        if (endpoint.kind != AdbMdnsKind.CONNECT) {
+            mutableState.update { it.copy(operationalMessage = "Selecione o endpoint de conexão do dispositivo") }
+            return
+        }
+        runOperationalOperation("android.adb.connect", mapOf("endpoint" to endpoint.endpoint), emptySet())
+    }
+
+    fun disconnectAdbEndpoint(endpoint: AdbMdnsEndpoint) {
+        runOperationalOperation("android.adb.disconnect", mapOf("endpoint" to endpoint.endpoint), emptySet())
+    }
+
     override fun onCleared() {
         operationEventSubscription?.close()
         operationEventSubscription = null
+        adbDiscovery?.close()
+        adbDiscovery = null
         super.onCleared()
     }
 
