@@ -22,7 +22,7 @@ class RedHotspotController(
     @Volatile private var stopRequested = false
 
     fun start() {
-        if (reservation != null || starting) return
+        if (reservation != null || starting || stopRequested) return
         starting = true
         stopRequested = false
         onState(RedHotspotSnapshot(RedNetworkState.REQUESTING_HOTSPOT, "Solicitando hotspot local ao Android."))
