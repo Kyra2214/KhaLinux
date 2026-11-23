@@ -83,3 +83,11 @@
 - RedRequestObservation.safeHeaders mantém somente Host, User-Agent, Accept, Accept-Language, Content-Type e Referer sem query. Cookie e Authorization não entram no modelo.
 - Próximo submódulo: RED-9 — histórico e relatórios.
 - Sem ZIP, sem testes, sem builds e sem merge.
+
+## Execução contínua RED — atualização após RED-9
+
+- RED-0 a RED-9 concluídos em código/documentação: **71% (10/14)**.
+- RED-9 registra o modo do portal na sessão, mantém histórico limitado (100 sessões/300 eventos), marca sessões órfãs como interrompidas e gera relatório com timeline e metadados sem valores sensíveis.
+- Próximo submódulo: RED-10 — integração pedagógica RED ↔ BLUE.
+- Busca de código no estado padrão não encontrou uma tela BLUE existente; verificar branch/estrutura e criar módulo BLUE integrado sem presumir que já existe.
+- Sem ZIP, sem testes/builds, sem merge.
