@@ -15,7 +15,7 @@
 - Exclusão manual do histórico.
 - Adaptador Android para solicitar `LocalOnlyHotspot`.
 - Portal HTTP local vinculado a uma interface Wi-Fi identificada, endereço copiável e QR Code.
-- Portal de demonstração explicitamente identificado como laboratório.
+- Portal de demonstração explicitamente identificado como laboratório, com formulário sintético, fluxo genérico de rede social e botões de permissão simulada (localização/câmera/arquivos), sem solicitar permissões reais.
 
 ## Organização
 
