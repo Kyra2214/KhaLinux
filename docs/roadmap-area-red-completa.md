@@ -4,7 +4,7 @@
 **Branch:** `plan/area-red-wifi-publico`  
 **Repositório:** `Kyra2214/KhaLinux`  
 **Escopo:** protótipo pessoal de laboratório, com dois aparelhos Android controlados pelo instrutor.  
-**Progresso de implementação:** RED-0 a RED-10 concluídos em código/documentação (11 de 14 submódulos, 79%). RED-11 é o próximo submódulo de implementação. RED-13 permanece reservado à validação final. A execução continua na mesma branch, sem ZIP e sem validações antecipadas.  
+**Progresso de implementação:** RED-0 a RED-11 concluídos em código/documentação (12 de 14 submódulos, 86%). RED-12 é o próximo submódulo de implementação. RED-13 permanece reservado à validação final. A execução continua na mesma branch, sem ZIP e sem validações antecipadas.  
 **Validação:** reservada para depois de concluir todo o roadmap. Nenhum teste/build será executado durante a implementação.
 
 ---
@@ -298,14 +298,14 @@ O BLUE não deve inventar alertas ou detecções. Cada conclusão deve apontar p
 - Cada evento apresenta fato registrado e leitura defensiva; eventos não observados não são apresentados como detecções.
 - Validação da alternância e atualização ao vivo permanece acumulada para RED-13.
 
-### RED-11 — Documentação e experiência de aula
-- Tutorial completo no app.
-- Preparação dos dois aparelhos.
-- Roteiro do instrutor e roteiro do participante.
-- Passo a passo de cada cenário.
-- Explicação dos resultados esperados sem prometer comportamentos dependentes do fabricante.
-- Guia de gravação de vídeo focado na experiência e nos resultados, sem exibir código.
-- Solução de problemas de hotspot, endereço, porta 8080, navegador e permissões.
+### RED-11 — Documentação e experiência de aula <sub>CONCLUÍDO EM CÓDIGO/DOCUMENTAÇÃO</sub>
+- Tutorial da Operação 01 integrado ao catálogo e à tela RED.
+- Guia do instrutor cobre preparação dos aparelhos A/B, login local, acesso direto, navegação e permissões.
+- Roteiro de vídeo foca criação da rede, conexão, comportamento e resultados; não expõe código-fonte ou scripts.
+- Troubleshooting cobre hotspot, SSID/senha indisponíveis, endereço, porta 8080, navegador, permissões e reporte de eventos.
+- Guia do usuário corrigido para descrever POST local de campos sintéticos, sem afirmar que o formulário envia apenas evento fixo.
+- Limitações Android/navegador documentadas sem prometer comportamento uniforme entre fabricantes.
+- Validação editorial/funcional final fica acumulada para RED-13.
 
 ### RED-12 — Fechamento da implementação e congelamento <sub>CONCLUÍDO</sub>
 - Integração RED/BLUE e ciclo de encerramento revisados no código.
