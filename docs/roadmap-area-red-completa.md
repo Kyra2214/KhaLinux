@@ -18,7 +18,7 @@
 | RED-2 — hotspot e conexão | Concluído em código | LocalOnlyHotspot, dados expostos pelo Android e atividade do participante inferida por requisição real; Android não expõe lista universal de clientes |
 | RED-3 a RED-13 | Pendente | executar em sequência após RED-2 |
 
-**Percentual de implementação:** 100% (13/13 submódulos RED-0 a RED-12).  \n**Validação final:** 0% concluída; RED-13 pendente.  
+**Percentual de implementação:** 100% (13/13 submódulos RED-0 a RED-12).  \n**Validação final:** 0% concluída; RED-13 pendente por indisponibilidade de execução nesta sessão. O conector não expõe dispatch de workflow e não há checkout local para executar Gradle/testes.  
 **Validação:** fase RED-13 iniciada após RED-12. CI automatizado passou (host, auditoria, JNI/PTy, PRoot, testes unitários e build APK); testes físicos e compatibilidade real continuam pendentes.  
 **Checkpoint ZIP:** desativado por instrução explícita do usuário; trabalhar somente na branch Git indicada.
 
@@ -316,7 +316,7 @@ O BLUE não deve inventar alertas ou detecções. Cada conclusão deve apontar p
 - Branch preservada; nenhum merge em `main`.
 - Nenhum build/teste executado durante esta retomada; validação integral permanece em RED-13.
 
-### RED-13 — Validação final (somente após RED-0 a RED-12)
+### RED-13 — Validação final (somente após RED-0 a RED-12) <sub>PENDENTE — BLOQUEIO DE EXECUÇÃO</sub>
 - Testes unitários e de integração.
 - Build Android e inspeção de artefatos.
 - Testes de ciclo de vida do hotspot/servidor.
