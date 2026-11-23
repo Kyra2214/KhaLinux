@@ -24,7 +24,8 @@ class RedPortalServer(
     private val onAddress: (String?) -> Unit,
     private val onRequest: (RedRequestObservation) -> Unit = {},
     private val onSyntheticSubmission: (RedSyntheticSubmission) -> Unit = {},
-    private val onParticipantEvent: (String, String) -> Unit = { _, _ -> }
+    private val onParticipantEvent: (String, String) -> Unit = { _, _ -> },
+    private val configuredPort: Int = PORT
 ) {
     @Volatile private var socket: ServerSocket? = null
     private val running = AtomicBoolean(false)
@@ -47,9 +48,12 @@ class RedPortalServer(
     fun start(preferredAddress: String? = null, mode: RedPortalMode = portalMode): String {
         if (running.get()) return address ?: error("Portal sem endereço disponível")
         portalMode = mode
+        require(configuredPort in 1024..65535) { "A porta do portal deve estar entre 1024 e 65535." }
         val binding = resolveLabAddress(preferredAddress)
             ?: error("O Android não expôs um IPv4 de interface Wi-Fi/AP do laboratório.")
-        val server = ServerSocket(PORT, BACKLOG, InetAddress.getByName(binding.second))
+        // Bind somente no IPv4 da interface do hotspot; nunca usar 0.0.0.0.
+        // A porta 8080 é o padrão, mas pode ser alterada explicitamente pelo operador.
+        val server = ServerSocket(configuredPort, BACKLOG, InetAddress.getByName(binding.second))
         server.soTimeout = ACCEPT_TIMEOUT_MS
         socket = server
         running.set(true)
