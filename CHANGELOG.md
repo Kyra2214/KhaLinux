@@ -1,3 +1,11 @@
+## [Não lançado] — RED-13: validação automatizada aprovada no HEAD atual
+
+- GitHub Actions `45138571275` concluiu com sucesso para o commit `49648c9a7bed05fddce2053aae28ebab0aa9902c` na branch `plan/area-red-wifi-publico`.
+- Passaram os testes unitários Android, compilação debug APK, verificações RootFS/shell, auditoria estática, JNI/PTy no host e smoke test ARM64/PRoot.
+- Artefato APK debug foi enviado pelo workflow para inspeção.
+- Permanecem pendentes os testes físicos e a compatibilidade real nos dois aparelhos Android.
+- Implementação RED-0..RED-12 permanece 100%; não fazer merge sem autorização e não gerar ZIP.
+
 ## [Não lançado] — RED-13: bloqueio de validação do HEAD atual
 
 - Implementação RED-0 a RED-12: 100% concluída em código/documentação.
