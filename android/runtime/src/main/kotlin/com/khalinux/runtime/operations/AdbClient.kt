@@ -75,9 +75,6 @@ class AdbClient(
     /** Pair port e connect port são distintos no Android Wireless debugging. */
     fun pair(host: String, pairingPort: Int, pairingCode: String): RuntimeSession {
         require(pairingCode.matches(Regex("^[0-9]{6}$"))) { "Código de pareamento deve ter seis dígitos" }
-        val capability = capabilities()
-        require(capability.installed) { capability.detail }
-        require(capability.wirelessPairing) { "A versão instalada do ADB não oferece adb pair" }
         return startOperationCommand(listOf("pair", endpoint(host, pairingPort), pairingCode), Duration.ofSeconds(45))
     }
 
@@ -104,8 +101,15 @@ class AdbClient(
     internal fun startOperationCommand(arguments: List<String>, timeout: Duration): RuntimeSession {
         check(!closed.get()) { "adaptador ADB encerrado" }
         require(arguments.isNotEmpty() && arguments.none { it.isBlank() || it.any(Char::isISOControl) })
+        validateArguments(arguments)
+        if (arguments.first() == "pair") {
+            val capability = capabilities()
+            require(capability.installed && capability.wirelessPairing) {
+                capability.detail.ifBlank { "A versão instalada do ADB não oferece adb pair" }
+            }
+        }
         ensureServer()
-        val shell = arguments.joinToString(" ") { quote(it) }
+        val shell = (listOf("adb") + arguments).joinToString(" ") { quote(it) }
         return runtime.start(CommandRequest(
             shellCommand = "exec " + shell,
             workingDirectory = home,
@@ -214,6 +218,34 @@ class AdbClient(
     private fun appendBounded(output: ByteArrayOutputStream, bytes: ByteArray, limit: Int) {
         val remaining = limit - output.size()
         if (remaining > 0) output.write(bytes, 0, minOf(remaining, bytes.size))
+    }
+
+    private fun validateArguments(arguments: List<String>) {
+        when (arguments.first()) {
+            "pair" -> {
+                require(arguments.size == 3) { "Sintaxe ADB pair inválida" }
+                validateEndpoint(arguments[1])
+                require(arguments[2].matches(Regex("^[0-9]{6}$"))) { "Código de pareamento inválido" }
+            }
+            "connect", "disconnect" -> {
+                require(arguments.size == 2) { "Sintaxe ADB connect/disconnect inválida" }
+                validateEndpoint(arguments[1])
+            }
+            "-s" -> {
+                require(arguments.size >= 3)
+                validSerial(arguments[1])
+            }
+        }
+    }
+
+    private fun validateEndpoint(value: String) {
+        val separator = value.lastIndexOf(':')
+        require(separator > 0 && separator < value.lastIndex) { "Endpoint ADB inválido" }
+        val port = value.substring(separator + 1).toIntOrNull()
+            ?: throw IllegalArgumentException("Porta ADB inválida")
+        val rawHost = value.substring(0, separator)
+        val host = if (rawHost.startsWith("[") && rawHost.endsWith("]")) rawHost.substring(1, rawHost.length - 1) else rawHost
+        endpoint(host, port)
     }
 
     private fun endpoint(hostValue: String, port: Int): String {

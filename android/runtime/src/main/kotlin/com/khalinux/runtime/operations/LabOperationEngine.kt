@@ -26,6 +26,7 @@ class LabOperationEngine(
     private val catalog: LabOperationCatalog,
     private val store: LabOperationStore,
     private val evidence: LabEvidenceStore,
+    private val adbClient: AdbClient? = null,
     maxConcurrent: Int = 2,
     maxQueued: Int = 32,
     private val clock: () -> Long = System::currentTimeMillis,
@@ -105,9 +106,14 @@ class LabOperationEngine(
         require(session.state == LabSessionState.ACTIVE) { "Sessão não está ativa" }
         val operation = catalog.find(operationId) ?: throw IllegalArgumentException("Operação desconhecida: $operationId")
         require(operation.enabled) { "Operação desabilitada: $operationId" }
-        require(operation.executor == LabExecutorKind.ROOTFS_ARGV && operation.targetKind == LabTargetKind.LOCAL_RUNTIME) {
-            "Executor " + operation.executor + " ainda não foi conectado ao motor LAB-1"
+        val supportedTarget = when (operation.executor) {
+            LabExecutorKind.ROOTFS_ARGV -> operation.targetKind == LabTargetKind.LOCAL_RUNTIME
+            LabExecutorKind.ADB -> operation.targetKind == LabTargetKind.LOCAL_RUNTIME ||
+                operation.targetKind == LabTargetKind.ANDROID_DEVICE
+            else -> false
         }
+        require(supportedTarget) { "Executor " + operation.executor + " ainda não foi conectado ao motor" }
+        if (operation.executor == LabExecutorKind.ADB) require(adbClient != null) { "Adaptador ADB indisponível" }
         val targets = if (assetIds.isEmpty()) session.assetIds else assetIds
         require(session.assetIds.containsAll(targets)) { "Ativo não pertence à sessão" }
         val command = resolveCommand(operation, parameters)
@@ -227,17 +233,24 @@ class LabOperationEngine(
         var failure: String? = null
         var process: RuntimeSession? = null
         try {
-            val executable = quoteShellArgument(argv.first())
-            val arguments = argv.joinToString(" ") { quoteShellArgument(it) }
-            val shellCommand = "command -v " + executable +
-                " >/dev/null 2>&1 || { printf '%s\\n' " +
-                quoteShellArgument("Executável ausente no RootFS: " + argv.first()) +
-                " >&2; exit 127; }; exec " + arguments
-            process = runtime.start(CommandRequest(
-                shellCommand = shellCommand,
-                workingDirectory = "/home/khalinux",
-                timeout = Duration.ofSeconds(operation.timeoutSeconds.toLong())
-            ))
+            val timeout = Duration.ofSeconds(operation.timeoutSeconds.toLong())
+            process = when (operation.executor) {
+                LabExecutorKind.ROOTFS_ARGV -> {
+                    val executable = quoteShellArgument(argv.first())
+                    val arguments = argv.joinToString(" ") { quoteShellArgument(it) }
+                    val shellCommand = "command -v " + executable +
+                        " >/dev/null 2>&1 || { printf '%s\\n' " +
+                        quoteShellArgument("Executável ausente no RootFS: " + argv.first()) +
+                        " >&2; exit 127; }; exec " + arguments
+                    runtime.start(CommandRequest(
+                        shellCommand = shellCommand,
+                        workingDirectory = "/home/khalinux",
+                        timeout = timeout
+                    ))
+                }
+                LabExecutorKind.ADB -> requireNotNull(adbClient).startOperationCommand(argv, timeout)
+                else -> throw UnsupportedOperationException("Executor ainda não implementado: " + operation.executor)
+            }
             control.session = process
             if (control.cancellationRequested.get()) process.cancel()
             process.use { running ->
