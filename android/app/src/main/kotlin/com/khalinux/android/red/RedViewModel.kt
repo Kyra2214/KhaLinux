@@ -53,14 +53,28 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
 
     fun open() {
         mutableState.update { it.copy(visible = true, selectedOperationId = null, session = null, message = null) }
-        refreshHistory()
+        viewModelScope.launch(Dispatchers.IO) {
+            val previous = store.all()
+            previous.filter { it.endedAt == null && it.state != RedOperationState.COMPLETED }.forEach { old ->
+                val interrupted = old.copy(state = RedOperationState.INTERRUPTED, endedAt = System.currentTimeMillis(),
+                    events = (old.events + RedEvent(sessionId = old.id, type = RedEventType.SESSION_ENDED, detail = "Sessão marcada como interrompida na recuperação local.")).takeLast(300))
+                store.save(interrupted)
+            }
+            mutableState.update { it.copy(history = store.all()) }
+        }
     }
 
-    fun close() = mutableState.update { it.copy(visible = false) }
+    fun close() {
+        stopNetworkLab()
+        mutableState.update { it.copy(visible = false) }
+    }
     fun dismissMessage() = mutableState.update { it.copy(message = null) }
     fun filter(category: RedCategory?, difficulty: RedDifficulty?) = mutableState.update { it.copy(category = category, difficulty = difficulty) }
     fun select(id: String) = mutableState.update { it.copy(selectedOperationId = id, message = null) }
-    fun backToCatalog() = mutableState.update { it.copy(selectedOperationId = null, session = null, message = null) }
+    fun backToCatalog() {
+        stopNetworkLab()
+        mutableState.update { it.copy(selectedOperationId = null, session = null, message = null) }
+    }
 
     fun startSession() {
         val operationId = mutableState.value.selectedOperationId ?: return
