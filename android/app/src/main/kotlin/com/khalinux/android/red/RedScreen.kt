@@ -126,6 +126,14 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                         TextButton(onClick = { clipboard.setText(AnnotatedString(address)) }) { Text("Copiar endereço do portal") }
                     }
                     state.hotspotInfo?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+                    Text("Servidor HTTP local · porta 8080", style = MaterialTheme.typography.labelLarge)
+                    Text("Requisições recebidas: ${state.requests.size}", style = MaterialTheme.typography.bodySmall)
+                    state.requests.asReversed().take(12).forEach { request ->
+                        Text(
+                            "${request.method} ${request.path} · HTTP ${request.statusCode} · ${request.bodyBytes} bytes",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                     OutlinedButton(onClick = viewModel::stopNetworkLab) { Text("Parar hotspot e portal") }
                 } else {
                     Button(onClick = {
