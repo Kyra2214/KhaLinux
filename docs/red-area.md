@@ -22,7 +22,7 @@ O KhaLinux está sendo desenvolvido como protótipo pessoal de laboratório com 
 - Servidor HTTP local inicial, endereço e QR Code.
 - Painel inicial de eventos.
 
-## Lacunas reconhecidas
+## Implementação recente (RED-1 a RED-3)\n\n- Modelos tipados para estados de rede, eventos e observações HTTP.\n- Linha do tempo com sequência e metadados de requisição.\n- Hotspot `LocalOnlyHotspot` com exibição dos dados fornecidos pelo Android.\n- Servidor HTTP local na porta 8080, vinculado a IPv4 Wi-Fi/AP identificado, com limites e timeout.\n- Painel apresenta as requisições recebidas. O primeiro acesso HTTP confirma atividade do participante.\n- Limitação: Android não expõe de forma universal a lista de clientes do hotspot; não inventar identificação antes de haver uma requisição observável.\n\n## Lacunas reconhecidas
 
 A primeira versão ainda não representa o laboratório completo decidido em 2026-11-23:
 - Formulário atual envia somente um evento fixo; não mostra os campos recebidos.
