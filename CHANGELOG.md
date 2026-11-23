@@ -1,3 +1,15 @@
+## [Não lançado] — RED-5: formulário local e dados sintéticos recebidos
+
+### Confirmado na implementação existente
+- O portal envia formulário por POST HTTP local para `/login`.
+- O backend permite somente os campos `demo_id` e `demo_code` e valida seus formatos de demonstração.
+- O painel exibe os valores aceitos apenas durante a sessão ativa e oferece limpeza manual.
+- O SessionStore e o relatório persistem metadados/eventos, não os valores do formulário.
+
+### Validação
+- Confirmação feita por inspeção estática dos arquivos; nenhum teste ou build foi executado.
+- Exercício funcional fica reservado para RED-13.
+
 ## [Não lançado] — RED-3: servidor HTTP local configurável
 
 ### Implementado
