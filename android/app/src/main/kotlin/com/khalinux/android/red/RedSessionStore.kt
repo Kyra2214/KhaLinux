@@ -29,7 +29,7 @@ class RedSessionStore(context: Context) {
         }.sortedByDescending { it.second }.drop(MAX_SESSIONS).map { it.first }
         if (oldest.isNotEmpty()) {
             val editor = preferences.edit()
-            oldest.forEach(editor::remove)
+            oldest.forEach { editor.remove(it) }
             editor.apply()
         }
     }
