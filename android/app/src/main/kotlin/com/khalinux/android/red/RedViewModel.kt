@@ -79,15 +79,26 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun close() {
-        stopNetworkLab()
+        interruptCurrentSession()
         mutableState.update { it.copy(visible = false) }
     }
     fun dismissMessage() = mutableState.update { it.copy(message = null) }
     fun filter(category: RedCategory?, difficulty: RedDifficulty?) = mutableState.update { it.copy(category = category, difficulty = difficulty) }
     fun select(id: String) = mutableState.update { it.copy(selectedOperationId = id, message = null) }
     fun backToCatalog() {
-        stopNetworkLab()
+        interruptCurrentSession()
         mutableState.update { it.copy(selectedOperationId = null, session = null, message = null) }
+    }
+
+    private fun interruptCurrentSession() {
+        stopNetworkLab()
+        val current = mutableState.value.session ?: return
+        if (current.endedAt == null) {
+            val interrupted = current.copy(state = RedOperationState.INTERRUPTED, endedAt = System.currentTimeMillis())
+                .withEvent(RedEventType.SESSION_ENDED, "Sessão interrompida antes do encerramento normal.")
+            store.save(interrupted)
+            mutableState.update { it.copy(session = interrupted, history = store.all()) }
+        }
     }
 
     fun startSession() {
