@@ -1,93 +1,118 @@
-# Área RED
+# Área RED — laboratório de Wi-Fi e portal local
 
-**Estado:** fundação inicial existente; roadmap de laboratório completo revisado em 2026-11-23.  
+**Estado da implementação:** RED-0 a RED-12 implementados em código/documentação (13/14 submódulos, 93%). RED-13 é a validação final pendente.  
 **Branch:** `plan/area-red-wifi-publico`  
-**Documento mestre:** `docs/roadmap-area-red-completa.md`  
-**Operação 01:** `docs/roadmap-area-red-estagio-01-wifi-publico.md`
+**Roadmap mestre:** [roadmap-area-red-completa.md](roadmap-area-red-completa.md)  
+**Operação 01:** [red-operation-01.md](red-operation-01.md)
 
-## Direção
+## Objetivo
 
-RED é a área de preparação e execução prática. BLUE é a área defensiva correspondente. As duas áreas devem compartilhar identificador de cenário e evidências, mas manter interfaces e roteiros pedagógicos próprios.
+O RED é a área de preparação e execução de demonstrações práticas com dois aparelhos Android dedicados e controlados pelo instrutor. Os vídeos mostram o comportamento e os resultados, não o código-fonte ou scripts internos.
 
-O KhaLinux está sendo desenvolvido como protótipo pessoal de laboratório com dois aparelhos Android dedicados/controlados pelo instrutor. Nas aulas, mostrar comportamento e resultados: criação da rede, conexão do segundo aparelho, portal, navegação, permissões e o que efetivamente chegou ao servidor. Código-fonte e scripts internos não fazem parte dos vídeos.
+- **Aparelho A:** operador, hotspot criado pelas APIs públicas do Android, servidor HTTP local e painel de observação.
+- **Aparelho B:** participante, conecta-se à rede, navega pelo portal e executa demonstrações nativas de permissões no próprio aparelho.
 
-## Fundação já presente no código
+A interface do participante deve ser natural e semelhante a um portal Wi-Fi convencional. A identificação da sessão e a telemetria completa ficam no painel do instrutor, sem avisos artificiais excessivos. Diálogos de permissão são sempre os diálogos reais do sistema.
 
-- Entrada RED na navegação principal.
-- Catálogo versionado em `distribution/red/operations.json`.
-- Parser, ficha de operação, tutorial e filtros.
-- Sessões locais, eventos, progresso e recuperação de sessões interrompidas.
-- Histórico limitado e relatório Markdown copiável/exportável.
-- Adaptador Android para solicitar `LocalOnlyHotspot`.
-- Servidor HTTP local inicial, endereço e QR Code.
-- Painel inicial de eventos.
+## Operação 01 — fluxo implementado
 
-## Implementação recente (RED-1 a RED-3)\n\n- Modelos tipados para estados de rede, eventos e observações HTTP.\n- Linha do tempo com sequência e metadados de requisição.\n- Hotspot `LocalOnlyHotspot` com exibição dos dados fornecidos pelo Android.\n- Servidor HTTP local na porta 8080, vinculado a IPv4 Wi-Fi/AP identificado, com limites e timeout.\n- Painel apresenta as requisições recebidas. O primeiro acesso HTTP confirma atividade do participante.\n- Portal natural fictício com modos login local e acesso direto, páginas internas, links e redirect 302.\n- Formulário POST aceita somente identificador `aluno-...` e código `LAB-0000`; valores ficam apenas em memória e são exibidos durante a sessão. Histórico/relatório guardam somente metadados e resultado.\n- Limitação: Android não expõe de forma universal a lista de clientes do hotspot; não inventar identificação antes de haver uma requisição observável.\n\n## Modo participante (RED-7)\n\n- O mesmo aplicativo oferece modo participante para o aparelho B.\n- Câmera via CameraX com prévia local; microfone via medidor de nível que descarta amostras; localização exibida somente no aparelho B; arquivos via seletor SAF sem leitura do conteúdo.\n- O aparelho B envia ao painel A somente o tipo e o estado da ação, por endpoint HTTP local autenticado com código temporário da sessão.\n- O painel não recebe áudio, vídeo, coordenadas, nomes ou conteúdo de arquivos.\n\n## Painel RED (RED-8)\n\nO painel agora apresenta estado de rede e servidor, interface/porta, atividade observada do participante, requisições HTTP, status, tamanho, tipo de conteúdo, endereço remoto e cabeçalhos permitidos. Cookie e Authorization não são coletados. Valores sintéticos são efêmeros e podem ser limpos. Eventos de permissões e navegação aparecem na linha do tempo.\n\n## Histórico e relatórios (RED-9)\n\nHistórico mantém até 100 sessões e 300 eventos por sessão. Sessões interrompidas são marcadas sem reativar rede automaticamente. O relatório inclui modo do portal, contagens e linha do tempo, mas nunca valores sintéticos do formulário, códigos, cookies, tokens, arquivos, áudio, vídeo ou coordenadas. Exportação e exclusão manual continuam disponíveis.\n\n## Integração BLUE (RED-10)\n\nA Área BLUE está disponível no menu Mais e lê as sessões/eventos persistidos do RED. Durante a sessão ativa, também recebe evidências efêmeras (requisições e campos sintéticos) via RedLiveEvidenceStore. Alternar RED → BLUE preserva hotspot/sessão; voltar reabre a sessão. A tela BLUE explica a perspectiva defensiva de cada evento sem fabricar detecções. Consulte docs/blue-area.md.\n\n## Tutorial e gravação (RED-11)\n\nA tela RED inclui um roteiro rápido para os dois aparelhos. O guia completo de preparação, cenários, permissões, gravação e solução de problemas está em [docs/red-instructor-guide.md](red-instructor-guide.md). Os vídeos mostram comportamento e resultados, sem código-fonte.\n\n## Fechamento da implementação (RED-12)\n\nRED-0 a RED-12 estão implementados em código/documentação. A validação automatizada RED-13 passou no GitHub Actions (auditoria, host, JNI/PTy, PRoot, testes unitários e build debug). Permanecem testes físicos com os dois aparelhos e compatibilidade por fabricante/versão. Consulte [docs/red-implementation-freeze.md](red-implementation-freeze.md).\n\n## Lacunas reconhecidas
+1. Criar uma sessão RED e selecionar login local ou acesso direto.
+2. Solicitar ao Android o `LocalOnlyHotspot`; exibir somente SSID, senha e parâmetros que o sistema disponibilizar.
+3. Identificar o IPv4 da interface Wi-Fi/AP e iniciar o servidor HTTP local, porta padrão **8080** (configurável explicitamente).
+4. Exibir URL e QR Code.
+5. Conectar manualmente o aparelho B e abrir o portal.
+6. Percorrer páginas locais, links e redirecionamentos.
+7. Observar no painel as requisições realmente recebidas.
+8. Executar, no aparelho B, as demonstrações de permissões nativas e registrar somente o tipo/estado da ação no painel.
+9. Alternar para BLUE para analisar o mesmo cenário pela perspectiva defensiva.
 
-A primeira versão ainda não representa o laboratório completo decidido em 2026-11-23:
-- Formulário atual envia somente um evento fixo; não mostra os campos recebidos.
-- O portal ainda não oferece os dois cenários completos (login local e acesso direto).
-- A navegação/linkagem e os redirecionamentos ainda não formam uma linha do tempo detalhada.
-- As permissões estão representadas por botões simulados, não por fluxo real no aparelho participante.
-- O servidor deve evoluir para porta padrão 8080, observabilidade de requisições e vínculo estrito à interface do laboratório.
-- A integração didática RED ↔ BLUE ainda precisa ser especificada e implementada.
+O servidor faz bind somente no IPv4 da interface Wi-Fi/AP identificada; não usa `0.0.0.0`. HTTP na porta 8080 é HTTP sem TLS, não HTTPS. Não há proxy transparente, interceptação de tráfego externo ou dependência de serviços remotos para a operação básica.
 
-## Organização existente
+## Modos de portal
+
+### Login local
+
+- Página de acesso fictícia, sem imitar marcas ou serviços reais.
+- Formulário faz POST HTTP real para o servidor local.
+- O backend aceita exclusivamente os campos sintéticos `demo_id` e `demo_code`, com formatos de teste restritos.
+- O painel mostra os valores aceitos somente durante a sessão ativa.
+- Valores não são gravados no histórico nem no relatório; podem ser removidos do painel pelo operador.
+
+### Acesso direto
+
+- O participante continua sem preencher formulário.
+- Páginas locais de termos, conteúdo, notícias e ofertas demonstram navegação após a conexão.
+- A rota de demonstração de redirecionamento responde com HTTP 302 para outra página local.
+- O painel registra método, caminho, status, bytes, origem e cabeçalhos permitidos.
+
+## Modo participante e permissões
+
+O modo participante Android é executado no próprio aparelho B. Ele usa as APIs reais do sistema:
+
+- **Câmera:** permissão real e prévia local controlável.
+- **Microfone:** permissão real e medidor de nível; amostras são descartadas, sem gravação ou transmissão.
+- **Localização:** consulta e exibição local no aparelho B.
+- **Arquivos:** seletor SAF; o app não lê nem transmite nome/conteúdo do arquivo escolhido.
+
+O aparelho A recebe somente o tipo e o estado da ação por endpoint local autenticado com token temporário. O app atualiza o estado das permissões ao retornar de Configurações e encerra prévia/medição quando o acesso foi revogado.
+
+A página HTTP não pode conceder permissões Android. Login ou conexão Wi-Fi não concede acesso a câmera, microfone, localização ou arquivos. O fluxo nativo é executado e autorizado no aparelho B.
+
+## Observabilidade RED
+
+- Estado do hotspot e do servidor, interface, endereço e porta.
+- Atividade do participante confirmada por requisição HTTP recebida. Android não fornece uma lista universal de clientes do `LocalOnlyHotspot`.
+- Requisições com método, rota, status, horário, bytes, tipo, endereço de origem e cabeçalhos permitidos.
+- Campos sintéticos recebidos durante a sessão.
+- Linha do tempo de navegação, formulários, redirecionamentos, permissões e recursos.
+- Resumo do evento mais recente para câmera, microfone, localização e seletor de arquivos.
+- Histórico limitado a 100 sessões e 300 eventos por sessão.
+- Relatório Markdown com metadados e eventos, sem valores de formulário, códigos, cookies, tokens, arquivos, áudio, vídeo ou coordenadas.
+
+O painel diferencia o que foi solicitado, autorizado, executado e recebido. Não afirma sucesso quando o Android ou navegador bloqueia uma ação.
+
+## Integração BLUE
+
+BLUE consome as sessões e evidências do RED, inclusive evidências temporárias da sessão ativa. Apresenta requisições, cabeçalhos permitidos, campos sintéticos, estados de recursos e linha do tempo com interpretação defensiva. A análise distingue fatos observados de recomendações e não inventa detecções.
+
+Consulte [blue-area.md](blue-area.md).
+
+## Documentação de aula
+
+- [Guia do instrutor](red-instructor-guide.md): preparação dos dois aparelhos, cenários, permissões, roteiro de vídeo e troubleshooting.
+- [Guia do usuário](user-guide.md): navegação no app e visão geral das áreas RED/BLUE.
+- [Roadmap mestre](roadmap-area-red-completa.md): requisitos, dependências e ordem de implementação.
+
+Os vídeos devem mostrar a criação da rede, conexão do segundo aparelho, portal, navegação, permissões e o que chegou ao servidor. Não mostrar código-fonte, scripts ou detalhes internos.
+
+## Estrutura de código principal
 
 `android/app/src/main/kotlin/com/khalinux/android/red/`
 
-- `RedModels.kt`: catálogo, operação, etapas, sessão e eventos.
+- `RedModels.kt`: estados, sessões, eventos e observações HTTP.
 - `RedCatalogJson.kt`: parser do catálogo.
-- `RedSessionStore.kt`: persistência local.
-- `RedViewModel.kt`: estado, transições e coordenação.
-- `RedHotspotController.kt`: adaptador de hotspot Android.
-- `RedPortalServer.kt`: servidor HTTP local inicial.
-- `RedScreen.kt`: catálogo, ficha, tutorial, execução e relatório.
+- `RedSessionStore.kt`: persistência de metadados.
+- `RedViewModel.kt`: coordenação de sessão, hotspot, portal e evidências.
+- `RedHotspotController.kt`: integração com `LocalOnlyHotspot`.
+- `RedPortalServer.kt`: servidor HTTP local, rotas, formulários e redirecionamentos.
+- `RedLabInputValidator.kt`: allowlist e validação de dados sintéticos/eventos do participante.
+- `RedParticipantScreen.kt`: demonstrações nativas no aparelho B.
+- `RedLiveEvidenceStore.kt`: evidências efêmeras compartilhadas com BLUE.
+- `RedScreen.kt`: painel do operador, histórico e relatórios.
 
-## Diretrizes de experiência
+## Regras de execução e validação
 
-- Portal do participante com apresentação natural de portal Wi-Fi convencional.
-- Evitar avisos grotescos e banners artificiais durante a demonstração.
-- Identificação do laboratório e observabilidade completa no painel do instrutor.
-- Não falsificar diálogos de sistema.
-- O painel diferencia solicitado, autorizado, executado e recebido.
-- Não alegar recebimento de dados que não chegaram ao servidor.
-- Login é opcional no cenário; também haverá acesso direto e navegação sem autenticação.
-
-## Arquitetura da Operação 01
-
-- Aparelho A: operador, hotspot, servidor local e painel RED.
-- Aparelho B: participante, conexão Wi-Fi, navegador e modo participante Android para demonstração de permissões nativas.
-- Portal HTTP local na porta TCP 8080.
-- Cenários: autenticação local fictícia e acesso direto sem login.
-- Formulários recebem somente valores sintéticos de teste, exibidos temporariamente no painel durante a sessão.
-- Links e navegação são registrados como eventos locais.
-- Permissões nativas são solicitadas no aparelho B; a conexão Wi-Fi ou o login não concedem acesso a câmera, microfone, localização ou arquivos.
-- O navegador em HTTP/IP de LAN tem restrições de contexto seguro para APIs como câmera, microfone e geolocalização; essas demonstrações exigem modo participante Android ou outra solução tecnicamente compatível.
-- Arquivos são selecionados explicitamente pelo seletor do sistema; conteúdo não é transmitido por padrão.
-- Nenhum tráfego de terceiros é interceptado e nenhuma informação é enviada automaticamente à internet.
-
-## Validação final pendente
-
-Conforme a regra do projeto, nenhum teste, build, validação ou teste físico será executado durante a implementação do roadmap. Ao final, validar:
-1. integração Compose e navegação;
-2. parser, catálogo e estados;
-3. persistência, retenção e recuperação;
-4. hotspot e ciclo de vida;
-5. servidor 8080, interface de bind, rotas e limites;
-6. comunicação entre dois aparelhos;
-7. portal com login local e acesso direto;
-8. formulários sintéticos e visualização de requisições recebidas;
-9. navegação, links e redirecionamentos;
-10. permissões reais e modo participante;
-11. relatório e limpeza;
-12. integração RED/BLUE e regressões gerais.
+- Trabalho aplicado diretamente na branch `plan/area-red-wifi-publico`; não gerar ZIP/checkpoints.
+- Não fazer merge para `main` sem autorização explícita.
+- Nenhum teste, build, compilação, auditoria ou teste físico deve ser executado durante a implementação.
+- RED-13 acumula a validação final, inclusive integração, permissões, compatibilidade e teste físico com os dois aparelhos.
+- A existência de código e a inspeção estática não equivalem a funcionamento validado.
 
 ## Limitações conhecidas
 
-- `LocalOnlyHotspot`, configuração e endereço variam por Android/fabricante.
-- A abertura automática do portal não é garantida.
-- A interface Wi-Fi pode não ser exposta ao app em todos os dispositivos.
-- HTTP em IP local não é HTTPS e não deve ser apresentado como conexão protegida.
-- O portal web não obtém permissões nativas só porque o participante está conectado.
-- Nenhuma capacidade nova descrita no roadmap está validada até a fase final.
+- O Android controla os parâmetros e o ciclo de vida do hotspot; fabricantes/versões podem variar.
+- A abertura automática do portal não é garantida; endereço e QR Code são alternativas.
+- A interface AP/IPv4 pode não ser exposta ao aplicativo.
+- O portal HTTP não oferece TLS e não deve ser apresentado como HTTPS.
+- O navegador não recebe permissões nativas só por estar conectado ou fazer login.
+- O servidor observa apenas as requisições destinadas a ele, não o tráfego geral do aparelho participante.
