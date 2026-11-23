@@ -20,3 +20,7 @@
 - Pendências LAB-2: pacote ADB permanece unverified; RootFS não foi reconstruído; testes de instalação, servidor PRoot, mDNS, pareamento e dois aparelhos ficam no LAB-10.
 - Progresso do laboratório operacional: 23% (LAB-0 concluído; LAB-1 parcial; LAB-2 implementação concluída, validação pendente). Próximo módulo: LAB-3 — RED Mobile.
 - Nenhum teste/build foi executado; validações acumuladas para LAB-10. Nenhum ZIP/checkpoint gerado.
+- HEAD de referência: `5e80c80b669f484985b4e1c880c70a460b4641b6` antes desta atualização de retomada.
+- Comparação Git verificada: `plan/laboratorio-operacional` 69 commits à frente e 0 atrás de `main`; base `main` em `e5a19c8aa969f8616bda99d4cd23628c682b764e`. Nenhum PR criado; `main` permanece inalterada.
+- Alterações LAB-2 incluem pacote ADB 34.0.5 no RootFS novo, provisionamento APT backports para RootFS existente, sessão ADB persistente, descoberta mDNS e operações de inventário remoto. A interface final continua no LAB-9.
+- Próxima execução: iniciar auditoria e implementação do LAB-3 sem repetir LAB-0/LAB-2 e sem executar testes/builds até a etapa final.
