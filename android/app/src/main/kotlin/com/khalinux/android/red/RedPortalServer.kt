@@ -22,7 +22,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 class RedPortalServer(
     private val onEvent: (String) -> Unit,
     private val onAddress: (String?) -> Unit,
-    private val onRequest: (RedRequestObservation) -> Unit = {}
+    private val onRequest: (RedRequestObservation) -> Unit = {},
+    private val onSyntheticSubmission: (RedSyntheticSubmission) -> Unit = {}
 ) {
     @Volatile private var socket: ServerSocket? = null
     private val running = AtomicBoolean(false)
@@ -93,6 +94,7 @@ class RedPortalServer(
             var path = "/"
             var contentType: String? = null
             var bodyBytes = 0
+            var requestBody = ByteArray(0)
             var status = 400
             try {
                 val headerBytes = readHeader(input) ?: return
@@ -125,7 +127,8 @@ class RedPortalServer(
                     writeResponse(output, status, "Corpo acima do limite permitido.")
                     return
                 }
-                bodyBytes = readBody(input, declaredLength)?.size ?: 0
+                requestBody = readBody(input, declaredLength) ?: ByteArray(0)
+                bodyBytes = requestBody.size
                 if (bodyBytes != declaredLength) {
                     status = 400
                     writeResponse(output, status, "Corpo incompleto.")
@@ -181,8 +184,9 @@ class RedPortalServer(
                         ""
                     }
                     method == "POST" && path == "/login" -> {
-                        status = 501
-                        "O processamento do formulário local será habilitado no próximo componente do laboratório."
+                        val result = processSyntheticLogin(requestBody, contentType)
+                        status = result.first
+                        result.second
                     }
                     method == "HEAD" -> {
                         status = 200
@@ -228,6 +232,65 @@ class RedPortalServer(
             }
         }
     }
+
+    private fun processSyntheticLogin(body: ByteArray, contentType: String?): Pair<Int, String> {
+        if (contentType?.substringBefore(';')?.trim()?.equals("application/x-www-form-urlencoded", ignoreCase = true) != true) {
+            onSyntheticSubmission(
+                RedSyntheticSubmission(fields = emptyMap(), accepted = false, message = "Tipo de formulário não permitido.")
+            )
+            return 415 to resultHtml("Formato não aceito", "Use o formulário local de demonstração.")
+        }
+        val decoded = runCatching { String(body, StandardCharsets.UTF_8) }.getOrDefault("")
+        val values = linkedMapOf<String, String>()
+        val allowed = setOf("demo_id", "demo_code")
+        val pairs = decoded.split('&').filter { it.isNotEmpty() }
+        val validShape = pairs.size == 2 && pairs.all { pair ->
+            val separator = pair.indexOf('=')
+            if (separator <= 0) false else {
+                val key = runCatching {
+                    java.net.URLDecoder.decode(pair.substring(0, separator), "UTF-8")
+                }.getOrNull()
+                val value = runCatching {
+                    java.net.URLDecoder.decode(pair.substring(separator + 1), "UTF-8")
+                }.getOrNull()
+                if (key == null || value == null || key !in allowed || key in values) false
+                else {
+                    values[key] = value
+                    true
+                }
+            }
+        }
+        val demoId = values["demo_id"].orEmpty()
+        val demoCode = values["demo_code"].orEmpty()
+        val accepted = validShape &&
+            demoId.matches(Regex("^aluno-[a-z0-9-]{1,24}$")) &&
+            demoCode.matches(Regex("^LAB-[0-9]{4}$"))
+        if (accepted) {
+            val safeFields = mapOf("demo_id" to demoId, "demo_code" to demoCode)
+            onSyntheticSubmission(
+                RedSyntheticSubmission(
+                    fields = safeFields,
+                    accepted = true,
+                    message = "Campos sintéticos recebidos e validados localmente."
+                )
+            )
+            return 200 to resultHtml("Acesso liberado", "Os dados de teste foram aceitos pelo portal local.")
+        }
+        onSyntheticSubmission(
+            RedSyntheticSubmission(
+                fields = emptyMap(),
+                accepted = false,
+                message = "Envio rejeitado: use identificador aluno-... e código LAB-0000."
+            )
+        )
+        return 400 to resultHtml("Dados não aceitos", "Use somente identificador iniciado por aluno- e código no formato LAB-0000.")
+    }
+
+    private fun resultHtml(title: String, message: String) = """
+        <!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>$title</title><body style="font:16px system-ui;max-width:480px;margin:8vh auto;padding:24px;color:#202124">
+        <h1>$title</h1><p>$message</p><p><a href="/">Voltar ao portal</a></p></body></html>
+    """.trimIndent()
 
     private fun readHeader(input: BufferedInputStream): ByteArray? {
         val bytes = ArrayList<Byte>(1024)
@@ -334,10 +397,10 @@ class RedPortalServer(
         input{box-sizing:border-box;width:100%;padding:12px;border:1px solid #c8cdd3;border-radius:7px;font:inherit}
         button{width:100%;padding:13px;border:0;border-radius:8px;background:#2457a6;color:white;font:inherit;margin-top:20px}
         .muted{color:#5f6368;font-size:13px}</style></head><body><main class="wrap"><section class="card">
-        <h1>Acesso Wi-Fi</h1><p class="muted">Informe os dados de acesso fornecidos para esta demonstração.</p>
-        <form method="post" action="/login"><label for="demo_id">Identificação de teste</label><input id="demo_id" name="demo_id" maxlength="80" autocomplete="off" required>
-        <label for="demo_code">Código de acesso de teste</label><input id="demo_code" name="demo_code" maxlength="32" autocomplete="off" required>
-        <button type="submit">Conectar</button></form><p class="muted">Use somente os valores fictícios preparados pelo instrutor.</p>
+        <h1>Acesso Wi-Fi</h1><p class="muted">Informe os dados de acesso de teste preparados para esta aula.</p>
+        <form method="post" action="/login"><label for="demo_id">Identificação de teste</label><input id="demo_id" name="demo_id" maxlength="30" autocomplete="off" placeholder="aluno-demo" required>
+        <label for="demo_code">Código de acesso de teste</label><input id="demo_code" name="demo_code" maxlength="8" autocomplete="off" placeholder="LAB-2048" required>
+        <button type="submit">Conectar</button></form><p class="muted">Use identificador aluno-... e código LAB-0000, fornecidos para o laboratório.</p>
         <p><a href="/">Voltar</a></p></section></main></body></html>
     """.trimIndent()
 
