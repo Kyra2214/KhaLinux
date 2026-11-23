@@ -65,3 +65,13 @@
 - Arquivos principais alterados: `RedModels.kt`, `RedSessionStore.kt`, `RedViewModel.kt`, `RedHotspotController.kt`, `RedPortalServer.kt`, `RedScreen.kt`, `distribution/red/operations.json`, documentos RED/arquitetura/changelog.
 - Pendências: modo participante no aparelho B; câmera/microfone/localização por diálogos reais e prévia local; seletor SAF; integração BLUE; tutorial final.
 - Não executar testes, builds, validações ou testes físicos durante implementação. Transferir tudo para RED-13.
+
+## Execução contínua RED — atualização após RED-7
+
+- Branch: `plan/area-red-wifi-publico`; sem ZIP e sem merge.
+- RED-0 a RED-7 concluídos em código/documentação: **57% (8/14)**.
+- RED-7 adicionou `RedParticipantScreen.kt`, CameraX, permissões CAMERA/RECORD_AUDIO/ACCESS_COARSE_LOCATION, câmera em prévia local, medidor de áudio sem gravação, localização exibida localmente e seletor SAF.
+- Pareamento: código temporário gerado ao iniciar sessão no aparelho A; participante informa URL local e token e pode registrar estado no endpoint `/participant/event`. O endpoint aceita apenas kind/result allowlist.
+- Acesso à câmera/microfone/localização não é concedido pelo portal web ou login; as solicitações acontecem no app participante no aparelho B.
+- Próximo: RED-8 — painel de observabilidade completo e linha do tempo unificada.
+- Validação (incluindo CameraX, permissões e dois aparelhos) continua adiada para RED-13; não executar testes/builds agora.
