@@ -310,9 +310,9 @@ private fun AndroidDevicePanel(state: RedUiState, viewModel: RedViewModel) {
             }
             state.adbCapabilities?.let { capabilities ->
                 Text(
-                    "ADB: " + if (capabilities.installed) "instalado" else "não instalado" +
-                        " · pareamento: " + if (capabilities.wirelessPairing) "disponível" else "indisponível" +
-                        " · chave do host: " + if (capabilities.hostKeyPresent) "presente" else "ausente",
+                    "ADB: ${if (capabilities.installed) "instalado" else "não instalado"}" +
+                        " · pareamento: ${if (capabilities.wirelessPairing) "disponível" else "indisponível"}" +
+                        " · chave do host: ${if (capabilities.hostKeyPresent) "presente" else "ausente"}",
                     style = MaterialTheme.typography.bodySmall
                 )
                 if (capabilities.versionOutput.isNotBlank()) {
@@ -331,7 +331,7 @@ private fun AndroidDevicePanel(state: RedUiState, viewModel: RedViewModel) {
                         when (endpoint.kind) {
                             AdbMdnsKind.PAIRING -> Button(
                                 enabled = pairingCode.value.length == 6,
-                                onClick = { viewModel.pairDiscoveredDevice(endpoint, pairingCode.value) }
+                                onClick = { viewModel.pairDiscoveredDevice(endpoint, pairingCode.value); pairingCode.value = "" }
                             ) { Text("Parear") }
                             AdbMdnsKind.CONNECT -> Button(onClick = { viewModel.connectDiscoveredDevice(endpoint) }) {
                                 Text("Conectar")
@@ -375,14 +375,17 @@ private fun AndroidDevicePanel(state: RedUiState, viewModel: RedViewModel) {
             }
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Button(
-                    enabled = manualHost.value.isNotBlank() && manualPairPort.value.toIntOrNull() in 1..65535 &&
+                    enabled = manualHost.value.isNotBlank() &&
+                        (manualPairPort.value.toIntOrNull()?.let { it in 1..65535 } == true) &&
                         pairingCode.value.length == 6,
                     onClick = {
                         viewModel.pairDevice(manualHost.value, manualPairPort.value.toInt(), pairingCode.value)
+                        pairingCode.value = ""
                     }
                 ) { Text("Parear manual") }
                 OutlinedButton(
-                    enabled = manualHost.value.isNotBlank() && manualConnectPort.value.toIntOrNull() in 1..65535,
+                    enabled = manualHost.value.isNotBlank() &&
+                        (manualConnectPort.value.toIntOrNull()?.let { it in 1..65535 } == true),
                     onClick = {
                         viewModel.connectDevice(manualHost.value, manualConnectPort.value.toInt())
                     }
