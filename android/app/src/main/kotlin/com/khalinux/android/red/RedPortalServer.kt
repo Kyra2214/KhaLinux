@@ -69,19 +69,23 @@ class RedPortalServer(
                     if (read <= 0) break
                     remaining -= read
                 }
+                val validSubmit = path == "/submit" && method == "POST"
+                val validHome = path == "/" && method == "GET"
                 val body = when {
-                    path == "/submit" && method == "POST" -> {
+                    validSubmit -> {
                         onEvent("Participante concluiu o formulário sintético. Valores digitados descartados.")
                         "<h2>Etapa concluída</h2><p>Esta foi uma simulação. Nenhuma credencial foi validada, salva ou enviada.</p><a href='/'>Voltar</a>"
                     }
-                    else -> portalHtml()
+                    validHome -> portalHtml()
+                    else -> "<h1>404</h1><p>Rota não disponível neste laboratório.</p>"
                 }
                 val bytes = body.toByteArray(StandardCharsets.UTF_8)
                 val output = peer.getOutputStream()
-                output.write(("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nCache-Control: no-store\r\nConnection: close\r\nContent-Length: ${bytes.size}\r\n\r\n").toByteArray(StandardCharsets.US_ASCII))
+                val status = if (validSubmit || validHome) "200 OK" else "404 Not Found"
+                output.write(("HTTP/1.1 $status\r\nContent-Type: text/html; charset=utf-8\r\nCache-Control: no-store\r\nConnection: close\r\nContent-Length: ${bytes.size}\r\n\r\n").toByteArray(StandardCharsets.US_ASCII))
                 output.write(bytes)
                 output.flush()
-                if (path != "/submit") onEvent("Portal de treinamento acessado por um participante.")
+                if (validHome) onEvent("Portal de treinamento acessado por um participante.")
             } catch (_: Exception) {
                 onEvent("Falha ao atender uma requisição do portal local.")
             }
