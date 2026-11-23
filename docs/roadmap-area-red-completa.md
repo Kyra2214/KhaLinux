@@ -19,7 +19,7 @@
 | RED-3 a RED-13 | Pendente | executar em sequência após RED-2 |
 
 **Percentual de implementação do roadmap RED:** 93% (13/14 submódulos).  
-**Validação:** não executada por instrução; todos os testes e builds permanecem acumulados para RED-13.  
+**Validação:** fase RED-13 iniciada após RED-12. CI automatizado passou (host, auditoria, JNI/PTy, PRoot, testes unitários e build APK); testes físicos e compatibilidade real continuam pendentes.  
 **Checkpoint ZIP:** desativado por instrução explícita do usuário; trabalhar somente na branch Git indicada.
 
 ## 1. Direção do produto
