@@ -6,6 +6,7 @@ import android.net.nsd.NsdServiceInfo
 import android.net.wifi.WifiManager
 import java.io.Closeable
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 
 enum class AdbMdnsKind { PAIRING, CONNECT }
@@ -29,6 +30,8 @@ class AdbMdnsDiscovery(context: Context) : Closeable {
     private val wifi = appContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
     private val listeners = CopyOnWriteArrayList<NsdManager.DiscoveryListener>()
     private val closed = AtomicBoolean(false)
+    private val started = AtomicBoolean(false)
+    private val resolving = ConcurrentHashMap.newKeySet<String>()
     private var multicastLock: WifiManager.MulticastLock? = null
 
     @Suppress("DEPRECATION")
@@ -38,6 +41,7 @@ class AdbMdnsDiscovery(context: Context) : Closeable {
         onError: (String) -> Unit
     ) {
         check(!closed.get()) { "Descoberta mDNS encerrada" }
+        check(started.compareAndSet(false, true)) { "Descoberta mDNS já iniciada" }
         if (multicastLock == null) {
             multicastLock = wifi.createMulticastLock("khalinux-adb-mdns").apply {
                 setReferenceCounted(false)
@@ -52,17 +56,21 @@ class AdbMdnsDiscovery(context: Context) : Closeable {
                 override fun onDiscoveryStarted(serviceType: String) = Unit
                 override fun onServiceFound(serviceInfo: NsdServiceInfo) {
                     if (!serviceInfo.serviceType.contains(type.removeSuffix("."))) return
+                    val serviceId = serviceInfo.serviceType + "|" + serviceInfo.serviceName
+                    if (!resolving.add(serviceId)) return
                     runCatching {
                         nsd.resolveService(serviceInfo, object : NsdManager.ResolveListener {
                             override fun onResolveFailed(info: NsdServiceInfo, errorCode: Int) {
+                                resolving.remove(serviceId)
                                 onError("Falha ao resolver serviço mDNS ${info.serviceName}: código ${errorCode}")
                             }
 
                             override fun onServiceResolved(info: NsdServiceInfo) {
+                                resolving.remove(serviceId)
                                 val address = info.host?.hostAddress ?: return
                                 if (info.port !in 1..65535) return
                                 val endpoint = AdbMdnsEndpoint(
-                                    id = info.serviceType + "|" + info.serviceName,
+                                    id = serviceId,
                                     serviceName = info.serviceName,
                                     serviceType = info.serviceType,
                                     host = address,
@@ -72,11 +80,16 @@ class AdbMdnsDiscovery(context: Context) : Closeable {
                                 onFound(endpoint)
                             }
                         })
-                    }.onFailure { onError(it.message ?: "Falha ao resolver serviço mDNS") }
+                    }.onFailure {
+                        resolving.remove(serviceId)
+                        onError(it.message ?: "Falha ao resolver serviço mDNS")
+                    }
                 }
 
                 override fun onServiceLost(serviceInfo: NsdServiceInfo) {
-                    onLost(serviceInfo.serviceType + "|" + serviceInfo.serviceName)
+                    val serviceId = serviceInfo.serviceType + "|" + serviceInfo.serviceName
+                    resolving.remove(serviceId)
+                    onLost(serviceId)
                 }
 
                 override fun onDiscoveryStopped(serviceType: String) = Unit
@@ -98,6 +111,7 @@ class AdbMdnsDiscovery(context: Context) : Closeable {
         if (!closed.compareAndSet(false, true)) return
         listeners.forEach { listener -> runCatching { nsd.stopServiceDiscovery(listener) } }
         listeners.clear()
+        resolving.clear()
         multicastLock?.let { lock -> runCatching { if (lock.isHeld) lock.release() } }
         multicastLock = null
     }
