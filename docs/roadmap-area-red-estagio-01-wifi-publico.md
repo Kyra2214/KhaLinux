@@ -1,6 +1,6 @@
 # RED-01 — Wi-Fi público, portal local e navegação
 
-**Estado:** roadmap revisado em 2026-11-23; implementação completa pendente.  
+**Estado:** RED-2 e RED-3 implementados em código; RED-4 é o próximo. Validação final pendente.  
 **Branch:** `plan/area-red-wifi-publico`  
 **Aparelhos:** dois Android dedicados/controlados pelo instrutor.  
 **Servidor:** HTTP local na porta TCP 8080.  
@@ -107,7 +107,7 @@ O painel não pode alegar que recebeu senha, cookie, token, arquivo, localizaç�
 - Vídeos mostram criação da rede, conexão, portal, navegação, permissões e o que foi recebido.
 - Código-fonte e scripts internos não fazem parte da apresentação.
 
-## 7. Roadmap por fases
+## 7. Estado de implementação em 2026-11-23\n\n- RED-1: contratos de estado/eventos e catálogo revisados.\n- RED-2: hotspot Android integrado; SSID/senha e dados de interface exibidos quando disponíveis; participante passa a ser considerado ativo após requisição real. A API Android não fornece lista universal de clientes.\n- RED-3: servidor HTTP na porta 8080, bind por IPv4 de interface Wi-Fi/AP, limites de requisição, timeout e telemetria HTTP conectados ao painel.\n- RED-4: portal natural, autenticação local e acesso direto sem login ainda pendentes.\n- Nenhum teste/build executado; validação reservada à fase final.\n\n## 8. Roadmap por fases
 
 ### 01.1 — Revisar modelos e estados
 - Atualizar modelos de cenário, dispositivo, requisição e evento.
