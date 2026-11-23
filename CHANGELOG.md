@@ -1,10 +1,9 @@
-## [Não lançado] — RED-13: bloqueio de validação do HEAD atual
+## [1.0.0-rc.7] — 2026-11-23
 
-- Implementação RED-0 a RED-12: 100% concluída em código/documentação.
-- A validação histórica do commit `cf1c16d` não cobre o HEAD atual e não foi usada como aprovação.
-- Status consultado para o commit anterior à atualização do freeze: sem checks e sem workflow run associado.
-- O conector disponível não oferece dispatch de workflow e não há checkout local nesta sessão para executar Gradle/testes.
-- Nenhum teste/build foi executado nesta retomada. RED-13 permanece pendente; teste físico será a última etapa.
+- Candidata pública baseada na `main`, com build Android `release` ARM64 assinado e minificado; o CI verifica a assinatura com `apksigner`.
+- Inclui o laboratório RED de Wi-Fi/portal local, modo participante com permissões nativas e a análise defensiva BLUE de eventos observados, além de histórico e relatórios locais.
+- `versionCode=9`; o código `8` segue reservado ao APK automático da `main`.
+- Testes unitários e verificações de host passaram no CI; validação em aparelhos físicos e compatibilidade com fabricantes/versões Android continuam pendentes. Esta candidata não deve ser tratada como versão estável.
 
 ## [Não lançado] — RED: implementação concluída, validação pendente
 

@@ -1,53 +1,30 @@
-# KhaLinux 1.0.0-rc.1 (candidata a release)
+# KhaLinux 1.0.0-rc.7 (candidata a release)
 
-> **Leia primeiro:** esta é uma **candidata**, não a versão estável. O código das Fases 0–9 está completo, mas o app **ainda não foi executado em aparelho físico** e parte da suíte de testes Kotlin nunca foi executada (ver "Estado de validação"). A 1.0.0 estável só deve ser publicada depois da validação final registrada em `docs/final-validation.md`.
+> Esta é uma candidata pública, não uma versão estável. O APK é compilado como `release`, assinado e verificado no CI. A validação funcional em aparelhos físicos ainda está pendente; fabricantes e versões Android podem variar.
 
-## O que é
+## Destaques
 
-Ambiente Linux (Debian Bookworm ARM64) executado localmente no Android 15+ (ARM64, sem root) via PRoot, para aprendizado, diagnóstico, auditoria autorizada e prática de cibersegurança.
+- **Área RED — laboratório Wi-Fi local:** demonstração controlada com dois aparelhos, LocalOnlyHotspot, portal HTTP local, QR Code e observação das requisições realmente recebidas pelo servidor.
+- **Modo participante:** demonstrações de permissões nativas de câmera, microfone, localização e seletor de arquivos no aparelho participante. O painel recebe somente o tipo e o estado das ações; amostras de microfone são descartadas e conteúdo de arquivos não é lido nem transmitido.
+- **Área BLUE — análise defensiva:** visualiza a sessão RED, linha do tempo, requisições permitidas e estados de permissões, distinguindo eventos observados de recomendações.
+- **Histórico e relatórios locais:** sessões e eventos limitados, com exportação Markdown sem conteúdo sensível de formulários, tokens, cookies, arquivos, áudio, vídeo ou coordenadas.
 
-## Recursos
+## Build e integridade
 
-- **Instalação automática** de PRoot e RootFS com progresso 0–100%, download retomável e hashes pinados.
-- **Terminal** com teclas extras, emulador VT/ANSI básico, histórico, favoritos, 5 temas e até 4 abas.
-- **Gerenciador de pacotes** com catálogo, dependências, instalação/remoção/atualização e histórico auditável.
-- **Cyber Toolkit** (reconhecimento/rede, Web, forense, auditoria) com política de uso autorizado e confirmação de escopo.
-- **Laboratórios**: 12 laboratórios e 51 exercícios (Linux, rede, Web, forense), só em `127.0.0.1`, com pontuação e progresso.
-- **Scripts, gerenciador de arquivos, relatórios, notas de saída e tutor offline** baseado em regras.
-- **Otimização e recuperação**: higiene de armazenamento, limites de memória, inicialização preguiçosa, ciclo de processos e recuperação de instalação interrompida.
-- **Auditoria estática** (`distribution/scripts/audit-security.py`) integrada ao CI e ao workflow de release.
+- `versionName`: `1.0.0-rc.7`
+- `versionCode`: `9` (o `8` permanece reservado ao APK automático da `main`).
+- Build `release` ARM64 com R8/minificação; assinatura validada com `apksigner`.
+- O APK e o arquivo `.sha256` são publicados como assets desta release.
 
-## Requisitos
+## Validação e limitações
 
-Android 15+ (API 35), ARM64, rede no primeiro uso, alguns GB livres. Detalhes em `docs/install-guide.md`.
-
-## Estado de validação
-
-| Item | Estado |
-|---|---|
-| Runtime (Fases 3–5), PTY nativo no host | executado anteriormente no host (88 testes) |
-| Runtime Kotlin (Fases 2–8), 166 testes no host | **aprovado** (compilador 2.0.21 em modo 1.9 + shim `kotlin.test`; repetir no CI) |
-| Módulo `:android:app` | só compilável no CI; não conferido |
-| APK release (R8) e assinatura | configurado; **nunca gerado** |
-| Execução em aparelho físico (PRoot em `filesDir`, targetSdk 35) | **não realizada** |
-| Auditoria estática | executada: 0 erros (`docs/final-validation.md`) |
-
-## Limitações conhecidas
-
-- PRoot não é sandbox nem VM; o `/proc` do Android é montado e o `/sys` não (ADR-0005 revisada). Ferramentas que dependem do kernel ficam limitadas.
-- Risco principal: bloqueio de execução de binários em `filesDir` no Android 15+; plano B (`libproot.so`) **não** está empacotado (`docs/diagnostics.md`).
-- Nenhuma ferramenta do toolkit foi verificada em aparelho; o catálogo marca "Não verificado em ARM64/PRoot".
-- RootFS/downloads ainda não foram reduzidos (exige nova build no CI).
-- Terminal: emulador VT/ANSI básico, sem compatibilidade xterm completa.
-- Tutor offline por regras, não é IA generativa.
+- Os testes unitários e as verificações de host do CI passaram para a `main`; o workflow de release compila e verifica a assinatura antes da publicação.
+- A instalação, atualização, hotspot e experiência ainda precisam ser testados em aparelhos Android físicos. Trate esta versão como candidata e reporte incompatibilidades antes da versão estável.
+- O portal de demonstração usa HTTP sem TLS e fica restrito ao endereço da interface Wi-Fi/AP; não captura tráfego geral nem deve ser usado com credenciais reais ou em redes/aparelhos sem autorização.
 
 ## Verificar o APK
 
 ```bash
-sha256sum -c KhaLinux-1.0.0-rc.1.apk.sha256
-apksigner verify --print-certs KhaLinux-1.0.0-rc.1.apk
+sha256sum -c KhaLinux-1.0.0-rc.7.apk.sha256
+apksigner verify --print-certs KhaLinux-1.0.0-rc.7.apk
 ```
-
-## Segurança
-
-Relate vulnerabilidades em privado (`SECURITY.md`). Use ferramentas e laboratórios apenas em sistemas que você possui ou tem autorização explícita para avaliar.
