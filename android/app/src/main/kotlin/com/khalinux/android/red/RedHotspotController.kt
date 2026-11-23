@@ -19,15 +19,25 @@ class RedHotspotController(
     private val wifi = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
     @Volatile private var reservation: WifiManager.LocalOnlyHotspotReservation? = null
     @Volatile private var starting = false
+    @Volatile private var stopRequested = false
 
     fun start() {
         if (reservation != null || starting) return
         starting = true
+        stopRequested = false
         onState(RedHotspotSnapshot(RedNetworkState.REQUESTING_HOTSPOT, "Solicitando hotspot local ao Android."))
         try {
             wifi.startLocalOnlyHotspot(object : WifiManager.LocalOnlyHotspotCallback() {
                 override fun onStarted(value: WifiManager.LocalOnlyHotspotReservation) {
                     starting = false
+                    if (stopRequested) {
+                        reservation = value
+                        runCatching { value.close() }
+                        reservation = null
+                        stopRequested = false
+                        onState(RedHotspotSnapshot(RedNetworkState.IDLE, "Hotspot local encerrado antes de iniciar o portal."))
+                        return
+                    }
                     reservation = value
                     val config = value.wifiConfiguration
                     val network = discoverWifiInterface()
@@ -45,12 +55,14 @@ class RedHotspotController(
 
                 override fun onStopped() {
                     starting = false
+                    stopRequested = false
                     reservation = null
                     onState(RedHotspotSnapshot(RedNetworkState.IDLE, "O Android encerrou o hotspot local."))
                 }
 
                 override fun onFailed(reason: Int) {
                     starting = false
+                    stopRequested = false
                     reservation = null
                     onState(
                         RedHotspotSnapshot(
@@ -81,11 +93,17 @@ class RedHotspotController(
     }
 
     fun stop() {
-        starting = false
         val active = reservation
+        val wasStarting = starting
+        if (active == null && !wasStarting) return
+        stopRequested = wasStarting
+        starting = false
         reservation = null
-        runCatching { active?.close() }
-        onState(RedHotspotSnapshot(RedNetworkState.IDLE, "Hotspot local liberado pelo operador."))
+        if (active != null) {
+            runCatching { active.close() }
+        } else {
+            onState(RedHotspotSnapshot(RedNetworkState.IDLE, "Solicitação de hotspot cancelada pelo operador."))
+        }
     }
 
     private fun discoverWifiInterface(): Pair<String, String>? = runCatching {
