@@ -290,7 +290,12 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             var engine: LabOperationEngine? = null
             var sessionId: String? = null
             mutableState.update {
-                it.copy(packageInventoryLoading = true, packageInventoryError = null, packageInventoryAssetId = assetId)
+                it.copy(
+                    packageInventory = emptyList(),
+                    packageInventoryLoading = true,
+                    packageInventoryError = null,
+                    packageInventoryAssetId = assetId
+                )
             }
             try {
                 val gateway = runtimeGateway ?: throw IllegalStateException("Service local desconectado")
