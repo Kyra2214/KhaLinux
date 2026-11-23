@@ -40,6 +40,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
@@ -65,6 +67,27 @@ fun RedParticipantScreen(onExit: () -> Unit) {
     var fileSummary by remember { mutableStateOf("Nenhum arquivo selecionado.") }
     var pendingReport by remember { mutableStateOf<Pair<String, String>?>(null) }
     var reportMessage by remember { mutableStateOf<String?>(null) }
+
+    // Atualiza o estado real quando o participante retorna de Configurações do Android.
+    // Uma permissão revogada fora do app encerra a prévia/medição correspondente.
+    DisposableEffect(lifecycleOwner, context) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                val hasCamera = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+                val hasMicrophone = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+                val hasLocation = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+                    ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                cameraGranted = hasCamera
+                microphoneGranted = hasMicrophone
+                locationGranted = hasLocation
+                if (!hasCamera) cameraPreviewActive = false
+                if (!hasMicrophone) microphoneActive = false
+                if (!hasLocation) locationSummary = "Permissão revogada ou não concedida neste aparelho."
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     val cameraPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         cameraGranted = granted
