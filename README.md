@@ -1,8 +1,8 @@
 # KhaLinux
 
-Ambiente Linux ARM64 para Android, executado localmente e sem root, voltado a aprendizado, diagnóstico, auditoria autorizada e prática de cibersegurança.
+Ambiente Linux ARM64 para Android, executado localmente e sem root, cuja finalidade principal é executar um laboratório operacional de cibersegurança RED/BLUE/PURPLE. O Linux, o runtime Android, o terminal e o toolkit formam a infraestrutura do laboratório.
 
-> **Status:** implementação das Fases 0–8 em código e Fase 9 em andamento (auditoria estática e documentação prontas; release e notas de versão em seguida). **Nada foi validado em aparelho físico.** Runtime: 166 testes aprovados no host; `:android:app` e o build release ainda não foram compilados (ver [`docs/final-validation.md`](docs/final-validation.md)). Veja [`ROADMAP.md`](ROADMAP.md).
+> **Status:** infraestrutura-base implementada em grande parte; CI nº 284 aprovou testes unitários Android, compilação Debug e verificações host. APK Release e validação física pendentes. O laboratório operacional foi replanejado em 2026-11-23 e ainda será construído (ver [`ROADMAP.md`](ROADMAP.md) e [`docs/roadmap-area-red-completa.md`](docs/roadmap-area-red-completa.md)).
 
 ## Visão
 
