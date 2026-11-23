@@ -2,12 +2,12 @@
 
 ## Área RED
 
-A aba RED organiza operações práticas em laboratórios autorizados. A Operação 01, **Nunca Conecte à Wi-Fi Pública**, usa dois aparelhos Android, hotspot local controlado pelo sistema e portal de treinamento com dados sintéticos. Leia `docs/red-operation-01.md` antes de iniciar. O portal não coleta credenciais: os campos da demonstração não são enviados, e o servidor registra somente eventos sintéticos. O Android pode impedir a criação do hotspot ou a identificação do endereço local; nesses casos, siga a mensagem apresentada pelo app. Use somente aparelhos próprios ou autorizados.
+A aba RED organiza operações práticas em laboratório controlado. A Operação 01 usa dois aparelhos Android: o aparelho A cria o hotspot pelo Android e hospeda um portal HTTP local na porta 8080; o aparelho B conecta-se e navega. Há dois cenários, login local com campos exclusivamente sintéticos e acesso direto sem login. No cenário de login, o formulário envia um POST real ao servidor local, que valida e mostra os campos de teste durante a sessão; esses valores não são gravados no histórico nem no relatório. O modo participante demonstra permissões Android reais no próprio aparelho B. Leia `docs/red-operation-01.md` e `docs/red-instructor-guide.md` antes da aula. O Android pode restringir hotspot, endereços e permissões conforme versão/fabricante.
 
 
 > **Estado:** descreve o que está implementado em código. Nenhum recurso foi validado em aparelho físico; funcionalidades dependem do resultado do **Diagnóstico**.
 
-**Uso responsável:** use as ferramentas e os laboratórios apenas em sistemas que você possui ou tem autorização explícita para avaliar. Os laboratórios rodam só em `127.0.0.1`.
+**Uso responsável:** use as ferramentas e os laboratórios apenas em sistemas que você possui ou tem autorização explícita para avaliar. A Operação RED-01 vincula o portal ao IPv4 da interface do hotspot de laboratório; os demais laboratórios mantêm seu próprio escopo local.
 
 ## Terminal
 
