@@ -154,7 +154,10 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
     fun filter(category: RedCategory?, difficulty: RedDifficulty?) =
         mutableState.update { it.copy(category = category, difficulty = difficulty) }
     fun select(id: String) = mutableState.update { it.copy(selectedOperationId = id, message = null) }
-    fun setPortalMode(mode: RedPortalMode) {\n        mutableState.update { it.copy(portalMode = mode) }\n        portal.setMode(mode)\n    }
+    fun setPortalMode(mode: RedPortalMode) {
+        mutableState.update { it.copy(portalMode = mode) }
+        portal.setMode(mode)
+    }
     fun backToCatalog() {
         interruptCurrentSession()
         mutableState.update { it.copy(selectedOperationId = null, session = null, message = null) }
