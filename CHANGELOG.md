@@ -1,3 +1,15 @@
+## [Não lançado] — RED-7: modo participante e permissões Android
+
+### Implementado / complementado
+- Modo participante usa permissões reais no aparelho B.
+- Câmera apresenta prévia local; microfone calcula nível e descarta amostras; localização permanece exibida no próprio aparelho; arquivos usam seletor SAF sem leitura/envio.
+- O operador recebe somente o tipo e o estado da ação por endpoint local autenticado com token temporário.
+- Ao retornar de Configurações, o estado das permissões é atualizado; prévia/medição são interrompidas quando o acesso foi revogado.
+
+### Validação
+- Inspeção estática e implementação de tratamento de revogação; nenhum build/teste executado.
+- Teste real de permissões nos dois aparelhos fica reservado a RED-13.
+
 ## [Não lançado] — RED-6: navegação local e redirecionamentos
 
 ### Confirmado na implementação existente
