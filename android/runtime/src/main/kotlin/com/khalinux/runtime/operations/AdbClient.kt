@@ -119,12 +119,6 @@ class AdbClient(
         check(!closed.get()) { "adaptador ADB encerrado" }
         require(arguments.isNotEmpty() && arguments.none { it.isBlank() || it.any(Char::isISOControl) })
         validateArguments(arguments)
-        if (arguments.first() == "pair") {
-            val capability = capabilities()
-            require(capability.installed && capability.wirelessPairing) {
-                capability.detail.ifBlank { "A versão instalada do ADB não oferece adb pair" }
-            }
-        }
         ensureServer()
         val shell = (listOf("adb") + arguments).joinToString(" ") { quote(it) }
         return runtime.start(CommandRequest(
