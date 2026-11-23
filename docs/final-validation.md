@@ -1,45 +1,37 @@
 # Validação final
 
-A conclusão da **implementação** (47/47 submódulos) e a da **validação** são registradas separadamente. **A validação NÃO está completa**: faltam itens que dependem do Android SDK/CI e de aparelho físico.
+A validação de infraestrutura e a conclusão do laboratório operacional são marcos distintos. O CI nº 284 executado no commit `49648c9a7bed05fddce2053aae28ebab0aa9902c`, posteriormente integrado à `main`, passou em todos os jobs.
 
-## Executado nesta sessão (ambiente de autoria, host Linux)
+## CI nº 284 — 2026-11-23
 
 | Verificação | Resultado |
 |---|---|
-| Compilação de **todo** o Kotlin de `android/runtime` (Fases 2–8) | OK (só avisos de depreciação). Usou o compilador embutido no Gradle local (Kotlin 2.0.21, `-language-version 1.9 -api-version 1.9 -jvm-target 17`), **não** o 1.9.24 oficial. |
-| Suíte JUnit do runtime (35 classes) | **166 testes, 0 falhas** após as correções abaixo. Primeira execução: 165 testes, 12 falhas. |
-| PTY nativo no host (`test-pty-native.sh`) | OK: spawn, input, resize, UTF-8, sinais. |
-| `audit-security.py` (9.1) | 15 grupos, 0 erros, 0 avisos. Controle negativo (manifesto com `allowBackup=true` + senha literal em cópia) detectou 2 erros. |
-| `test-build-config.py` | `config_status=ok packages=12`. |
-| `bash -n` nos scripts de build/teste/PRoot | OK. |
-| Parse YAML dos 4 workflows | OK (só sintaxe; nunca rodaram). |
+| RootFS/configuração e sintaxe dos scripts | OK |
+| Auditoria estática de segurança | OK |
+| JNI/PTy no host | OK |
+| Smoke test ARM64 RootFS com PRoot | OK |
+| Testes unitários runtime e Android | OK |
+| Compilação `:android:app:assembleDebug` | OK |
+| Artefato `khalinux-debug-apk` | Gerado e publicado no artifact do workflow |
+| APK Release com R8 e assinatura | Não executado |
+| Testes físicos em Android | Pendentes |
 
-### Falhas encontradas e corrigidas
+Workflow: [CI nº 284](https://github.com/Kyra2214/KhaLinux/actions/runs/45138571275).  
+Merge que integrou o commit validado: `b14812e934d10fa81af890be9aea461badc4ce69`.
 
-1. **Tutor — referências de documentação** (11 testes): a regex `TutorTopic.DOC` recusava maiúsculas e rejeitava `docs/decisions/ADR-0002-…md`, derrubando o carregamento do `knowledge.tsv` real. Corrigida; a nova regex também **recusa `..`** (a antiga aceitava `docs/../x.md`). Teste de regressão `docReferenceCannotEscapeDocsDirectory` adicionado.
-2. **`LabsDataTest.docsAndFixturesExist`** (1 teste): o teste supunha que todo serviço usa uma fixture em `/opt/khalinux-labs`, mas `rede-sockets` usa `python3 -m http.server 8080 --bind 127.0.0.1`. Erro do teste, não do produto; ajustado para exigir `--bind` nesses casos.
-3. A auditoria passou a exigir `--bind` loopback em comandos `http.server` do `labs.json`.
+## O que ainda falta na validação da infraestrutura
 
-## Shim de teste (transparência)
+- Build `assembleRelease` com R8 e assinatura.
+- Verificação da assinatura com `apksigner verify`.
+- Instalação limpa, atualização e recuperação em aparelho Android ARM64.
+- Verificação do PRoot, RootFS, terminal, PTY e ferramentas no dispositivo.
+- Medições de memória, inicialização e bateria.
+- Testes físicos com dois aparelhos para as operações do laboratório, somente após a implementação operacional.
 
-O ambiente não tem `kotlinc` nem `kotlin-test` e não há rede. Os testes usam `kotlin.test`; para rodá-los foi escrito um **shim local** (`assertEquals/True/False/Null/NotNull/Same/FailsWith`, com contratos) fora do projeto. Semântica equivalente à real, mas **não é o artefato oficial**: repetir no CI com `kotlin-test` 1.9.24 real.
+## Estado do laboratório operacional
 
-## NÃO executado (pendências finais)
+O CI nº 284 valida a compilação Debug e os testes automatizados existentes. Ele **não valida o laboratório RED/BLUE/PURPLE operacional**, nem substitui os testes de integração com os dois aparelhos.
 
-| Pendência | Motivo |
-|---|---|
-| Compilar `:android:app` (Compose, ViewModels, Service multi-sessão, `TabsBar`, `LabsScreen`, `TutorScreen`, `FilesScreen`…) e rodar `:android:app:testDebugUnitTest` | Sem Android SDK/NDK nem rede; só no CI. |
-| Migração Room 2→3 e testes de DAO/ViewModel | Exigem Android; commitar `android/app/schemas` gerado no CI. |
-| Build `assembleRelease` com R8 e assinatura; `apksigner verify` | Nunca gerado; regras do R8 não exercitadas (`docs/release.md`). |
-| Workflows (`ci.yml`, `release-apk.yml`) | Nunca executados. |
-| Revisão/sanitizers do `native_pty.c` | Só o teste funcional do host foi executado. |
-| Smoke PRoot/QEMU (`test-proot-runtime.sh`) | Precisa de `proot` e `qemu-user-static`, ausentes. |
-| Teste físico (Android 15+, ARM64): PRoot em `filesDir` com `targetSdk 35`, Diagnóstico, rotação, segundo plano, instalação limpa, atualização, recuperação, toolkit, laboratórios | Exige aparelho do usuário. |
-| Medições de memória, inicialização e bateria (Fase 8) | Exigem aparelho. |
-| Verificar ferramentas do toolkit em ARM64/PRoot | Exigem aparelho. |
-| Reduzir RootFS/downloads | Exige nova build do RootFS no CI. |
-| Versões do catálogo contra o snapshot APT fixo | Sem rede. |
+A direção do produto foi corrigida em 2026-11-23. O roadmap operacional está em [roadmap-area-red-completa.md](roadmap-area-red-completa.md), com a sequência LAB-0 a LAB-10. O protótipo atual de hotspot/portal e as telas RED/BLUE serão auditados e evoluídos para operações reais.
 
-## Conclusão
-
-Implementação: **100% (47/47 em código)**. Validação: **parcial** — runtime validado no host (166/166), `:android:app`, release e aparelho físico pendentes. Por isso o projeto **não** é declarado 100% concluído nem estável: o artefato é a candidata `1.0.0-rc.1`.
+**Conclusão:** a integração CI da infraestrutura passou; o APK Release ainda não foi produzido; a validação física e a implementação do laboratório operacional continuam pendentes.
