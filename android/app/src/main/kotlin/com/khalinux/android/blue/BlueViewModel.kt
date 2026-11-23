@@ -73,7 +73,8 @@ class BlueViewModel(application: Application) : AndroidViewModel(application) {
                     viewModelScope.launch(Dispatchers.IO) {
                         mutableState.update { current ->
                             current.copy(operationEvents =
-                                (current.operationEvents.filterNot { it.id == event.id } + event).takeLast(300))
+                                (current.operationEvents.filterNot { it.id == event.id } + event)
+                                    .sortedBy { it.occurredAtEpochMillis }.takeLast(300))
                         }
                     }
                 }
