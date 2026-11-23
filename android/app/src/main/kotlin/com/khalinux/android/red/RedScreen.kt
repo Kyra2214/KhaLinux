@@ -5,6 +5,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -55,10 +57,18 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
         val operation = state.selectedOperationId?.let(RedCatalog::find)
         if (operation == null) {
             Text("Catálogo de operações", style = MaterialTheme.typography.titleLarge)
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 FilterChip(selected = state.category == null, onClick = { viewModel.filter(null, state.difficulty) }, label = { Text("Todas") })
                 FilterChip(selected = state.category == RedCategory.NETWORKS, onClick = { viewModel.filter(RedCategory.NETWORKS, state.difficulty) }, label = { Text("Redes") })
+                FilterChip(selected = state.category == RedCategory.WEB, onClick = { viewModel.filter(RedCategory.WEB, state.difficulty) }, label = { Text("Web") })
+                FilterChip(selected = state.category == RedCategory.SOCIAL_ENGINEERING, onClick = { viewModel.filter(RedCategory.SOCIAL_ENGINEERING, state.difficulty) }, label = { Text("Eng. social") })
+                FilterChip(selected = state.category == RedCategory.LOCAL_ANALYSIS, onClick = { viewModel.filter(RedCategory.LOCAL_ANALYSIS, state.difficulty) }, label = { Text("Análise local") })
+            }
+            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                FilterChip(selected = state.difficulty == null, onClick = { viewModel.filter(state.category, null) }, label = { Text("Todos níveis") })
                 FilterChip(selected = state.difficulty == RedDifficulty.BEGINNER, onClick = { viewModel.filter(state.category, RedDifficulty.BEGINNER) }, label = { Text("Iniciante") })
+                FilterChip(selected = state.difficulty == RedDifficulty.INTERMEDIATE, onClick = { viewModel.filter(state.category, RedDifficulty.INTERMEDIATE) }, label = { Text("Intermediário") })
+                FilterChip(selected = state.difficulty == RedDifficulty.ADVANCED, onClick = { viewModel.filter(state.category, RedDifficulty.ADVANCED) }, label = { Text("Avançado") })
             }
             LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 items(RedCatalog.operations.filter { (state.category == null || it.category == state.category) && (state.difficulty == null || it.difficulty == state.difficulty) }, key = { it.id }) { item ->
@@ -137,8 +147,23 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                     Button(onClick = viewModel::finishSession) { Text("Encerrar sessão") }
                 }
             } ?: run {
-                Text("Tutorial completo disponível antes da execução. A criação de sessão não ativa rede nem hotspot por conta própria.")
-                Button(onClick = viewModel::startSession) { Text("Iniciar sessão de estudo") }
+                Text("Tutorial de execução", style = MaterialTheme.typography.titleMedium)
+                LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(operation.steps, key = { it.id }) { step ->
+                        Card(Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text(step.title, style = MaterialTheme.typography.titleSmall)
+                                Text(step.instructions, style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    }
+                    item {
+                        Text("Critérios de conclusão", style = MaterialTheme.typography.titleMedium)
+                        operation.completionCriteria.forEach { Text("• $it", style = MaterialTheme.typography.bodySmall) }
+                    }
+                }
+                Text("A sessão de estudo não ativa recursos de rede. O hotspot só será solicitado após a ação explícita do operador.", style = MaterialTheme.typography.bodySmall)
+                Button(onClick = viewModel::startSession) { Text("Iniciar sessão") }
             }
             TextButton(onClick = viewModel::backToCatalog) { Text("Voltar ao catálogo") }
         }
