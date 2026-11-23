@@ -2,7 +2,7 @@
 
 **Branch:** plan/area-red-wifi-publico  
 **Escopo:** laboratório local de dois aparelhos Android, RED + BLUE.  
-**Estado:** implementação RED-0 a RED-12 concluída em código/documentação; validação automatizada RED-13 aprovada no GitHub Actions; teste físico com dois aparelhos e compatibilidade de fabricantes pendentes.  
+**Estado:** implementação RED-0 a RED-12 concluída em código/documentação (100% da implementação). RED-13 permanece pendente; a validação histórica citada abaixo é de um commit anterior e não valida o estado atual da branch.  
 **Regra de entrega:** ZIP/checkpoints ignorados por instrução do usuário; todas as alterações permanecem nesta branch.
 
 ## Implementado
@@ -40,19 +40,17 @@
 - O servidor vincula socket a IPv4 de interface Wi-Fi/AP identificada; se não conseguir identificar, não faz fallback para todas as interfaces.
 - A abertura automática do portal não é garantida; URL e QR Code são alternativas.
 
-## Resultado da validação automatizada RED-13
+## Histórico de validação automatizada (não aplicável ao HEAD atual)
 
-**GitHub Actions: SUCESSO**
+Há um registro histórico de GitHub Actions bem-sucedido no commit `cf1c16d68d6706f912ee856d3753efd935077a26` (workflow `45099843828`). Esse resultado antecede as alterações atuais da Área RED e **não deve ser usado como aprovação do HEAD atual**. A validação RED-13 precisa ser executada novamente após a implementação integral.
 
-- Host checks e sintaxe RootFS: aprovados.
-- Auditoria estática de segurança: aprovada após inclusão justificada das permissões Android do laboratório na allowlist.
-- Teste JNI PTY no host: aprovado.
-- Smoke test PRoot/ARM64: aprovado.
-- Testes unitários do runtime e app Android: aprovados.
-- Compilação do APK debug com CameraX/Compose: aprovada.
-- Upload do artefato de inspeção do CI: concluído.
-- Workflow: https://github.com/Kyra2214/KhaLinux/actions/runs/45099843828
-- Commit validado: cf1c16d68d6706f912ee856d3753efd935077a26.
+## Bloqueio atual para executar RED-13
+
+- O conector GitHub disponível nesta sessão permite ler arquivos, commits e status, mas não oferece ação para iniciar/dispatch de workflow.
+- O ambiente de execução atual não contém checkout local do repositório; portanto não há como executar Gradle/tests localmente a partir dos arquivos remotos.
+- A consulta de status do commit atual `14a676432906793b4f502c7e51ad257a7e4ca37a` retornou nenhuma verificação e nenhuma execução associada.
+- Nenhum teste, build ou validação foi executado nesta retomada.
+- Para concluir RED-13, é necessário disparar o workflow de validação na branch `plan/area-red-wifi-publico` pelo GitHub Actions ou disponibilizar um checkout executável do repositório.
 
 ## Pendências físicas da validação RED-13
 
@@ -69,4 +67,4 @@
 
 ## Declaração de integridade do estado
 
-Nenhum teste ou build foi executado durante a implementação. Após RED-12, a validação automatizada foi executada e passou. Testes físicos e compatibilidade ainda não foram realizados, portanto o projeto não deve ser declarado 100% concluído. O percentual de implementação e o estado de validação devem permanecer separados.
+Nenhum teste ou build foi executado durante a implementação. A implementação está 100% concluída (RED-0 a RED-12), mas a validação RED-13 ainda não foi executada para o HEAD atual devido à indisponibilidade de execução de workflows/checkout local nesta sessão. Testes físicos e compatibilidade permanecem para o fim. O projeto não deve ser declarado concluído até resolver essas pendências.
