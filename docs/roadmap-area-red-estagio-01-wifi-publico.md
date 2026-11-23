@@ -1,6 +1,6 @@
 # RED-01 — Wi-Fi público, portal local e navegação
 
-**Estado:** RED-0 a RED-12 implementados em código/documentação (93%); RED-13 validação final pendente. Nenhum build/teste será executado antes de concluir a implementação integral.  
+**Estado:** RED-0 a RED-12 implementados em código/documentação (100% da implementação); RED-13 validação final pendente. Nenhum build/teste será executado antes de concluir a implementação integral.  
 **Branch:** `plan/area-red-wifi-publico`  
 **Aparelhos:** dois Android dedicados/controlados pelo instrutor.  
 **Servidor:** HTTP local na porta TCP 8080.  
