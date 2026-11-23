@@ -91,7 +91,7 @@ class KhaLinuxRuntimeService : Service() {
         // 8.1: limpa resíduos de instalações interrompidas; roda na fila do instalador (serial com a instalação).
         installerExecutor.submit { runCatching { storage().cleanup(installRunning.get()) } }
         // 8.3: aquece catálogos/toolkit/laboratórios em segundo plano para a primeira abertura das telas não pagar o parse.
-        installerExecutor.submit { runCatching { packageManager(); toolkit(); labs() } }
+        installerExecutor.submit { runCatching { packageManager(); toolkit(); labs(); operationCatalog() } }
     }
 
     /** Higiene de armazenamento (8.1): relatório de espaço e limpeza de resíduos; nunca toca em dados do usuário. */
@@ -141,6 +141,8 @@ class KhaLinuxRuntimeService : Service() {
     fun isRuntimeInstalled(): Boolean = runtime != null
 
     @Volatile private var operationCatalogCache: com.khalinux.runtime.operations.LabOperationCatalog? = null
+    @Volatile private var operationEngineInstance: com.khalinux.runtime.operations.LabOperationEngine? = null
+    @Volatile private var operationEngineRuntime: LinuxRuntime? = null
 
     /** Catálogo operacional LAB-0, independente da instalação do RootFS. */
     @Synchronized
@@ -151,6 +153,32 @@ class KhaLinuxRuntimeService : Service() {
         }
         operationCatalogCache = parsed
         return parsed
+    }
+
+    /** Motor LAB-1 compartilhado pelo terminal e pelas futuras interfaces RED/BLUE. */
+    @Synchronized
+    fun operationEngine(): com.khalinux.runtime.operations.LabOperationEngine? {
+        val current = runtime ?: return null
+        if (operationEngineRuntime === current) operationEngineInstance?.let { return it }
+        closeOperationEngine()
+        val catalog = runCatching { operationCatalog() }.getOrNull() ?: return null
+        val directory = File(filesDir, "runtime/lab-operations").apply { mkdirs() }
+        val engine = com.khalinux.runtime.operations.LabOperationEngine(
+            runtime = current,
+            catalog = catalog,
+            store = com.khalinux.runtime.operations.LabOperationStore(directory),
+            evidence = com.khalinux.runtime.operations.LabEvidenceStore(directory)
+        )
+        operationEngineInstance = engine
+        operationEngineRuntime = current
+        return engine
+    }
+
+    @Synchronized
+    private fun closeOperationEngine() {
+        operationEngineInstance?.close()
+        operationEngineInstance = null
+        operationEngineRuntime = null
     }
 
     private var packageManagerInstance: com.khalinux.runtime.packages.PackageManager? = null
@@ -333,6 +361,7 @@ class KhaLinuxRuntimeService : Service() {
             val rootfs = File(filesDir, "runtime/rootfs-arm64")
             RootfsFinalizer.apply(rootfs)
             publishInstall(InstallPhase.FINALIZING, 0.5)
+            closeOperationEngine()
             runtime?.close()
             runtime = createRuntimeIfInstalled()
             val ready = runtime != null
@@ -688,6 +717,7 @@ class KhaLinuxRuntimeService : Service() {
     override fun onUnbind(intent: Intent?): Boolean = true
 
     override fun onDestroy() {
+        closeOperationEngine()
         runtime?.close()
         callbacks.shutdownNow()
         installerExecutor.shutdownNow()

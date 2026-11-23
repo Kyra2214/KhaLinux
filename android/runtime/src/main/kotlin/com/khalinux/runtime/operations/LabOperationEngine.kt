@@ -160,6 +160,8 @@ class LabOperationEngine(
         return true
     }
 
+    fun operations(): List<LabOperationDefinition> = catalog.operations
+    fun operation(id: String): LabOperationDefinition? = catalog.find(id)
     fun session(id: String): LabSession? = store.session(id)
     fun sessions(): List<LabSession> = store.sessions()
     fun execution(id: String): LabExecutionRecord? = store.execution(id)
