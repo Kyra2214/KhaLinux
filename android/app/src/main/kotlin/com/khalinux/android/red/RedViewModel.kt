@@ -424,15 +424,17 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
 
     /** Fallback manual quando o roteador/hotspot não propaga mDNS. */
     fun pairDevice(host: String, port: Int, pairingCode: String) {
+        val normalizedHost = host.trim().removePrefix("[").removeSuffix("]")
         pairDiscoveredDevice(
-            AdbMdnsEndpoint("manual-pairing", "Manual", "_adb-tls-pairing._tcp.", host, port, AdbMdnsKind.PAIRING),
+            AdbMdnsEndpoint("manual-pairing", "Manual", "_adb-tls-pairing._tcp.", normalizedHost, port, AdbMdnsKind.PAIRING),
             pairingCode
         )
     }
 
     fun connectDevice(host: String, port: Int) {
+        val normalizedHost = host.trim().removePrefix("[").removeSuffix("]")
         connectDiscoveredDevice(
-            AdbMdnsEndpoint("manual-connect", "Manual", "_adb-tls-connect._tcp.", host, port, AdbMdnsKind.CONNECT)
+            AdbMdnsEndpoint("manual-connect", "Manual", "_adb-tls-connect._tcp.", normalizedHost, port, AdbMdnsKind.CONNECT)
         )
     }
 
