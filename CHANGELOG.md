@@ -1,3 +1,13 @@
+## [Não lançado] — RED-8: observabilidade de permissões e recursos
+
+### Implementado
+- Painel RED ganhou seção dedicada com o evento mais recente por câmera, microfone, localização e seletor de arquivos.
+- Estados são derivados da linha do tempo real da sessão; sem evento, a interface informa que nenhum recurso foi solicitado.
+- Requisições HTTP e valores sintéticos continuam exibidos em áreas próprias, com limpeza de dados temporários.
+
+### Validação
+- Nenhum build ou teste executado; validação funcional fica para RED-13.
+
 ## [Não lançado] — RED-7: modo participante e permissões Android
 
 ### Implementado / complementado
