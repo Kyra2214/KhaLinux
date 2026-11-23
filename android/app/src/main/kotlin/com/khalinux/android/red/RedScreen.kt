@@ -116,6 +116,15 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
             Text("Pré-requisitos", style = MaterialTheme.typography.titleMedium)
             operation.prerequisites.forEach { Text("• $it", style = MaterialTheme.typography.bodySmall) }
             Text("Ambiente: ${operation.environment}", style = MaterialTheme.typography.bodySmall)
+            Card(Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                    Text("Roteiro rápido de dois aparelhos", style = MaterialTheme.typography.titleSmall)
+                    Text("Aparelho A: inicie a sessão, escolha o modo do portal, ative o hotspot e compartilhe SSID, endereço e código temporário.", style = MaterialTheme.typography.bodySmall)
+                    Text("Aparelho B: conecte-se ao Wi-Fi, abra o endereço local e percorra as páginas. Para permissões, abra RED > Modo participante e informe endereço e código.", style = MaterialTheme.typography.bodySmall)
+                    Text("BLUE: alterne para a análise defensiva sem encerrar a sessão RED. Volte ao RED para continuar a operação.", style = MaterialTheme.typography.bodySmall)
+                    TextButton(onClick = { viewModel.markStep("prepare") }) { Text("Registrar preparação do instrutor") }
+                }
+            }
             state.session?.let { session ->
                 Text("Sessão: ${session.state} · ${session.completedSteps.size}/${operation.steps.size} etapas")
                 Text("Rede: ${state.networkState}", style = MaterialTheme.typography.bodySmall)
