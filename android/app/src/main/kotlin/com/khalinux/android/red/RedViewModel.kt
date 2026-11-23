@@ -154,7 +154,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             operationEngine = null
         }
         mutableState.update {
-            it.copy(operationalOperations = emptyList(), operationalSessionId = null,
+            it.copy(operationalOperations = emptyList(), operationalAssets = emptyList(), operationalSessionId = null,
                 operationalExecutions = emptyList(), operationalEvents = emptyList())
         }
     }
@@ -187,8 +187,12 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
 
     fun refreshOperationalCatalog() {
         viewModelScope.launch(Dispatchers.IO) {
-            val engine = connectOperationEngine() ?: return@launch
             val assets = runtimeGateway?.deviceAssets().orEmpty()
+            val engine = connectOperationEngine()
+            if (engine == null) {
+                mutableState.update { it.copy(operationalAssets = assets) }
+                return@launch
+            }
             mutableState.update {
                 it.copy(operationalOperations = engine.operations(), operationalAssets = assets, operationalMessage = null)
             }
