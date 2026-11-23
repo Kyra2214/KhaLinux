@@ -71,17 +71,23 @@ class RedPortalServer(
                 }
                 val validSubmit = path == "/submit" && method == "POST"
                 val validHome = path == "/" && method == "GET"
+                val demoEvent = if (method == "POST" && path.startsWith("/event/")) path.removePrefix("/event/") else ""
+                val validDemoEvent = demoEvent in setOf("location", "camera", "files", "social")
                 val body = when {
                     validSubmit -> {
                         onEvent("Participante concluiu o formulário sintético. Valores digitados descartados.")
                         "<h2>Etapa concluída</h2><p>Esta foi uma simulação. Nenhuma credencial foi validada, salva ou enviada.</p><a href='/'>Voltar</a>"
+                    }
+                    validDemoEvent -> {
+                        onEvent(if (demoEvent == "social") "Participante abriu a simulação de rede social genérica." else "Permissão simulada: $demoEvent. Nenhuma permissão Android foi solicitada.")
+                        "<h2>Demonstração registrada</h2><p>Nenhuma permissão foi solicitada ao Android e nenhum dado do aparelho foi acessado.</p><a href='/'>Voltar</a>"
                     }
                     validHome -> portalHtml()
                     else -> "<h1>404</h1><p>Rota não disponível neste laboratório.</p>"
                 }
                 val bytes = body.toByteArray(StandardCharsets.UTF_8)
                 val output = peer.getOutputStream()
-                val status = if (validSubmit || validHome) "200 OK" else "404 Not Found"
+                val status = if (validSubmit || validHome || validDemoEvent) "200 OK" else "404 Not Found"
                 output.write(("HTTP/1.1 $status\r\nContent-Type: text/html; charset=utf-8\r\nCache-Control: no-store\r\nConnection: close\r\nContent-Length: ${bytes.size}\r\n\r\n").toByteArray(StandardCharsets.US_ASCII))
                 output.write(bytes)
                 output.flush()
@@ -101,7 +107,14 @@ class RedPortalServer(
         <form id="demo"><label>E-mail fictício<br><input autocomplete="off" value="xxx@gmail.com"></label><br><br>
         <label>Senha fictícia<br><input type="password" autocomplete="off" value="123"></label><br><br>
         <button type="submit">Concluir simulação</button></form><script>document.getElementById("demo").addEventListener("submit",async e=>{e.preventDefault();await fetch("/submit",{method:"POST",headers:{"Content-Type":"text/plain"},body:"demo=completed"});document.body.innerHTML="<h1>Etapa concluída</h1><p>Simulação encerrada. Nenhum campo foi transmitido.</p>";});</script>
-        <p style="margin-top:28px;font-size:13px">Este laboratório não imita serviços reais e não valida nem armazena credenciais.</p></body></html>
+        <h2>Outras armadilhas demonstrativas</h2>
+        <button type="button" onclick="demoEvent('social')">Continuar com rede social de treinamento</button>
+        <h3>Solicitações de permissão simuladas</h3>
+        <button type="button" onclick="demoEvent('location')">Simular pedido de localização</button>
+        <button type="button" onclick="demoEvent('camera')">Simular pedido de câmera</button>
+        <button type="button" onclick="demoEvent('files')">Simular pedido de arquivos</button>
+        <script>async function demoEvent(name){await fetch('/event/'+name,{method:'POST',headers:{'Content-Type':'text/plain'},body:'demo=completed'});alert('Simulação registrada. Nenhuma permissão foi solicitada.');}</script>
+        <p style="margin-top:28px;font-size:13px">Este laboratório não imita serviços reais e não valida nem armazena credenciais. Permissões são apenas demonstrativas.</p></body></html>
     """.trimIndent()
 
     private fun localIpv4(): String? = runCatching {
