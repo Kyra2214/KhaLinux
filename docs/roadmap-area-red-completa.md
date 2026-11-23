@@ -1,6 +1,6 @@
 # Área RED — Plano mestre da aba completa
 
-**Status:** planejamento; implementação ainda não iniciada.  
+**Status:** implementação inicial concluída em código na branch `plan/area-red-wifi-publico`; validação final pendente. Nenhum teste, build ou teste físico foi executado durante a implementação.  
 **Branch:** plan/area-red-wifi-publico  
 **Repositório:** Kyra2214/KhaLinux  
 **Documento complementar:** docs/roadmap-area-red-estagio-01-wifi-publico.md
@@ -177,6 +177,8 @@ A localização exata do novo item na navegação e os nomes de pacotes devem se
 ## 7. Roadmap mestre de implementação da aba RED
 
 ### RED-0 — Descoberta e desenho de integração
+
+**Código/documentação:** concluído. Navegação, Activity, ViewModels, runtime e persistência existentes foram mapeados; a Área RED foi isolada no pacote `android/.../red/`.
 - Ler a navegação atual, telas, ViewModels, módulos, DI e persistência.
 - Mapear pontos de extensão sem refatoração desnecessária.
 - Definir ADR para arquitetura da Área RED.
@@ -184,6 +186,8 @@ A localização exata do novo item na navegação e os nomes de pacotes devem se
 - Não alterar módulos existentes sem necessidade demonstrada.
 
 ### RED-1 — Fundação da aba RED
+
+**Código:** concluído. Entrada RED integrada à barra inferior; catálogo carregado de asset versionado e validado; ficha e estados de navegação implementados.
 - Criar entrada RED na navegação principal.
 - Criar tela principal, cabeçalho, estado e catálogo.
 - Implementar modelos, parser e validação do catálogo.
@@ -191,12 +195,16 @@ A localização exata do novo item na navegação e os nomes de pacotes devem se
 - Exibir operação planejada como indisponível até sua implementação completa.
 
 ### RED-2 — Ficha, tutorial e progresso
+
+**Código:** concluído. Objetivos, escopo, pré-requisitos, tutorial prévio e durante a sessão, critérios e progresso persistido implementados.
 - Criar tela de detalhes da operação.
 - Exibir objetivos, pré-requisitos, escopo, recursos e critérios de conclusão.
 - Criar visualizador de tutorial por etapas.
 - Persistir progresso sem registrar dados sensíveis.
 
 ### RED-3 — Motor comum de sessões
+
+**Código:** concluído para a primeira operação. Máquina de estados, eventos tipados, encerramento, recuperação como interrompida, retenção limitada e relatório local implementados. Pausa/retomada ativa não foi adicionada porque o hotspot não pode ser restaurado com segurança após perda do processo.
 - Implementar máquina de estados.
 - Implementar eventos tipados e ordenados.
 - Implementar cancelamento, encerramento, histórico e recuperação segura.
@@ -204,6 +212,8 @@ A localização exata do novo item na navegação e os nomes de pacotes devem se
 - Aplicar retenção mínima e limpeza.
 
 ### RED-4 — Operação 01: Wi-Fi público
+
+**Código:** implementação inicial concluída. `LocalOnlyHotspot`, portal HTTP local restrito à interface Wi-Fi, QR Code/endereço, formulário sintético e eventos implementados. Compatibilidade real depende da validação final em aparelhos.
 - Seguir integralmente o documento específico da Operação 01.
 - Integrar hotspot conforme APIs e limitações Android.
 - Hospedar portal local de treinamento.
@@ -211,6 +221,8 @@ A localização exata do novo item na navegação e os nomes de pacotes devem se
 - Conectar painel RED, tutorial, eventos e relatório.
 
 ### RED-5 — Catálogo extensível e histórico
+
+**Código:** concluído para o catálogo inicial. Filtros, histórico, exclusão e exportação manual Markdown implementados. O catálogo contém somente a Operação 01 especificada.
 - Implementar filtros e estados.
 - Implementar histórico de sessões.
 - Implementar retomada quando suportada.
@@ -218,6 +230,8 @@ A localização exata do novo item na navegação e os nomes de pacotes devem se
 - Preparar contratos para novas operações, sem inventar conteúdo.
 
 ### RED-6 — Integração, documentação e fechamento de implementação
+
+**Código/documentação:** concluído nesta branch. Atualizados `ARCHITECTURE.md`, `docs/user-guide.md`, `CHANGELOG.md`, `docs/red-area.md`, `docs/red-operation-01.md` e `RESUME_SESSION.md`. O checkpoint Git fica nesta branch; sem merge para `main`.
 - Integrar a aba ao app sem regressões deliberadas.
 - Atualizar documentação de arquitetura, guia do usuário, changelog e roadmap.
 - Registrar limitações e pendências reais.
@@ -251,9 +265,9 @@ A aba RED estará implementada quando:
 ## 10. Processo de execução
 
 - Este plano mestre e o documento da Operação 01 são a referência de escopo.
-- A implementação só começa após autorização explícita do usuário para iniciar o roadmap.
+- Autorização para implementar concedida pelo usuário em 2026-11-23; implementação realizada nesta branch.
 - Antes de codificar, o agente deve ler o estado atual do repositório e mapear a integração.
 - Implementar os submódulos em sequência, sem parar após cada fase para pedir autorização repetida.
-- Não executar testes, builds, validações ou testes físicos durante a implementação do roadmap. Registrar os requisitos no backlog de validação final.
+- Não executar testes, builds, validações ou testes físicos durante a implementação do roadmap. Registar todos os requisitos no backlog de validação final. Esta regra foi respeitada nesta etapa.
 - Testes e validação acumulada serão realizados somente depois que toda a implementação RED estiver concluída.
 - Não fazer merge para main sem autorização explícita.
