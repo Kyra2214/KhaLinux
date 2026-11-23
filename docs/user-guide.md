@@ -1,5 +1,10 @@
 # Guia do usuário
 
+## Área RED
+
+A aba RED organiza operações práticas em laboratórios autorizados. A Operação 01, **Nunca Conecte à Wi-Fi Pública**, usa dois aparelhos Android, hotspot local controlado pelo sistema e portal de treinamento com dados sintéticos. Leia `docs/red-operation-01.md` antes de iniciar. O portal não coleta credenciais: os campos da demonstração não são enviados, e o servidor registra somente eventos sintéticos. O Android pode impedir a criação do hotspot ou a identificação do endereço local; nesses casos, siga a mensagem apresentada pelo app. Use somente aparelhos próprios ou autorizados.
+
+
 > **Estado:** descreve o que está implementado em código. Nenhum recurso foi validado em aparelho físico; funcionalidades dependem do resultado do **Diagnóstico**.
 
 **Uso responsável:** use as ferramentas e os laboratórios apenas em sistemas que você possui ou tem autorização explícita para avaliar. Os laboratórios rodam só em `127.0.0.1`.
