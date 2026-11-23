@@ -1,5 +1,19 @@
 # Changelog
 
+## [Não lançado] — Área RED (implementação inicial)
+
+### Adicionado
+- Entrada **RED** na navegação principal, com catálogo versionado, filtros, ficha de operação, tutorial disponível antes da execução, progresso e histórico.
+- Motor local de sessões RED com eventos tipados, persistência isolada, limite de 300 eventos por sessão/100 sessões e recuperação de sessões interrompidas.
+- Operação 01 **Nunca Conecte à Wi-Fi Pública**: solicitação de hotspot local pelo Android, portal HTTP vinculado à interface Wi-Fi do laboratório, endereço manual, QR Code, formulário sintético, painel de eventos e relatório Markdown copiável/exportável.
+- Catálogo inicial em `distribution/red/operations.json`; documentação em `docs/red-area.md` e `docs/red-operation-01.md`.
+
+### Segurança e limitações
+- Portal identificado como simulação; campos de demonstração não são serializados. A página envia somente `demo=completed`; o servidor descarta o corpo e registra apenas o evento.
+- Sem login real, coleta de credenciais, tokens, cookies, interceptação ou varredura de dispositivos.
+- Hotspot, permissões e endereço de rede dependem do Android/fabricante. A abertura automática do portal não é garantida.
+- Nenhum teste, build ou teste físico executado durante esta implementação. Toda validação da Área RED está reservada para a fase final.
+
 ## [Não lançado] — CHECKPOINT 047
 
 ### Corrigido
