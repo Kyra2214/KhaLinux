@@ -47,7 +47,7 @@ data class RedSession(
 )
 
 object RedCatalog {
-    val operations = listOf(
+    private val builtInOperations = listOf(
         RedOperation(
             id = "red-wifi-public-01",
             number = 1,
@@ -70,5 +70,8 @@ object RedCatalog {
         )
     )
 
-    fun find(id: String): RedOperation? = operations.firstOrNull { it.id == id }
+    @Volatile private var loadedOperations: List<RedOperation> = builtInOperations
+    val operations: List<RedOperation> get() = loadedOperations
+    fun replace(operations: List<RedOperation>) { loadedOperations = operations.toList() }
+    fun find(id: String): RedOperation? = loadedOperations.firstOrNull { it.id == id }
 }
