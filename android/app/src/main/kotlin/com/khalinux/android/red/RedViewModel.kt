@@ -383,7 +383,8 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         mutableState.update { it.copy(requests = (it.requests + observation).takeLast(100)) }
         val type = when {
             observation.path.startsWith("/go/") && observation.statusCode in 300..399 -> RedEventType.REDIRECT
-            observation.method == "POST" -> RedEventType.FORM_SUBMITTED
+            observation.method == "POST" && observation.statusCode in 200..299 -> RedEventType.FORM_SUBMITTED
+            observation.method == "POST" -> RedEventType.FORM_REJECTED
             observation.path != "/" -> RedEventType.NAVIGATION
             else -> RedEventType.HTTP_REQUEST_RECEIVED
         }
