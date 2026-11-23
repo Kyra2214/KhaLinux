@@ -18,8 +18,9 @@
 | RED-3 a RED-12 | Concluído em código/documentação | implementação integral; RED-10 inclui integração RED ↔ BLUE |
 | RED-13 | Automatizada aprovada; física pendente | workflow `45138571275` passou no HEAD `49648c9`; falta validação física com os dois aparelhos |
 
-**Percentual de implementação:** 100% (13/13 submódulos RED-0 a RED-12).  \n**Validação final:** 0% concluída; RED-13 pendente por indisponibilidade de execução nesta sessão. O conector não expõe dispatch de workflow e não há checkout local para executar Gradle/testes.  
-**Validação:** fase RED-13 iniciada após RED-12. CI automatizado passou (host, auditoria, JNI/PTy, PRoot, testes unitários e build APK); testes físicos e compatibilidade real continuam pendentes.  
+**Percentual de implementação:** 100% (13/13 submódulos RED-0 a RED-12).  
+**Validação automatizada:** aprovada no HEAD `49648c9a7bed05fddce2053aae28ebab0aa9902c`, workflow `45138571275` (testes unitários, build APK debug, verificações host/RootFS, auditoria estática, JNI/PTy e PRoot).  
+**Validação física:** pendente; executar com os dois aparelhos e verificar compatibilidade real. O projeto ainda não deve ser declarado concluído até essa etapa.  
 **Checkpoint ZIP:** desativado por instrução explícita do usuário; trabalhar somente na branch Git indicada.
 
 ## 1. Direção do produto
