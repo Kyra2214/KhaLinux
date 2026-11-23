@@ -17,6 +17,7 @@ data class AdbCapabilities(
     val installed: Boolean,
     val versionOutput: String,
     val wirelessPairing: Boolean,
+    val hostKeyPresent: Boolean,
     val detail: String
 )
 
@@ -53,7 +54,7 @@ class AdbClient(
         return try {
             val version = collect(startOperationCommand(listOf("version"), Duration.ofSeconds(8)))
             if (version.exitCode != 0) {
-                return AdbCapabilities(false, version.stdout, false,
+                return AdbCapabilities(false, version.stdout, false, false,
                     version.stderr.ifBlank { "ADB não disponível no RootFS." })
             }
             val help = collect(startOperationCommand(listOf("help"), Duration.ofSeconds(8)))
@@ -61,15 +62,22 @@ class AdbClient(
             val pairing = (helpText.contains("pair host[:port]") ||
                 helpText.contains("pair with a device for secure tcp/ip communication")) &&
                 !helpText.contains("unknown command")
+            val hostKey = collect(runtime.start(CommandRequest(
+                shellCommand = "test -s " + quote("$home/.android/adbkey") +
+                    " && test -s " + quote("$home/.android/adbkey.pub"),
+                workingDirectory = home,
+                timeout = Duration.ofSeconds(5)
+            )))
             AdbCapabilities(
                 installed = true,
                 versionOutput = version.stdout.ifBlank { version.stderr }.trim(),
                 wirelessPairing = pairing,
+                hostKeyPresent = hostKey.exitCode == 0,
                 detail = if (pairing) "ADB com suporte a pareamento sem fio."
                     else "ADB disponível, mas sem suporte detectável a adb pair."
             )
         } catch (error: Exception) {
-            AdbCapabilities(false, "", false, error.message ?: "Não foi possível iniciar o ADB.")
+            AdbCapabilities(false, "", false, false, error.message ?: "Não foi possível iniciar o ADB.")
         }
     }
 
