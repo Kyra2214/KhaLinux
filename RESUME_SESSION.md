@@ -36,3 +36,16 @@
 - **Lacuna atual:** a implementação existente ainda envia apenas evento fixo no formulário e usa permissões simuladas. A revisão feita nesta sessão foi documental; os novos fluxos ainda não foram implementados.
 - Próxima etapa: iniciar RED-0/RED-1 do roadmap revisado e avançar sequencialmente até RED-12. Não executar testes, builds, validações ou testes físicos durante a implementação. Reservar RED-13 para validação final.
 - Branch permanece `plan/area-red-wifi-publico`; não mesclar em `main` sem autorização explícita.
+
+## Execução contínua RED — atualização 2026-11-23
+
+- Branch obrigatória: `plan/area-red-wifi-publico`; não usar outra branch e não mesclar em `main`.
+- Instrução atual: executar roadmap continuamente, sem parar entre submódulos; **ZIP/checkpoints desativados** por instrução explícita do usuário.
+- Roadmap RED: `docs/roadmap-area-red-completa.md`; Operação 01: `docs/roadmap-area-red-estagio-01-wifi-publico.md`.
+- RED-0 (escopo/arquitetura): concluído documentalmente.
+- RED-1 (fundação/catálogo): concluído em código e documentação. Arquivos alterados: `RedModels.kt`, `RedSessionStore.kt`, `RedViewModel.kt`, `distribution/red/operations.json`, roadmap e changelog.
+- Progresso RED: 2/14 submódulos (14%); próximo: RED-2 — hotspot e conexão de dois aparelhos.
+- RED-1 criou estados de rede, eventos tipados, observação HTTP, sequência de eventos e metadados HTTP persistíveis; nenhum valor de formulário é persistido.
+- Ainda não implementado: bind robusto da rede hotspot, porta 8080, portal com login local/acesso direto, submissão HTTP de campos sintéticos, links/navegação, modo participante Android, painel de observabilidade completo e integração BLUE.
+- **Não executar** testes unitários, integração, instrumentados, builds, validações ou testes físicos durante a implementação. Transferir tudo para RED-13.
+- Sem ZIP. Não fazer merge. Continuar automaticamente no RED-2.
