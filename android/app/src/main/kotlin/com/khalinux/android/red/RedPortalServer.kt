@@ -506,7 +506,8 @@ class RedPortalServer(
 
     @Synchronized
     fun stop() {
-        running.set(false)
+        val hadResources = running.getAndSet(false) || socket != null || worker != null
+        if (!hadResources) return
         runCatching { socket?.close() }
         clients.toList().forEach { runCatching { it.close() } }
         clients.clear()
