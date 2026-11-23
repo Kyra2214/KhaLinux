@@ -1,225 +1,235 @@
-# Área RED — Operação 01: Nunca Conecte à Wi-Fi Pública
+# RED-01 — Wi-Fi público, portal local e navegação
 
-**Status:** implementação inicial em código concluída; validação final pendente  
+**Estado:** roadmap revisado em 2026-11-23; implementação completa pendente.  
 **Branch:** `plan/area-red-wifi-publico`  
-**Produto:** KhaLinux / futura identidade Brain Lab Security  
-**Escopo deste documento:** especificação funcional, critérios e backlog de validação final. O código da Operação 01 foi implementado na branch indicada; nenhum teste/build foi executado durante a implementação.
+**Aparelhos:** dois Android dedicados/controlados pelo instrutor.  
+**Servidor:** HTTP local na porta TCP 8080.  
+**Validação:** somente após concluir toda a implementação RED, conforme regra do projeto.
 
 ---
 
-## 1. Conceito da aula
+## 1. Objetivo da operação
 
-A Área RED apresenta a perspectiva ofensiva de uma simulação controlada: o operador prepara uma rede Wi-Fi de laboratório com aparência de Wi-Fi público, conecta um segundo aparelho participante e executa uma sequência de armadilhas didáticas em um portal local.
+Demonstrar, de ponta a ponta, como um hotspot de laboratório e um portal local funcionam, como o segundo aparelho se conecta, como o usuário navega e o que o servidor realmente recebe.
 
-O nome da operação é **Nunca Conecte à Wi-Fi Pública**.
+A aula não deve depender de um formulário de login. Deve mostrar também o cenário em que o usuário conecta e navega sem autenticar. O foco inclui links, redirecionamentos e páginas visitadas, pois o risco pode aparecer depois da conexão.
 
-A aula RED ensina a preparar e executar o cenário. A aula BLUE, em conteúdo e estágio próprios, ficará responsável por investigação, detecção, mitigação e defesa. Não misturar os roteiros pedagógicos.
+A interface do participante deve parecer um portal Wi-Fi convencional e manter a experiência natural. A identificação de laboratório, os eventos completos e os resultados técnicos ficam no painel do instrutor. Os vídeos mostram o comportamento e os resultados, não código-fonte.
 
-## 2. Resultado esperado
+## 2. Dispositivos
 
-Ao concluir o Estágio 1, o aluno deverá conseguir, com dois aparelhos Android sob seu controle ou autorização explícita:
+### Aparelho A — operador RED
+- KhaLinux em modo instrutor.
+- Cria o hotspot pelo fluxo suportado pelo Android.
+- Inicia o servidor HTTP local na porta 8080.
+- Mostra SSID, senha e parâmetros disponibilizados pelo Android.
+- Mostra endereço e QR Code para o portal.
+- Acompanha conexão, requisições, formulários de teste, links, permissões e erros.
+- Encerra hotspot, servidor e sessão.
 
-1. Preparar o aparelho operador e iniciar uma rede de laboratório.
-2. Conectar o aparelho participante à rede.
-3. Abrir o portal cativo/simulador local.
-4. Percorrer armadilhas interativas de engenharia social e autenticação fictícia.
-5. observar os eventos gerados durante a simulação.
-6. Encerrar a operação e consultar o registro local.
-7. Seguir um tutorial escrito que descreve a preparação e a execução da aula RED.
+### Aparelho B — participante
+- Android dedicado ao laboratório, sob controle do instrutor.
+- Conecta-se à rede pelo seletor Wi-Fi do sistema.
+- Abre o portal no navegador.
+- Navega, clica nos links e interage com formulários.
+- Quando a aula exigir permissões nativas, usa o modo participante Android no próprio aparelho B e autoriza cada solicitação no diálogo real do sistema.
 
-O aplicativo precisa ser funcional. Não entregar somente telas ilustrativas, protótipos clicáveis sem comportamento ou documentação conceitual.
+## 3. Topologia e comportamento de rede
 
-## 3. Arquitetura operacional
+1. O operador solicita `LocalOnlyHotspot` ou o fluxo público compatível com a versão Android.
+2. O Android decide parâmetros que o aplicativo pode ou não configurar. O KhaLinux mostra somente valores efetivamente fornecidos.
+3. O aparelho B conecta-se manualmente.
+4. O aparelho A inicia/expõe o servidor local na porta 8080, vinculado à interface de laboratório identificada.
+5. O participante abre `http://<IP-local-do-A>:8080`.
+6. O QR Code e a digitação manual são alternativas quando o sistema não abre automaticamente o portal.
+7. Toda a experiência básica funciona sem internet e sem servidor externo.
 
-### Aparelho A — Operador RED
+Não presumir que um aplicativo comum consiga clonar SSID de estabelecimento, configurar qualquer senha, forçar a abertura do portal ou observar todos os clientes. Se o Android não disponibilizar determinado dado, mostrar “não disponível” em vez de inventá-lo.
 
-Responsabilidades:
+## 4. Cenários obrigatórios
 
-- Abrir a Área RED e selecionar a Operação 01.
-- Informar o SSID de laboratório.
-- Configurar os parâmetros permitidos pelo Android.
-- Orientar/acionar a ativação do hotspot do sistema.
-- Iniciar o serviço local do portal.
-- Exibir estado da operação, participantes e eventos da simulação.
-- Encerrar a operação e consolidar o relatório.
+### Cenário A — login local
+- Portal com identidade fictícia de estabelecimento.
+- Página inicial e formulário de acesso local.
+- Validação feita exclusivamente pelo servidor do laboratório.
+- Campos preenchidos com valores sintéticos de teste.
+- O painel RED mostra os valores sintéticos recebidos durante a sessão ativa, o método/rota/status e o resultado da validação.
+- Nenhuma conta externa, OAuth ou serviço real.
+- Senhas de teste não são persistidas no histórico ou relatório.
 
-### Aparelho B — Participante
+### Cenário B — sem login
+- Portal de boas-vindas, aceite de termos ou acesso direto.
+- O participante consegue navegar sem preencher credenciais.
+- Links e páginas locais demonstram que a interação após a conexão também importa.
+- O painel mostra a sequência de navegação, os destinos locais, os redirecionamentos e os eventos observados.
 
-Responsabilidades:
+### Cenário C — links e redirecionamentos
+- Páginas locais interligadas.
+- Links com destinos distintos e contexto de origem.
+- Registro do clique, rota solicitada, horário, status HTTP e redirecionamento realizado.
+- Demonstração de link inesperado e página informativa.
+- Não usar domínios externos nem páginas que imitem serviços reais.
 
-- Localizar e conectar-se à rede de laboratório.
-- Acessar o portal local.
-- Exibir as páginas de treinamento.
-- Interagir somente com dados fictícios e permissões demonstrativas.
-- Mostrar aviso persistente de que está em um laboratório autorizado.
+### Cenário D — permissões e recursos do aparelho
+A página HTTP local não recebe poderes nativos do Android. Em particular, câmera, microfone e geolocalização pelo navegador dependem de contexto seguro; HTTP em IP de LAN normalmente não é contexto seguro. Login ou conexão Wi-Fi não concede permissões.
 
-### Serviço local
+Implementar uma trilha web e uma trilha nativa:
+- Portal web: seletor de arquivos do navegador com escolha explícita, sem envio do conteúdo por padrão.
+- Modo participante Android no aparelho B: solicitações reais de câmera, microfone e localização, acionadas no próprio aparelho e apenas para funções demonstrativas.
+- Câmera/microfone: prévia local com controles de início/parada; sem transmissão contínua ao aparelho A.
+- Localização: apresentada no aparelho B; o aparelho A recebe apenas o estado da permissão e o evento de conclusão, não coordenadas precisas.
+- Arquivos: seleção pelo seletor do Android; não enumerar diretórios nem ler arquivos sem escolha. O conteúdo não é enviado ao A por padrão.
+- Painel registra solicitado, concedido, negado, cancelado, revogado e executado, distinguindo cada estado.
 
-- Hospedar as páginas do portal no aparelho operador.
-- Manter o conteúdo e os dados de demonstração no ambiente local.
-- Registrar eventos sintéticos da sessão.
-- Não depender de um servidor externo para a experiência básica.
-- Não encaminhar formulários para serviços de terceiros.
+## 5. O que o painel RED precisa mostrar
 
-## 4. Limitações Android que devem orientar a implementação
+- Hotspot: iniciando, ativo, indisponível, encerrando.
+- SSID, senha e banda quando o Android fornecer.
+- Estado de conexão do participante e dados de rede realmente disponíveis.
+- Endereço/porta do portal e estado do servidor.
+- Requisições: timestamp, método, rota, status, tipo e tamanho.
+- Cabeçalhos de baixo risco permitidos por allowlist.
+- Campos sintéticos recebidos em memória durante a sessão ativa.
+- Resultado da validação local.
+- Sequência de páginas, cliques e redirecionamentos.
+- Estado das permissões e função executada no aparelho B.
+- Erros e limitações observados.
+- Separação visual entre solicitado, autorizado, executado e recebido.
 
-- O Android controla a criação e a configuração do hotspot. O aplicativo deve usar APIs públicas e fluxos do sistema, solicitando a ação do usuário quando o sistema não permitir ativação/configuração silenciosa.
-- Não presumir que um aplicativo comum possa definir qualquer senha/SSID de hotspot em todas as versões e fabricantes.
-- A abertura automática de portal cativo não é garantida em uma rede sem internet ou em todos os aparelhos. Implementar a melhor integração suportada e manter alternativas claras: notificação/ação para abrir o portal, endereço local e QR Code.
-- O portal local deve funcionar na rede de laboratório sem depender de DNS público ou de interceptação de tráfego de terceiros.
-- A aplicação deve informar quando o fabricante/versão Android impedir uma etapa e orientar a alternativa suportada, sem alegar que a operação foi iniciada quando não foi.
+O painel não pode alegar que recebeu senha, cookie, token, arquivo, localização ou conteúdo de câmera se isso não foi efetivamente transmitido e autorizado. Não coletar credenciais reais, tokens, cookies, conteúdo privado de outros aplicativos ou tráfego de terceiros. Campos não previstos devem ser rejeitados e descartados.
 
-## 5. Fluxo funcional
+## 6. Diretriz de apresentação
 
-1. **Tela inicial:** Área RED → Operação 01.
-2. **Preparação:** nome da rede, instruções de hotspot e confirmação de ambiente autorizado.
-3. **Ativação:** usuário ativa o hotspot pelo fluxo permitido pelo Android.
-4. **Aguardando participante:** operador vê instruções e estado da rede.
-5. **Conexão:** participante conecta-se pelo seletor Wi-Fi do Android.
-6. **Portal:** participante abre o portal local, preferencialmente por detecção/abertura assistida; QR Code e endereço local são alternativas.
-7. **Aula prática:** participante percorre as armadilhas fictícias.
-8. **Painel RED:** operador acompanha eventos didáticos sem visualizar dados pessoais reais.
-9. **Encerramento:** sessão é finalizada, dados temporários são limpos conforme política e relatório local é disponibilizado.
+- Portal do participante natural, sem banners grotescos ou alertas artificiais repetidos.
+- Identificação do laboratório na preparação da aula e no painel do instrutor.
+- Diálogos de permissão devem ser os verdadeiros diálogos do Android/navegador.
+- Nenhum diálogo de sistema falso ou imitado.
+- Vídeos mostram criação da rede, conexão, portal, navegação, permissões e o que foi recebido.
+- Código-fonte e scripts internos não fazem parte da apresentação.
 
-## 6. Armadilhas didáticas do portal
+## 7. Roadmap por fases
 
-Todas as páginas devem ser claramente identificadas como **SIMULAÇÃO DE LABORATÓRIO**. A interface pode ensinar a reconhecer padrões de portais públicos e tentativas de engenharia social, mas não deve se passar por um serviço real nem coletar credenciais utilizáveis.
+### 01.1 — Revisar modelos e estados
+- Atualizar modelos de cenário, dispositivo, requisição e evento.
+- Estados separados para hotspot, servidor, participante e sessão.
+- Identificador de cenário compartilhável com BLUE.
+- Campos desconhecidos e indisponíveis representados corretamente.
 
-### 6.1 Portal de Wi-Fi público simulado
+### 01.2 — Hotspot e dados de rede
+- Iniciar/parar hotspot pelo Android.
+- Mostrar SSID/senha/banda fornecidos pelo sistema.
+- Mostrar instruções para conexão do segundo aparelho.
+- Tratar perda de rede, cancelamento e restrições do fabricante.
+- Não executar varredura de dispositivos.
 
-- Página inicial com nome e identidade visual fictícios do estabelecimento/laboratório.
-- Aviso de simulação visível.
-- Botões e etapas interativas.
-- Registro de navegação e escolhas fictícias.
+### 01.3 — Servidor HTTP 8080
+- Porta padrão 8080.
+- Bind apenas na interface de laboratório identificada.
+- Rotas allowlist, limites de corpo, timeout e limite de conexões.
+- Encerrar o socket junto com a sessão.
+- Mostrar endereço e QR Code.
+- Registrar status e metadados das requisições.
 
-### 6.2 Formulário de credenciais fictícias
+### 01.4 — Portal e experiência do participante
+- Layout natural de portal Wi-Fi fictício.
+- Páginas de boas-vindas, termos, login local e conclusão.
+- Modo com autenticação local.
+- Modo sem login e acesso direto.
+- Navegação local e páginas de demonstração.
+- Não imitar marca/serviço real.
 
-- Campo de e-mail e senha para exercício.
-- Credenciais de demonstração fornecidas pelo próprio laboratório, por exemplo `xxx@gmail.com` e `123`.
-- Os valores são dados de teste, não contas reais; não validar contra Gmail, Facebook, Instagram ou qualquer serviço externo.
-- Armazenar apenas o resultado sintético do exercício (por exemplo: formulário preenchido, etapa concluída), evitando persistir a senha digitada.
-- Exibir ao final o que o participante acabou de fazer e por que o cenário é uma armadilha.
+### 01.5 — Recepção de formulário sintético
+- Campos de teste claramente definidos no material do instrutor.
+- Requisição HTTP real para o servidor local.
+- Validação local e resposta real.
+- Mostrar campos sintéticos recebidos no painel durante a sessão.
+- Descartar campos desconhecidos e dados sensíveis.
+- Não persistir valores de senha.
 
-### 6.3 Páginas temáticas de redes sociais
+### 01.6 — Links, navegação e redirecionamento
+- Registrar sequência de navegação.
+- Mostrar origem, destino local, método, horário e status.
+- Demonstrar acesso direto sem login.
+- Demonstrar links inesperados e redirecionamentos internos.
+- Exibir ao participante a URL real do destino no navegador.
 
-- Páginas fictícias para demonstrar padrões visuais de autenticação e indução.
-- Não usar integração de login real, OAuth real ou endpoints de terceiros.
-- Não copiar de modo enganoso páginas oficiais, não coletar senhas reais e não transmitir credenciais.
-- Usar nomes/identidades genéricos ou telas explicitamente marcadas como “simulação de rede social”.
+### 01.7 — Modo participante Android
+- Definir componente Android instalável/ativável no aparelho B.
+- Solicitar permissões no aparelho B, não remotamente pelo A.
+- Implementar demonstrações de câmera, microfone e localização com prévia/resultado local.
+- Implementar seletor Android de arquivos.
+- Transmitir ao A somente estados/eventos mínimos da demonstração.
+- Cobrir concessão, recusa, cancelamento e revogação.
+- Explicar limitações de contexto seguro do navegador.
 
-### 6.4 Permissões do Android
+### 01.8 — Painel de eventos e evidências
+- Linha do tempo em tempo real.
+- Detalhes da requisição recebida.
+- Valores sintéticos temporários.
+- Estado de conexão e permissões.
+- Erros, bloqueios e ações não disponíveis.
+- Nunca converter falha em sucesso.
 
-- Demonstração educativa de solicitações de localização, câmera e arquivos.
-- Cada permissão real só poderá ser solicitada pelo aplicativo que a utiliza, com explicação e consentimento explícito no próprio aparelho.
-- A conexão Wi-Fi não concede essas permissões ao aparelho operador.
-- Não solicitar permissões sem funcionalidade legítima e necessária.
-- Se a permissão não for necessária para a aula, usar uma tela demonstrativa em vez de pedir acesso real.
+### 01.9 — Histórico e relatório
+- Relatório local sem segredos ou dados pessoais desnecessários.
+- Exportação manual.
+- Limpeza de dados temporários.
+- Histórico limitado e exclusão manual.
+- Sessão interrompida não reabre hotspot/servidor automaticamente.
 
-### 6.5 Eventos registrados
+### 01.10 — Integração BLUE
+- Link para aula BLUE correspondente.
+- Mesma identificação de cenário e sequência de evidências.
+- BLUE explica login local, acesso direto, links, HTTP/HTTPS, permissões e resposta defensiva.
+- BLUE não executa a operação RED nem altera o dispositivo participante.
 
-Registrar apenas dados necessários ao exercício:
+### 01.11 — Tutorial e documentação
+- Tutorial dentro do app para o instrutor.
+- Roteiro do aparelho B.
+- Requisitos, limitações e solução de problemas.
+- Conteúdo de aula sem código-fonte.
+- Atualizar arquitetura, guia, changelog, roadmap e retomada.
 
-- início e fim da sessão;
-- identificador aleatório da sessão;
-- etapa aberta/concluída;
-- escolhas e botões acionados;
-- formulário de demonstração concluído, sem persistir a senha;
-- permissões demonstradas e resultado autorizado pelo próprio Android;
-- erros técnicos e encerramento.
+### 01.12 — Fechamento da implementação
+- Revisar integração e consistência.
+- Consolidar backlog de validação.
+- Gerar checkpoint completo.
+- Não executar testes/builds.
+- Não fazer merge para main sem autorização.
 
-Não coletar conteúdo de outros aplicativos, mensagens, cookies, tokens, arquivos privados, credenciais reais ou tráfego de terceiros.
+### 01.13 — Validação final
+Somente após todas as fases anteriores:
+- Testes unitários/integrados.
+- Build Android.
+- Testes do servidor e limites.
+- Testes de hotspot e ciclo de vida.
+- Testes de formulário, navegação e eventos.
+- Testes de permissões reais no aparelho B.
+- Teste físico com os dois aparelhos.
+- Regressão nas demais áreas.
 
-## 7. Tutorial escrito da aula RED
+## 8. Critérios de conclusão
 
-Entregar um tutorial dentro do aplicativo e em documentação do projeto, com:
+- Dois aparelhos conectam e participam do cenário.
+- Portal local acessível na porta 8080.
+- Cenário com login local e cenário sem login funcionam.
+- Requisições reais chegam ao servidor e aparecem no painel.
+- Valores sintéticos aparecem na sessão ativa, sem persistência de segredos.
+- Links e redirecionamentos locais geram eventos.
+- Permissões reais são solicitadas no aparelho B e o resultado é registrado corretamente.
+- Interface do participante é natural.
+- Relatório e histórico respeitam minimização de dados.
+- Tutorial permite repetir a aula.
+- Limitações técnicas estão documentadas.
+- Validação final é concluída separadamente.
 
-1. objetivo e pré-requisitos;
-2. preparação dos dois aparelhos;
-3. configuração do nome da rede;
-4. ativação do hotspot pelos controles permitidos do Android;
-5. conexão do aparelho participante;
-6. abertura do portal local;
-7. execução passo a passo de cada armadilha simulada;
-8. uso das credenciais fictícias de laboratório;
-9. observação dos eventos no painel RED;
-10. encerramento e geração do relatório;
-11. solução de problemas comuns de conexão e compatibilidade.
+## 9. Estado atual conhecido
 
-O tutorial é exclusivamente o roteiro de execução da simulação RED. O conteúdo de defesa, investigação e correção pertence à futura aula BLUE.
+A primeira versão de código possui hotspot Android, servidor HTTP local, QR Code, sessões e painel inicial. O formulário atual envia apenas um evento fixo e não transmite campos; permissões são apenas demonstrativas. Portanto, o fluxo completo especificado acima ainda não está implementado nem validado.
 
-## 8. Roadmap de implementação
+## 10. Processo de desenvolvimento
 
-### Fase 1 — Estrutura da Operação 01
-- Criar entrada da Operação 01 na Área RED.
-- Criar estados de operação: não iniciada, preparando, aguardando conexão, ativa, encerrando e concluída.
-- Criar modelo local de sessão e eventos.
-- Criar navegação entre configuração, painel e tutorial.
-
-### Fase 2 — Rede de laboratório
-- Implementar integração com os fluxos e APIs públicas do Android.
-- Configurar SSID conforme capacidades disponíveis.
-- Orientar ativação do hotspot pelo sistema quando necessário.
-- Detectar/acompanhar conectividade local sem varrer redes alheias.
-- Apresentar limitações por versão/fabricante e alternativa manual.
-
-### Fase 3 — Portal local
-- Implementar servidor HTTP local restrito à interface de laboratório.
-- Disponibilizar endereço local, QR Code e ação de abrir portal.
-- Implementar abertura assistida quando possível.
-- Garantir que o portal seja acessível apenas durante a sessão e pela rede de laboratório.
-
-### Fase 4 — Armadilhas simuladas
-- Criar portal público fictício.
-- Criar formulário de credenciais sintéticas.
-- Criar telas temáticas genéricas de autenticação.
-- Criar demonstração consentida de permissões.
-- Implementar feedback pedagógico após cada interação.
-- Garantir que nenhuma credencial seja enviada a terceiros ou persistida como senha.
-
-### Fase 5 — Painel e evidências RED
-- Mostrar estado da sessão.
-- Exibir eventos em ordem cronológica.
-- Mostrar progresso das etapas.
-- Gerar relatório local com dados sintéticos e técnicos mínimos.
-- Permitir encerrar e limpar a sessão.
-
-### Fase 6 — Tutorial e integração
-- Incorporar tutorial completo na aplicação.
-- Adicionar solução de problemas.
-- Integrar entrada da Operação 01 à navegação da Área RED.
-- Atualizar documentação do projeto, changelog e roadmap principal sem sobrescrever conteúdo existente.
-
-## 9. Critérios de conclusão do Estágio 1
-
-**Situação atual:** o código dos fluxos descritos foi adicionado. Os critérios abaixo ainda precisam ser confirmados na validação final, especialmente hotspot real, conectividade entre dois aparelhos, QR Code, encerramento e compatibilidade por fabricante.
-
-O estágio será considerado implementado quando:
-
-- O operador consegue iniciar e encerrar a operação usando fluxos Android suportados.
-- O segundo aparelho consegue conectar-se à rede de laboratório.
-- O portal local abre pelo fluxo automático suportado ou por uma alternativa assistida funcional.
-- Todas as armadilhas são interativas e usam exclusivamente dados fictícios.
-- O painel mostra eventos reais da simulação, não dados inventados.
-- O tutorial permite repetir a aula do início ao fim.
-- A sessão pode ser encerrada e os dados temporários tratados corretamente.
-- As limitações de compatibilidade estão documentadas.
-
-## 10. Fora do escopo deste estágio
-
-- Ataques contra redes públicas ou dispositivos de terceiros.
-- Clonagem de redes de estabelecimentos reais para enganar pessoas.
-- Captura, armazenamento ou retransmissão de senhas reais.
-- Login real com Google, Facebook ou Instagram.
-- Interceptação de tráfego de terceiros, quebra de criptografia ou desvio de proteções.
-- Acesso remoto a câmera, localização, arquivos ou outros recursos do aparelho participante.
-- Aula BLUE de defesa, detecção e mitigação; será planejada separadamente.
-
-## 11. Regras de execução do desenvolvimento
-
-- Este documento define planejamento; não autoriza iniciar implementação nesta tarefa.
-- Ler o estado atual do repositório antes de qualquer implementação.
-- Seguir o roadmap fase por fase, sem criar funcionalidades fora do escopo.
-- Não executar testes ou validações durante a implementação do roadmap. Requisitos de teste devem ser anotados para a fase final de validação.
-- Testes físicos em aparelhos Android ficam exclusivamente para a etapa final, após a implementação completa e as validações finais previstas.
-- Não fazer merge desta branch para `main` sem solicitação explícita.
-- Registrar decisões técnicas, limitações e progresso no documento de retomada do projeto quando a implementação for autorizada.
+- Implementar em sequência, sem pedir autorização entre subfases.
+- Não executar testes, builds, verificações ou testes físicos durante a implementação.
+- Anotar tudo para validação final.
+- Não fazer merge em `main` sem autorização explícita.
