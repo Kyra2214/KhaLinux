@@ -4,8 +4,7 @@
 **Branch:** `plan/area-red-wifi-publico`  
 **Repositório:** `Kyra2214/KhaLinux`  
 **Escopo:** protótipo pessoal de laboratório, com dois aparelhos Android controlados pelo instrutor.  
-**Implementação:** RED-0 a RED-12 concluídos em código/documentação (100% dos 13 submódulos de implementação). **Validação:** RED-13 pendente, ainda não iniciada. O projeto não está concluído até a validação final. RED-13 permanece reservado à validação final. A execução continua na mesma branch, sem ZIP e sem validações antecipadas.  
-**Validação:** reservada para depois de concluir todo o roadmap. Nenhum teste/build será executado durante a implementação.
+**Implementação:** RED-0 a RED-12 concluídos em código/documentação (100% dos 13 submódulos de implementação). **Validação:** RED-13 automatizada aprovada no HEAD `49648c9a7bed05fddce2053aae28ebab0aa9902c` pelo GitHub Actions `45138571275` em 2026-11-23. Testes físicos com os dois aparelhos e compatibilidade por fabricante/versão continuam pendentes. A execução permanece na mesma branch, sem ZIP e sem merge.
 
 ---
 
@@ -16,7 +15,8 @@
 | RED-0 — escopo e arquitetura | Concluído | contratos, topologia, retenção e limites registrados |
 | RED-1 — fundação e catálogo | Concluído em código | modelos de estado/evento, observações HTTP, sequência persistida e catálogo da Operação 01 atualizados |
 | RED-2 — hotspot e conexão | Concluído em código | LocalOnlyHotspot, dados expostos pelo Android e atividade do participante inferida por requisição real; Android não expõe lista universal de clientes |
-| RED-3 a RED-13 | Pendente | executar em sequência após RED-2 |
+| RED-3 a RED-12 | Concluído em código/documentação | implementação integral; RED-10 inclui integração RED ↔ BLUE |
+| RED-13 | Automatizada aprovada; física pendente | workflow `45138571275` passou no HEAD `49648c9`; falta validação física com os dois aparelhos |
 
 **Percentual de implementação:** 100% (13/13 submódulos RED-0 a RED-12).  \n**Validação final:** 0% concluída; RED-13 pendente por indisponibilidade de execução nesta sessão. O conector não expõe dispatch de workflow e não há checkout local para executar Gradle/testes.  
 **Validação:** fase RED-13 iniciada após RED-12. CI automatizado passou (host, auditoria, JNI/PTy, PRoot, testes unitários e build APK); testes físicos e compatibilidade real continuam pendentes.  
