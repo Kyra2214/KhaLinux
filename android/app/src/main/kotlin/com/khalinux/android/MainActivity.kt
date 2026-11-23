@@ -20,7 +20,8 @@ import com.khalinux.android.packages.PackagesViewModel
 import com.khalinux.android.labs.LabsViewModel
 import com.khalinux.android.toolkit.ToolkitViewModel
 import com.khalinux.android.files.FilesViewModel
-import com.khalinux.android.tutor.TutorViewModel\nimport com.khalinux.android.red.RedViewModel
+import com.khalinux.android.tutor.TutorViewModel
+import com.khalinux.android.red.RedViewModel
 
 /** Activity de hospedagem da UI Compose; a execução continua encapsulada no Service. */
 class MainActivity : ComponentActivity() {
@@ -39,7 +40,9 @@ class MainActivity : ComponentActivity() {
     private val filesViewModel: FilesViewModel by viewModels {
         ViewModelProvider.AndroidViewModelFactory.getInstance(application)
     }
-    private val redViewModel: RedViewModel by viewModels {\n        ViewModelProvider.AndroidViewModelFactory.getInstance(application)\n    }\n    private val tutorViewModel: TutorViewModel by viewModels {
+    private val redViewModel: RedViewModel by viewModels {
+        ViewModelProvider.AndroidViewModelFactory.getInstance(application)
+    }\n    private val tutorViewModel: TutorViewModel by viewModels {
         ViewModelProvider.AndroidViewModelFactory.getInstance(application)
     }
     private var bound = false
