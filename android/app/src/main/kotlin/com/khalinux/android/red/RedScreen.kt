@@ -136,6 +136,19 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                     }
                     OutlinedButton(onClick = viewModel::stopNetworkLab) { Text("Parar hotspot e portal") }
                 } else {
+                    Text("Modo do portal", style = MaterialTheme.typography.titleSmall)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FilterChip(
+                            selected = state.portalMode == RedPortalMode.LOCAL_LOGIN,
+                            onClick = { viewModel.setPortalMode(RedPortalMode.LOCAL_LOGIN) },
+                            label = { Text("Login local") }
+                        )
+                        FilterChip(
+                            selected = state.portalMode == RedPortalMode.OPEN_ACCESS,
+                            onClick = { viewModel.setPortalMode(RedPortalMode.OPEN_ACCESS) },
+                            label = { Text("Acesso direto") }
+                        )
+                    }
                     Button(onClick = {
                         if (context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                             viewModel.startNetworkLab()
