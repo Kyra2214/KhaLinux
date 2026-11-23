@@ -7,6 +7,7 @@ import java.net.ServerSocket
 import java.net.Socket
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.Semaphore
 
 /** HTTP local de laboratório. Descarta integralmente o corpo de formulários e registra só o evento. */
 class RedPortalServer(
@@ -15,6 +16,7 @@ class RedPortalServer(
 ) {
     @Volatile private var socket: ServerSocket? = null
     private val running = AtomicBoolean(false)
+    private val clientSlots = Semaphore(4)
     @Volatile private var worker: Thread? = null
     @Volatile var address: String? = null
         private set
@@ -37,7 +39,13 @@ class RedPortalServer(
     private fun serve(server: ServerSocket) {
         while (running.get()) {
             val client = try { server.accept() } catch (_: Exception) { break }
-            Thread({ handle(client) }, "red-portal-client").apply { isDaemon = true; start() }
+            if (!clientSlots.tryAcquire()) {
+                runCatching { client.close() }
+                continue
+            }
+            Thread({
+                try { handle(client) } finally { clientSlots.release() }
+            }, "red-portal-client").apply { isDaemon = true; start() }
         }
     }
 
