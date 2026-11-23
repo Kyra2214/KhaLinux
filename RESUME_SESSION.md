@@ -91,3 +91,13 @@
 - Próximo submódulo: RED-10 — integração pedagógica RED ↔ BLUE.
 - Busca de código no estado padrão não encontrou uma tela BLUE existente; verificar branch/estrutura e criar módulo BLUE integrado sem presumir que já existe.
 - Sem ZIP, sem testes/builds, sem merge.
+
+## Execução contínua RED — atualização após RED-10
+
+- RED-0 a RED-10 concluídos em código/documentação: **79% (11/14)**.
+- Área BLUE criada em android/app/src/main/kotlin/com/khalinux/android/blue/BlueViewModel.kt e BlueScreen.kt.
+- Integração Compose em MainActivity.kt, KhaLinuxTerminalScreen.kt e HomeScreen.kt; menu Mais contém BLUE.
+- RedLiveEvidenceStore compartilha eventos/requisições/campos sintéticos temporários. Alternância RED → BLUE não encerra hotspot nem sessão; retorno reabre a tela da operação.
+- Documentação: docs/blue-area.md, docs/red-area.md, docs/red-operation-01.md, docs/user-guide.md e ARCHITECTURE.md.
+- Próximo: RED-11 — tutorial e documentação de aula.
+- Sem ZIP, sem testes/builds, sem merge.
