@@ -61,8 +61,8 @@ fun KhaLinuxApp(
         packagesState.visible -> Section.PACKAGES
         toolkitState.visible -> Section.TOOLKIT
         tutorState.visible -> Section.TUTOR
-        redState.visible -> Section.RED
         blueState.visible -> Section.BLUE
+        redState.visible -> Section.RED
         labsState.visible -> Section.LABS
         filesState.visible -> Section.FILES
         state.showDiagnostics -> Section.DIAGNOSTICS
@@ -75,7 +75,11 @@ fun KhaLinuxApp(
             toolkitViewModel.close()
             labsViewModel.close()
             tutorViewModel.close()
-            redViewModel.close()
+            if (section == Section.RED && target == Section.BLUE) {
+                redViewModel.hideForBlue()
+            } else if (!(section == Section.BLUE && target == Section.RED)) {
+                redViewModel.close()
+            }
             blueViewModel.close()
             filesViewModel.close()
             viewModel.closeDiagnostics()
