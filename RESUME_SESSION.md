@@ -118,3 +118,14 @@
 - Próxima e única fase: RED-13 — validação final. Implementação não deve ser reaberta salvo correção de falha identificada nessa fase.
 - Testes/builds/validações não foram executados durante a implementação. Agora a fase final está autorizada pelo Prompt Mestre.
 - ZIP/checkpoints desativados; branch atual é a única branch autorizada; sem merge para main.
+
+## RED-13 — estado da validação final
+
+- Implementação RED-0 a RED-12 concluída em código/documentação.
+- CI automatizado aprovado: workflow 45099843828, commit cf1c16d68d6706f912ee856d3753efd935077a26.
+- Passaram: host checks, auditoria de segurança, JNI PTY, PRoot/ARM64, testes unitários runtime/app, assembleDebug e upload do APK de inspeção.
+- Corrigido durante a validação: allowlist de permissões Android e expressão condicional do servidor HTTP.
+- Pendência obrigatória: teste físico com dois aparelhos Android, incluindo hotspot, conexão, portal 8080, login sintético/acesso direto, permissões, relay e alternância RED/BLUE.
+- Pendência adicional: compatibilidade por fabricante/versão e regressão física.
+- Não marcar 100% enquanto a validação física não for concluída.
+- Branch permanece plan/area-red-wifi-publico; sem ZIP e sem merge.
