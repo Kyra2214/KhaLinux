@@ -20,6 +20,7 @@ data class RedUiState(
     val message: String? = null,
     val portalAddress: String? = null,
     val hotspotInfo: String? = null,
+    val hotspotSnapshot: RedHotspotSnapshot? = null,
     val networkRunning: Boolean = false,
     val networkState: RedNetworkState = RedNetworkState.IDLE,
     val portalMode: RedPortalMode = RedPortalMode.LOCAL_LOGIN,
@@ -32,24 +33,58 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         onEvent = { detail -> recordRuntimeEvent(detail) },
         onAddress = { address -> mutableState.update { it.copy(portalAddress = address) } }
     )
-    private val hotspot = RedHotspotController(application) { message, info ->
-        mutableState.update { it.copy(message = message, hotspotInfo = info) }
-        recordRuntimeEvent(message)
-        if (message.startsWith("O Android encerrou")) {
+    private val hotspot = RedHotspotController(application) { snapshot ->
+        val info = buildList {
+            snapshot.ssid?.let { add("SSID: $it") }
+            snapshot.passphrase?.let { add("Senha: $it") }
+            snapshot.interfaceName?.let { add("Interface: $it") }
+            snapshot.ipv4Address?.let { add("IPv4: $it") }
+            snapshot.androidFailureCode?.let { add("Código Android: $it") }
+        }.joinToString("\n").ifBlank { "O Android não disponibilizou detalhes adicionais da rede." }
+        mutableState.update {
+            it.copy(
+                message = snapshot.message,
+                hotspotInfo = info,
+                hotspotSnapshot = snapshot,
+                networkState = snapshot.state,
+                networkRunning = snapshot.state == RedNetworkState.HOTSPOT_READY ||
+                    snapshot.state == RedNetworkState.STARTING_SERVER ||
+                    snapshot.state == RedNetworkState.WAITING_PARTICIPANT ||
+                    snapshot.state == RedNetworkState.PARTICIPANT_ACTIVE
+            )
+        }
+        val eventType = when (snapshot.state) {
+            RedNetworkState.REQUESTING_HOTSPOT -> RedEventType.HOTSPOT_REQUESTED
+            RedNetworkState.HOTSPOT_READY -> RedEventType.HOTSPOT_READY
+            RedNetworkState.IDLE -> RedEventType.HOTSPOT_STOPPED
+            RedNetworkState.ERROR -> RedEventType.HOTSPOT_FAILED
+            else -> RedEventType.ERROR
+        }
+        recordStructuredEvent(
+            eventType,
+            snapshot.message,
+            source = "android",
+            route = snapshot.interfaceName,
+            httpStatus = snapshot.androidFailureCode
+        )
+        if (snapshot.state == RedNetworkState.IDLE) {
             portal.stop()
             mutableState.update {
-                it.copy(networkRunning = false, portalAddress = null, hotspotInfo = null, networkState = RedNetworkState.IDLE)
+                it.copy(networkRunning = false, portalAddress = null, hotspotInfo = null, hotspotSnapshot = null)
             }
         }
-        if (message.startsWith("Hotspot local ativado")) {
-            mutableState.update { it.copy(networkRunning = true, networkState = RedNetworkState.HOTSPOT_READY) }
+        if (snapshot.state == RedNetworkState.HOTSPOT_READY) {
+            mutableState.update { it.copy(networkState = RedNetworkState.STARTING_SERVER) }
             try {
-                mutableState.update { it.copy(networkState = RedNetworkState.STARTING_SERVER) }
                 val address = portal.start()
                 mutableState.update {
                     it.copy(networkRunning = true, portalAddress = address, networkState = RedNetworkState.WAITING_PARTICIPANT)
                 }
-                recordStructuredEvent(RedEventType.PORTAL_STARTED, "Servidor local preparado para o participante.", source = "portal")
+                recordStructuredEvent(
+                    RedEventType.PORTAL_STARTED,
+                    "Servidor local preparado após a criação do hotspot.",
+                    source = "portal"
+                )
             } catch (error: Exception) {
                 mutableState.update {
                     it.copy(
@@ -58,7 +93,11 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                         networkState = RedNetworkState.ERROR
                     )
                 }
-                recordStructuredEvent(RedEventType.PORTAL_ERROR, "Portal não iniciado: interface Wi-Fi indisponível.", source = "portal")
+                recordStructuredEvent(
+                    RedEventType.PORTAL_ERROR,
+                    "Portal não iniciado: interface Wi-Fi indisponível.",
+                    source = "portal"
+                )
             }
         }
     }
@@ -82,6 +121,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 session = null,
                 message = null,
                 networkState = RedNetworkState.IDLE,
+                hotspotSnapshot = null,
                 requests = emptyList()
             )
         }
@@ -141,6 +181,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 session = session,
                 requests = emptyList(),
                 networkState = RedNetworkState.IDLE,
+                hotspotSnapshot = null,
                 message = "Sessão local criada. A rede só será iniciada após a ação explícita do operador."
             )
         }
