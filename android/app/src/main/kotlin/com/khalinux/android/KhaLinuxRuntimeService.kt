@@ -167,6 +167,64 @@ class KhaLinuxRuntimeService : Service() {
     fun deviceAssets(): List<com.khalinux.runtime.operations.LabAsset> =
         com.khalinux.runtime.operations.LabAssetStore(File(filesDir, "runtime/lab-assets")).all()
 
+    /**
+     * Atualiza o inventário remoto por ADB e persiste os ativos retornados pelo próprio dispositivo.
+     * Deve ser chamado em dispatcher de I/O; cada consulta gera execução/evidência no motor comum.
+     */
+    fun refreshAdbDeviceInventory(): List<com.khalinux.runtime.operations.LabAsset> {
+        val engine = operationEngine() ?: throw IllegalStateException("Runtime Linux indisponível")
+        val store = com.khalinux.runtime.operations.LabAssetStore(File(filesDir, "runtime/lab-assets"))
+        val discoverySession = engine.createSession("ADB: descoberta de dispositivos")
+        try {
+            val listing = engine.submit(discoverySession.id, "android.adb.devices")
+            val listed = engine.awaitExecution(listing.id, java.time.Duration.ofSeconds(20))
+                ?: throw IllegalStateException("Consulta ADB não retornou resultado")
+            if (listed.state != com.khalinux.runtime.operations.LabExecutionState.SUCCEEDED) {
+                throw IllegalStateException(listed.errorSummary ?: "Falha ao listar dispositivos ADB")
+            }
+            val listingOutput = engine.evidenceForExecution(listing.id)
+                .firstOrNull { it.kind == "process.stdout" }
+                ?.let { engine.evidenceBytes(it.id) }
+                ?.let { String(it, Charsets.UTF_8) }.orEmpty()
+            val entries = com.khalinux.runtime.operations.AdbDeviceInventory.parseDevices(listingOutput)
+            val baseAssets = entries.map { entry ->
+                val id = com.khalinux.runtime.operations.AdbDeviceInventory.assetId(entry.serial)
+                val asset = com.khalinux.runtime.operations.AdbDeviceInventory.toAsset(entry, previous = store.get(id))
+                store.upsert(asset)
+            }
+            val connected = entries.filter { it.state == "device" }
+            if (connected.isNotEmpty()) {
+                val session = engine.createSession(
+                    "ADB: inventário remoto",
+                    connected.map { com.khalinux.runtime.operations.AdbDeviceInventory.assetId(it.serial) }.toSet()
+                )
+                try {
+                    connected.forEach { entry ->
+                        val assetId = com.khalinux.runtime.operations.AdbDeviceInventory.assetId(entry.serial)
+                        val run = engine.submit(
+                            session.id, "android.adb.device-properties", assetIds = setOf(assetId),
+                            parameters = mapOf("serial" to entry.serial)
+                        )
+                        val result = engine.awaitExecution(run.id, java.time.Duration.ofSeconds(25))
+                        val output = if (result?.state == com.khalinux.runtime.operations.LabExecutionState.SUCCEEDED) {
+                            engine.evidenceForExecution(run.id).firstOrNull { it.kind == "process.stdout" }
+                                ?.let { engine.evidenceBytes(it.id) }?.let { String(it, Charsets.UTF_8) }.orEmpty()
+                        } else ""
+                        val previous = store.get(assetId)
+                        store.upsert(com.khalinux.runtime.operations.AdbDeviceInventory.toAsset(
+                            entry, output, previous
+                        ))
+                    }
+                } finally {
+                    engine.closeSession(session.id)
+                }
+            }
+            return baseAssets.mapNotNull { store.get(it.id) }
+        } finally {
+            engine.closeSession(discoverySession.id)
+        }
+    }
+
     /** Cliente ADB ARM64 com servidor persistente dentro do RootFS. */
     @Synchronized
     fun adbClient(): com.khalinux.runtime.operations.AdbClient? {
