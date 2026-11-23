@@ -123,7 +123,21 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun recordRuntimeEvent(detail: String) {
         val current = mutableState.value.session ?: return
-        val updated = current.withEvent(RedEventType.PORTAL_OPENED, detail)
+        val type = when {
+            detail.startsWith("Operador solicitou hotspot") -> RedEventType.HOTSPOT_REQUESTED
+            detail.startsWith("Hotspot local ativado") -> RedEventType.HOTSPOT_READY
+            detail.startsWith("Servidor local iniciado") -> RedEventType.PORTAL_STARTED
+            detail.startsWith("Portal de treinamento acessado") -> RedEventType.PORTAL_OPENED
+            detail.startsWith("Participante concluiu") -> RedEventType.DEMO_FORM_COMPLETED
+            detail.startsWith("Sessão") || detail.startsWith("Hotspot local liberado") -> RedEventType.SESSION_ENDED
+            else -> RedEventType.ERROR
+        }
+        val nextState = when (type) {
+            RedEventType.HOTSPOT_READY, RedEventType.PORTAL_STARTED -> RedOperationState.WAITING_PARTICIPANT
+            RedEventType.PORTAL_OPENED, RedEventType.DEMO_FORM_COMPLETED -> RedOperationState.ACTIVE
+            else -> current.state
+        }
+        val updated = current.copy(state = nextState).withEvent(type, detail)
         store.save(updated)
         mutableState.update { it.copy(session = updated) }
     }
