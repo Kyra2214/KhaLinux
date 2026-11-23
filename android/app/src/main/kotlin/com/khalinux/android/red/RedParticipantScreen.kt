@@ -53,6 +53,7 @@ fun RedParticipantScreen(onExit: () -> Unit) {
     var operatorUrl by remember { mutableStateOf("http://192.168.43.1:8080/") }
     var sessionToken by remember { mutableStateOf("") }
     var cameraGranted by remember { mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) }
+    var cameraPreviewActive by remember { mutableStateOf(false) }
     var microphoneGranted by remember { mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) }
     var locationGranted by remember { mutableStateOf(
         ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
@@ -67,6 +68,7 @@ fun RedParticipantScreen(onExit: () -> Unit) {
 
     val cameraPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         cameraGranted = granted
+        cameraPreviewActive = granted
         pendingReport = "camera" to if (granted) "granted" else "denied"
     }
     val microphonePermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -177,10 +179,11 @@ fun RedParticipantScreen(onExit: () -> Unit) {
                 Text(if (cameraGranted) "Permissão concedida neste aparelho." else "Permissão ainda não concedida.")
                 Button(onClick = {
                     if (cameraGranted) {
+                        cameraPreviewActive = true
                         pendingReport = "camera" to "preview_started"
                     } else cameraPermission.launch(Manifest.permission.CAMERA)
                 }) { Text(if (cameraGranted) "Mostrar prévia local" else "Solicitar acesso à câmera") }
-                if (cameraGranted) {
+                if (cameraGranted && cameraPreviewActive) {
                     AndroidView(
                         modifier = Modifier.fillMaxWidth().height(220.dp),
                         factory = { viewContext ->
@@ -195,8 +198,13 @@ fun RedParticipantScreen(onExit: () -> Unit) {
                         runCatching { cameraController.bindToLifecycle(lifecycleOwner) }
                         onDispose { runCatching { cameraController.unbind() } }
                     }
-                    OutlinedButton(onClick = { pendingReport = "camera" to "preview_stopped" }) {
-                        Text("Registrar encerramento da prévia")
+                }
+                if (cameraGranted) {
+                    OutlinedButton(onClick = {
+                        cameraPreviewActive = !cameraPreviewActive
+                        pendingReport = "camera" to if (cameraPreviewActive) "preview_started" else "preview_stopped"
+                    }) {
+                        Text(if (cameraPreviewActive) "Parar prévia local" else "Iniciar prévia local")
                     }
                 }
             }
