@@ -307,6 +307,13 @@ class AdbClient(
         return value
     }
 
+    private fun validPackageName(value: String): String {
+        require(value.length in 1..255 && value.matches(Regex("^[A-Za-z0-9_]+(?:\\.[A-Za-z0-9_]+)*$"))) {
+            "Nome de pacote Android inválido"
+        }
+        return value
+    }
+
     private fun quote(value: String): String = "'" + value.replace("'", "'\"'\"'") + "'"
 
     override fun close() {
