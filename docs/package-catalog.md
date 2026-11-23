@@ -23,3 +23,11 @@ Catálogo `2026.11.22-5` inclui lynis, chkrootkit e rkhunter (categoria auditori
 - Uma versão por pacote por vez; múltiplas versões ficam para o submódulo 4.6 se necessário.
 - Decodificação do JSON (org.json) fica no adaptador do app, no submódulo 4.7.
 - Nenhum teste executado ou criado; nada compilado.
+
+
+## Atualização 5.6 — ADB ARM64
+
+- Incluído `adb` 1:34.0.5-12~bpo12+1 para ARM64, fornecido pelo repositório oficial Debian bookworm-backports no snapshot fixado.
+- A fonte `bookworm-backports` foi adicionada a `distribution/repositories/debian-bookworm.sources`; a versão fica instalada sob demanda pelo gerenciador de pacotes.
+- A versão 34.0.5 atende ao requisito de pareamento sem fio introduzido no Platform Tools 30.0.0. O pacote permanece `unverified` até a validação final no RootFS ARM64/PRoot e nos dois aparelhos.
+- A integração do KhaLinux usa o transporte sem fio; não presume acesso USB nem root no Android.

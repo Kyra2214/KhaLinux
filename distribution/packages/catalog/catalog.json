@@ -1,8 +1,41 @@
 {
   "schema": 1,
-  "catalog_version": "2026.11.22-5",
+  "catalog_version": "2026.11.23-6",
   "description": "Catálogo: pacotes do RootFS base e ferramentas do Cyber Toolkit (5.2–5.5). Versões do Debian bookworm lidas em packages.debian.org/sources.debian.org (a conferir no snapshot fixo do APT em 5.6); tamanhos aproximados quando informados; nenhuma compatibilidade em PRoot presumida.",
   "packages": [
+    {
+      "schema": 1,
+      "name": "adb",
+      "version": "1:34.0.5-12~bpo12+1",
+      "title": "Android Debug Bridge",
+      "description": "Cliente ADB ARM64 para pareamento e conexão sem fio, inventário e comandos de diagnóstico em dispositivos Android.",
+      "category": "rede",
+      "architecture": "arm64",
+      "source": {
+        "type": "debian-apt",
+        "apt_name": "adb"
+      },
+      "download_bytes": null,
+      "installed_bytes": null,
+      "verification": {
+        "sha256": null,
+        "evidence": null
+      },
+      "validation": "unverified",
+      "dependencies": [],
+      "limitations": [
+        "Instalação fornecida pelo repositório oficial Debian bookworm-backports fixado no snapshot do RootFS.",
+        "Transporte USB não faz parte desta integração PRoot; o fluxo do laboratório usa Wireless debugging por TCP.",
+        "Pareamento e conexão dependem de Wireless debugging ativo e portas distintas informadas pelo dispositivo."
+      ],
+      "requires_network": true,
+      "tags": [
+        "adb",
+        "android",
+        "wireless-debugging",
+        "device-inventory"
+      ]
+    },
     {
       "schema": 1,
       "name": "binwalk",

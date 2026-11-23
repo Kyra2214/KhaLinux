@@ -11,3 +11,10 @@ Suites: bookworm-security
 Components: main
 Architectures: arm64
 Check-Valid-Until: no
+
+Types: deb
+URIs: https://snapshot.debian.org/archive/debian/20251122T000000Z
+Suites: bookworm-backports
+Components: main
+Architectures: arm64
+Check-Valid-Until: no
