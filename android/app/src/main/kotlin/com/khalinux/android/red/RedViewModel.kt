@@ -18,11 +18,21 @@ data class RedUiState(
     val category: RedCategory? = null,
     val difficulty: RedDifficulty? = null,
     val message: String? = null,
-    val portalAddress: String? = null
+    val portalAddress: String? = null,
+    val hotspotInfo: String? = null,
+    val networkRunning: Boolean = false
 )
 
 class RedViewModel(application: Application) : AndroidViewModel(application) {
     private val store = RedSessionStore(application)
+    private val portal = RedPortalServer(
+        onEvent = { detail -> recordRuntimeEvent(detail) },
+        onAddress = { address -> mutableState.update { it.copy(portalAddress = address) } }
+    )
+    private val hotspot = RedHotspotController(application) { message, info ->
+        mutableState.update { it.copy(message = message, hotspotInfo = info) }
+        recordRuntimeEvent(message)
+    }
     private val mutableState = MutableStateFlow(RedUiState())
     val uiState: StateFlow<RedUiState> = mutableState.asStateFlow()
 
@@ -66,9 +76,42 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         refreshHistory()
     }
 
-    fun setPortalAddress(address: String?) = mutableState.update { it.copy(portalAddress = address) }
+    fun startNetworkLab() {
+        if (mutableState.value.session == null) {
+            mutableState.update { it.copy(message = "Inicie uma sessão antes de ativar recursos de rede.") }
+            return
+        }
+        try {
+            val address = portal.start()
+            mutableState.update { it.copy(networkRunning = true, portalAddress = address) }
+            val current = mutableState.value.session
+            if (current != null) {
+                val updated = current.withEvent(RedEventType.PORTAL_STARTED, "Portal HTTP local iniciado.")
+                store.save(updated)
+                mutableState.update { it.copy(session = updated) }
+            }
+            hotspot.start()
+        } catch (error: Exception) {
+            mutableState.update { it.copy(message = "Não foi possível iniciar o portal: " + (error.message ?: "erro desconhecido")) }
+            recordRuntimeEvent("Falha ao iniciar o portal local.")
+        }
+    }
+
+    fun stopNetworkLab() {
+        hotspot.stop()
+        portal.stop()
+        mutableState.update { it.copy(networkRunning = false, portalAddress = null, hotspotInfo = null) }
+    }
+
+    private fun recordRuntimeEvent(detail: String) {
+        val current = mutableState.value.session ?: return
+        val updated = current.withEvent(RedEventType.PORTAL_OPENED, detail)
+        store.save(updated)
+        mutableState.update { it.copy(session = updated) }
+    }
 
     fun finishSession() {
+        stopNetworkLab()
         val current = mutableState.value.session ?: return
         val updated = current.copy(state = RedOperationState.COMPLETED, endedAt = System.currentTimeMillis())
             .withEvent(RedEventType.SESSION_ENDED, "Sessão encerrada pelo operador.")
@@ -79,6 +122,11 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
 
     fun refreshHistory() {
         viewModelScope.launch(Dispatchers.IO) { mutableState.update { it.copy(history = store.all()) } }
+    }
+
+    override fun onCleared() {
+        stopNetworkLab()
+        super.onCleared()
     }
 
     fun deleteHistory() {
