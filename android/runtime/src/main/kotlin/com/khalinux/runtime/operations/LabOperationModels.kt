@@ -79,11 +79,11 @@ data class LabSession(
 }
 
 data class LabEvidenceReference(
-    val id: String, val kind: String, val source: String, val relativePath: String,
+    val id: String, val executionId: String, val kind: String, val source: String, val relativePath: String,
     val sha256: String? = null, val sizeBytes: Long? = null, val createdAtEpochMillis: Long
 ) {
     init {
-        require(id.isNotBlank() && kind.isNotBlank() && source.isNotBlank())
+        require(id.isNotBlank() && executionId.isNotBlank() && kind.isNotBlank() && source.isNotBlank())
         require(relativePath.isNotBlank() && !relativePath.startsWith("/"))
         require(sizeBytes == null || sizeBytes >= 0)
         require(createdAtEpochMillis > 0)

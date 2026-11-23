@@ -26,7 +26,8 @@ class LabEvidenceStore(private val root: File) {
         val digest = MessageDigest.getInstance("SHA-256").digest(bytes)
             .joinToString("") { "%02x".format(it.toInt() and 0xff) }
         return LabEvidenceReference(
-            id = java.util.UUID.randomUUID().toString(), kind = "process.$stream", source = source,
+            id = java.util.UUID.randomUUID().toString(), executionId = executionId,
+            kind = "process.$stream", source = source,
             relativePath = "evidence/$executionId/$stream.bin", sha256 = digest,
             sizeBytes = bytes.size.toLong(), createdAtEpochMillis = System.currentTimeMillis()
         )

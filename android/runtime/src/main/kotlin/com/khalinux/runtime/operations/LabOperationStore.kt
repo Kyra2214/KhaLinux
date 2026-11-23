@@ -14,6 +14,7 @@ class LabOperationStore(private val root: File) {
     private val sessionsDir = File(root, "sessions")
     private val executionsDir = File(root, "executions")
     private val eventsDir = File(root, "events")
+    private val evidenceDir = File(root, "evidence-index")
 
     @Synchronized fun saveSession(value: LabSession) {
         val p = Properties().apply {
@@ -91,6 +92,34 @@ class LabOperationStore(private val root: File) {
                 }.getOrNull()
             }
         }.filter { it.sessionId == sessionId }.sortedBy { it.occurredAtEpochMillis }
+
+    @Synchronized fun saveEvidenceReference(value: LabEvidenceReference) {
+        val p = Properties().apply {
+            setProperty("id", value.id); setProperty("executionId", value.executionId)
+            setProperty("kind", value.kind); setProperty("source", value.source)
+            setProperty("relativePath", value.relativePath)
+            value.sha256?.let { setProperty("sha256", it) }
+            value.sizeBytes?.let { setProperty("sizeBytes", it.toString()) }
+            setProperty("createdAt", value.createdAtEpochMillis.toString())
+        }
+        write(evidenceDir, value.id, p)
+    }
+
+    @Synchronized fun evidenceReference(id: String): LabEvidenceReference? = read(evidenceDir, id)?.let { p ->
+        runCatching {
+            LabEvidenceReference(
+                id = p.getProperty("id"), executionId = p.getProperty("executionId"),
+                kind = p.getProperty("kind"), source = p.getProperty("source"),
+                relativePath = p.getProperty("relativePath"), sha256 = p.getProperty("sha256"),
+                sizeBytes = p.getProperty("sizeBytes")?.toLong(),
+                createdAtEpochMillis = p.getProperty("createdAt").toLong()
+            )
+        }.getOrNull()
+    }
+
+    @Synchronized fun evidenceForExecution(executionId: String): List<LabEvidenceReference> =
+        files(evidenceDir).mapNotNull { evidenceReference(it.nameWithoutExtension) }
+            .filter { it.executionId == executionId }.sortedBy { it.createdAtEpochMillis }
 
     private fun write(directory: File, id: String, properties: Properties) {
         require(SAFE_ID.matches(id)) { "Id persistido inválido" }

@@ -10,6 +10,7 @@ import java.time.Duration
 import java.util.UUID
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.FutureTask
 import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.ThreadPoolExecutor
@@ -34,6 +35,7 @@ class LabOperationEngine(
         val cancellationRequested = AtomicBoolean(false)
         @Volatile var session: RuntimeSession? = null
         @Volatile var future: FutureTask<Unit>? = null
+        val finished = CountDownLatch(1)
     }
 
     private class OutputBuffer(private val limit: Int) {
@@ -125,6 +127,7 @@ class LabOperationEngine(
             executor.execute(task)
         } catch (_: RejectedExecutionException) {
             jobs.remove(queued.id)
+            control.finished.countDown()
             val failed = queued.copy(state = LabExecutionState.FAILED, endedAtEpochMillis = clock(),
                 errorSummary = "Fila de operações cheia")
             store.saveExecution(failed)
@@ -150,6 +153,7 @@ class LabOperationEngine(
                     publish(current.sessionId, current.id, current.assetIds.singleOrNull(),
                         "operation.cancelled", LabEventSeverity.INFO, "Operação cancelada na fila")
                     jobs.remove(executionId)
+                    control.finished.countDown()
                 }
             }
         }
@@ -161,6 +165,19 @@ class LabOperationEngine(
     fun execution(id: String): LabExecutionRecord? = store.execution(id)
     fun executions(sessionId: String? = null): List<LabExecutionRecord> = store.executions(sessionId)
     fun events(sessionId: String): List<LabEventRecord> = store.events(sessionId)
+    fun evidenceForExecution(executionId: String): List<LabEvidenceReference> = store.evidenceForExecution(executionId)
+    fun evidenceBytes(referenceId: String): ByteArray? {
+        val reference = store.evidenceReference(referenceId) ?: return null
+        return evidence.read(reference)
+    }
+
+    fun awaitExecution(executionId: String, timeout: Duration): LabExecutionRecord? {
+        val current = store.execution(executionId) ?: return null
+        if (current.state !in ACTIVE_STATES) return current
+        val control = jobs[executionId] ?: return current
+        control.finished.await(timeout.toMillis().coerceAtLeast(0), TimeUnit.MILLISECONDS)
+        return store.execution(executionId)
+    }
 
     private fun execute(
         control: JobControl, operation: LabOperationDefinition, queued: LabExecutionRecord, argv: List<String>
@@ -169,6 +186,7 @@ class LabOperationEngine(
         if (control.cancellationRequested.get()) {
             store.saveExecution(record.copy(state = LabExecutionState.CANCELLED, endedAtEpochMillis = clock()))
             jobs.remove(record.id)
+            control.finished.countDown()
             return
         }
         val startedNanos = System.nanoTime()
@@ -216,10 +234,12 @@ class LabOperationEngine(
 
         val references = mutableListOf<LabEvidenceReference>()
         var evidenceFailure: String? = null
-        try { evidence.save(record.id, "stdout", "runtime.stdout", stdout.bytes())?.let(references::add) }
-        catch (error: Throwable) { evidenceFailure = "stdout: " + (error.message ?: "falha ao persistir") }
-        try { evidence.save(record.id, "stderr", "runtime.stderr", stderr.bytes())?.let(references::add) }
-        catch (error: Throwable) {
+        try { evidence.save(record.id, "stdout", "runtime.stdout", stdout.bytes())?.let {
+            store.saveEvidenceReference(it); references.add(it)
+        } } catch (error: Throwable) { evidenceFailure = "stdout: " + (error.message ?: "falha ao persistir") }
+        try { evidence.save(record.id, "stderr", "runtime.stderr", stderr.bytes())?.let {
+            store.saveEvidenceReference(it); references.add(it)
+        } } catch (error: Throwable) {
             evidenceFailure = listOfNotNull(evidenceFailure, "stderr: " + (error.message ?: "falha ao persistir")).joinToString("; ")
         }
 
@@ -251,6 +271,7 @@ class LabOperationEngine(
             "operation." + finalState.name.lowercase(), severity,
             summary ?: "Operação concluída; duração " + duration + " ms", references.map { it.id })
         jobs.remove(record.id)
+        control.finished.countDown()
     }
 
     private fun resolveCommand(operation: LabOperationDefinition, values: Map<String, String>): List<String> {
@@ -308,6 +329,10 @@ class LabOperationEngine(
             publish(old.id, null, null, "session.interrupted", LabEventSeverity.MEDIUM,
                 "Sessão interrompida pelo encerramento do aplicativo")
         }
+    }
+
+    private companion object {
+        val ACTIVE_STATES = setOf(LabExecutionState.QUEUED, LabExecutionState.RUNNING)
     }
 
     override fun close() {
