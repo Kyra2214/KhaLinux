@@ -8,7 +8,7 @@
 
 ## Progresso de execução
 
-**Infraestrutura e módulos-base:** implementados em código em grande parte; validação integrada e física ainda pendentes. **Laboratório operacional:** replanejado em 2026-11-23; não está concluído. **Validação final: PARCIAL** — runtime validado no host (166/166 testes, auditoria estática 0 erros, PTY nativo OK); `:android:app`, build release, CI e aparelho físico pendentes; registrada separadamente em `docs/final-validation.md`; o projeto só é declarado concluído (100% validado) quando os testes acumulados, as pendências transferidas e os testes físicos forem resolvidos. Ver `docs/phase6-validation.md`, `docs/phase8-validation.md`, `docs/security-audit.md`.
+**Infraestrutura e módulos-base:** implementados em código em grande parte; validação integrada e física ainda pendentes. **Laboratório operacional:** replanejado em 2026-11-23; não está concluído. **Validação final: PARCIAL** — CI nº 284 passou no commit `49648c9a7bed05fddce2053aae28ebab0aa9902c`: testes unitários Android, compilação APK Debug, verificações host, auditoria estática, JNI/PTy e smoke test PRoot. APK Release assinado e testes físicos ainda pendentes; detalhes em `docs/final-validation.md`.
 
 **Branch da revisão operacional:** `plan/laboratorio-operacional` · **Próximo submódulo:** LAB-0 — auditoria e inventário técnico. Não gerar ZIP/checkpoints.
 
