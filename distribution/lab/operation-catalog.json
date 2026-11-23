@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "catalogVersion": "2026.11.23-lab2.3",
+  "catalogVersion": "2026.11.23-lab3.1",
   "operations": [
     {
       "id": "runtime.kernel-identity",
@@ -497,6 +497,50 @@
         "duration_ms"
       ],
       "timeoutSeconds": 15,
+      "enabled": true
+    },
+    {
+      "id": "android.adb.package-inventory",
+      "version": 1,
+      "title": "Inventário completo de pacotes Android",
+      "domain": "DEVICE",
+      "targetKind": "ANDROID_DEVICE",
+      "executor": "ADB",
+      "description": "Consulta pacotes, caminhos de instalação, instaladores, UIDs e version codes reportados pelo Package Manager.",
+      "command": [
+        "-s",
+        "{{serial}}",
+        "shell",
+        "pm",
+        "list",
+        "packages",
+        "-f",
+        "-i",
+        "-U",
+        "--show-versioncode"
+      ],
+      "requiredPackages": [
+        "adb"
+      ],
+      "requiredCapabilities": [
+        "adb.shell",
+        "android.package.read"
+      ],
+      "parameters": [
+        {
+          "id": "serial",
+          "type": "STRING",
+          "required": true,
+          "description": "Serial/endpoint do ativo Android selecionado."
+        }
+      ],
+      "outputFields": [
+        "stdout",
+        "stderr",
+        "exit_code",
+        "duration_ms"
+      ],
+      "timeoutSeconds": 35,
       "enabled": true
     }
   ],

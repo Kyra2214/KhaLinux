@@ -110,6 +110,12 @@ class AdbClient(
         startOperationCommand(listOf("-s", validSerial(serial), "shell", "pm", "list", "packages", "-3"),
             Duration.ofSeconds(30))
 
+    fun devicePackageInventory(serial: String): RuntimeSession =
+        startOperationCommand(
+            listOf("-s", validSerial(serial), "shell", "pm", "list", "packages", "-f", "-i", "-U", "--show-versioncode"),
+            Duration.ofSeconds(35)
+        )
+
     fun deviceLogs(serial: String, lineLimit: Int = 500): RuntimeSession {
         require(lineLimit in 1..5000)
         return startOperationCommand(
