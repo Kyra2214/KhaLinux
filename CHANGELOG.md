@@ -1,3 +1,21 @@
+## [Não lançado] — RED-13: validação automatizada
+
+### Aprovado no GitHub Actions
+- Verificação de configuração RootFS e sintaxe shell.
+- Auditoria estática de segurança, após aprovação documentada das permissões necessárias.
+- Teste JNI PTY no host.
+- Smoke test PRoot/ARM64.
+- Testes unitários dos módulos Android runtime e app.
+- Compilação do APK debug e upload do artefato de inspeção.
+
+Workflow: https://github.com/Kyra2214/KhaLinux/actions/runs/45099843828  
+Commit validado: cf1c16d68d6706f912ee856d3753efd935077a26.
+
+### Pendente
+- Teste físico com os dois aparelhos Android.
+- Verificação de LocalOnlyHotspot, portal 8080, formulários, navegação, permissões reais, relay, alternância RED/BLUE e compatibilidade por fabricante/versão.
+- Projeto permanece sem declaração de 100% até concluir os testes físicos.
+
 ## [Não lançado] — RED-12: fechamento da implementação
 
 ### Implementado
