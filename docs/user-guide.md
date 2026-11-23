@@ -68,3 +68,4 @@ Detalhes em `docs/labs.md` e `docs/labs/<id>.md`.
 A Área BLUE fica no menu **Mais**. Ela apresenta a perspectiva defensiva das sessões RED: requisições observadas, eventos de navegação, permissões solicitadas e resultados. Durante uma sessão RED ativa, alternar para BLUE preserva a execução para permitir observar o mesmo cenário pelos dois lados. Volte ao RED para continuar a operação.
 
 A análise BLUE distingue evidências observadas de recomendações. Não representa captura geral de tráfego nem inspeção de conteúdo HTTPS. Consulte [docs/blue-area.md](blue-area.md).
+\nPara o roteiro detalhado da aula RED-01, consulte [docs/red-instructor-guide.md](red-instructor-guide.md).\n
