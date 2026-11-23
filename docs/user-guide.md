@@ -61,3 +61,10 @@ Detalhes em `docs/labs.md` e `docs/labs/<id>.md`.
 - Tudo roda localmente; o app só usa a internet para baixar RootFS/PRoot e pacotes, e para o que você executar no terminal.
 - Sem contas, sem telemetria, sem credenciais embutidas. `allowBackup=false`.
 - Para relatar vulnerabilidades, veja `SECURITY.md`.
+
+
+## Área BLUE — análise defensiva
+
+A Área BLUE fica no menu **Mais**. Ela apresenta a perspectiva defensiva das sessões RED: requisições observadas, eventos de navegação, permissões solicitadas e resultados. Durante uma sessão RED ativa, alternar para BLUE preserva a execução para permitir observar o mesmo cenário pelos dois lados. Volte ao RED para continuar a operação.
+
+A análise BLUE distingue evidências observadas de recomendações. Não representa captura geral de tráfego nem inspeção de conteúdo HTTPS. Consulte [docs/blue-area.md](blue-area.md).
