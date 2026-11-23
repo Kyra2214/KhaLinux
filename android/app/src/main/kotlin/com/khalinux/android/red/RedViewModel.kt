@@ -298,25 +298,26 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                     ?: throw IllegalArgumentException("Ativo Android não encontrado no inventário")
                 val serial = asset.attributes["adb_serial"]
                     ?: throw IllegalStateException("O ativo não possui serial ADB")
-                engine = connectOperationEngine()
+                val activeEngine = connectOperationEngine()
                     ?: throw IllegalStateException("Motor operacional indisponível")
-                val session = engine.createSession("RED Mobile: inventário de pacotes", setOf(assetId))
+                engine = activeEngine
+                val session = activeEngine.createSession("RED Mobile: inventário de pacotes", setOf(assetId))
                 sessionId = session.id
                 mutableState.update { it.copy(operationalSessionId = session.id, operationalMessage = null) }
-                val execution = engine.submit(
+                val execution = activeEngine.submit(
                     session.id,
                     "android.adb.package-inventory",
                     assetIds = setOf(assetId),
                     parameters = mapOf("serial" to serial)
                 )
-                val result = engine.awaitExecution(execution.id, java.time.Duration.ofSeconds(50))
+                val result = activeEngine.awaitExecution(execution.id, java.time.Duration.ofSeconds(50))
                     ?: throw IllegalStateException("Inventário de pacotes não retornou resultado")
                 if (result.state != com.khalinux.runtime.operations.LabExecutionState.SUCCEEDED) {
                     throw IllegalStateException(result.errorSummary ?: "Falha no inventário de pacotes")
                 }
-                val output = engine.evidenceForExecution(execution.id)
+                val output = activeEngine.evidenceForExecution(execution.id)
                     .firstOrNull { it.kind == "process.stdout" }
-                    ?.let { engine.evidenceBytes(it.id) }
+                    ?.let { activeEngine.evidenceBytes(it.id) }
                     ?.let { String(it, Charsets.UTF_8) }.orEmpty()
                 val packages = AndroidPackageInventoryParser.parse(output)
                 if (packages.isEmpty()) throw IllegalStateException("O Package Manager não retornou pacotes interpretáveis")
@@ -326,8 +327,8 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                         packageInventoryAssetId = assetId,
                         packageInventoryLoading = false,
                         packageInventoryError = null,
-                        operationalExecutions = engine.executions(session.id),
-                        operationalEvents = engine.events(session.id)
+                        operationalExecutions = activeEngine.executions(session.id),
+                        operationalEvents = activeEngine.events(session.id)
                     )
                 }
             } catch (error: Exception) {
