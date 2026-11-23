@@ -1,3 +1,20 @@
+## [Não lançado] — RED-7: modo participante Android
+
+### Implementado
+- Modo participante acessível na própria Área RED, para uso no segundo aparelho Android.
+- Solicitações reais de permissões de câmera, microfone e localização no aparelho participante.
+- Prévia de câmera local via CameraX.
+- Medidor de nível de microfone via AudioRecord, sem gravação ou transmissão de áudio.
+- Consulta de localização apresentada somente no aparelho participante.
+- Seletor de arquivos do Android (SAF), sem ler nome/conteúdo.
+- Token temporário por sessão e endpoint local que recebe somente tipo/estado da demonstração; nenhum conteúdo de recurso é enviado.
+- Painel RED registra pedido e resultado dos recursos.
+
+### Limites
+- Dependências CameraX adicionadas ao módulo Android.
+- A compatibilidade real por fabricante/versão e o ciclo de revogação permanecem para validação final.
+- Nenhum teste/build foi executado.
+
 ## [Não lançado] — RED-2 a RED-6: hotspot, servidor, portal e navegação
 
 ### Implementado
