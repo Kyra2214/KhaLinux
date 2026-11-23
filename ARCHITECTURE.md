@@ -15,6 +15,7 @@ distribution/
 ├── bootstrap/       # preparação do ambiente de build
 ├── base/            # configuração da base Debian ARM64
 ├── packages/        # seleção e metadados de pacotes
+├── red/             # catálogo versionado de operações RED
 ├── repositories/    # origens verificadas
 ├── configuration/   # configurações do ambiente
 ├── services/        # serviços suportados
