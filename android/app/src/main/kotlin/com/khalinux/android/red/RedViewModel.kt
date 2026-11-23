@@ -202,6 +202,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             val interrupted = current.copy(state = RedOperationState.INTERRUPTED, endedAt = System.currentTimeMillis())
                 .withEvent(RedEventType.SESSION_ENDED, "Sessão interrompida antes do encerramento normal.", source = "session")
             store.save(interrupted)
+            RedLiveEvidenceStore.updateSession(interrupted)
             mutableState.update { it.copy(session = interrupted, history = store.all()) }
         }
     }
