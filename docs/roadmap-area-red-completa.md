@@ -4,7 +4,7 @@
 **Branch:** `plan/area-red-wifi-publico`  
 **Repositório:** `Kyra2214/KhaLinux`  
 **Escopo:** protótipo pessoal de laboratório, com dois aparelhos Android controlados pelo instrutor.  
-**Progresso de implementação:** RED-0 a RED-4 concluídos em documentação/código (5 de 14 submódulos, 36%). RED-5 é o próximo submódulo de implementação. RED-13 permanece reservado à validação final. A execução continua na mesma branch, sem ZIP e sem validações antecipadas.  
+**Progresso de implementação:** RED-0 a RED-5 concluídos em código/documentação (6 de 14 submódulos, 43%). RED-6 é o próximo submódulo de implementação. RED-13 permanece reservado à validação final. A execução continua na mesma branch, sem ZIP e sem validações antecipadas.  
 **Validação:** reservada para depois de concluir todo o roadmap. Nenhum teste/build será executado durante a implementação.
 
 ---
@@ -243,15 +243,13 @@ O BLUE não deve inventar alertas ou detecções. Cada conclusão deve apontar p
 - Links locais e redirecionamento HTTP 302 implementados.
 - Linha do tempo registra método, rota e status.
 
-### RED-5 — Formulário local e visualização do que foi recebido
-- Implementar formulário de dados exclusivamente sintéticos.
-- Enviar uma requisição real ao servidor local.
-- Validar campos e tipos no servidor.
-- Mostrar no painel os valores sintéticos recebidos na sessão ativa.
-- Mostrar a requisição e resposta correspondentes.
-- Descartar campos não previstos e qualquer dado sensível.
-- Não persistir valores de senha ou dados pessoais em histórico/relatório.
-- Diferenciar validação local de autenticação externa.
+### RED-5 — Formulário local e visualização do que foi recebido <sub>CONCLUÍDO EM CÓDIGO</sub>
+- Formulário envia POST HTTP real para `/login`.
+- Servidor aceita exclusivamente `demo_id` e `demo_code`, com formato sintético validado no backend.
+- Campos extras, duplicados, corpo acima do limite e tipo de conteúdo inesperado são rejeitados.
+- Painel RED mostra os valores aceitos apenas durante a sessão ativa e permite limpá-los.
+- Submissões e resultados são registrados como eventos; valores não entram no SessionStore nem no relatório.
+- Validação funcional/compilação permanece acumulada para RED-13.
 
 ### RED-6 — Navegação, links e comportamento após conexão
 - Criar páginas locais com links e destinos distintos.
