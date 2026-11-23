@@ -4,7 +4,7 @@
 **Branch:** `plan/area-red-wifi-publico`  
 **Repositório:** `Kyra2214/KhaLinux`  
 **Escopo:** protótipo pessoal de laboratório, com dois aparelhos Android controlados pelo instrutor.  
-**Progresso de implementação:** RED-0 a RED-6 concluídos em código/documentação (7 de 14 submódulos, 50%). RED-7 é o próximo submódulo de implementação. RED-13 permanece reservado à validação final. A execução continua na mesma branch, sem ZIP e sem validações antecipadas.  
+**Progresso de implementação:** RED-0 a RED-7 concluídos em código/documentação (8 de 14 submódulos, 57%). RED-8 é o próximo submódulo de implementação. RED-13 permanece reservado à validação final. A execução continua na mesma branch, sem ZIP e sem validações antecipadas.  
 **Validação:** reservada para depois de concluir todo o roadmap. Nenhum teste/build será executado durante a implementação.
 
 ---
@@ -260,15 +260,16 @@ O BLUE não deve inventar alertas ou detecções. Cada conclusão deve apontar p
 - Nenhum destino externo é aberto pelo cenário.
 - Validação funcional permanece acumulada para RED-13.
 
-### RED-7 — Modo participante e permissões reais
-- Definir a arquitetura do modo participante Android para o aparelho B.
-- Solicitar permissões no próprio aparelho B, no momento da função.
-- Demonstrar câmera/microfone por prévia local e com controles visíveis.
-- Demonstrar localização no próprio aparelho B, sem rastreamento contínuo.
-- Demonstrar seleção de arquivo pelo seletor Android.
-- Enviar ao aparelho A somente eventos de estado necessários à aula.
-- Explicar que o portal HTTP em IP de LAN não ganha permissões nativas e que o login não concede permissões.
-- Tratar permissão negada, revogada, cancelada ou indisponível.
+### RED-7 — Modo participante e permissões reais <sub>CONCLUÍDO EM CÓDIGO</sub>
+- Modo participante Android implementado no aparelho B.
+- Câmera com permissão Android real e prévia local controlável.
+- Microfone com permissão real e medidor de nível; amostras são descartadas, sem gravação/transmissão.
+- Localização consultada e exibida apenas no aparelho B.
+- Arquivos abertos pelo seletor SAF; nome e conteúdo não são lidos nem enviados.
+- Somente tipo/estado da ação é reportado ao painel A por endpoint local autenticado com token temporário.
+- Negação/cancelamento e revogação em Configurações são refletidos; ao retomar o app, permissões são atualizadas e recursos param quando revogados.
+- Nenhuma permissão é concedida pelo login ou pelo portal HTTP.
+- Validação em dois aparelhos permanece acumulada para RED-13.
 
 ### RED-8 — Painel de observabilidade
 - Criar linha do tempo unificada.
