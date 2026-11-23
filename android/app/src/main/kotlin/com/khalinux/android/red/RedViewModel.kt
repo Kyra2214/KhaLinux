@@ -95,11 +95,6 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                         networkState = RedNetworkState.WAITING_PARTICIPANT
                     )
                 }
-                recordStructuredEvent(
-                    RedEventType.PORTAL_STARTED,
-                    "Servidor local preparado após a criação do hotspot.",
-                    source = "portal"
-                )
             } catch (error: Exception) {
                 mutableState.update {
                     it.copy(
@@ -197,6 +192,8 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun interruptCurrentSession() {
         stopNetworkLab()
+        portal.setParticipantToken(null)
+        mutableState.update { it.copy(participantToken = null) }
         val current = mutableState.value.session ?: return
         if (current.endedAt == null) {
             val interrupted = current.copy(state = RedOperationState.INTERRUPTED, endedAt = System.currentTimeMillis())
@@ -261,7 +258,6 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         mutableState.update {
             it.copy(message = "Solicitando hotspot local ao Android...", networkState = RedNetworkState.REQUESTING_HOTSPOT, requests = emptyList())
         }
-        recordStructuredEvent(RedEventType.HOTSPOT_REQUESTED, "Operador solicitou hotspot local.", source = "android")
         hotspot.start()
     }
 
@@ -277,10 +273,10 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 serverPort = null,
                 hotspotInfo = null,
                 latestSubmission = null,
-                participantToken = null,
                 networkState = RedNetworkState.IDLE
             )
         }
+        RedLiveEvidenceStore.updateSubmission(null)
     }
 
     private fun recordRuntimeEvent(detail: String) {
@@ -429,7 +425,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             .withEvent(RedEventType.SESSION_ENDED, "Sessão encerrada pelo operador.", source = "session")
         store.save(updated)
         RedLiveEvidenceStore.clear()
-        mutableState.update { it.copy(session = updated, latestSubmission = null, message = "Sessão encerrada e relatório local atualizado.") }
+        mutableState.update { it.copy(session = updated, latestSubmission = null, participantToken = null, message = "Sessão encerrada e relatório local atualizado.") }
         refreshHistory()
     }
 
