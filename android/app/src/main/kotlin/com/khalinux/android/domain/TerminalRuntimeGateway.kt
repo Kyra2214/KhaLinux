@@ -37,6 +37,10 @@ interface TerminalRuntimeGateway {
     /** Motor operacional compartilhado entre terminal e interfaces do laboratório. */
     fun operationEngine(): com.khalinux.runtime.operations.LabOperationEngine? = null
 
+    /** Inventário local e ativos já registrados; nulos/vazios quando o Service não está disponível. */
+    fun refreshLocalDeviceInventory(): com.khalinux.runtime.operations.LabAsset? = null
+    fun deviceAssets(): List<com.khalinux.runtime.operations.LabAsset> = emptyList()
+
     /** Laboratórios (Fase 6); nulo se o runtime ainda não está instalado. */
     fun labs(): com.khalinux.runtime.labs.LabProgressService? = null
 

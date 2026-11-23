@@ -91,7 +91,7 @@ class KhaLinuxRuntimeService : Service() {
         // 8.1: limpa resíduos de instalações interrompidas; roda na fila do instalador (serial com a instalação).
         installerExecutor.submit { runCatching { storage().cleanup(installRunning.get()) } }
         // 8.3: aquece catálogos/toolkit/laboratórios em segundo plano para a primeira abertura das telas não pagar o parse.
-        installerExecutor.submit { runCatching { packageManager(); toolkit(); labs(); operationCatalog() } }
+        installerExecutor.submit { runCatching { packageManager(); toolkit(); labs(); operationCatalog(); refreshLocalDeviceInventory() } }
     }
 
     /** Higiene de armazenamento (8.1): relatório de espaço e limpeza de resíduos; nunca toca em dados do usuário. */
@@ -155,7 +155,17 @@ class KhaLinuxRuntimeService : Service() {
         return parsed
     }
 
-    /** Motor LAB-1 compartilhado pelo terminal e pelas futuras interfaces RED/BLUE. */
+    @Synchronized
+    fun refreshLocalDeviceInventory(): com.khalinux.runtime.operations.LabAsset {
+        val store = com.khalinux.runtime.operations.LabAssetStore(File(filesDir, "runtime/lab-assets"))
+        return store.upsert(com.khalinux.android.devices.AndroidDeviceInventory(this).snapshot())
+    }
+
+    @Synchronized
+    fun deviceAssets(): List<com.khalinux.runtime.operations.LabAsset> =
+        com.khalinux.runtime.operations.LabAssetStore(File(filesDir, "runtime/lab-assets")).all()
+
+    /** Motor LAB-1 compartilhado pelo terminal e pelas interfaces RED/BLUE. */
     @Synchronized
     fun operationEngine(): com.khalinux.runtime.operations.LabOperationEngine? {
         val current = runtime ?: return null
