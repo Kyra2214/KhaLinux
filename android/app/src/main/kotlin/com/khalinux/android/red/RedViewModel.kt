@@ -32,6 +32,10 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
     private val hotspot = RedHotspotController(application) { message, info ->
         mutableState.update { it.copy(message = message, hotspotInfo = info) }
         recordRuntimeEvent(message)
+        if (message.startsWith("O Android encerrou")) {
+            portal.stop()
+            mutableState.update { it.copy(networkRunning = false, portalAddress = null, hotspotInfo = null) }
+        }
         if (message.startsWith("Hotspot local ativado")) {
             mutableState.update { it.copy(networkRunning = true) }
             try {
