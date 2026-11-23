@@ -15,6 +15,7 @@ class RedSessionStore(context: Context) {
             .put("startedAt", session.startedAt)
             .put("endedAt", session.endedAt ?: JSONObject.NULL)
             .put("state", session.state.name)
+            .put("portalMode", session.portalMode.name)
             .put("completedSteps", JSONArray(session.completedSteps.toList()))
         val events = JSONArray()
         session.events.takeLast(MAX_EVENTS).forEach { event ->
@@ -57,6 +58,7 @@ class RedSessionStore(context: Context) {
                 endedAt = if (root.isNull("endedAt")) null else root.getLong("endedAt"),
                 state = RedOperationState.valueOf(root.getString("state")),
                 completedSteps = (0 until steps.length()).map { steps.getString(it) }.toSet(),
+                portalMode = runCatching { RedPortalMode.valueOf(root.optString("portalMode", RedPortalMode.LOCAL_LOGIN.name)) }.getOrDefault(RedPortalMode.LOCAL_LOGIN),
                 events = (0 until events.length()).map { i ->
                     val item = events.getJSONObject(i)
                     RedEvent(
