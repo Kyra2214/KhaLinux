@@ -111,6 +111,14 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
             Text("Ambiente: ${operation.environment}", style = MaterialTheme.typography.bodySmall)
             state.session?.let { session ->
                 Text("Sessão: ${session.state} · ${session.completedSteps.size}/${operation.steps.size} etapas")
+                Text("Rede: ${state.networkState}", style = MaterialTheme.typography.bodySmall)
+                state.hotspotSnapshot?.let { snapshot ->
+                    Text(snapshot.message, style = MaterialTheme.typography.bodySmall)
+                    snapshot.ssid?.let { Text("SSID: $it", style = MaterialTheme.typography.bodySmall) }
+                    snapshot.interfaceName?.let { Text("Interface: $it", style = MaterialTheme.typography.bodySmall) }
+                    snapshot.ipv4Address?.let { Text("IPv4 detectado: $it", style = MaterialTheme.typography.bodySmall) }
+                    if (snapshot.ssid == null) Text("SSID não disponibilizado pela API do Android.", style = MaterialTheme.typography.bodySmall)
+                }
                 if (state.networkRunning) {
                     Text("Portal: ${state.portalAddress ?: "endereço local não identificado"}", style = MaterialTheme.typography.bodySmall)
                     state.portalAddress?.let { address ->
