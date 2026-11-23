@@ -4,7 +4,7 @@
 **Branch:** `plan/area-red-wifi-publico`  
 **Repositório:** `Kyra2214/KhaLinux`  
 **Escopo:** protótipo pessoal de laboratório, com dois aparelhos Android controlados pelo instrutor.  
-**Progresso de implementação:** RED-0 a RED-11 concluídos em código/documentação (12 de 14 submódulos, 86%). RED-12 é o próximo submódulo de implementação. RED-13 permanece reservado à validação final. A execução continua na mesma branch, sem ZIP e sem validações antecipadas.  
+**Progresso de implementação:** RED-0 a RED-12 concluídos em código/documentação (13 de 14 submódulos, 93%). RED-13 é exclusivamente a validação final, ainda não iniciada. RED-13 permanece reservado à validação final. A execução continua na mesma branch, sem ZIP e sem validações antecipadas.  
 **Validação:** reservada para depois de concluir todo o roadmap. Nenhum teste/build será executado durante a implementação.
 
 ---
@@ -307,12 +307,14 @@ O BLUE não deve inventar alertas ou detecções. Cada conclusão deve apontar p
 - Limitações Android/navegador documentadas sem prometer comportamento uniforme entre fabricantes.
 - Validação editorial/funcional final fica acumulada para RED-13.
 
-### RED-12 — Fechamento da implementação e congelamento <sub>CONCLUÍDO</sub>
+### RED-12 — Fechamento da implementação e congelamento <sub>CONCLUÍDO EM CÓDIGO/DOCUMENTAÇÃO</sub>
 - Integração RED/BLUE e ciclo de encerramento revisados no código.
 - Changelog, arquitetura, guias, roadmap e retomada atualizados.
 - Pendências de validação consolidadas em `docs/red-implementation-freeze.md`.
 - ZIP/checkpoints omitidos por instrução explícita do usuário.
+- Encerramento de hotspot/servidor é idempotente; token temporário é preservado em parada/reinício da rede dentro da sessão e limpo no encerramento/interrupção.
 - Branch preservada; nenhum merge em `main`.
+- Nenhum build/teste executado durante esta retomada; validação integral permanece em RED-13.
 
 ### RED-13 — Validação final (somente após RED-0 a RED-12)
 - Testes unitários e de integração.
