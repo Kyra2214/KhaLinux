@@ -249,85 +249,29 @@ class RedPortalServer(
     }
 
     private fun processParticipantEvent(query: String): Pair<Int, String> {
-        val values = query.split('&').mapNotNull { pair ->
-            val separator = pair.indexOf('=')
-            if (separator <= 0) null else runCatching {
-                java.net.URLDecoder.decode(pair.substring(0, separator), "UTF-8") to
-                    java.net.URLDecoder.decode(pair.substring(separator + 1), "UTF-8")
-            }.getOrNull()
-        }.toMap()
-        val expected = participantToken
-        val supplied = values["token"]
-        if (expected.isNullOrBlank() || supplied.isNullOrBlank() ||
-            !java.security.MessageDigest.isEqual(
-                expected.toByteArray(StandardCharsets.UTF_8),
-                supplied.toByteArray(StandardCharsets.UTF_8)
-            )
-        ) {
-            return 403 to resultHtml("Não autorizado", "O código de sessão não corresponde ao instrutor.")
-        }
-        val kind = values["kind"].orEmpty()
-        val result = values["result"].orEmpty()
-        val allowedKinds = setOf("camera", "microphone", "location", "file")
-        val allowedResults = setOf("granted", "denied", "cancelled", "preview_started", "preview_stopped", "selected")
-        if (kind !in allowedKinds || result !in allowedResults) {
-            return 400 to resultHtml("Evento inválido", "O evento informado não faz parte desta demonstração.")
-        }
-        onParticipantEvent(kind, result)
-        return 200 to resultHtml("Registro recebido", "O instrutor recebeu somente o estado da demonstração. Nenhum conteúdo de câmera, microfone, localização ou arquivo foi enviado.")
+        val event = RedLabInputValidator.validateParticipantEvent(query, participantToken)
+            ?: return 403 to resultHtml("Não autorizado", "O código da sessão ou o evento não corresponde ao laboratório.")
+        onParticipantEvent(event.kind, event.result)
+        return 200 to resultHtml(
+            "Registro recebido",
+            "O instrutor recebeu somente o estado da demonstração. Nenhum conteúdo de câmera, microfone, localização ou arquivo foi enviado."
+        )
     }
 
     private fun processSyntheticLogin(body: ByteArray, contentType: String?): Pair<Int, String> {
-        if (contentType?.substringBefore(';')?.trim()?.equals("application/x-www-form-urlencoded", ignoreCase = true) != true) {
-            onSyntheticSubmission(
-                RedSyntheticSubmission(fields = emptyMap(), accepted = false, message = "Tipo de formulário não permitido.")
-            )
-            return 415 to resultHtml("Formato não aceito", "Use o formulário local de demonstração.")
-        }
-        val decoded = runCatching { String(body, StandardCharsets.UTF_8) }.getOrDefault("")
-        val values = linkedMapOf<String, String>()
-        val allowed = setOf("demo_id", "demo_code")
-        val pairs = decoded.split('&').filter { it.isNotEmpty() }
-        val validShape = pairs.size == 2 && pairs.all { pair ->
-            val separator = pair.indexOf('=')
-            if (separator <= 0) false else {
-                val key = runCatching {
-                    java.net.URLDecoder.decode(pair.substring(0, separator), "UTF-8")
-                }.getOrNull()
-                val value = runCatching {
-                    java.net.URLDecoder.decode(pair.substring(separator + 1), "UTF-8")
-                }.getOrNull()
-                if (key == null || value == null || key !in allowed || key in values) false
-                else {
-                    values[key] = value
-                    true
-                }
-            }
-        }
-        val demoId = values["demo_id"].orEmpty()
-        val demoCode = values["demo_code"].orEmpty()
-        val accepted = validShape &&
-            demoId.matches(Regex("^aluno-[a-z0-9-]{1,24}$")) &&
-            demoCode.matches(Regex("^LAB-[0-9]{4}$"))
-        if (accepted) {
-            val safeFields = mapOf("demo_id" to demoId, "demo_code" to demoCode)
-            onSyntheticSubmission(
-                RedSyntheticSubmission(
-                    fields = safeFields,
-                    accepted = true,
-                    message = "Campos sintéticos recebidos e validados localmente."
-                )
-            )
-            return 200 to resultHtml("Acesso liberado", "Os dados de teste foram aceitos pelo portal local.")
-        }
+        val result = RedLabInputValidator.validateSyntheticForm(body, contentType)
         onSyntheticSubmission(
             RedSyntheticSubmission(
-                fields = emptyMap(),
-                accepted = false,
-                message = "Envio rejeitado: use identificador aluno-... e código LAB-0000."
+                fields = result.fields,
+                accepted = result.accepted,
+                message = result.message
             )
         )
-        return 400 to resultHtml("Dados não aceitos", "Use somente identificador iniciado por aluno- e código no formato LAB-0000.")
+        return if (result.accepted) {
+            200 to resultHtml("Acesso liberado", "Os dados de teste foram aceitos pelo portal local.")
+        } else {
+            400 to resultHtml("Dados não aceitos", result.message)
+        }
     }
 
     private fun resultHtml(title: String, message: String) = """
