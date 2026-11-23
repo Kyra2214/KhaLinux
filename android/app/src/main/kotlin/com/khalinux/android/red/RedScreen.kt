@@ -219,6 +219,29 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                             )
                             OutlinedButton(onClick = viewModel::clearSensitivePanelData) { Text("Limpar valores temporários") }
                         } ?: Text("Nenhum formulário foi recebido nesta sessão.", style = MaterialTheme.typography.bodySmall)
+                        Text("Permissões e recursos do aparelho participante", style = MaterialTheme.typography.titleMedium)
+                        val resourceEventTypes = setOf(
+                            RedEventType.PERMISSION_REQUESTED,
+                            RedEventType.PERMISSION_GRANTED,
+                            RedEventType.PERMISSION_DENIED,
+                            RedEventType.PERMISSION_CANCELLED,
+                            RedEventType.RESOURCE_PREVIEW_STARTED,
+                            RedEventType.RESOURCE_PREVIEW_STOPPED,
+                            RedEventType.FILE_PICKER_OPENED,
+                            RedEventType.FILE_SELECTED
+                        )
+                        val resourceLabels = listOf("câmera", "microfone", "localização", "seletor de arquivos")
+                        val latestResourceEvents = resourceLabels.mapNotNull { resource ->
+                            session.events.lastOrNull { it.type in resourceEventTypes && it.detail.contains(resource, ignoreCase = true) }
+                                ?.let { resource to it }
+                        }
+                        if (latestResourceEvents.isEmpty()) {
+                            Text("Nenhuma permissão ou recurso foi solicitado nesta sessão.", style = MaterialTheme.typography.bodySmall)
+                        } else {
+                            latestResourceEvents.forEach { (resource, event) ->
+                                Text("$resource: ${event.type} · ${event.detail}", style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
                         Text("Eventos da sessão", style = MaterialTheme.typography.titleMedium)
                         session.events.asReversed().forEach { Text("${it.sequence}. ${it.timestamp}: ${it.detail}", style = MaterialTheme.typography.bodySmall) }
                     }
