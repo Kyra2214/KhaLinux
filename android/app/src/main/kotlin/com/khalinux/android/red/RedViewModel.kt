@@ -20,6 +20,8 @@ data class RedUiState(
     val difficulty: RedDifficulty? = null,
     val message: String? = null,
     val portalAddress: String? = null,
+    val serverInterface: String? = null,
+    val serverPort: Int? = null,
     val hotspotInfo: String? = null,
     val hotspotSnapshot: RedHotspotSnapshot? = null,
     val networkRunning: Boolean = false,
@@ -85,7 +87,13 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 val address = portal.start(snapshot.ipv4Address, mutableState.value.portalMode)
                 mutableState.update {
-                    it.copy(networkRunning = true, portalAddress = address, networkState = RedNetworkState.WAITING_PARTICIPANT)
+                    it.copy(
+                        networkRunning = true,
+                        portalAddress = address,
+                        serverInterface = portal.boundInterface,
+                        serverPort = portal.boundPort,
+                        networkState = RedNetworkState.WAITING_PARTICIPANT
+                    )
                 }
                 recordStructuredEvent(
                     RedEventType.PORTAL_STARTED,
@@ -247,6 +255,8 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             it.copy(
                 networkRunning = false,
                 portalAddress = null,
+                serverInterface = null,
+                serverPort = null,
                 hotspotInfo = null,
                 latestSubmission = null,
                 participantToken = null,
@@ -406,6 +416,11 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
     override fun onCleared() {
         stopNetworkLab()
         super.onCleared()
+    }
+
+    fun clearSensitivePanelData() {
+        mutableState.update { it.copy(latestSubmission = null) }
+        mutableState.update { it.copy(message = "Valores sintéticos temporários removidos do painel.") }
     }
 
     fun deleteHistory() {
