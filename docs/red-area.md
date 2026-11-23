@@ -33,7 +33,7 @@
 
 - O hotspot é solicitado por ação explícita e gerenciado pelo Android.
 - O app não clona SSIDs de estabelecimentos, não varre redes e não intercepta tráfego.
-- O portal só aceita `GET /` e `POST /submit`.
+- O portal só aceita `GET /`, `POST /submit` e `POST /event/{location,camera,files,social}` com allowlist fixa.
 - O formulário do portal transmite somente o literal fixo `demo=completed`; os campos não têm nomes e seus valores nunca são serializados para a requisição.
 - O servidor descarta o corpo recebido e registra apenas a conclusão sintética.
 - Nenhuma senha, token, cookie ou dado de outro aplicativo é persistido.
