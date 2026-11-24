@@ -184,7 +184,7 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                         RedNetworkState.DISCOVERING_INTERFACE -> "Rede: identificando interface e IPv4 do hotspot."
                         RedNetworkState.STARTING_SERVER -> "Portal: iniciando servidor na interface identificada."
                         RedNetworkState.WAITING_PARTICIPANT -> "Portal: ativo; aguardando a primeira requisição do navegador."
-                        RedNetworkState.PARTICIPANT_ACTIVE -> "Participante: atividade HTTP observada pelo portal."
+                        RedNetworkState.PARTICIPANT_ACTIVE -> "Participante: atividade do navegador observada pelo portal HTTPS."
                         RedNetworkState.STOPPING -> "Rede e portal: encerrando recursos."
                         RedNetworkState.ERROR -> "Rede/portal: ocorreu uma falha; consulte os detalhes e a ação de recuperação."
                     },
@@ -246,15 +246,15 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                     state.hotspotInfo?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
                     Text(
                         when (state.networkState) {
-                            RedNetworkState.REQUESTING_HOTSPOT -> "Aguardando o callback real do Android; o hotspot ainda não foi confirmado."
-                            RedNetworkState.DISCOVERING_INTERFACE -> "Hotspot confirmado; interface e endereço ainda em identificação."
+                            RedNetworkState.REQUESTING_HOTSPOT -> if (state.systemHotspotMode) "Aguardando retorno das Configurações do hotspot do Android." else "Aguardando o callback real do Android; o hotspot ainda não foi confirmado."
+                            RedNetworkState.DISCOVERING_INTERFACE -> "Aguardando identificação inequívoca da interface e do endereço IPv4."
                             RedNetworkState.STARTING_SERVER -> "Interface identificada; servidor em inicialização."
                             RedNetworkState.WAITING_PARTICIPANT -> "Portal HTTPS ativo; nenhuma requisição do navegador B foi recebida ainda."
-                            RedNetworkState.PARTICIPANT_ACTIVE -> "Requisição HTTP recebida; atividade do navegador confirmada."
+                            RedNetworkState.PARTICIPANT_ACTIVE -> "Requisição do navegador recebida; atividade confirmada."
                             RedNetworkState.STOPPING -> "Aguardando encerramento do hotspot e dos sockets."
                             RedNetworkState.ERROR -> "Ação de recuperação: use Parar para liberar eventual reserva restante ou tente novamente."
                             RedNetworkState.IDLE -> "Rede inativa."
-                            RedNetworkState.HOTSPOT_READY -> "Hotspot confirmado pelo Android."
+                            RedNetworkState.HOTSPOT_READY -> if (state.systemHotspotMode) "Interface do hotspot do sistema identificada." else "Hotspot confirmado pelo Android."
                         },
                         style = MaterialTheme.typography.bodySmall
                     )
