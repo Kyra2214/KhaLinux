@@ -27,9 +27,8 @@ A Área BLUE apresenta a perspectiva defensiva do mesmo laboratório executado p
 - Links: verificar URL, domínio e destino após redirecionamentos.
 - HTTP: conteúdo não é protegido por TLS; serviços reais devem usar HTTPS válido.
 - Permissões: avaliar necessidade e contexto de cada pedido; recusar quando não fizer sentido. Aceitar cookies não concede permissões web; cada pedido é separado e pode estar indisponível em HTTP local.
-- Câmera/microfone: observar indicadores do sistema e encerrar uso após a demonstração.
-- Localização: conceder somente quando necessária; revisar permissões posteriormente.
-- Arquivos: usar seletor do sistema e conferir o arquivo/destino antes de compartilhar.
+- Permissões web: cada recurso tem solicitação separada e explícita; em HTTP por IP local, o navegador pode marcar as APIs como indisponíveis.
+- O portal não abre seletor de arquivos e não recebe mídia, coordenadas ou conteúdo pessoal.
 - Resposta: desconectar, esquecer rede suspeita, revisar permissões e conferir URLs.
 
 ## Navegação e ciclo de sessão
