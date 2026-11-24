@@ -771,6 +771,66 @@ class RedPortalServer(
         <h1>$title</h1><p>$message</p><p><a href="/links">Voltar ao conteúdo</a></p></body></html>
     """.trimIndent()
 
+    private fun createSessionToken(): String {
+        val bytes = ByteArray(32)
+        SecureRandom().nextBytes(bytes)
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
+    }
+
+    private fun isSessionExpired(): Boolean {
+        if (activeSessionToken.isNullOrBlank()) return true
+        val now = System.currentTimeMillis()
+        return now - sessionStartedAt > MAX_SESSION_LIFETIME_MS ||
+            now - lastActivityAt > MAX_SESSION_IDLE_MS
+    }
+
+    private fun sessionCookieHeader(remoteAddress: String?): String? {
+        val token = activeSessionToken ?: return null
+        if (remoteAddress.isNullOrBlank() || sessionOwnerAddress != remoteAddress) return null
+        lastActivityAt = System.currentTimeMillis()
+        return "kl_lab_session=$token; Path=/; HttpOnly; SameSite=Strict; Max-Age=$SESSION_COOKIE_MAX_AGE_SECONDS"
+    }
+
+    private fun authorizeMutation(headers: Map<String, String>, remoteAddress: String?): AuthorizationResult {
+        if (isSessionExpired()) return AuthorizationResult.EXPIRED
+        val expectedOrigin = "http://$boundIpv4Address:$boundPort"
+        val origin = headers["origin"]
+        if (!origin.isNullOrBlank() && !origin.equals(expectedOrigin, ignoreCase = true)) {
+            return AuthorizationResult.INVALID_ORIGIN
+        }
+
+        val remoteKey = remoteAddress ?: "unknown"
+        val now = System.currentTimeMillis()
+        val existing = failedSessionAttempts[remoteKey]
+        if (existing != null && existing.blockedUntil > now) return AuthorizationResult.RATE_LIMITED
+
+        val expected = activeSessionToken ?: return AuthorizationResult.EXPIRED
+        val supplied = headers["cookie"]
+            ?.split(';')
+            ?.firstNotNullOfOrNull { part ->
+                val cookie = part.trim()
+                if (cookie.startsWith("kl_lab_session=")) cookie.substringAfter('=').takeIf { it.isNotBlank() } else null
+            }
+        val tokenMatches = supplied != null && MessageDigest.isEqual(
+            expected.toByteArray(StandardCharsets.UTF_8),
+            supplied.toByteArray(StandardCharsets.UTF_8)
+        )
+        if (!tokenMatches) {
+            val updated = failedSessionAttempts.compute(remoteKey) { _, previous ->
+                val count = (previous?.count ?: 0) + 1
+                FailedAttempt(
+                    count = count,
+                    blockedUntil = if (count >= MAX_AUTH_FAILURES) now + AUTH_LOCKOUT_MS else previous?.blockedUntil ?: 0L
+                )
+            } ?: FailedAttempt(1, 0L)
+            return if (updated.blockedUntil > now) AuthorizationResult.RATE_LIMITED else AuthorizationResult.INVALID_TOKEN
+        }
+
+        failedSessionAttempts.remove(remoteKey)
+        lastActivityAt = now
+        return AuthorizationResult.AUTHORIZED
+    }
+
     private fun resolveLabAddress(preferredAddress: String?): Pair<String, String>? {
         if (preferredAddress.isNullOrBlank()) {
             throw IllegalStateException("O servidor exige o IPv4 exato observado pelo controlador do hotspot.")
@@ -841,5 +901,10 @@ class RedPortalServer(
         private const val MAX_RESPONSE_BYTES = 131072
         private const val ACCEPT_TIMEOUT_MS = 1000
         private const val CLIENT_TIMEOUT_MS = 5000
+        private const val MAX_SESSION_IDLE_MS = 30 * 60 * 1000L
+        private const val MAX_SESSION_LIFETIME_MS = 2 * 60 * 60 * 1000L
+        private const val SESSION_COOKIE_MAX_AGE_SECONDS = 1800
+        private const val MAX_AUTH_FAILURES = 5
+        private const val AUTH_LOCKOUT_MS = 60 * 1000L
     }
 }
