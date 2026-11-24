@@ -4,7 +4,7 @@
 - Branch de trabalho: `recovery/red-portal-integration`.
 - Não alterar `main`, não fazer merge e não fazer force push.
 - Roadmap ativo: `docs/roadmap-red-blue-laboratorio.md`.
-- Topologia definida: **A** é a central que executa KhaLinux, cria a rede, hospeda o portal e exibe toda a observabilidade; **B** apenas conecta ao Wi-Fi, abre o portal no navegador, faz login de teste e responde ao aviso de cookies.
+- Topologia definida: **A** é a central que executa KhaLinux, cria a rede, hospeda o portal e exibe toda a observabilidade; **B** apenas conecta ao Wi-Fi, abre o portal no navegador, faz login de teste, responde ao aviso de cookies e às solicitações individuais do navegador quando a origem permitir.
 - RED-00: concluído como inventário documental e inspeção do código RED. Ver `docs/red-baseline-inventory.md`.
 - RED-05: concluído em código/documentação; banner em todas as páginas, consentimento por categoria, persistência após confirmação do A, evento tipado e login local de demonstração.
 - RED-06: concluído em código/documentação; eventos HTTP recebidos/rejeitados/respostas/falhas, persistência de metadados e cabeçalhos permitidos, relatório e BLUE atualizados; dados efêmeros limpos no encerramento. Ver `docs/red-event-evidence.md`.
@@ -13,9 +13,11 @@
 - RED-02: concluído em código/documentação; ACCESS_FINE_LOCATION solicitada somente ao iniciar hotspot no A, com concessão, recusa, recusa permanente e revogação. Ver `docs/red-permissions.md`.
 - RED-03: concluído em código/documentação; LocalOnlyHotspot com timeout/cancelamento/callbacks tardios e correlação por interface/IPv4 diferencial; sem interface inequívoca, não inicia servidor. Ver `docs/red-hotspot-lifecycle.md`.
 - RED-04: concluído em código/documentação; servidor HTTP bindado ao IPv4 exato, valida Host/headers/framing, monitora interface e aplica limites. Ver `docs/red-http-server.md`.
-- RED-08: implementados token aleatório efêmero, cookie HttpOnly/SameSite, validação de IP/origem, comparação em tempo constante, bloqueio após falhas, expiração por inatividade/tempo absoluto e limpeza no stop. Ver `docs/red-session-security.md`.
-- Progresso de implementação: 8 de 16 submódulos concluídos (50%); RED-07 parcial. Próximo submódulo: BLUE-01.
+- RED-08: concluído; token aleatório efêmero, cookie HttpOnly/SameSite, validação de IP/origem, comparação em tempo constante, bloqueio após falhas, expiração por inatividade/tempo absoluto e limpeza no stop; background/reinício marcam sessão interrompida. Ver `docs/red-http-server.md`.
+- BLUE-01: concluído; painel BLUE apresenta fatos observados, interpretação defensiva, eventos HTTP, cookies e permissões sem criar detecções sem evidência.
+- RED-09: concluído; schema v2, migração v1→v2, retenção 100 sessões/300 eventos, relatório Markdown, exportação SAF e exclusão individual/global. Ver `docs/red-session-reports.md`.
+- Progresso de implementação: 10 de 16 submódulos concluídos (62,5%); RED-07 parcial. Próximo submódulo: RED-10.
 - Nenhum teste, build, compilação, lint ou validação foi executado nesta execução. Todos permanecem acumulados para a etapa final.
 - Testes físicos nos dois aparelhos permanecem na fase final.
 - Não gerar ZIP/checkpoints; o usuário determinou execução diretamente no repositório.
-- Pendências: HTTPS confiável para prompts nativos do RED-07; validar sessão/CSRF/expiração e encerramento na fase final; concluir BLUE-01 e demais submódulos; revisar integração final de relatório/BLUE.
+- Pendências: HTTPS confiável para prompts nativos do RED-07; validar sessão/CSRF/expiração e encerramento na fase final; concluir RED-10 a RED-14; revisar integração final de relatório/BLUE.
