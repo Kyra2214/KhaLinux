@@ -12,7 +12,7 @@
 4. Escolha o modo do portal: login local ou acesso direto.
 5. Inicie o hotspot pelo botão do RED.
 6. Aguarde o Android informar o estado da rede e o RED iniciar o servidor HTTP na porta 8080.
-7. Compartilhe com o aparelho B o SSID/senha, o endereço do portal e o código temporário da sessão.
+7. Compartilhe com o aparelho B somente o SSID/senha e o endereço do portal. A sessão do navegador é vinculada automaticamente pelo cookie temporário; não há código manual a informar.
 8. Mantenha o painel aberto para acompanhar as requisições, eventos e resultados.
 
 ### Aparelho B — participante
