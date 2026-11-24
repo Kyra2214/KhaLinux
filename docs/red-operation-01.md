@@ -15,9 +15,11 @@
 3. No B, conectar-se ao Wi-Fi e abrir o endereço/QR Code exibido pelo A.
 4. No navegador, responder ao aviso de cookies.
 5. Fazer login somente com identificador e código de teste do laboratório.
-6. Navegar pelas páginas locais.
-7. No A, acompanhar requisições HTTP, escolha de cookies e eventos realmente recebidos.
-8. Encerrar a sessão no A e consultar o relatório.
+6. Responder ao aviso de cookies; essa escolha não concede permissões de recursos.
+7. Se a demonstração de permissões fizer parte da aula, abrir **Permissões do navegador** e escolher separadamente câmera, microfone ou localização. Cada botão tem finalidade explícita e depende de contexto seguro.
+8. Navegar pelas páginas locais.
+9. No A, acompanhar requisições HTTP, escolha de cookies e eventos realmente recebidos.
+10. Encerrar a sessão no A e consultar o relatório.
 
 ## Aviso de cookies
 
@@ -29,7 +31,7 @@ O portal oferece três ações:
 
 O navegador grava cookies próprios de preferência e envia ao servidor uma submissão limitada contendo somente a escolha e os estados das categorias. O servidor valida os campos e registra o resumo no A. Cabeçalhos Cookie e valores dos cookies não são armazenados na linha do tempo nem no relatório.
 
-Aceitar cookies não concede permissões do Android ou do navegador. O aviso de cookies e as permissões de recursos são mecanismos independentes.
+Aceitar cookies não concede permissões do Android ou do navegador. O aviso de cookies e as permissões de recursos são mecanismos independentes. Os pedidos de câmera, microfone e localização têm ações separadas na página **Permissões do navegador**; não há botão único que aceite tudo.
 
 ## Login do laboratório
 
@@ -39,7 +41,7 @@ O formulário usa apenas identificador e código próprios da aula. Não imita p
 
 O B permanece exclusivamente no navegador. Câmera, microfone e localização via APIs web exigem contexto seguro, suporte do navegador e ação explícita do participante. O portal atual usa HTTP em IP local; nessa condição, navegadores modernos normalmente não disponibilizam APIs sensíveis por não ser uma origem segura.
 
-O projeto não contorna essa política, não oculta a finalidade dos pedidos e não apresenta concessões fictícias. Se uma API não estiver disponível, o A registra a limitação em vez de declarar uma permissão concedida.
+O projeto não contorna essa política, não oculta a finalidade dos pedidos e não apresenta concessões fictícias. Quando o navegador não considerar o IP local um contexto seguro, o painel registra indisponibilidade e não exibe os prompts. Se uma API não estiver disponível, o A registra a limitação em vez de declarar uma permissão concedida.
 
 ## Painel do operador A
 
