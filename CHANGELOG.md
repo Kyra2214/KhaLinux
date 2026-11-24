@@ -1,6 +1,7 @@
 ## [Não lançado] — RED-15: modo hotspot do sistema, upstream e heartbeat (implementado, não validado)
 
 - Primeira compilação Android (workflow `45405105200`) encontrou dois erros Kotlin: import `weight` inacessível no `BlueScreen` e literal `\\t` inválido no parser HTTP. Corrigidos nos commits `36945e3` e `fd82386`; nova execução pendente.
+- Workflow `45405903861` revelou testes legados chamando APIs removidas (`validateParticipantEvent`/`RedParticipantEvent`); `RedLabInputValidatorTest` foi reescrito para validar formulário sintético, cookies e permissões atuais. Retorno nullable de IPv4 foi corrigido. Workflow `45406501672` executa a suíte atualizada, build e lint.
 
 - Adicionado `RedSystemHotspotController`: abre as Configurações de tethering do Android sem APIs ocultas, captura baseline de IPv4 Wi-Fi e identifica somente interface/endereço inequívoco.
 - Adicionada observação do upstream padrão do aparelho A por `ConnectivityManager.registerDefaultNetworkCallback`, distinguindo capacidade INTERNET de acesso validado.
