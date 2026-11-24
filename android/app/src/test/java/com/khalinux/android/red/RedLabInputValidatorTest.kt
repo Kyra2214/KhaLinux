@@ -73,9 +73,9 @@ class RedLabInputValidatorTest {
         assertEquals(RedCookieChoice.ACCEPT_ALL, accepted?.choice)
         assertEquals(RedCookieChoice.REJECT_OPTIONAL, rejected?.choice)
         assertEquals(RedCookieChoice.CUSTOM, custom?.choice)
-        assertTrue(accepted?.analytics == true && accepted.preferences && accepted.personalization)
-        assertTrue(rejected?.analytics == false && !rejected.preferences && !rejected.personalization)
-        assertTrue(custom?.analytics == true && !custom.preferences && custom.personalization)
+        assertTrue(accepted?.let { it.analytics && it.preferences && it.personalization } == true)
+        assertTrue(rejected?.let { !it.analytics && !it.preferences && !it.personalization } == true)
+        assertTrue(custom?.let { it.analytics && !it.preferences && it.personalization } == true)
     }
 
     @Test
