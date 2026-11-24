@@ -342,6 +342,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         mutableState.update { it.copy(networkState = RedNetworkState.STOPPING) }
         hotspot.stop()
         portal.stop()
+        tlsPreparation.stop()
         mutableState.update {
             it.copy(
                 networkRunning = false,
