@@ -56,7 +56,7 @@ Implementação e validação são registradas separadamente: código e document
 
 ## Área RED/BLUE
 
-O laboratório de dois aparelhos está sendo implementado na branch `recovery/red-portal-integration`. O aparelho A opera e observa; o aparelho B participa somente pelo navegador. O portal participante usa HTTPS local offline; há um modo `LocalOnlyHotspot` isolado e um modo alternativo de hotspot do sistema para ativar upstream depois sem trocar a rede de B. Consulte o [roadmap RED/BLUE](docs/roadmap-red-blue-laboratorio.md) e o [estado de retomada](RESUME_SESSION.md). A implementação/documentação do roadmap RED/BLUE está em 100%; a fase final de testes, builds e validações ainda não foi executada. Não confundir implementação concluída com funcionamento validado.
+O laboratório de dois aparelhos está sendo implementado na branch `recovery/red-portal-integration`. O aparelho A opera e observa; o aparelho B participa somente pelo navegador. O portal participante usa HTTPS local offline; há um modo `LocalOnlyHotspot` isolado e um modo alternativo de hotspot do sistema para ativar upstream depois sem trocar a rede de B. Consulte o [roadmap RED/BLUE](docs/roadmap-red-blue-laboratorio.md) e o [estado de retomada](RESUME_SESSION.md). A implementação/documentação do roadmap RED/BLUE está em 100%; a fase final de validação começou: checks de host passaram e testes Android/APK Debug estão em execução; validação física A/B continua pendente. Não confundir implementação concluída com funcionamento validado.
 
 ## Estado atual
 
