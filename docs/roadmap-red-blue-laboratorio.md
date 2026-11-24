@@ -197,7 +197,10 @@ Atividades:
 **Objetivo:** criar uma página de laboratório clara e funcional, sem imitação de serviços reais.
 
 Atividades:
-- Criar landing page local com identificação de laboratório e descrição do exercício.\n- Implementar aviso de cookies com categorias necessárias, análise, preferências e personalização, descrevendo apenas o que o portal realmente utiliza.\n- Oferecer “Aceitar todos”, “Recusar opcionais” e “Configurar”; registrar no A a escolha e as categorias, sem gravar valores de cookies ou identificadores pessoais.\n- O botão de cookies não pode conceder permissões do navegador/Android nem disparar solicitações não descritas.
+- Criar landing page local com identificação de laboratório e descrição do exercício.
+- Implementar aviso de cookies com categorias necessárias, análise, preferências e personalização, descrevendo apenas o que o portal realmente utiliza.
+- Oferecer “Aceitar todos”, “Recusar opcionais” e “Configurar”; registrar no A a escolha e as categorias, sem gravar valores de cookies ou identificadores pessoais.
+- O botão de cookies não pode conceder permissões do navegador/Android nem disparar solicitações não descritas.
 - Oferecer cenários separados: acesso direto e formulário de demonstração.
 - Se houver formulário, usar somente campos neutros próprios do exercício, por exemplo identificador e código de demonstração não reutilizáveis.
 - Não pedir e-mail/senha de contas, não imitar Google/Facebook/Instagram ou páginas bancárias e não enviar credenciais a terceiros.
@@ -325,7 +328,8 @@ Atividades:
 **Objetivo:** painel claro para o instrutor e fluxo simples para o participante.
 
 Atividades:
-- Integrar estados do ViewModel sem duplicar fontes de verdade.\n- Manter toda a observabilidade, os resultados e as explicações no aparelho A; B recebe somente a experiência do navegador.
+- Integrar estados do ViewModel sem duplicar fontes de verdade.
+- Manter toda a observabilidade, os resultados e as explicações no aparelho A; B recebe somente a experiência do navegador.
 - Mostrar estado real de hotspot, servidor, interface, endereço, porta e participante.
 - Exibir erros e ações possíveis para recuperação.
 - Diferenciar botão de solicitar, estado pendente e resultado confirmado.
