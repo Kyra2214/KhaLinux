@@ -25,6 +25,7 @@ class RedPortalServer(
     private val onRequest: (RedRequestObservation) -> Unit = {},
     private val onSyntheticSubmission: (RedSyntheticSubmission) -> Unit = {},
     private val onCookieConsent: (RedCookieConsent) -> Unit = {},
+    private val onWebPermission: (RedWebPermissionObservation) -> Unit = {},
     private val configuredPort: Int = PORT
 ) {
     @Volatile private var socket: ServerSocket? = null
@@ -246,6 +247,22 @@ class RedPortalServer(
                         onEvent("Redirecionamento local executado: /go/notice → /notice.")
                         return
                     }
+                    method == "GET" && path == "/permissions" -> {
+                        status = 200
+                        permissionsHtml()
+                    }
+                    method == "POST" && path == "/web-permission" -> {
+                        val observation = RedLabInputValidator.validateWebPermission(requestBody, contentType)
+                        if (observation == null) {
+                            status = 400
+                            rejectionReason = "invalid_web_permission_event"
+                            """{"recorded":false}"""
+                        } else {
+                            status = 200
+                            onWebPermission(observation)
+                            """{"recorded":true}"""
+                        }
+                    }
                     method == "GET" && path == "/health" -> {
                         status = 200
                         """{"status":"ok","service":"khalinux-red-local-lab"}"""
@@ -285,7 +302,7 @@ class RedPortalServer(
                         result.second
                     }
                     method == "HEAD" && (
-                        path == "/" || path in setOf("/terms", "/links", "/destination/news", "/destination/offers", "/notice", "/health", "/favicon.ico") ||
+                        path == "/" || path in setOf("/terms", "/links", "/permissions", "/destination/news", "/destination/offers", "/notice", "/health", "/favicon.ico") ||
                             (path == "/login" && portalMode == RedPortalMode.LOCAL_LOGIN) ||
                             (path == "/open" && portalMode == RedPortalMode.OPEN_ACCESS)
                     ) -> {
@@ -315,7 +332,7 @@ class RedPortalServer(
                     rejectionReason = "response_too_large"
                     respond(413, "Resposta acima do limite permitido.")
                 } else {
-                    writeResponse(output, status, renderedResponse, contentType = if (path == "/health") "application/json" else "text/html")
+                    writeResponse(output, status, renderedResponse, contentType = if (path == "/health" || path == "/web-permission") "application/json" else "text/html")
                     responseSent = true
                 }
                 if (method == "GET" && path == "/") {
@@ -487,7 +504,7 @@ class RedPortalServer(
             append("X-Content-Type-Options: nosniff\r\n")
             append("Referrer-Policy: same-origin\r\n")
             append("X-Frame-Options: DENY\r\n")
-            append("Permissions-Policy: camera=(self), microphone=(self), geolocation=(self)\\r\\n")
+            append("Permissions-Policy: camera=(self), microphone=(self), geolocation=(self)\r\n")
             append("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'; form-action 'self'; frame-ancestors 'none'\r\n")
             append("Connection: close\r\n")
             append("Content-Length: ${bytes.size}\r\n\r\n")
@@ -511,6 +528,7 @@ class RedPortalServer(
         <div class="actions">
         <a href="${if (mode == RedPortalMode.LOCAL_LOGIN) "/login" else "/open"}">${if (mode == RedPortalMode.LOCAL_LOGIN) "Acessar Wi-Fi" else "Continuar navegando"}</a>
         <a class="secondary" href="/terms">Termos de utilização</a><a class="secondary" href="/links">Conteúdo e navegação</a>
+        <a class="secondary" href="/permissions">Permissões do navegador (demonstração transparente)</a>
         </div><p class="foot">Conecta Local · Acesso de visitantes</p></section></main></body></html>
     """.trimIndent()
 
@@ -593,6 +611,98 @@ class RedPortalServer(
           }
         }
         </script>
+    """.trimIndent()
+
+    private fun permissionsHtml() = """
+        <!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>Permissões do navegador</title>
+        <style>
+        body{font:16px system-ui;background:#f4f6f8;color:#202124;margin:0}.wrap{max-width:620px;margin:5vh auto;padding:20px}
+        .card{background:#fff;border:1px solid #e2e5e9;border-radius:14px;padding:22px;margin:12px 0}
+        .muted{color:#5f6368;line-height:1.5}.actions{display:grid;gap:10px}
+        button{padding:12px;border:0;border-radius:8px;background:#2457a6;color:white;font:inherit}
+        button:disabled{opacity:.55}.result{font-size:14px;margin-top:8px}
+        </style></head><body><main class="wrap">
+        <section class="card">
+          <h1>Permissões do navegador</h1>
+          <p><strong>Demonstração explícita do laboratório.</strong> Cada botão solicita somente o recurso indicado. O navegador exibirá seu próprio aviso quando a origem e a política permitirem.</p>
+          <p class="muted">O portal não oculta pedidos nem usa o botão de cookies para conceder permissões. Nenhuma foto, gravação ou coordenada será enviada ao aparelho A. Para câmera e microfone, o fluxo local interrompe as faixas imediatamente. Para localização, as coordenadas são descartadas no aparelho B.</p>
+          <p id="secure-status" class="muted" aria-live="polite"></p>
+        </section>
+        <section class="card actions">
+          <button type="button" data-resource="camera">Solicitar acesso à câmera</button>
+          <div id="camera-result" class="result" aria-live="polite">Ainda não solicitado.</div>
+          <button type="button" data-resource="microphone">Solicitar acesso ao microfone</button>
+          <div id="microphone-result" class="result" aria-live="polite">Ainda não solicitado.</div>
+          <button type="button" data-resource="location">Solicitar acesso à localização</button>
+          <div id="location-result" class="result" aria-live="polite">Ainda não solicitado.</div>
+        </section>
+        <p><a href="/">Voltar ao portal</a></p>
+        <script>
+        const secureContextAvailable = window.isSecureContext === true;
+        document.getElementById('secure-status').textContent = secureContextAvailable
+          ? 'Esta página está em contexto seguro. A disponibilidade ainda depende do navegador e das configurações do aparelho.'
+          : 'Este endereço HTTP local não é um contexto seguro para APIs sensíveis. As solicitações serão registradas como indisponíveis; nenhum aviso de permissão será forçado.';
+        async function reportPermission(resource,state){
+          const body=new URLSearchParams({resource:resource,state:state});
+          const response=await fetch('/web-permission',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:body.toString(),credentials:'same-origin'});
+          if(!response.ok) throw new Error('Não foi possível registrar o estado no aparelho A.');
+        }
+        async function requestResource(resource){
+          const result=document.getElementById(resource+'-result');
+          const button=document.querySelector('[data-resource="'+resource+'"]');
+          button.disabled=true;
+          result.textContent='Solicitação iniciada pelo participante.';
+          try{
+            await reportPermission(resource,'requested');
+            if(!secureContextAvailable){
+              await reportPermission(resource,'unavailable');
+              result.textContent='Indisponível: o navegador não considera esta origem HTTP local um contexto seguro.';
+              return;
+            }
+            if(resource==='camera'||resource==='microphone'){
+              if(!navigator.mediaDevices||typeof navigator.mediaDevices.getUserMedia!=='function'){
+                await reportPermission(resource,'unavailable');
+                result.textContent='Indisponível: API de mídia não suportada neste navegador.';
+                return;
+              }
+              const constraints=resource==='camera'?{video:true,audio:false}:{video:false,audio:true};
+              const stream=await navigator.mediaDevices.getUserMedia(constraints);
+              stream.getTracks().forEach(track=>track.stop());
+              await reportPermission(resource,'granted');
+              result.textContent='Permissão concedida pelo navegador. Faixas interrompidas imediatamente; nenhum conteúdo foi transmitido.';
+              return;
+            }
+            if(!navigator.geolocation){
+              await reportPermission(resource,'unavailable');
+              result.textContent='Indisponível: geolocalização não suportada neste navegador.';
+              return;
+            }
+            await new Promise((resolve,reject)=>{
+              navigator.geolocation.getCurrentPosition(
+                ()=>resolve(),
+                error=>reject(error),
+                {enableHighAccuracy:false,maximumAge:0,timeout:10000}
+              );
+            });
+            await reportPermission(resource,'granted');
+            result.textContent='Permissão concedida pelo navegador. Coordenadas descartadas localmente e não transmitidas.';
+          }catch(error){
+            const state=error&&error.name==='AbortError'?'cancelled':
+              (error&&('code' in error)&&error.code===1?'denied':
+              (error&&error.name==='NotAllowedError'?'denied':'unavailable'));
+            try{await reportPermission(resource,state);}catch(reportError){}
+            result.textContent=state==='denied'?'Acesso negado pelo navegador ou participante.':
+              state==='cancelled'?'Solicitação cancelada.':'Recurso indisponível ou não foi possível concluir a solicitação.';
+          }finally{
+            button.disabled=false;
+          }
+        }
+        document.querySelectorAll('[data-resource]').forEach(button=>{
+          button.addEventListener('click',()=>requestResource(button.dataset.resource));
+        });
+        </script>
+        </main></body></html>
     """.trimIndent()
 
     private fun openAccessHtml() = """
