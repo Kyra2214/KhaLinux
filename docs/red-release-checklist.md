@@ -1,5 +1,14 @@
 # RED-14 — Checklist de estabilização e entrega
 
+## Integração na main — 2026-11-24
+
+- PR [#19](https://github.com/Kyra2214/KhaLinux/pull/19) integrada por merge normal.
+- Merge commit: `5bffe1467f71b5a1fb96a757bb4d584cfa132e44`.
+- Branch de origem: `recovery/red-portal-integration`; comparação imediatamente antes do merge: 589 commits à frente, 0 atrás; 52 arquivos alterados.
+- Home Security incluído: formulário e-mail/senha somente demonstrativo, senha descartada, e-mail mascarado no painel A; Facebook/Instagram apenas elementos visuais.
+- CI principal para o novo HEAD e APK Release assinado ainda aguardam disparo/execução. O workflow depende dos secrets de assinatura configurados no repositório.
+- Pendente validação física A/B de TLS, permissões reais do navegador, hotspot OEM e encaminhamento externo; não declarar esses testes concluídos.
+
 **Estado:** roadmap-base RED/BLUE implementado (17/17); workflow `45408044336` aprovou host checks, auditoria estática, testes unitários Android, APK Debug e lint antes do ajuste complementar Home Security. O novo formulário aguarda CI. Validação browser/hardware e release assinada continuam pendentes.
 
 ## Entregáveis documentais concluídos
