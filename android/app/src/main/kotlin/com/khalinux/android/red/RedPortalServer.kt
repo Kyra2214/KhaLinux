@@ -509,7 +509,7 @@ class RedPortalServer(
     }
 
     private fun safeRequestHeaders(headers: Map<String, String>): Map<String, String> {
-        val allowed = setOf("host", "accept", "content-type", "referer")
+        val allowed = setOf("host", "accept", "accept-language", "user-agent", "content-type", "referer")
         return headers.filterKeys { it in allowed }.mapValues { (name, value) ->
             val safeValue = if (name == "referer") {
                 runCatching { java.net.URI(value).rawPath.orEmpty() }.getOrDefault("")
