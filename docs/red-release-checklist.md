@@ -1,44 +1,54 @@
 # RED-14 — Checklist de estabilização e entrega
 
-**Estado:** parcial. Documentação de release preparada; APK, assinatura, SHA-256, revisão final do diff e PR aguardam a fase de validação. Não publicar nem declarar release pronta antes dos portões finais.
+**Estado:** documentação e estabilização da branch concluídas no snapshot registrado; release publicável ainda bloqueada. Este checklist separa o que foi preparado do que só pode ser declarado após validação.
 
-## Entregáveis documentais
+## Entregáveis documentais concluídos
 
-- [x] Notas preliminares de release: red-blue-release-notes.md.
-- [x] Matriz de compatibilidade inicial: red-blue-compatibility.md.
+- [x] Notas de release preliminares e limitações: [red-blue-release-notes.md](red-blue-release-notes.md).
+- [x] Matriz inicial de compatibilidade: [red-blue-compatibility.md](red-blue-compatibility.md).
 - [x] Checklist de estabilização e entrega.
-- [x] Histórico, changelog, roadmap e retomada atualizados.
+- [x] Registro de revisão direcionada e comparação Git: [red-branch-stabilization.md](red-branch-stabilization.md).
+- [x] Roadmap, changelog e retomada alinhados ao estado real, sem declarar validação.
 
-## Portões obrigatórios após 100% da implementação
+## Snapshot Git registrado
 
-- [ ] Resolver dependências externas registradas, inclusive HTTPS confiável para RED-07, se fornecido.
+- Branch: `recovery/red-portal-integration`.
+- Commit observado antes desta atualização documental: `d445ebcc8f7fb15d5ecac1c9493da5fea72409a2`.
+- Base `main`: `a4de5eb7ef3d72404ea1171af5eaa135a48bde0c`.
+- Comparação: 296 commits à frente, 0 atrás; 41 arquivos alterados.
+- A contagem é um retrato e precisa ser atualizada antes do PR se a branch avançar.
+
+## Portões obrigatórios da etapa final
+
+- [ ] Resolver dependências externas registradas, inclusive HTTPS confiável para RED-07, caso seja fornecido sem exigir configuração manual no B.
 - [ ] Executar RED-11: auditoria final e resolver achados críticos/altos.
 - [ ] Executar RED-12: build, lint, testes unitários e integração host/Android.
-- [ ] Executar RED-13: testes físicos A+B após aprovação do portão RED-12.
 - [ ] Corrigir falhas e repetir testes afetados.
+- [ ] Executar RED-13: testes físicos A+B somente após aprovação do portão RED-12.
 - [ ] Atualizar guias, changelog, notas de release e matriz de compatibilidade com resultados reais.
 - [ ] Remover logs temporários e artefatos de diagnóstico; preservar evidências sanitizadas exigidas.
-- [ ] Revisar diff completo contra a base da branch e confirmar que não há alterações do usuário descartadas.
+- [ ] Revisar integralmente o diff atual contra a base da branch e confirmar que não há alterações do usuário descartadas.
 - [ ] Atualizar versionName/versionCode somente após aprovação dos portões.
 - [ ] Gerar APK assinado usando segredos fornecidos por variáveis de ambiente, nunca armazenados no Git.
-- [ ] Calcular SHA-256 do APK e registrar commit, versão, ambiente e resultado dos testes.
-- [ ] Preparar PR da branch recovery/red-portal-integration para revisão; não fazer merge nem alterar main sem instrução explícita.
+- [ ] Calcular SHA-256 do APK e registrar commit, versão, ambiente e resultados dos testes.
+- [ ] Preparar PR de `recovery/red-portal-integration` para revisão; não fazer merge nem alterar `main` sem instrução explícita.
 
-## Revisão direcionada da branch
+## Revisão já realizada, com escopo limitado
 
-- [x] Confirmar branch de trabalho e base main sem alterar main.
-- [x] Comparar referências Git: branch adiantada, sem commits faltantes da base.
-- [x] Revisar Manifest, configuração Android e arquivos RED/BLUE relevantes.
-- [x] Procurar chamadas de logging de depuração nos arquivos Kotlin RED/BLUE; nenhuma encontrada.
-- [ ] Revisar integralmente o diff de todos os 258 commits/39 arquivos antes de PR.
-- [ ] Resolver RED-07 com origem HTTPS confiável, se fornecida.
+- [x] Confirmar branch de trabalho e base `main` sem alterar `main`.
+- [x] Comparar referências Git no snapshot: branch adiantada, sem commits faltantes da base.
+- [x] Revisar direcionadamente Manifest, configuração Android e arquivos RED/BLUE relevantes.
+- [x] Buscar chamadas de logging de depuração nos arquivos Kotlin RED/BLUE revisados; nenhuma encontrada.
+- [ ] Revisar integralmente o diff de todos os arquivos/commits antes do PR.
+- [ ] Resolver RED-07 com origem HTTPS confiável, se houver solução compatível com B navegador-only.
 - [ ] Executar os portões finais de validação e gerar artefatos.
-
-Registro detalhado: [red-branch-stabilization.md](red-branch-stabilization.md).
 
 ## Estado atual do pacote
 
-- Nenhum APK Debug/Release foi gerado nesta execução.
-- Nenhum hash ou assinatura é declarado.
-- Nenhum PR foi aberto nesta etapa.
-- Não gerar ZIP/checkpoints; o trabalho permanece diretamente no GitHub conforme instrução do usuário.
+- APK Debug/Release: não gerado.
+- Assinatura e SHA-256: não produzidos.
+- Testes/build/lint/auditoria final/testes físicos: não executados nesta etapa.
+- PR: não aberto.
+- ZIP/checkpoints: não gerar; o trabalho permanece diretamente no GitHub conforme instrução do usuário.
+
+**Critério de conclusão do RED-14:** checklist integralmente atendido após os portões anteriores. Até lá, considerar concluída somente a parcela documental/estabilização, não a release.
