@@ -9,7 +9,8 @@
 
 ## Cenário opcional RED-15 — upstream posterior
 
-- Iniciar o hotspot do sistema do Android sem dados móveis/upstream.
+- Manter o hotspot do sistema desligado, desativar dados móveis e abrir o modo RED-15 para capturar baseline.
+- Ativar o hotspot do sistema nas Configurações do Android sem upstream.
 - Conectar B e abrir o portal HTTPS.
 - Ativar dados móveis/upstream em A sem desligar o hotspot.
 - Confirmar que B permanece associado ao mesmo SSID e que o Android disponibiliza navegação externa.
