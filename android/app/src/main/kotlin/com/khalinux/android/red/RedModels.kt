@@ -10,6 +10,12 @@ enum class RedWebPermissionResource { CAMERA, MICROPHONE, LOCATION }
 enum class RedWebPermissionState { REQUESTED, GRANTED, DENIED, CANCELLED, UNAVAILABLE, REVOKED }
 enum class RedAndroidPermissionState { UNKNOWN, GRANTED, DENIED, PERMANENTLY_DENIED, REVOKED }
 
+data class RedWebPermissionObservation(
+    val resource: RedWebPermissionResource,
+    val state: RedWebPermissionState,
+    val timestamp: Long = System.currentTimeMillis()
+)
+
 data class RedCookieConsent(
     val choice: RedCookieChoice,
     val analytics: Boolean,
