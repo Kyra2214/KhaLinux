@@ -37,6 +37,7 @@ import com.khalinux.runtime.install.InstallStateStore
 import com.khalinux.runtime.install.RootfsFinalizer
 import com.khalinux.runtime.SessionSnapshot
 import java.io.File
+import java.io.ByteArrayOutputStream
 import java.time.Duration
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -354,7 +355,18 @@ class KhaLinuxRuntimeService : Service() {
     private fun fetchManifest(releaseBase: String, name: String, expectedSha256: String, label: String): JSONObject {
         val connection = GitHubHttpsConnection.open(URL("$releaseBase/$name"), 15_000, 20_000)
         val manifestBytes = try {
-            connection.inputStream.use { input -> input.readNBytes(64 * 1024 + 1) }
+            connection.inputStream.use { input ->
+                val output = ByteArrayOutputStream()
+                val buffer = ByteArray(8 * 1024)
+                var remaining = 64 * 1024 + 1
+                while (remaining > 0) {
+                    val count = input.read(buffer, 0, minOf(buffer.size, remaining))
+                    if (count < 0) break
+                    output.write(buffer, 0, count)
+                    remaining -= count
+                }
+                output.toByteArray()
+            }
         } finally {
             connection.disconnect()
         }
