@@ -219,6 +219,16 @@ private fun defensiveAdvice(event: RedEvent): String {
             "invalid_request_origin" -> return "A origem do POST não correspondeu ao portal esperado e a operação foi bloqueada. Não envie formulários após redirecionamentos para origens desconhecidas."
             "session_rate_limited" -> return "O servidor aplicou um bloqueio temporário após falhas repetidas. Isso é um controle preventivo, não prova isolada de ataque."
             "session_expired" -> return "A sessão atingiu seu limite de tempo. Solicite ao operador uma nova sessão em vez de reutilizar uma página antiga."
+            "login_rate_limited" -> return "O servidor bloqueou temporariamente novas tentativas de login após falhas repetidas. Aguarde e revise os dados de teste."
+            "host_mismatch" -> return "O cabeçalho Host não corresponde ao endereço do portal esperado; a requisição foi recusada."
+            "participant_ip_mismatch" -> return "A requisição veio de um endereço diferente do navegador vinculado à sessão."
+            "unsupported_content_type" -> return "O servidor recusou um formato de conteúdo que não faz parte do formulário permitido."
+            "transfer_encoding_unsupported" -> return "O servidor recusou framing HTTP não suportado para evitar interpretação ambígua do corpo."
+            "body_too_large" -> return "O corpo excedeu o limite de tamanho definido para o laboratório."
+            "invalid_cookie_consent" -> return "A escolha de cookies não correspondeu às categorias e valores permitidos."
+            "invalid_web_permission" -> return "O resultado de permissão não correspondeu aos recursos e estados permitidos."
+            "form_validation_failed" -> return "O formulário não correspondeu ao formato de dados sintéticos do laboratório."
+            "route_not_found", "method_not_allowed" -> return "A rota ou o método HTTP não é oferecido pelo portal local."
         }
     }
     return when (event.type) {
