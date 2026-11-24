@@ -666,7 +666,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         RedLiveEvidenceStore.updateRequests(updatedRequests)
 
         val detail = "${observation.method} ${observation.path} → HTTP ${observation.statusCode} · ${observation.bodyBytes} bytes"
-        if (observation.method != "UNKNOWN" && observation.rejectionReason != "invalid_request_line") {
+        if (observation.method != "UNKNOWN" && observation.path != "/heartbeat" && observation.rejectionReason != "invalid_request_line") {
             recordStructuredEvent(
                 RedEventType.HTTP_REQUEST_RECEIVED,
                 "Requisição recebida: $detail",
@@ -714,7 +714,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 remoteAddress = observation.remoteAddress
             )
         }
-        if (observation.responseSent) {
+        if (observation.responseSent && observation.path != "/heartbeat") {
             recordStructuredEvent(
                 RedEventType.HTTP_RESPONSE_SENT,
                 "Resposta enviada: HTTP ${observation.statusCode} para ${observation.method} ${observation.path}.",
