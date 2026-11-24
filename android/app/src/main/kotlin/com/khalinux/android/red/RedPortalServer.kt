@@ -109,7 +109,6 @@ class RedPortalServer(
             val output = peer.getOutputStream()
             var method = "UNKNOWN"
             var path = "/"
-            var rawQuery = ""
             var contentType: String? = null
             var bodyBytes = 0
             var requestBody = ByteArray(0)
@@ -126,8 +125,14 @@ class RedPortalServer(
                 }
                 method = parts[0].uppercase(Locale.ROOT)
                 val rawTarget = parts[1]
-                path = rawTarget.substringBefore('?').take(512)
-                rawQuery = rawTarget.substringAfter('?', "").take(1024)
+                val rawPath = rawTarget.substringBefore('?')
+                val query = rawTarget.substringAfter('?', "")
+                if (rawPath.length > 512 || query.length > 1024) {
+                    status = 414
+                    writeResponse(output, status, "URI acima do limite permitido.")
+                    return
+                }
+                path = rawPath
                 if (path.isBlank() || !path.startsWith("/") || path.contains("..") || path.contains('\\')) {
                     status = 400
                     writeResponse(output, status, "Caminho inválido.")
@@ -150,8 +155,10 @@ class RedPortalServer(
                     return
                 }
                 val contentLength = headers["content-length"]
-                val declaredLength = if (contentLength == null) 0 else contentLength.toIntOrNull()
-                    ?: throw IllegalArgumentException("Content-Length inválido.")
+                if (contentLength != null && !contentLength.matches(Regex("[0-9]{1,10}"))) {
+                    throw IllegalArgumentException("Content-Length inválido.")
+                }
+                val declaredLength = contentLength?.toIntOrNull() ?: 0
                 if (declaredLength < 0 || declaredLength > MAX_BODY_BYTES) {
                     status = 413
                     writeResponse(output, status, "Corpo acima do limite permitido.")
@@ -382,6 +389,7 @@ class RedPortalServer(
             405 -> "Method Not Allowed"
             408 -> "Request Timeout"
             413 -> "Payload Too Large"
+            414 -> "URI Too Long"
             421 -> "Misdirected Request"
             501 -> "Not Implemented"
             else -> "Error"
