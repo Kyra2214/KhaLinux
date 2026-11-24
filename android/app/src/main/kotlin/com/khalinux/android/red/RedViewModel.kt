@@ -38,7 +38,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             mutableState.update { current ->
                 current.copy(
                     portalEndpoint = address?.let {
-                        RedPortalEndpoint(it, portal.boundInterface, portal.boundPort ?: current.portalConfiguration.requestedPort)
+                        RedPortalEndpoint(it, null, current.portalConfiguration.requestedPort)
                     }
                 )
             }
