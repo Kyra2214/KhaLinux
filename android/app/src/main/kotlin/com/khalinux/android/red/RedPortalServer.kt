@@ -113,8 +113,11 @@ class RedPortalServer(
             var bodyBytes = 0
             var requestBody = ByteArray(0)
             var status = 400
+            var receivedHeader = false
+            var observedHeaders: Map<String, String> = emptyMap()
             try {
                 val headerBytes = readHeader(input) ?: return
+                receivedHeader = true
                 val headerText = String(headerBytes, StandardCharsets.ISO_8859_1)
                 val lines = headerText.split("\r\n")
                 val requestLine = lines.firstOrNull().orEmpty()
@@ -139,6 +142,7 @@ class RedPortalServer(
                     return
                 }
                 val headers = parseHeaders(lines.drop(1))
+                observedHeaders = safeRequestHeaders(headers)
                 val expectedHost = "${boundIpv4Address}:${boundPort}"
                 val hostHeader = headers["host"]
                 if ((parts[2] == "HTTP/1.1" && hostHeader.isNullOrBlank()) ||
@@ -208,7 +212,6 @@ class RedPortalServer(
                     method == "GET" && path == "/go/notice" -> {
                         status = 302
                         writeRedirect(output, "/notice")
-                        onRequest(RedRequestObservation(method = method, path = path, statusCode = status, contentType = contentType, bodyBytes = bodyBytes, remoteAddress = peer.inetAddress?.hostAddress))
                         onEvent("Redirecionamento local executado: /go/notice → /notice.")
                         return
                     }
@@ -253,17 +256,6 @@ class RedPortalServer(
                     status in 200..299 && path != "/health" && response.contains("</body>")
                 ) response.replace("</body>", cookieBannerHtml() + "</body>") else response
                 writeResponse(output, status, renderedResponse, contentType = if (path == "/health") "application/json" else "text/html")
-                onRequest(
-                    RedRequestObservation(
-                        method = method,
-                        path = path,
-                        statusCode = status,
-                        contentType = contentType,
-                        bodyBytes = bodyBytes,
-                        remoteAddress = peer.inetAddress?.hostAddress,
-                        safeHeaders = safeRequestHeaders(headers)
-                    )
-                )
                 if (method == "GET" && path == "/") {
                     onEvent("Portal de treinamento acessado pelo aparelho participante.")
                 } else {
@@ -273,17 +265,21 @@ class RedPortalServer(
                 status = if (error is SocketTimeoutException) 408 else 400
                 runCatching { writeResponse(output, status, "Não foi possível processar a requisição.") }
                 onEvent("Falha ao processar requisição HTTP local: ${error.javaClass.simpleName}.")
-                runCatching {
-                    onRequest(
-                        RedRequestObservation(
-                            method = method,
-                            path = path,
-                            statusCode = status,
-                            contentType = contentType,
-                            bodyBytes = bodyBytes,
-                            remoteAddress = peer.inetAddress?.hostAddress
+            } finally {
+                if (receivedHeader) {
+                    runCatching {
+                        onRequest(
+                            RedRequestObservation(
+                                method = method,
+                                path = path,
+                                statusCode = status,
+                                contentType = contentType,
+                                bodyBytes = bodyBytes,
+                                remoteAddress = peer.inetAddress?.hostAddress,
+                                safeHeaders = observedHeaders
+                            )
                         )
-                    )
+                    }
                 }
             }
         }
