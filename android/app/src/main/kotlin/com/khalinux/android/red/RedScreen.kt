@@ -114,12 +114,6 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                 TextButton(onClick = viewModel::refreshHistory) { Text("Histórico") }
             }
         }
-        Card(Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("ESCOPO CONTROLADO", style = MaterialTheme.typography.labelLarge)
-                Text("Use somente aparelhos, contas e redes próprias ou com autorização explícita. Todas as páginas de demonstração são identificadas como simulação.")
-            }
-        }
         val operation = state.selectedOperationId?.let(RedCatalog::find)
         if (operation == null) {
             Text("Catálogo de operações", style = MaterialTheme.typography.titleLarge)
