@@ -273,6 +273,7 @@ class RedPortalServer(
                     return
                 }
 
+                val cspNonce = createCspNonce()
                 val response = when {
                     method == "GET" && path == "/" -> {
                         status = 200
@@ -315,7 +316,7 @@ class RedPortalServer(
                     }
                     method == "GET" && path == "/permissions" -> {
                         status = 200
-                        permissionsHtml()
+                        permissionsHtml(cspNonce)
                     }
                     method == "GET" && path == "/health" -> {
                         status = 200
@@ -393,7 +394,7 @@ class RedPortalServer(
                 }
                 val renderedResponse = if (
                     status in 200..299 && path != "/health" && response.contains("</body>")
-                ) response.replace("</body>", cookieBannerHtml() + "</body>") else response
+                ) response.replace("</body>", cookieBannerHtml(cspNonce) + "</body>") else response
                 if (renderedResponse.toByteArray(StandardCharsets.UTF_8).size > MAX_RESPONSE_BYTES) {
                     rejectionReason = "response_too_large"
                     respond(413, "Resposta acima do limite permitido.")
@@ -408,7 +409,8 @@ class RedPortalServer(
                                 peer.inetAddress?.hostAddress,
                                 claimOwner = method == "GET" && path in setOf("/", "/login", "/open")
                             )
-                        } else null
+                        } else null,
+                        cspNonce = cspNonce
                     )
                     responseSent = true
                 }
@@ -560,7 +562,8 @@ class RedPortalServer(
         status: Int,
         body: String,
         contentType: String = "text/html",
-        setCookieHeader: String? = null
+        setCookieHeader: String? = null,
+        cspNonce: String? = null
     ) {
         val statusText = when (status) {
             200 -> "OK"
@@ -596,7 +599,8 @@ class RedPortalServer(
             append("Permissions-Policy: camera=(self), microphone=(self), geolocation=(self)\r\n")
             append("Cross-Origin-Resource-Policy: same-origin\r\n")
             append("X-Permitted-Cross-Domain-Policies: none\r\n")
-            append("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'; form-action 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'\r\n")
+            val nonceSource = cspNonce?.let { " 'nonce-$it'" }.orEmpty()
+            append("Content-Security-Policy: default-src 'self'; script-src 'self'$nonceSource; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; form-action 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'\\r\\n")
             append("Connection: close\r\n")
             append("Content-Length: ${bytes.size}\r\n\r\n")
         }
@@ -645,7 +649,7 @@ class RedPortalServer(
         </section>
     """.trimIndent()
 
-    private fun cookieBannerHtml() = """
+    private fun cookieBannerHtml(nonce: String) = """
         <style>
         .cookie-layer{position:fixed;inset:auto 0 0;background:#fff;border-top:1px solid #d7dce2;box-shadow:0 -8px 28px #0002;padding:18px;z-index:99;color:#202124}
         .cookie-inner{max-width:720px;margin:auto;font:14px system-ui}.cookie-inner h2{font-size:18px;margin:0 0 8px}
@@ -665,14 +669,14 @@ class RedPortalServer(
               <label><input type="checkbox" id="cookie-personalization"> Personalização</label>
             </div>
             <div class="cookie-actions">
-              <button type="button" onclick="saveCookieChoice('accept_all')">Aceitar todos</button>
-              <button type="button" class="quiet" onclick="saveCookieChoice('reject_optional')">Recusar opcionais</button>
-              <button type="button" class="quiet" onclick="showCookieOptions()">Configurar</button>
-              <button type="button" class="quiet" id="cookie-save" style="display:none" onclick="saveCookieChoice('custom')">Salvar escolhas</button>
+              <button type="button" id="cookie-accept-all">Aceitar todos</button>
+              <button type="button" class="quiet" id="cookie-reject-optional">Recusar opcionais</button>
+              <button type="button" class="quiet" id="cookie-configure">Configurar</button>
+              <button type="button" class="quiet" id="cookie-save" style="display:none">Salvar escolhas</button>
             </div>
           </div>
         </aside>
-        <script>
+        <script nonce="$nonce">
         if(document.cookie.split(';').some(item=>item.trim().startsWith('kl_cookie_consent='))){document.getElementById('cookie-layer').remove();}
         function showCookieOptions(){
           document.getElementById('cookie-options').style.display='flex';
@@ -709,10 +713,14 @@ class RedPortalServer(
             document.querySelector('.cookie-inner').appendChild(message);
           }
         }
+        document.getElementById('cookie-accept-all').addEventListener('click',()=>saveCookieChoice('accept_all'));
+        document.getElementById('cookie-reject-optional').addEventListener('click',()=>saveCookieChoice('reject_optional'));
+        document.getElementById('cookie-configure').addEventListener('click',showCookieOptions);
+        document.getElementById('cookie-save').addEventListener('click',()=>saveCookieChoice('custom'));
         </script>
     """.trimIndent()
 
-    private fun permissionsHtml() = """
+    private fun permissionsHtml(nonce: String) = """
         <!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
         <title>Permissões do navegador</title>
         <style>
@@ -737,7 +745,7 @@ class RedPortalServer(
           <div id="location-result" class="result" aria-live="polite">Ainda não solicitado.</div>
         </section>
         <p><a href="/">Voltar ao portal</a></p>
-        <script>
+        <script nonce="$nonce">
         const secureContextAvailable = window.isSecureContext === true;
         document.getElementById('secure-status').textContent = secureContextAvailable
           ? 'Esta página está em contexto seguro. A disponibilidade ainda depende do navegador e das configurações do aparelho.'
@@ -868,6 +876,12 @@ class RedPortalServer(
             val count = previousCount + 1
             FailedAttempt(count, if (count >= MAX_LOGIN_FAILURES) now + LOGIN_LOCKOUT_MS else 0L)
         }
+    }
+
+    private fun createCspNonce(): String {
+        val bytes = ByteArray(18)
+        SecureRandom().nextBytes(bytes)
+        return Base64.getEncoder().withoutPadding().encodeToString(bytes)
     }
 
     private fun createSessionToken(): String {
