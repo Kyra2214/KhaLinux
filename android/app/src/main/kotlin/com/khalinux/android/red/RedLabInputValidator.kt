@@ -2,7 +2,6 @@ package com.khalinux.android.red
 
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
-import java.security.MessageDigest
 
 data class RedSyntheticValidationResult(
     val accepted: Boolean,
@@ -64,7 +63,7 @@ object RedLabInputValidator {
         if (choice == "accept_all" && listOf(analytics, preferences, personalization).any { it != "1" }) return null
         if (choice == "reject_optional" && listOf(analytics, preferences, personalization).any { it != "0" }) return null
         fun label(value: String) = if (value == "1") "aceito" else "recusado"
-        return "Escolha=$choice; análise=${'${'}label(analytics)}; preferências=${'${'}label(preferences)}; personalização=${'${'}label(personalization)}"
+        return "Escolha=$choice; análise=" + label(analytics) + "; preferências=" + label(preferences) + "; personalização=" + label(personalization)
     }
 
     private fun decodePairs(encoded: String): Map<String, String>? {
@@ -86,5 +85,4 @@ object RedLabInputValidator {
     }
 
     private const val MAX_FORM_BYTES = 4096
-    private const val MAX_QUERY_CHARS = 1024
 }
