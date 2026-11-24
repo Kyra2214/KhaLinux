@@ -446,7 +446,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 systemSettingsLaunchPending = true,
                 networkState = RedNetworkState.REQUESTING_HOTSPOT,
                 networkRunning = false,
-                message = "Abra as Configurações com o hotspot do sistema inicialmente desligado. Ligue-o, retorne e detecte a interface; a internet poderá ser ativada mais tarde sem desligar o hotspot."
+                message = "Desative os dados móveis e mantenha o hotspot do sistema desligado. Abra as Configurações, ligue o hotspot, retorne e detecte a interface; depois de B conectar, ative os dados móveis sem desligar o hotspot."
             )
         }
         if (!systemHotspot.openSystemHotspotSettings()) {
