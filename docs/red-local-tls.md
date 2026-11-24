@@ -1,7 +1,7 @@
 # HTTPS local e confiança da autoridade do laboratório
 
 **Submódulo:** RED-07  
-**Estado:** implementação inicial do mecanismo TLS adicionada; confiança efetiva no navegador, integração completa de preparação e validação permanecem pendentes. RED-07 continua parcial.  
+**Estado:** implementação de código/documentação concluída; validação final de confiança do navegador e permissões permanece pendente. RED-07 não está validado.  
 **Topologia:** A hospeda o portal e mantém a chave privada da autoridade; B participa exclusivamente pelo navegador e pela tela de configurações do Android para a instalação inicial da CA.
 
 ## Objetivo
@@ -84,7 +84,7 @@ O servidor HTTP não deve redirecionar automaticamente para HTTPS antes da insta
 - O relatório de sessão distingue download da CA de handshake concluído; a ausência de handshake não é interpretada como prova de que a CA não foi instalada.
 - A chave privada efêmera do servidor é removida do Android Keystore ao parar o portal ou tratar falha de inicialização; a CA permanece protegida para reutilização.
 
-**Ainda pendente:** confirmar compatibilidade de instalação/confiabilidade da CA com navegador/Android alvo; revisar ciclo de vida e falhas parciais; tratar rotação e renovação de certificado; finalizar fluxo de instalação manual e estados de confiança; atualizar todos os relatórios e telas; validar tudo na fase final. A implementação não está aprovada por build ou teste.
+**Validação final pendente:** confirmar compatibilidade de instalação/confiabilidade da CA com o navegador/Android alvo; conferir fingerprint e SAN IP; observar handshake sem alerta; confirmar prompts reais das APIs web e executar os cenários de falha/renovação/encerramento. Nenhuma dessas verificações foi executada nesta etapa.
 
 ## Referências internas
 
