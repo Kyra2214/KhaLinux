@@ -227,7 +227,8 @@ Atividades:
 - Definir allowlist de cabeçalhos de baixo risco; excluir Cookie, Set-Cookie, Authorization, Proxy-Authorization e tokens.
 - Distinguir requisição recebida, requisição rejeitada, resposta enviada e falha do servidor.
 - Associar eventos à sessão atual e eliminar dados transitórios ao encerrar.
-- Mostrar contagem de requisições recebidas sem inventar participantes ou clientes.\n- Registrar escolha de cookies por categoria sem registrar valores de cookies.
+- Mostrar contagem de requisições recebidas sem inventar participantes ou clientes.
+- Registrar escolha de cookies por categoria sem registrar valores de cookies.
 - Não inferir que uma conexão Wi-Fi existe só porque uma requisição foi recebida, nem o contrário.
 - Não fazer captura de tráfego geral, sniffing, MITM ou inspeção de outros aplicativos.
 
