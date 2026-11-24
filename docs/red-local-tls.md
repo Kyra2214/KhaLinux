@@ -81,6 +81,8 @@ O servidor HTTP não deve redirecionar automaticamente para HTTPS antes da insta
 - A integração inicial no ViewModel prepara a CA, inicia o endpoint de preparação e inicia o portal HTTPS em `8443`.
 - A tela do operador apresenta a URL de preparação e a impressão digital SHA-256 para conferência independente.
 - O A registra o download do certificado público e distingue esse evento de confiança TLS. A primeira requisição HTTPS que conclui handshake TLS válido gera evidência `TLS_HANDSHAKE_OBSERVED`; esse evento comprova que aquela conexão foi aceita, não que as APIs web foram concedidas.
+- O relatório de sessão distingue download da CA de handshake concluído; a ausência de handshake não é interpretada como prova de que a CA não foi instalada.
+- A chave privada efêmera do servidor é removida do Android Keystore ao parar o portal ou tratar falha de inicialização; a CA permanece protegida para reutilização.
 
 **Ainda pendente:** confirmar compatibilidade de instalação/confiabilidade da CA com navegador/Android alvo; revisar ciclo de vida e falhas parciais; tratar rotação e renovação de certificado; finalizar fluxo de instalação manual e estados de confiança; atualizar todos os relatórios e telas; validar tudo na fase final. A implementação não está aprovada por build ou teste.
 
