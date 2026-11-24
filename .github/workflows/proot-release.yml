@@ -26,10 +26,9 @@ jobs:
     env:
       # Em push para main a tag é única por execução (imutável); em PR usa a tag aprovada só para verificação.
       PROOT_RELEASE_TAG: ${{ github.event_name == 'push' && format('proot-android-5.1.107.102-r{0}', github.run_number) || 'proot-android-5.1.107.102-v1' }}
-    timeout-minutes: 45
-    env:
       ANDROID_API_LEVEL: "35"
       SOURCE_DATE_EPOCH: "1763769600"
+    timeout-minutes: 45
     steps:
       - name: Checkout
         uses: actions/checkout@v4
