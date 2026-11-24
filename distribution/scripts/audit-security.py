@@ -62,6 +62,9 @@ PROCESSBUILDER_PERMITIDO = {
     "RuntimeDiagnostics.kt",
 }
 
+# SSLContext só é permitido para o servidor HTTPS local com chave de servidor explícita.
+SSL_CONTEXT_SERVIDOR_PERMITIDO = {"RedLocalTlsManager.kt"}
+
 
 class Auditoria:
     def __init__(self, raiz: Path) -> None:
@@ -165,6 +168,15 @@ def auditar_kotlin(a: Auditoria) -> None:
                 prefixo = texto[inicio:m.start()].lstrip()
                 if prefixo.startswith(("*", "//", "/*")):
                     continue
+                if rotulo == "SSL sem verificação" and arq.name in SSL_CONTEXT_SERVIDOR_PERMITIDO:
+                    tls_servidor_restrito = (
+                        "X509ExtendedKeyManager" in texto
+                        and "init(arrayOf(keyManager), null, SecureRandom())" in texto
+                        and "X509TrustManager" not in texto
+                        and "HostnameVerifier" not in texto
+                    )
+                    if tls_servidor_restrito:
+                        continue
                 a.achado("ERRO", "api-proibida", f"{a.rel(arq)}:{linha}", rotulo)
         if "ProcessBuilder(" in texto and arq.name not in PROCESSBUILDER_PERMITIDO:
             a.achado("ERRO", "processbuilder", a.rel(arq), "ProcessBuilder fora dos lançadores centralizados")
