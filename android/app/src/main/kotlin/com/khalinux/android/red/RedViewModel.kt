@@ -282,14 +282,10 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             it.copy(
                 networkRunning = false,
                 portalEndpoint = null,
-                participantObservation = null,
-                requests = emptyList(),
                 hotspotInfo = null,
-                latestSubmission = null,
                 networkState = RedNetworkState.IDLE
             )
         }
-        RedLiveEvidenceStore.updateSubmission(null)
     }
 
     private fun recordRuntimeEvent(detail: String) {
@@ -483,7 +479,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             .withEvent(RedEventType.SESSION_ENDED, "Sessão encerrada pelo operador.", source = "session")
         store.save(updated)
         RedLiveEvidenceStore.clear()
-        mutableState.update { it.copy(session = updated, latestSubmission = null, message = "Sessão encerrada e relatório local atualizado.") }
+        mutableState.update { it.copy(session = updated, latestSubmission = null, requests = emptyList(), participantObservation = null, message = "Sessão encerrada e relatório local atualizado.") }
         refreshHistory()
     }
 
@@ -493,6 +489,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
 
     override fun onCleared() {
         stopNetworkLab()
+        RedLiveEvidenceStore.clear()
         super.onCleared()
     }
 
@@ -506,7 +503,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         stopNetworkLab()
         store.deleteAll()
         RedLiveEvidenceStore.clear()
-        mutableState.update { it.copy(history = emptyList(), session = null, message = "Histórico RED apagado.") }
+        mutableState.update { it.copy(history = emptyList(), session = null, latestSubmission = null, requests = emptyList(), participantObservation = null, message = "Histórico RED apagado.") }
     }
 
     fun report(session: RedSession): String {
