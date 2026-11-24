@@ -8,10 +8,10 @@ Este documento é o plano de execução da Área RED/BLUE nesta branch. O `ROADM
 
 ## Progresso da execução
 
-- **Implementação RED/BLUE:** 6,25% (1 de 16 submódulos concluído).
-- **Concluído:** RED-00 — inventário de baseline em [red-baseline-inventory.md](red-baseline-inventory.md).
+- **Implementação RED/BLUE:** 12,5% (2 de 16 submódulos concluídos).
+- **Concluídos:** RED-00 — [inventário de baseline](red-baseline-inventory.md); RED-01 — [modelo de domínio](red-domain-model.md).
 - **Parciais:** RED-05 — banner e registro de consentimento de cookies; RED-07 — remoção do participante nativo e redefinição do fluxo web.
-- **Próximo submódulo:** RED-01 — modelo de domínio e estados reais.
+- **Próximo submódulo:** RED-02 — permissões e capacidades do Android no aparelho A e capacidades web do navegador.
 - **Validação:** não iniciada nesta execução; todas as atividades de teste/build/compilação ficam para a etapa final.
 - **Pacotes ZIP:** desativados; execução diretamente no repositório conforme instrução do usuário.
 
@@ -103,6 +103,8 @@ Atividades:
 
 ## RED-01 — Modelo de domínio e estados reais
 
+**Estado:** implementação concluída. Ver [red-domain-model.md](red-domain-model.md). Testes ficam pendentes para a fase final.
+
 **Objetivo:** estabelecer um modelo único para sessão, rede, portal, participante e evidências.
 
 Atividades:
@@ -121,7 +123,7 @@ Atividades:
 - Eventos duplicados, fora de ordem e sessão encerrada.
 - Limites e retenção.
 
-**Aceite:** modelo único, sem conflitos de nomes, com testes executados e resultados registrados.
+**Aceite de implementação:** modelos únicos e tipados, estados desconhecidos anuláveis, eventos com origem/tempo e persistência compatível com sessões antigas. Testes e resultados ficam acumulados para a fase final.
 
 ## RED-02 — Permissões e capacidades do Android
 
