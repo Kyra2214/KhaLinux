@@ -1,6 +1,6 @@
 # KhaLinux RED/BLUE — notas de versão preliminares
 
-**Estado:** documentação de release preparada para a branch de trabalho; não representa release validada, APK publicado ou compatibilidade certificada.
+**Estado:** implementação/documentação do roadmap RED/BLUE em 100%; validação final pendente. Não representa release validada, APK publicado ou compatibilidade certificada.
 
 ## Escopo incluído na branch
 
@@ -21,7 +21,7 @@
 - O comportamento do LocalOnlyHotspot varia por versão Android e fabricante.
 - A lista universal de clientes do hotspot não é disponibilizada a apps comuns; o painel confirma atividade somente quando recebe requisições HTTP.
 - RED-07 está implementado em código; a validação física da confiança TLS e dos prompts web reais ainda não foi executada.
-- RED-15 adiciona modo alternativo de hotspot do sistema: ativação manual nas Configurações, descoberta de interface, portal HTTPS na mesma rede e observação de upstream validado em A. A navegação externa em B continua dependente do Android/operadora e de validação física.
+- RED-15 implementa modo alternativo de hotspot do sistema: ativação manual nas Configurações, descoberta de candidato de interface, portal HTTPS na mesma rede, observação de upstream em A e heartbeat autenticado de B. A navegação externa em B continua dependente do Android/operadora e de validação física.
 - A matriz de compatibilidade é documental; não há combinação de aparelho/fabricante/navegador declarada como validada.
 
 ## Estado técnico e de validação
