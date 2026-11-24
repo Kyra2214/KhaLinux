@@ -14,6 +14,7 @@
 - Conectar B e abrir o portal HTTPS.
 - Ativar dados móveis/upstream em A sem desligar o hotspot.
 - Confirmar que B permanece associado ao mesmo SSID e que o Android disponibiliza navegação externa.
+- Confirmar que o horário do heartbeat local no A continua atualizando durante a ativação do upstream; isso prova alcance local do portal, não navegação externa.
 - Confirmar que o A registra somente o upstream validado e não declara navegação em B sem evidência direta.
 - Desligar o portal e confirmar que o hotspot do sistema permanece sob controle do Android.
 
