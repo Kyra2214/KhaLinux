@@ -713,10 +713,10 @@ class RedPortalServer(
             document.querySelector('.cookie-inner').appendChild(message);
           }
         }
-        document.getElementById('cookie-accept-all').addEventListener('click',()=>saveCookieChoice('accept_all'));
-        document.getElementById('cookie-reject-optional').addEventListener('click',()=>saveCookieChoice('reject_optional'));
-        document.getElementById('cookie-configure').addEventListener('click',showCookieOptions);
-        document.getElementById('cookie-save').addEventListener('click',()=>saveCookieChoice('custom'));
+        document.getElementById('cookie-accept-all')?.addEventListener('click',()=>saveCookieChoice('accept_all'));
+        document.getElementById('cookie-reject-optional')?.addEventListener('click',()=>saveCookieChoice('reject_optional'));
+        document.getElementById('cookie-configure')?.addEventListener('click',showCookieOptions);
+        document.getElementById('cookie-save')?.addEventListener('click',()=>saveCookieChoice('custom'));
         </script>
     """.trimIndent()
 
