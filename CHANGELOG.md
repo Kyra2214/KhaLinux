@@ -1,3 +1,12 @@
+## [Não lançado] — RED-11: hardening de segurança e privacidade
+
+- CSP por resposta com nonce aleatório; removidos handlers inline dos botões de cookies e removido unsafe-inline de script-src.
+- Mantidos headers de defesa: nosniff, no-store, Referrer-Policy, X-Frame-Options, Permissions-Policy, CORP e X-Permitted-Cross-Domain-Policies.
+- Allowlist de evidência reduzida a Host, Accept, Content-Type e Referer path; User-Agent/Accept-Language não persistidos.
+- Limitado o número de IPs acompanhados por rate limit de autenticação e login.
+- Manifest revisado: allowBackup=false, sem permissões de câmera/microfone/armazenamento para RED, serviços não exportados e cleartext de saída desabilitado.
+- Riscos HTTP sem TLS e dependência de origem HTTPS confiável documentados. Auditoria/testes finais não executados.
+
 ## [Não lançado] — RED-12/RED-13: preparação da validação final
 
 - Plano de build/lint/testes host/Android documentado sem executar comandos de validação.
