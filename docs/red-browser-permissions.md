@@ -1,7 +1,7 @@
 # Permissões web no navegador do aparelho B
 
 **Submódulo:** RED-07  
-**Estado:** parcial. Endpoint, validação, eventos e fluxo de navegador existentes foram ligados ao portal HTTPS local em `8443`; a preparação da CA pública ocorre pelo endpoint HTTP restrito em `8080/ca.cer`. A confiança efetiva do navegador e a validação continuam pendentes.
+**Estado:** implementação em código/documentação concluída; validação de confiança TLS e permissões no navegador real permanece pendente. O portal HTTPS local usa `8443`; a preparação HTTP restrita usa `8080/` e `/ca.cer`.
 
 ## Fluxo implementado
 
