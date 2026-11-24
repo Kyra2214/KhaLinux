@@ -17,6 +17,13 @@ Cada requisição cujo cabeçalho foi recebido gera uma observação única com:
 
 A linha do tempo distingue `HTTP_REQUEST_RECEIVED`, `HTTP_REQUEST_REJECTED`, `HTTP_RESPONSE_SENT` e `HTTP_SERVER_FAILURE`. Eventos de navegação, redirecionamento, formulário e consentimento são registrados separadamente.
 
+## Evidência de preparação e confiança TLS
+
+- `TLS_CA_CERTIFICATE_DOWNLOADED` é emitido depois que o endpoint HTTP restrito envia o certificado público da CA. Esse evento não prova instalação ou confiança.
+- `TLS_HANDSHAKE_OBSERVED` é emitido somente após uma resposta HTTPS válida para o participante vinculado à sessão e confirma que aquela conexão concluiu o handshake TLS.
+- O evento de handshake não prova concessão de câmera, microfone ou localização; esses resultados continuam em eventos de permissão web separados.
+- O relatório distingue download observado e handshake observado. Ausência de handshake não é interpretada como prova de que a CA não foi instalada.
+
 ## Dados que não são armazenados
 
 - Corpo de requisição ou resposta.
