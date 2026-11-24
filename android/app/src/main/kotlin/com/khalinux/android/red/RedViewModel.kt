@@ -398,6 +398,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 hotspotSnapshot = null,
                 participantObservation = null,
                 portalEndpoint = null,
+                lastParticipantHeartbeatAt = null,
                 message = "Sessão local criada. A rede só será iniciada após a ação explícita do operador."
             )
         }
