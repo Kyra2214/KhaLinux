@@ -84,6 +84,10 @@ Consulte [blue-area.md](blue-area.md).
 
 Os vídeos devem mostrar a criação da rede, conexão do segundo aparelho, portal, aviso de cookies, login de teste, navegação e o que chegou ao servidor; permissões web somente quando suportadas pelo contexto seguro. Não mostrar código-fonte, scripts ou detalhes internos.
 
+## Permissões web do navegador B
+
+Consulte [red-browser-permissions.md](red-browser-permissions.md) para estados reais, ausência de coleta de mídia/coordenadas e dependência de HTTPS confiável.
+
 ## Eventos e evidências
 
 Consulte [red-event-evidence.md](red-event-evidence.md) para eventos HTTP, persistência, allowlist de cabeçalhos, limites, relatório e integração BLUE.
