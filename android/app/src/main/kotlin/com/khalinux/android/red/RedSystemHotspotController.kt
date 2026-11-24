@@ -76,7 +76,7 @@ class RedSystemHotspotController(
                 val (interfaceName, address) = candidates.single()
                 RedHotspotSnapshot(
                     state = RedNetworkState.HOTSPOT_READY,
-                    message = "IPv4 inequívoco do hotspot do sistema identificado. SSID e senha permanecem sob controle do Android.",
+                    message = "Candidato de interface/IPv4 do hotspot do sistema identificado sem ambiguidade. O Android não forneceu confirmação direta do estado do tethering; SSID e senha permanecem sob controle do sistema.",
                     interfaceName = interfaceName,
                     ipv4Address = address
                 )
