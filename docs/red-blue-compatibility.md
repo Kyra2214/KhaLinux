@@ -8,6 +8,7 @@
 | Android alvo | targetSdk 28 | Decisão arquitetural do runtime PRoot; rever somente após avaliar compatibilidade do runtime. |
 | SDK de compilação | compileSdk 35 | Build ainda pendente. |
 | Hotspot | LocalOnlyHotspot | API pública; disponibilidade, parâmetros e ciclo de vida dependem do Android/OEM. |
+| Hotspot do sistema | Configurações Android abertas pelo operador; descoberta de IPv4 e callback público de rede | Necessário quando upstream será ativado depois sem trocar o Wi-Fi de B; encaminhamento depende da OEM/operadora. |
 | Permissão A | ACCESS_FINE_LOCATION | Solicitada no momento de iniciar hotspot; o app não consulta coordenadas. |
 | Servidor participante | HTTPS local IPv4 privado, porta 8443 | Certificado X.509 com SAN IP e CA própria; confiança do navegador ainda não validada fisicamente. |
 | Navegador B | Navegador Android compatível com HTML/JavaScript/fetch | Nenhuma versão ou navegador foi validado fisicamente. |
@@ -22,7 +23,8 @@
 - Não inferir que a API de hotspot sempre disponibilizará SSID, senha, interface ou IPv4.
 - Não confundir ausência de requisição com ausência de conexão Wi-Fi.
 - Não apresentar permissões web como disponíveis quando `window.isSecureContext` for falso.
-- A indisponibilidade de câmera/microfone/localização em HTTP local é uma limitação do navegador, não uma falha que deva ser contornada.
+- A indisponibilidade de câmera/microfone/localização quando a CA não é confiável é uma limitação do navegador, não uma falha que deva ser contornada.
+- Upstream validado em A não certifica navegação externa em B.
 
 ## Validação pendente
 
