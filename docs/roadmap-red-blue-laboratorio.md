@@ -18,7 +18,7 @@ O portal participante deverá operar por **HTTPS local**, sem domínio público,
 
 ## Progresso da execução
 
-- **Implementação/documentação RED/BLUE:** 16 de 17 submódulos (94,1%); RED-07 e RED-14 implementados, não validados; RED-15 em implementação. Validação permanece separada e não iniciada.
+- **Implementação/documentação RED/BLUE:** 17 de 17 submódulos (100%). **Validação:** 0% iniciada; todos os testes, builds, auditorias e testes físicos permanecem acumulados para a fase final.
 - **Concluídos:** RED-00 — [inventário de baseline](red-baseline-inventory.md); RED-01 — [modelo de domínio](red-domain-model.md); RED-02 — [matriz de permissões](red-permissions.md); RED-03 — [ciclo de vida do hotspot](red-hotspot-lifecycle.md); RED-04 — [servidor HTTP local](red-http-server.md); RED-05 — portal local e aviso de cookies; RED-06 — [eventos e evidências](red-event-evidence.md); RED-07 — HTTPS local e permissões web (implementado, não validado); RED-08 — integridade da sessão; BLUE-01 — análise defensiva; RED-09 — [histórico, relatório e exportação](red-session-reports.md); RED-10 — [interface do operador](red-operator-interface.md); RED-11 — [segurança e privacidade](red-security-privacy.md); RED-12 — [plano de validação](red-validation-plan.md); RED-13 — [matriz física](red-physical-validation.md); RED-14 — documentação de estabilização/release (implementada, entrega pendente).
 - **Implementado, não validado:** RED-07 — fluxo de permissões web ligado ao HTTPS local em `8443`; CA/servidor X.509 no Android Keystore; preparação HTTP restrita em `8080/`; download da CA, fingerprint, instruções de instalação, evento de handshake após vínculo do participante, cookie Secure, validação Origin HTTPS, renovação do certificado por sessão/IP e limpeza da chave efêmera do servidor. Compatibilidade real da CA e disponibilidade das APIs ficam para validação final.
 - **Parcial:** RED-15 — `RedSystemHotspotController` abre Configurações do Android, compara baseline de interfaces/IPv4, detecta um endereço inequívoco e observa upstream do A por callback público; ViewModel, UI e relatórios integrados. Validação de descoberta OEM e continuidade de B ao ativar upstream pendente.
@@ -537,7 +537,7 @@ Uma fase só recebe o estado correspondente à evidência disponível. “Códig
 14. RED-12 — integração documentada; build/testes adiados.
 15. RED-13 — matriz física corrigida; execução adiada.
 16. RED-14 — estabilização e entrega da branch.
-17. **RED-15 — hotspot do sistema e upstream posterior:** implementar modo alternativo usando o hotspot gerenciado pelo Android, iniciado manualmente nas Configurações. B conecta-se a essa rede enquanto o upstream está ausente; depois o operador ativa dados móveis/upstream sem desligar o hotspot, preservando a associação Wi-Fi de B quando suportado pela OEM/operadora. O modo `LocalOnlyHotspot` continua isolado e não pode ser convertido em tethering em execução.
+17. **RED-15 — hotspot do sistema e upstream posterior:** implementação concluída. O modo alternativo usa o hotspot gerenciado pelo Android, iniciado manualmente nas Configurações. B conecta-se a essa rede enquanto o upstream está ausente; depois o operador ativa dados móveis/upstream sem desligar o hotspot, preservando a associação Wi-Fi de B quando suportado pela OEM/operadora. O modo `LocalOnlyHotspot` continua isolado e não pode ser convertido em tethering em execução. Validação física pendente.
 
 Testes, builds, auditorias de validação e testes físicos só serão executados depois da conclusão da implementação integral. Dependências externas indisponíveis permanecem registradas, sem inventar resultados.
  
@@ -557,7 +557,7 @@ Implementação inicial registrada:
 
 Fluxo recomendado para manter B conectado: ativar o hotspot do sistema sem upstream, conectar B e abrir o portal; depois ativar dados móveis/upstream em A sem desligar o hotspot. A permanência da conexão depende da implementação Android/OEM/operadora e será confirmada na validação física.
 
-**Aceite:** A detecta a interface de hotspot do sistema sem ambiguidade; portal local continua funcionando sem internet; mudança de upstream em A aparece no painel; o usuário consegue habilitar internet sem trocar a rede Wi-Fi; nenhum evento afirma que B navegou externamente sem evidência direta.
+**Implementação entregue:** A abre as Configurações, identifica um candidato de interface/IPv4 sem ambiguidade, hospeda o portal HTTPS, observa upstream em A e recebe heartbeat autenticado de B. **Validação final:** confirmar no aparelho alvo que B permanece associado e recebe internet após ativação do upstream; nenhum evento afirma navegação externa de B sem evidência direta.
 
 **Limitação registrada:** o modo LocalOnlyHotspot não pode receber upstream posteriormente. Para evitar que B tenha de trocar de rede, deve-se escolher o hotspot do sistema desde o início da sessão.
 
@@ -576,7 +576,7 @@ Fluxo recomendado para manter B conectado: ativar o hotspot do sistema sem upstr
 
 ## 11. Primeiro trabalho após este roadmap
 
-O próximo trabalho de implementação é concluir RED-15: integração do modo hotspot do sistema, estados de upstream, documentação e critérios de aceite. Testes e validação física continuam acumulados para a etapa final. Antes de modificar código:
+A implementação integral do roadmap está concluída. Próxima fase: executar os testes e validações acumulados, corrigir falhas encontradas, validar no aparelho físico A/B e fechar os artefatos de release. Não antecipar testes físicos antes dos portões automatizados/estáticos. Antes de modificar código:
 1. confirmar o HEAD atual da branch;
 2. recuperar e comparar os arquivos oficiais e exportados;
 3. listar incompatibilidades reais;
