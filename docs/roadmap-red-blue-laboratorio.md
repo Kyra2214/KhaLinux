@@ -8,10 +8,10 @@ Este documento é o plano de execução da Área RED/BLUE nesta branch. O `ROADM
 
 ## Progresso da execução
 
-- **Implementação RED/BLUE:** 31,25% (5 de 16 submódulos concluídos).
-- **Concluídos:** RED-00 — [inventário de baseline](red-baseline-inventory.md); RED-01 — [modelo de domínio](red-domain-model.md); RED-02 — [matriz de permissões](red-permissions.md); RED-03 — [ciclo de vida do hotspot](red-hotspot-lifecycle.md); RED-04 — [servidor HTTP local](red-http-server.md).
+- **Implementação RED/BLUE:** 37,5% (6 de 16 submódulos concluídos).
+- **Concluídos:** RED-00 — [inventário de baseline](red-baseline-inventory.md); RED-01 — [modelo de domínio](red-domain-model.md); RED-02 — [matriz de permissões](red-permissions.md); RED-03 — [ciclo de vida do hotspot](red-hotspot-lifecycle.md); RED-04 — [servidor HTTP local](red-http-server.md); RED-05 — portal local e aviso de cookies.
 - **Parciais:** RED-05 — banner e registro de consentimento de cookies; RED-07 — remoção do participante nativo e redefinição do fluxo web.
-- **Próximo submódulo:** RED-05 — portal local, aviso de cookies e experiência do navegador.
+- **Próximo submódulo:** RED-06 — captura mínima de eventos e armazenamento seguro.
 - **Validação:** não iniciada nesta execução; todas as atividades de teste/build/compilação ficam para a etapa final.
 - **Pacotes ZIP:** desativados; execução diretamente no repositório conforme instrução do usuário.
 
@@ -203,6 +203,8 @@ Atividades:
 
 ## RED-05 — Portal local, aviso de cookies e experiência do navegador
 
+**Estado:** implementação concluída em código/documentação; testes de rotas, consentimento e navegação ficam para a fase final.
+
 **Objetivo:** criar uma página de laboratório clara e funcional, sem imitação de serviços reais.
 
 Atividades:
@@ -225,7 +227,7 @@ Atividades:
 - Nenhuma URL externa ou marca de terceiro nos assets.
 - Nenhum segredo embutido no HTML, JS ou CSS.
 
-**Aceite:** portal utilizável pelo navegador do aparelho B e inteiramente local; todos os caminhos e limites cobertos por testes.
+**Aceite de implementação:** portal local com aviso de cookies funcional, escolhas persistidas no navegador somente após confirmação do A, eventos tipados por categoria, login exclusivo de demonstração e rotas locais. Testes ficam para a fase final.
 
 ## RED-06 — Observabilidade HTTP e linha do tempo
 
