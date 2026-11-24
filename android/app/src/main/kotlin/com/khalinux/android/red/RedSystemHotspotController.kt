@@ -50,7 +50,12 @@ class RedSystemHotspotController(
                 RedNetworkState.ERROR,
                 "Não foi possível enumerar as interfaces Wi-Fi para identificar o hotspot do sistema."
             )
-        val candidates = current - baseline
+        val newlyObserved = current - baseline
+        val apNamed = current.filter { (name, _) ->
+            val normalized = name.lowercase(Locale.ROOT)
+            normalized.startsWith("ap") || normalized.startsWith("swlan") || normalized.contains("softap")
+        }.toSet()
+        val candidates = if (newlyObserved.isNotEmpty()) newlyObserved else apNamed
         return when {
             candidates.size == 1 -> {
                 val (interfaceName, address) = candidates.single()
@@ -130,7 +135,6 @@ class RedSystemHotspotController(
     fun stopMonitoring() {
         callback?.let { runCatching { connectivity.unregisterNetworkCallback(it) } }
         callback = null
-        baseline = emptySet()
         onUpstreamChanged(
             RedUpstreamSnapshot(
                 internetAvailable = false,
