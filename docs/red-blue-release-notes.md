@@ -27,7 +27,7 @@
 ## Estado técnico e de validação
 
 - Branch: `recovery/red-portal-integration`.
-- Snapshot de referência da estabilização: `72f612deb08c425fdb1e1418bb9be7a98d1511ab`.
+- Snapshot de referência da estabilização: `791df372d9d94d2dc8555250f247a3414f4518cc`.
 - Build/compilação: pendentes.
 - Testes unitários e integração host/Android: pendentes.
 - Auditoria final de segurança/privacidade: pendente.
