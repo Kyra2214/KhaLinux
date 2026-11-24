@@ -5,6 +5,7 @@
 - ViewModel passou a compartilhar a inicialização do portal HTTPS entre `LocalOnlyHotspot` e o hotspot do sistema.
 - Tela RED ganhou modo alternativo para ligar o hotspot do sistema sem upstream, conectar B e ativar dados móveis depois sem desligar o hotspot; o modo local-only permanece isolado.
 - Painel e relatório mostram upstream validado em A sem afirmar que B navegou externamente.
+- Páginas HTML do portal enviam heartbeat same-origin autenticado a cada 20 segundos enquanto visíveis; A mostra último contato local e registra evento no máximo uma vez por minuto para limitar volume.
 - Encerrar o portal não desliga o hotspot do sistema; essa ação permanece sob controle do Android.
 - **Parcial:** descoberta de interface depende do padrão OEM; permanência da conexão B e encaminhamento externo exigem validação física após concluir o roadmap.
 
