@@ -229,6 +229,7 @@ private fun defensiveAdvice(event: RedEvent): String {
     RedEventType.HTTP_REQUEST_REJECTED -> "A requisição foi rejeitada por uma regra explícita do servidor. Uma rejeição não significa acesso concedido."
     RedEventType.HTTP_RESPONSE_SENT -> "O servidor enviou uma resposta; confira o status HTTP para distinguir sucesso de erro."
     RedEventType.HTTP_SERVER_FAILURE -> "Ocorreu uma falha interna do servidor. Não confunda resposta de erro com ação concluída."
+    RedEventType.SESSION_INTERRUPTED -> "A sessão foi interrompida por segundo plano, encerramento da área ou reinício. Revise os eventos e não a trate como concluída."
     RedEventType.COOKIE_CONSENT_RECORDED -> "A escolha de cookies registra apenas categorias do portal. Não concede câmera, microfone, localização ou acesso a arquivos."
     RedEventType.HOTSPOT_INTERFACE_DISCOVERY -> "O Android criou a rede; o operador ainda está identificando a interface e o IPv4 antes de iniciar o portal."
     RedEventType.ANDROID_PERMISSION_REQUESTED -> "O aplicativo operador solicitou ao Android uma permissão necessária ao hotspot."
