@@ -36,10 +36,18 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         onEvent = { detail -> recordRuntimeEvent(detail) },
         onAddress = { address ->
             mutableState.update { current ->
+                val portalWasActive = current.networkState in setOf(
+                    RedNetworkState.HOTSPOT_READY,
+                    RedNetworkState.STARTING_SERVER,
+                    RedNetworkState.WAITING_PARTICIPANT,
+                    RedNetworkState.PARTICIPANT_ACTIVE
+                )
                 current.copy(
                     portalEndpoint = address?.let {
                         RedPortalEndpoint(it, null, current.portalConfiguration.requestedPort)
-                    }
+                    },
+                    networkState = if (address == null && portalWasActive) RedNetworkState.ERROR else current.networkState,
+                    networkRunning = if (address == null && portalWasActive) false else current.networkRunning
                 )
             }
         },
