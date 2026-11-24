@@ -30,7 +30,7 @@ Quando a origem é segura e a API está disponível, cada botão inicia sua cham
 - O endpoint HTTP `8080` é separado e serve somente o certificado público da CA em `/ca.cer` e `/health`.
 - A interface A mostra a URL de preparação e a impressão digital SHA-256 da CA.
 - A página de preparação HTTP apresenta instruções de instalação, link para o certificado público e fingerprint para conferência independente.
-- O painel registra quando B solicita o certificado e quando uma conexão HTTPS conclui o handshake TLS; somente o segundo evento indica que aquela conexão chegou ao servidor após a validação TLS do cliente.
+- O painel registra quando B solicita o certificado e quando uma conexão HTTPS conclui o handshake TLS; somente o segundo evento indica que aquela conexão chegou ao servidor após a validação TLS do cliente. O relatório exportado distingue download observado e handshake observado, sem inferir instalação a partir de um simples download.
 - O cookie de sessão recebe a flag `Secure` e a validação de `Origin` espera o esquema HTTPS quando o portal é iniciado com TLS.
 - O servidor falha ao iniciar o portal se a preparação TLS ou a emissão do certificado não puder ser concluída.
 
