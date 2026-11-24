@@ -322,6 +322,8 @@ Atividades:
 
 ## RED-09 — Histórico, relatório e exportação
 
+**Estado:** implementação em código/documentação concluída; validação pendente. Ver [red-session-reports.md](red-session-reports.md).
+
 **Objetivo:** preservar evidência útil sem armazenar dados pessoais.
 
 Atividades:
