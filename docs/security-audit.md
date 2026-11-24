@@ -1,10 +1,11 @@
 # Auditoria de segurança estática (9.1)
 
-**Estado:** implementada em código e por revisão manual. A execução do script `audit-security.py` pertence à fase final de validação, após 100% da implementação do roadmap.
+**Estado:** executada e aprovada no workflow CI `45405105200`, commit `0c0ca2e`, após 100% da implementação do roadmap. A exceção de `SSLContext` é restrita ao `RedLocalTlsManager.kt` como contexto TLS de servidor com chave explícita; não permite bypass de validação de certificados em clientes.
 
 ## O que foi entregue
 
-- `distribution/scripts/audit-security.py`: auditoria estática, só biblioteca padrão, sem rede, sem escrita. Saída em texto ou `--json`; código de saída 1 se houver achado `ERRO`. Passa a rodar no CI (job `host-validation`).
+- `distribution/scripts/audit-security.py`: auditoria estática, só biblioteca padrão, sem rede, sem escrita. Saída em texto ou `--json`; código de saída 1 se houver achado `ERRO`. Executada com sucesso no job `host-validation` do workflow `45405105200`.
+- O aviso de `http://` refere-se somente ao endpoint de preparação local `8080` para disponibilizar a CA pública; login, portal e endpoints participantes permanecem HTTPS/8443.
 - Endurecimento do manifesto: `android:usesCleartextTraffic="false"` explícito (com `targetSdk 35` já era o padrão; agora é auditável).
 - Esta revisão manual do código de superfície crítica.
 
