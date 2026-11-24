@@ -21,6 +21,7 @@ A linha do tempo distingue `HTTP_REQUEST_RECEIVED`, `HTTP_REQUEST_REJECTED`, `HT
 
 - `TLS_CA_CERTIFICATE_DOWNLOADED` é emitido depois que o endpoint HTTP restrito envia o certificado público da CA. Esse evento não prova instalação ou confiança.
 - `TLS_HANDSHAKE_OBSERVED` é emitido somente após uma resposta HTTPS válida para o participante vinculado à sessão e confirma que aquela conexão concluiu o handshake TLS.
+- `UPSTREAM_STATUS_CHANGED` registra capacidades de upstream observadas no aparelho A; `NET_CAPABILITY_VALIDATED` não prova que o aparelho B navegou externamente.
 - O evento de handshake não prova concessão de câmera, microfone ou localização; esses resultados continuam em eventos de permissão web separados.
 - O relatório distingue download observado e handshake observado. Ausência de handshake não é interpretada como prova de que a CA não foi instalada.
 
