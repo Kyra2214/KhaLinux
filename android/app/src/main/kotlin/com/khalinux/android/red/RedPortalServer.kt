@@ -140,6 +140,7 @@ class RedPortalServer(
             var responseSent = false
             var rejectionReason: String? = null
             var serverFailure = false
+            var sessionExpired = false
             var observedHeaders: Map<String, String> = emptyMap()
             var pendingCookieConsent: RedCookieConsent? = null
             var pendingWebPermission: RedWebPermissionObservation? = null
@@ -198,7 +199,20 @@ class RedPortalServer(
                     return
                 }
 
-                if (method == "POST" && path in setOf("/consent", "/login", "/browser-permission")) {
+                val remoteAddress = peer.inetAddress?.hostAddress
+                if (sessionOwnerAddress != null && sessionOwnerAddress != remoteAddress) {
+                    rejectionReason = "participant_ip_mismatch"
+                    respond(403, "Esta sessão já está vinculada ao aparelho participante.")
+                    return
+                }
+                if (isSessionExpired()) {
+                    sessionExpired = true
+                    rejectionReason = "session_expired"
+                    respond(410, "Sessão do portal expirada. Solicite uma nova sessão ao operador.")
+                    return
+                }
+
+                if (method == "POST") {
                     when (authorizeMutation(headers, peer.inetAddress?.hostAddress)) {
                         AuthorizationResult.AUTHORIZED -> Unit
                         AuthorizationResult.INVALID_TOKEN -> {
@@ -217,6 +231,7 @@ class RedPortalServer(
                             return
                         }
                         AuthorizationResult.EXPIRED -> {
+                            sessionExpired = true
                             rejectionReason = "session_expired"
                             respond(410, "Sessão do portal expirada. Solicite uma nova sessão ao operador.")
                             return
@@ -377,7 +392,7 @@ class RedPortalServer(
                         setCookieHeader = if (status in 200..299) {
                             sessionCookieHeader(
                                 peer.inetAddress?.hostAddress,
-                                claimOwner = method == "GET" && path == "/"
+                                claimOwner = method == "GET" && path in setOf("/", "/login", "/open")
                             )
                         } else null
                     )
@@ -429,6 +444,7 @@ class RedPortalServer(
                     runCatching { pendingCookieConsent?.let(onCookieConsent) }
                     runCatching { pendingWebPermission?.let(onWebPermission) }
                 }
+                if (sessionExpired) stop()
             }
         }
     }
