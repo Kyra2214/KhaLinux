@@ -114,6 +114,7 @@ class RedPortalServer(
             var requestBody = ByteArray(0)
             var status = 400
             var receivedHeader = false
+            var requestReceivedAt = System.currentTimeMillis()
             var responseSent = false
             var rejectionReason: String? = null
             var serverFailure = false
@@ -128,6 +129,7 @@ class RedPortalServer(
             try {
                 val headerBytes = readHeader(input) ?: return
                 receivedHeader = true
+                requestReceivedAt = System.currentTimeMillis()
                 val headerText = String(headerBytes, StandardCharsets.ISO_8859_1)
                 val lines = headerText.split("\r\n")
                 val requestLine = lines.firstOrNull().orEmpty()
@@ -328,6 +330,7 @@ class RedPortalServer(
                     runCatching {
                         onRequest(
                             RedRequestObservation(
+                                timestamp = requestReceivedAt,
                                 method = method,
                                 path = path,
                                 statusCode = status,
