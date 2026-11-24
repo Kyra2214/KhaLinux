@@ -145,6 +145,12 @@ class RedLocalTlsManager(context: Context) {
         override fun chooseClientAlias(keyType: Array<out String>?, issuers: Array<out java.security.Principal>?, socket: java.net.Socket?): String? = null
         override fun getServerAliases(keyType: String?, issuers: Array<out java.security.Principal>?): Array<String>? =
             if (keyType.equals("RSA", true)) arrayOf(SERVER_ALIAS) else null
+        override fun chooseEngineClientAlias(
+            keyType: Array<out String>?, issuers: Array<out java.security.Principal>?, engine: javax.net.ssl.SSLEngine?
+        ): String? = null
+        override fun chooseEngineServerAlias(
+            keyType: String?, issuers: Array<out java.security.Principal>?, engine: javax.net.ssl.SSLEngine?
+        ): String? = if (keyType.equals("RSA", true)) SERVER_ALIAS else null
     }
 
     companion object {
