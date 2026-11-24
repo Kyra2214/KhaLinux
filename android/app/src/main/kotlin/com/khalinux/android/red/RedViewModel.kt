@@ -18,9 +18,9 @@ data class RedUiState(
     val category: RedCategory? = null,
     val difficulty: RedDifficulty? = null,
     val message: String? = null,
-    val portalAddress: String? = null,
-    val serverInterface: String? = null,
-    val serverPort: Int? = null,
+    val portalEndpoint: RedPortalEndpoint? = null,
+    val portalConfiguration: RedPortalConfiguration = RedPortalConfiguration(),
+    val participantObservation: RedParticipantObservation? = null,
     val hotspotInfo: String? = null,
     val hotspotSnapshot: RedHotspotSnapshot? = null,
     val networkRunning: Boolean = false,
@@ -34,7 +34,15 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
     private val store = RedSessionStore(application)
     private val portal = RedPortalServer(
         onEvent = { detail -> recordRuntimeEvent(detail) },
-        onAddress = { address -> mutableState.update { it.copy(portalAddress = address) } },
+        onAddress = { address ->
+            mutableState.update { current ->
+                current.copy(
+                    portalEndpoint = address?.let {
+                        RedPortalEndpoint(it, portal.boundInterface, portal.boundPort ?: current.portalConfiguration.requestedPort)
+                    }
+                )
+            }
+        },
         onRequest = { observation -> recordRequest(observation) },
         onSyntheticSubmission = { submission -> recordSyntheticSubmission(submission) },
         onCookieConsent = { consent -> recordStructuredEvent(RedEventType.COOKIE_CONSENT_RECORDED, consent.summary(), source = "browser-cookie-consent", cookieConsent = consent) },
@@ -76,19 +84,17 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         if (snapshot.state == RedNetworkState.IDLE) {
             portal.stop()
             mutableState.update {
-                it.copy(networkRunning = false, portalAddress = null, hotspotInfo = null, hotspotSnapshot = null)
+                it.copy(networkRunning = false, portalEndpoint = null, hotspotInfo = null, hotspotSnapshot = null)
             }
         }
         if (snapshot.state == RedNetworkState.HOTSPOT_READY) {
             mutableState.update { it.copy(networkState = RedNetworkState.STARTING_SERVER) }
             try {
-                val address = portal.start(snapshot.ipv4Address, mutableState.value.portalMode)
+                val address = portal.start(snapshot.ipv4Address, mutableState.value.portalConfiguration.mode)
                 mutableState.update {
                     it.copy(
                         networkRunning = true,
-                        portalAddress = address,
-                        serverInterface = portal.boundInterface,
-                        serverPort = portal.boundPort,
+                        portalEndpoint = RedPortalEndpoint(address, portal.boundInterface, portal.boundPort ?: mutableState.value.portalConfiguration.requestedPort),
                         networkState = RedNetworkState.WAITING_PARTICIPANT
                     )
                 }
@@ -175,7 +181,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         mutableState.update { it.copy(category = category, difficulty = difficulty) }
     fun select(id: String) = mutableState.update { it.copy(selectedOperationId = id, message = null) }
     fun setPortalMode(mode: RedPortalMode) {
-        mutableState.update { it.copy(portalMode = mode) }
+        mutableState.update { it.copy(portalConfiguration = it.portalConfiguration.copy(mode = mode)) }
         portal.setMode(mode)
     }
     fun backToCatalog() {
@@ -201,7 +207,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         val session = RedSession(
             operationId = operationId,
             state = RedOperationState.PREPARING,
-            portalMode = mutableState.value.portalMode
+            portalMode = mutableState.value.portalConfiguration.mode
         ).withEvent(RedEventType.SESSION_STARTED, "Sessão de laboratório iniciada.", source = "session")
         store.save(session)
         RedLiveEvidenceStore.begin(session)
@@ -212,6 +218,8 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 latestSubmission = null,
                 networkState = RedNetworkState.IDLE,
                 hotspotSnapshot = null,
+                participantObservation = null,
+                portalEndpoint = null,
                 message = "Sessão local criada. A rede só será iniciada após a ação explícita do operador."
             )
         }
@@ -257,8 +265,8 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             it.copy(
                 networkRunning = false,
                 portalAddress = null,
-                serverInterface = null,
-                serverPort = null,
+                portalEndpoint = null,
+                participantObservation = null,
                 hotspotInfo = null,
                 latestSubmission = null,
                 networkState = RedNetworkState.IDLE
@@ -346,8 +354,20 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun recordRequest(observation: RedRequestObservation) {
-        val updatedRequests = (mutableState.value.requests + observation).takeLast(100)
-        mutableState.update { it.copy(requests = updatedRequests) }
+        val current = mutableState.value
+        val updatedRequests = (current.requests + observation).takeLast(100)
+        val previousPeer = current.participantObservation
+        val peer = if (previousPeer != null && previousPeer.remoteAddress == observation.remoteAddress) {
+            previousPeer.copy(lastRequestAt = observation.timestamp, requestCount = previousPeer.requestCount + 1)
+        } else {
+            RedParticipantObservation(
+                remoteAddress = observation.remoteAddress,
+                firstRequestAt = observation.timestamp,
+                lastRequestAt = observation.timestamp,
+                requestCount = 1
+            )
+        }
+        mutableState.update { it.copy(requests = updatedRequests, participantObservation = peer) }
         RedLiveEvidenceStore.updateRequests(updatedRequests)
         val type = when {
             observation.path.startsWith("/go/") && observation.statusCode in 300..399 -> RedEventType.REDIRECT
