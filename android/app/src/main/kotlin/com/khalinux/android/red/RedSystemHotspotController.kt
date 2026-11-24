@@ -27,6 +27,7 @@ class RedSystemHotspotController(
     @Volatile private var baseline: Set<Pair<String, String>> = emptySet()
     @Volatile private var callback: ConnectivityManager.NetworkCallback? = null
     @Volatile private var lastUpstream: RedUpstreamSnapshot? = null
+    @Volatile private var currentDefaultNetwork: Network? = null
 
     fun openSystemHotspotSettings(): Boolean {
         val initial = snapshotWifiIpv4Addresses() ?: return false
@@ -104,22 +105,27 @@ class RedSystemHotspotController(
         )
         val observer = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
+                currentDefaultNetwork = network
                 report(connectivity.getNetworkCapabilities(network))
             }
 
             override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
+                currentDefaultNetwork = network
                 report(networkCapabilities)
             }
 
             override fun onLost(network: Network) {
-                publishUpstream(
-                    RedUpstreamSnapshot(
-                        internetAvailable = false,
-                        validated = false,
-                        transport = null,
-                        message = "O aparelho A perdeu a rede upstream observada."
+                if (currentDefaultNetwork == network) {
+                    currentDefaultNetwork = null
+                    publishUpstream(
+                        RedUpstreamSnapshot(
+                            internetAvailable = false,
+                            validated = false,
+                            transport = null,
+                            message = "O aparelho A perdeu a rede upstream observada."
+                        )
                     )
-                )
+                }
             }
         }
         try {
@@ -160,6 +166,7 @@ class RedSystemHotspotController(
         if (active != null) {
             runCatching { connectivity.unregisterNetworkCallback(active) }
             callback = null
+            currentDefaultNetwork = null
             publishUpstream(
                 RedUpstreamSnapshot(
                     internetAvailable = false,
