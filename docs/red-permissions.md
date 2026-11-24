@@ -12,10 +12,9 @@
 | `CHANGE_WIFI_STATE` | Normal | Manifesto | Solicitar LocalOnlyHotspot |
 | `ACCESS_NETWORK_STATE` | Normal | Manifesto | Estado de rede |
 | `CHANGE_NETWORK_STATE` | Normal | Manifesto | Mantida para compatibilidade com componentes de rede do app; não implica privilégio de tethering |
-| `ACCESS_FINE_LOCATION` | Perigosa/runtime | Somente ao iniciar hotspot, se o Android exigir | Solicitada junto com coarse; não é usada para consultar coordenadas |
-| `ACCESS_COARSE_LOCATION` | Perigosa/runtime | Somente ao iniciar hotspot, se o Android exigir | Permite registrar concessão aproximada; a API de hotspot ainda pode impor requisitos adicionais |
+| `ACCESS_FINE_LOCATION` | Perigosa/runtime | Somente ao iniciar hotspot | Exigida por `startLocalOnlyHotspot` para apps com targetSdk até 32; não é usada para consultar coordenadas |
 
-O app solicita fine e coarse juntas no aparelho A, no momento em que o operador inicia o hotspot. A interface explica que o Android pode exigir a permissão para disponibilizar a rede e que o KhaLinux não consulta coordenadas. A resposta é observada novamente ao retornar à Activity; concessão, recusa, recusa permanente e revogação são distinguidas. Quando a solicitação deixa de ser apresentada pelo Android, o A oferece atalho para as Configurações do aplicativo.
+O app solicita somente fine no aparelho A, no momento em que o operador inicia o hotspot. A interface explica que o Android pode exigir a permissão para disponibilizar a rede e que o KhaLinux não consulta coordenadas. A resposta é observada novamente ao retornar à Activity; concessão, recusa, recusa permanente e revogação são distinguidas. Quando a solicitação deixa de ser apresentada pelo Android, o A oferece atalho para as Configurações do aplicativo.
 
 O resultado de permissão não é confundido com sucesso do hotspot. A confirmação da rede depende do callback real de `LocalOnlyHotspot`. Se o Android negar ou a API falhar, o painel mostra o erro recebido.
 
