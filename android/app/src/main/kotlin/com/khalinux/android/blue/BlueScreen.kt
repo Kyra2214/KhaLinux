@@ -170,6 +170,13 @@ private fun BlueEventCard(event: RedEvent) {
             event.httpMethod?.let { method ->
                 Text("HTTP: $method ${event.route ?: "/"} · ${event.httpStatus ?: "?"} · ${event.bytesReceived ?: 0} bytes", style = MaterialTheme.typography.bodySmall)
             }
+            event.remoteAddress?.let { Text("Origem remota: $it", style = MaterialTheme.typography.bodySmall) }
+            event.responseSent?.let { Text("Resposta enviada: $it", style = MaterialTheme.typography.bodySmall) }
+            event.rejectionReason?.let { Text("Motivo da rejeição: $it", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
+            if (event.serverFailure == true) Text("Falha interna do servidor", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            event.safeHeaders.forEach { (name, value) -> Text("$name: $value", style = MaterialTheme.typography.bodySmall) }
+            event.cookieChoice?.let { Text("Cookies: $it · análise=${event.cookieAnalytics}, preferências=${event.cookiePreferences}, personalização=${event.cookiePersonalization}", style = MaterialTheme.typography.bodySmall) }
+            event.webPermissionResource?.let { Text("Permissão web: $it · ${event.webPermissionState}", style = MaterialTheme.typography.bodySmall) }
             Text("Leitura BLUE: ${defensiveAdvice(event.type)}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
         }
     }
