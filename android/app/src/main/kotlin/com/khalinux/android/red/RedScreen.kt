@@ -346,6 +346,9 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                             }
                         )
                     }
+                    if (state.networkState == RedNetworkState.ERROR) {
+                        OutlinedButton(onClick = viewModel::stopNetworkLab) { Text("Limpar erro e encerrar rede") }
+                    }
                     OutlinedButton(
                         onClick = viewModel::startSystemHotspotLab,
                         enabled = state.networkState == RedNetworkState.IDLE && !hotspotPermissionPending
