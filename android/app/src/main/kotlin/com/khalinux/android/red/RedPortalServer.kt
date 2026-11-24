@@ -83,9 +83,35 @@ class RedPortalServer(
         boundIpv4Address = binding.second
         val url = "http://${binding.second}:${server.localPort}/"
         address = url
-        onAddress(url)
-        onEvent("Servidor HTTP local iniciado em ${binding.first}:${server.localPort}.")
-        worker = Thread({ serve(server, binding.first, binding.second) }, "red-local-portal").apply { isDaemon = true; start() }
+        val workerThread = Thread({ serve(server, binding.first, binding.second) }, "red-local-portal").apply { isDaemon = true }
+        worker = workerThread
+        try {
+            workerThread.start()
+        } catch (error: Exception) {
+            running.set(false)
+            runCatching { server.close() }
+            socket = null
+            worker = null
+            address = null
+            boundInterface = null
+            boundPort = null
+            boundIpv4Address = null
+            activeSessionToken = null
+            sessionStartedAt = 0L
+            lastActivityAt = 0L
+            sessionOwnerAddress = null
+            participantLoginAccepted = false
+            failedSessionAttempts.clear()
+            failedLoginAttempts.clear()
+            throw error
+        }
+        try {
+            onAddress(url)
+        } catch (error: Exception) {
+            stop()
+            throw error
+        }
+        emitEvent("Servidor HTTP local iniciado em ${binding.first}:${server.localPort}.")
         return url
     }
 
@@ -95,7 +121,7 @@ class RedPortalServer(
                 server.accept()
             } catch (_: SocketTimeoutException) {
                 if (isSessionExpired()) {
-                    onEvent("Sessão do portal expirou por inatividade ou tempo máximo.")
+                    emitEvent("Sessão do portal expirou por inatividade ou tempo máximo.")
                     stop()
                     break
                 }
@@ -891,6 +917,10 @@ class RedPortalServer(
             val count = previousCount + 1
             FailedAttempt(count, if (count >= MAX_LOGIN_FAILURES) now + LOGIN_LOCKOUT_MS else 0L)
         }
+    }
+
+    private fun emitEvent(message: String) {
+        runCatching { onEvent(message) }
     }
 
     private fun createCspNonce(): String {
