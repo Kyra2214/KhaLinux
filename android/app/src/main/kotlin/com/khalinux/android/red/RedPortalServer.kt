@@ -384,6 +384,10 @@ class RedPortalServer(
                             resultHtml("Preferências registradas", "Sua escolha de cookies foi registrada no laboratório.")
                         }
                     }
+                    method == "POST" && path == "/browser-permission" && portalMode == RedPortalMode.LOCAL_LOGIN && !participantLoginAccepted -> {
+                        status = 403
+                        resultHtml("Login necessário", "Faça o login de teste antes de registrar permissões do navegador.")
+                    }
                     method == "POST" && path == "/browser-permission" -> {
                         val observation = RedLabInputValidator.validateWebPermission(requestBody, contentType)
                         if (observation == null) {
