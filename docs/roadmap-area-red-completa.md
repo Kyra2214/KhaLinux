@@ -1,3 +1,5 @@
+> **Documento histórico:** este roadmap foi substituído na branch `recovery/red-portal-integration` por [roadmap-red-blue-laboratorio.md](roadmap-red-blue-laboratorio.md). Estados e escopo abaixo pertencem ao plano antigo e não devem ser usados para medir o progresso atual. O aparelho B agora é exclusivamente navegador-only; permissões nativas, SAF e prévias locais não fazem parte do escopo atual.
+
 # Área RED — Roadmap mestre completo
 
 **Estado deste documento:** roadmap revisado conforme as decisões de produto de 2026-11-23.  
