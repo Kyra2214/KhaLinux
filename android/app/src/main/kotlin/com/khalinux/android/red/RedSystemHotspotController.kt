@@ -45,6 +45,7 @@ class RedSystemHotspotController(
     }
 
     fun discoverSystemHotspot(): RedHotspotSnapshot {
+        startUpstreamMonitoring()
         val current = snapshotWifiIpv4Addresses()
             ?: return RedHotspotSnapshot(
                 RedNetworkState.ERROR,
@@ -133,16 +134,19 @@ class RedSystemHotspotController(
     }
 
     fun stopMonitoring() {
-        callback?.let { runCatching { connectivity.unregisterNetworkCallback(it) } }
-        callback = null
-        onUpstreamChanged(
-            RedUpstreamSnapshot(
-                internetAvailable = false,
-                validated = false,
-                transport = null,
-                message = "Monitoramento de upstream encerrado; hotspot do sistema não foi desligado pelo KhaLinux."
+        val active = callback
+        if (active != null) {
+            runCatching { connectivity.unregisterNetworkCallback(active) }
+            callback = null
+            onUpstreamChanged(
+                RedUpstreamSnapshot(
+                    internetAvailable = false,
+                    validated = false,
+                    transport = null,
+                    message = "Monitoramento de upstream encerrado; hotspot do sistema não foi desligado pelo KhaLinux."
+                )
             )
-        )
+        }
     }
 
     private fun snapshotWifiIpv4Addresses(): Set<Pair<String, String>>? = runCatching {
