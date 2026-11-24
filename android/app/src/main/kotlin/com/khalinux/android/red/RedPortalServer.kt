@@ -692,7 +692,7 @@ class RedPortalServer(
         a{display:block;padding:13px 16px;border-radius:8px;background:#2457a6;color:white;text-decoration:none;text-align:center}
         a.secondary{background:#eef2f7;color:#23364d}.foot{font-size:12px;color:#73777d;margin-top:22px}
         </style></head><body><main class="wrap"><section class="card">
-        <h1>Conecta Local</h1><p class="muted">Acesso à rede de visitantes.</p><p class="muted"><strong>Ambiente de laboratório:</strong> esta página usa HTTP sem criptografia TLS. Utilize somente identificadores e códigos de teste.</p>
+        <h1>Conecta Local</h1><p class="muted">Acesso à rede de visitantes.</p><p class="muted"><strong>Ambiente de laboratório:</strong> esta página usa HTTPS local, sem depender da internet. Utilize somente identificadores e códigos de teste.</p>
         <p class="muted">${if (mode == RedPortalMode.LOCAL_LOGIN) "Entre para continuar." else "A conexão está disponível. Você já pode continuar."}</p>
         <div class="actions">
         <a href="${if (mode == RedPortalMode.LOCAL_LOGIN) "/login" else "/open"}">${if (mode == RedPortalMode.LOCAL_LOGIN) "Acessar Wi-Fi" else "Continuar navegando"}</a>
@@ -708,7 +708,7 @@ class RedPortalServer(
         input{box-sizing:border-box;width:100%;padding:12px;border:1px solid #c8cdd3;border-radius:7px;font:inherit}
         button{width:100%;padding:13px;border:0;border-radius:8px;background:#2457a6;color:white;font:inherit;margin-top:20px}
         .muted{color:#5f6368;font-size:13px}</style></head><body><main class="wrap"><section class="card">
-        <h1>Acesso Wi-Fi</h1><p class="muted">Informe os dados de acesso de teste preparados para esta aula.</p><p class="muted"><strong>HTTP sem TLS:</strong> não informe senhas de contas pessoais ou de outros serviços.</p>
+        <h1>Acesso Wi-Fi</h1><p class="muted">Informe os dados de acesso de teste preparados para esta aula.</p><p class="muted"><strong>Portal HTTPS do laboratório:</strong> utilize somente identificadores e códigos de teste.</p>
         <form method="post" action="/login"><label for="demo_id">Identificação de teste</label><input id="demo_id" name="demo_id" maxlength="30" autocomplete="off" placeholder="aluno-demo" required>
         <label for="demo_code">Código de acesso de teste</label><input id="demo_code" name="demo_code" maxlength="8" autocomplete="off" placeholder="LAB-2048" required>
         <button type="submit">Conectar</button></form><p class="muted">Use identificador aluno-... e código LAB-0000, fornecidos para o laboratório.</p>
@@ -823,7 +823,7 @@ class RedPortalServer(
         const secureContextAvailable = window.isSecureContext === true;
         document.getElementById('secure-status').textContent = secureContextAvailable
           ? 'Esta página está em contexto seguro. A disponibilidade ainda depende do navegador e das configurações do aparelho.'
-          : 'Este endereço HTTP local não é um contexto seguro para APIs sensíveis. As solicitações serão registradas como indisponíveis; nenhum aviso de permissão será forçado.';
+          : 'Esta origem não é considerada segura pelo navegador. As solicitações serão registradas como indisponíveis; nenhum aviso de permissão será forçado.';
         async function reportPermission(resource,state){
           const body=new URLSearchParams({resource:resource,state:state});
           const response=await fetch('/browser-permission',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:body.toString(),credentials:'same-origin'});
@@ -851,7 +851,7 @@ class RedPortalServer(
           try{
             if(!secureContextAvailable){
               await reportPermission(resource,'unavailable');
-              result.textContent='Indisponível: o navegador não considera esta origem HTTP local um contexto seguro.';
+              result.textContent='Indisponível: o navegador não considera esta origem um contexto seguro.';
               return;
             }
             if(resource==='camera'||resource==='microphone'){
