@@ -23,7 +23,7 @@ O primeiro runtime planejado é baseado em PRoot. PRoot não é uma fronteira de
 - `KhaLinuxRuntimeService` com Binder local e separação UI/runtime.
 - Activity Compose, ViewModel com `StateFlow`, casos de uso de terminal, porta de domínio/adaptador do Service e transcript limitado em memória.
 
-Nenhuma funcionalidade é considerada implementada sem código, testes executados, evidência e documentação correspondente.
+Implementação e validação são registradas separadamente: código e documentação podem estar implementados enquanto os testes ficam acumulados; nenhuma funcionalidade é declarada validada sem testes e evidências correspondentes.
 
 ## Estrutura
 
@@ -56,7 +56,7 @@ Nenhuma funcionalidade é considerada implementada sem código, testes executado
 
 ## Área RED/BLUE
 
-O laboratório de dois aparelhos está sendo implementado na branch `recovery/red-portal-integration`. O aparelho A opera e observa; o aparelho B participa somente pelo navegador. Consulte o [roadmap RED/BLUE](docs/roadmap-red-blue-laboratorio.md) e o [estado de retomada](RESUME_SESSION.md). A validação final do RED/BLUE ainda não foi executada; não confundir código/documentação preparados com funcionamento validado.
+O laboratório de dois aparelhos está sendo implementado na branch `recovery/red-portal-integration`. O aparelho A opera e observa; o aparelho B participa somente pelo navegador. O portal participante usa HTTPS local offline; há um modo `LocalOnlyHotspot` isolado e um modo alternativo de hotspot do sistema para ativar upstream depois sem trocar a rede de B. Consulte o [roadmap RED/BLUE](docs/roadmap-red-blue-laboratorio.md) e o [estado de retomada](RESUME_SESSION.md). A validação final do RED/BLUE ainda não foi executada; não confundir código/documentação preparados com funcionamento validado.
 
 ## Estado atual
 
