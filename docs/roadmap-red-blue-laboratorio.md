@@ -8,10 +8,10 @@ Este documento é o plano de execução da Área RED/BLUE nesta branch. O `ROADM
 
 ## Progresso da execução
 
-- **Implementação RED/BLUE:** 12,5% (2 de 16 submódulos concluídos).
-- **Concluídos:** RED-00 — [inventário de baseline](red-baseline-inventory.md); RED-01 — [modelo de domínio](red-domain-model.md).
+- **Implementação RED/BLUE:** 18,75% (3 de 16 submódulos concluídos).
+- **Concluídos:** RED-00 — [inventário de baseline](red-baseline-inventory.md); RED-01 — [modelo de domínio](red-domain-model.md); RED-02 — [matriz de permissões](red-permissions.md).
 - **Parciais:** RED-05 — banner e registro de consentimento de cookies; RED-07 — remoção do participante nativo e redefinição do fluxo web.
-- **Próximo submódulo:** RED-02 — permissões e capacidades do Android no aparelho A e capacidades web do navegador.
+- **Próximo submódulo:** RED-03 — rede de laboratório e hotspot.
 - **Validação:** não iniciada nesta execução; todas as atividades de teste/build/compilação ficam para a etapa final.
 - **Pacotes ZIP:** desativados; execução diretamente no repositório conforme instrução do usuário.
 
@@ -127,12 +127,14 @@ Atividades:
 
 ## RED-02 — Permissões e capacidades do Android
 
+**Estado:** implementação concluída para o aparelho A; o B não possui permissões de aplicativo. Ver [red-permissions.md](red-permissions.md). Testes de versão/estado ficam para a fase final.
+
 **Objetivo:** declarar e solicitar somente o necessário, usando o sistema real.
 
 Atividades:
 - Auditar `AndroidManifest.xml`, `targetSdk`, `minSdk`, permissões normais, perigosas e permissões especiais.
 - Criar uma matriz por recurso: API usada, permissão, versão mínima, fluxo de solicitação, retorno concedido/negado/permanentemente negado/revogado/não suportado.
-- Usar Activity Result APIs e APIs públicas compatíveis com a versão Android alvo.
+- Usar Activity Result APIs e APIs públicas compatíveis com a versão Android alvo.\n- No aparelho A, solicitar fine/coarse somente ao iniciar hotspot e distinguir concessão precisa/aproximada, recusa, recusa permanente e revogação.
 - Consultar novamente o estado após retorno de Configurações e ao retomar a Activity.
 - Tratar revogação durante uso e interrupção do ciclo de vida.
 - Solicitar no aparelho A somente permissões exigidas pela operação de hotspot/rede, no momento em que forem necessárias.
@@ -144,7 +146,7 @@ Atividades:
 - Testes de cancelamento, negação, revogação e retorno de Configurações com doubles/fakes claramente limitados a testes.
 - Testes de ciclo de vida e limpeza de recursos.
 
-**Aceite:** cada fluxo tem permissão correta, justificativa visível, resultado real e tratamento de negação. Não alegar que um teste unitário prova o diálogo real do Android.
+**Aceite de implementação:** o aparelho A solicita permissões somente no momento do hotspot, mostra justificativa, registra concessão/recusa/recusa permanente/revogação e direciona a Configurações quando necessário. Validação por versão Android fica para a etapa final.
 
 ## RED-03 — Rede de laboratório e hotspot
 
