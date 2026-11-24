@@ -15,6 +15,8 @@ import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicBoolean
+import javax.net.ssl.SSLContext
+import javax.net.ssl.SSLServerSocket
 
 /**
  * Servidor HTTP estritamente local para o laboratório RED.
@@ -44,6 +46,7 @@ class RedPortalServer(
         private set
     @Volatile var boundIpv4Address: String? = null
         private set
+    @Volatile private var secureTransport: Boolean = false
     @Volatile private var portalMode: RedPortalMode = RedPortalMode.LOCAL_LOGIN
     @Volatile private var activeSessionToken: String? = null
     @Volatile private var sessionStartedAt: Long = 0L
@@ -58,16 +61,33 @@ class RedPortalServer(
     fun setMode(mode: RedPortalMode) { portalMode = mode }
 
     @Synchronized
-    fun start(preferredAddress: String? = null, mode: RedPortalMode = portalMode): String {
+    fun start(preferredAddress: String? = null, mode: RedPortalMode = portalMode): String =
+        startInternal(preferredAddress, mode, null)
+
+    @Synchronized
+    fun startHttps(
+        preferredAddress: String?,
+        mode: RedPortalMode = portalMode,
+        sslContext: SSLContext
+    ): String = startInternal(preferredAddress, mode, sslContext)
+
+    private fun startInternal(preferredAddress: String?, mode: RedPortalMode, sslContext: SSLContext?): String {
         if (running.get()) return address ?: error("Portal sem endereço disponível")
         portalMode = mode
         require(configuredPort in 1024..65535) { "A porta do portal deve estar entre 1024 e 65535." }
         val binding = resolveLabAddress(preferredAddress)
             ?: error("O Android não expôs um IPv4 de interface Wi-Fi/AP do laboratório.")
-        // Bind somente no IPv4 da interface do hotspot; nunca usar 0.0.0.0.
-        // A porta 8080 é o padrão, mas pode ser alterada explicitamente pelo operador.
-        val server = ServerSocket(configuredPort, BACKLOG, InetAddress.getByName(binding.second))
+        val bindAddress = InetAddress.getByName(binding.second)
+        val server = if (sslContext == null) {
+            ServerSocket(configuredPort, BACKLOG, bindAddress)
+        } else {
+            (sslContext.serverSocketFactory.createServerSocket(configuredPort, BACKLOG, bindAddress) as SSLServerSocket).apply {
+                enabledProtocols = supportedProtocols.filter { it == "TLSv1.3" || it == "TLSv1.2" }.toTypedArray()
+                require(enabledProtocols.isNotEmpty()) { "A plataforma não oferece TLS 1.2 ou TLS 1.3." }
+            }
+        }
         server.soTimeout = ACCEPT_TIMEOUT_MS
+        secureTransport = sslContext != null
         val now = System.currentTimeMillis()
         activeSessionToken = createSessionToken()
         sessionStartedAt = now
@@ -81,7 +101,8 @@ class RedPortalServer(
         boundInterface = binding.first
         boundPort = server.localPort
         boundIpv4Address = binding.second
-        val url = "http://${binding.second}:${server.localPort}/"
+        val scheme = if (secureTransport) "https" else "http"
+        val url = "$scheme://\${binding.second}:\${server.localPort}/"
         address = url
         val workerThread = Thread({ serve(server, binding.first, binding.second) }, "red-local-portal").apply { isDaemon = true }
         worker = workerThread
@@ -96,6 +117,7 @@ class RedPortalServer(
             boundInterface = null
             boundPort = null
             boundIpv4Address = null
+            secureTransport = false
             activeSessionToken = null
             sessionStartedAt = 0L
             lastActivityAt = 0L
@@ -111,7 +133,8 @@ class RedPortalServer(
             stop()
             throw error
         }
-        emitEvent("Servidor HTTP local iniciado em ${binding.first}:${server.localPort}.")
+        val protocolLabel = if (secureTransport) "HTTPS" else "HTTP"
+        emitEvent("Servidor $protocolLabel local iniciado em \${binding.first}:\${server.localPort}.")
         return url
     }
 
@@ -968,12 +991,13 @@ class RedPortalServer(
             if (sessionOwnerAddress != remoteAddress) return null
             lastActivityAt = System.currentTimeMillis()
         }
-        return "kl_lab_session=$token; Path=/; HttpOnly; SameSite=Strict; Max-Age=$SESSION_COOKIE_MAX_AGE_SECONDS"
+        return "kl_lab_session=$token; Path=/; HttpOnly; SameSite=Strict; Max-Age=$SESSION_COOKIE_MAX_AGE_SECONDS" + if (secureTransport) "; Secure" else ""
     }
 
     private fun authorizeMutation(headers: Map<String, String>, remoteAddress: String?): AuthorizationResult {
         if (isSessionExpired()) return AuthorizationResult.EXPIRED
-        val expectedOrigin = "http://$boundIpv4Address:$boundPort"
+        val expectedScheme = if (secureTransport) "https" else "http"
+        val expectedOrigin = "$expectedScheme://$boundIpv4Address:$boundPort"
         val origin = headers["origin"] ?: headers["referer"]?.let {
             runCatching { java.net.URI(it).let { uri -> "${uri.scheme}://${uri.rawAuthority}" } }.getOrNull()
         }
@@ -1081,11 +1105,13 @@ class RedPortalServer(
         failedSessionAttempts.clear()
         failedLoginAttempts.clear()
         onAddress(null)
+        secureTransport = false
         emitEvent("Servidor do portal local encerrado.")
     }
 
     companion object {
-        const val PORT = 8080
+        const val PORT = 8443
+        const val PREPARATION_PORT = 8080
         private const val BACKLOG = 16
         private const val MAX_CLIENTS = 4
         private const val MAX_HEADER_BYTES = 8192
