@@ -5,7 +5,7 @@
 
 ## Bind e ciclo de vida
 
-- O servidor exige o IPv4 privado literal fornecido pelo controlador do hotspot.
+- O servidor exige o IPv4 privado/compartilhado literal fornecido pelo controlador do hotspot.
 - Resolve o endereço em uma interface Wi-Fi/AP ativa com nome reconhecido e confirma a posse exata do IPv4.
 - Nunca usa `0.0.0.0`, endereço curinga, hostname, loopback, link-local ou interface arbitrária.
 - O socket é criado diretamente no endereço selecionado. Porta ocupada ou bind inválido resulta em erro e o ViewModel libera a reserva do hotspot.
