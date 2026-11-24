@@ -254,7 +254,7 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                             RedNetworkState.STOPPING -> "Aguardando encerramento do hotspot e dos sockets."
                             RedNetworkState.ERROR -> "Ação de recuperação: use Parar para liberar eventual reserva restante ou tente novamente."
                             RedNetworkState.IDLE -> "Rede inativa."
-                            RedNetworkState.HOTSPOT_READY -> if (state.systemHotspotMode) "Interface do hotspot do sistema identificada." else "Hotspot confirmado pelo Android."
+                            RedNetworkState.HOTSPOT_READY -> if (state.systemHotspotMode) "Candidato de interface do hotspot do sistema identificado; portal pode iniciar." else "Hotspot confirmado pelo Android."
                         },
                         style = MaterialTheme.typography.bodySmall
                     )
