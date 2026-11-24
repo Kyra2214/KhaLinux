@@ -1,3 +1,11 @@
+## [Não lançado] — Home Security: formulário local de demonstração (implementado, CI pendente)
+
+- Portal RED renomeado visualmente para **Home Security**, com página inicial e chamada “Cadastre-se para logar”.
+- Formulário local recebe e-mail e senha apenas para validar o cenário de demonstração; valida e-mail e senha entre 8 e 64 caracteres.
+- A senha não é incluída em modelos, callbacks, painel, logs, histórico ou relatórios. O painel A recebe somente e-mail mascarado e método demonstrativo.
+- Facebook e Instagram aparecem apenas como exemplos visuais, sem OAuth, navegação externa ou coleta de credenciais.
+- Testes unitários atualizados para validar e-mail, senha, campos extras e ausência de senha no resultado. CI/build após este ajuste ainda pendentes.
+
 ## [Não lançado] — RED-15: modo hotspot do sistema, upstream e heartbeat (implementado, não validado)
 
 - **Validação automatizada final: PASS** no workflow `45408044336` (commit `c9f289a`): host checks, auditoria estática, JNI PTY, smoke PRoot, testes unitários Android, `assembleDebug` e `lintDebug` aprovados. O build exigiu excluir metadado OSGi duplicado do APK; o lint exigiu substituir `InputStream.readNBytes` (API 33) por leitura limitada compatível com minSdk 28.
