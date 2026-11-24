@@ -205,6 +205,12 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                             Text("Internet validada no aparelho A. O encaminhamento até B é gerenciado pelo Android/operadora e não é confirmado individualmente pelo KhaLinux.", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall)
                         }
                     }
+                    state.lastParticipantHeartbeatAt?.let { heartbeatAt ->
+                        Text(
+                            "Último heartbeat local de B: ${android.text.format.DateFormat.format("HH:mm:ss", heartbeatAt)}. Confirma alcance do portal, não acesso externo à internet.",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                     state.portalEndpoint?.let { endpoint ->
                         Text("Portal: ${endpoint.url}", style = MaterialTheme.typography.bodySmall)
                         RedQrCode(endpoint.url)
