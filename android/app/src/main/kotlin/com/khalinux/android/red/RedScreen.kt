@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.FilterChip
@@ -51,6 +52,7 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
     val clipboard = LocalClipboardManager.current
     val context = LocalContext.current
     val reportContent = remember { androidx.compose.runtime.mutableStateOf("") }
+    var sessionPendingDelete by remember { mutableStateOf<String?>(null) }
     val exportReport = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/markdown")) { uri ->
         if (uri != null) runCatching { context.contentResolver.openOutputStream(uri)?.use { it.write(reportContent.value.toByteArray(Charsets.UTF_8)) } }
     }
@@ -151,6 +153,7 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                             TextButton(onClick = { clipboard.setText(AnnotatedString(viewModel.report(session))) }) { Text("Copiar relatório") }
                             TextButton(onClick = { reportContent.value = viewModel.report(session); exportReport.launch("relatorio-red.md") }) { Text("Exportar") }
+                            TextButton(onClick = { sessionPendingDelete = session.id }) { Text("Excluir") }
                         }
                     }
                     if (state.history.isNotEmpty()) TextButton(onClick = viewModel::deleteHistory) { Text("Apagar histórico") }
@@ -353,6 +356,22 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
             TextButton(onClick = viewModel::backToCatalog) { Text("Voltar ao catálogo") }
         }
         state.message?.let { Text(it, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall) }
+    }
+    sessionPendingDelete?.let { sessionId ->
+        AlertDialog(
+            onDismissRequest = { sessionPendingDelete = null },
+            title = { Text("Excluir sessão do histórico?") },
+            text = { Text("Os metadados e o relatório gerado a partir desta sessão serão removidos do KhaLinux. Arquivos que já foram exportados permanecem no local escolhido.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.deleteSession(sessionId)
+                    sessionPendingDelete = null
+                }) { Text("Excluir") }
+            },
+            dismissButton = {
+                TextButton(onClick = { sessionPendingDelete = null }) { Text("Cancelar") }
+            }
+        )
     }
 }
 
