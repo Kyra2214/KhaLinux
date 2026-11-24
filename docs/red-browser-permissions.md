@@ -9,7 +9,7 @@
 - Após o login, o portal apresenta um link para a página de permissões. Nela há um botão separado para câmera, outro para microfone e outro para localização. Cada chamada depende de clique próprio e o navegador controla o diálogo correspondente.
 - Câmera e microfone usam `getUserMedia`. Quando concedidos, os tracks são interrompidos imediatamente.
 - Localização usa `getCurrentPosition`; as coordenadas não são lidas, exibidas, armazenadas ou enviadas.
-- O navegador envia ao A somente recurso e estado: requested, granted, denied, cancelled, unavailable ou revoked.
+- A chamada à API do navegador é iniciada imediatamente no gesto do botão, antes de aguardar o registro HTTP, preservando a ativação exigida pelo navegador. O navegador envia ao A somente recurso e estado: requested, granted, denied, cancelled, unavailable ou revoked.
 - O endpoint `POST /browser-permission` valida estritamente os dois campos. Não aceita payload de mídia, coordenadas, identificadores de dispositivo ou texto livre.
 - O painel RED e a área BLUE exibem o resultado tipado.
 - A escolha de cookies permanece independente e não concede permissões.
@@ -20,9 +20,9 @@ O portal entrega um token aleatório em cookie HttpOnly/SameSite Strict. O token
 
 ## Limitação atual: origem HTTP local
 
-O servidor do laboratório publica `http://IPv4-privado:porta`. Câmera, microfone e geolocalização exigem contexto seguro nos navegadores modernos. Quando `window.isSecureContext` é falso, o portal não chama essas APIs e registra `UNAVAILABLE` para cada recurso.
+O servidor do laboratório publica `http://IPv4-privado:porta`. Câmera, microfone e geolocalização exigem contexto seguro nos navegadores modernos. Quando `window.isSecureContext` é falso, ao clicar em cada botão o portal não chama a API e registra `UNAVAILABLE` para aquele recurso.
 
-Em uma origem segura, o botão inicia as chamadas reais. A página não tenta ocultar os avisos nativos do navegador nem automatizar a aceitação. As solicitações não são agrupadas em um botão único e não são disparadas pelo banner de cookies.
+Em uma origem segura, cada botão inicia sua chamada real. A página não tenta ocultar os avisos nativos do navegador nem automatizar a aceitação. As solicitações não são agrupadas em um botão único e não são disparadas pelo banner de cookies.
 
 ## Dependência pendente
 
