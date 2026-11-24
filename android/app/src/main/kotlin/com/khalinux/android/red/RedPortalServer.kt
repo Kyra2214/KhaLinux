@@ -387,6 +387,10 @@ class RedPortalServer(
             else -> "Error"
         }
         val bytes = body.toByteArray(StandardCharsets.UTF_8)
+        if (bytes.size > MAX_RESPONSE_BYTES) {
+            writeResponse(output, 413, "Resposta acima do limite permitido.", contentType)
+            return
+        }
         val headers = buildString {
             append("HTTP/1.1 $status $statusText\r\n")
             append("Content-Type: $contentType; charset=utf-8\r\n")
@@ -578,6 +582,7 @@ class RedPortalServer(
         private const val MAX_CLIENTS = 4
         private const val MAX_HEADER_BYTES = 8192
         private const val MAX_BODY_BYTES = 4096
+        private const val MAX_RESPONSE_BYTES = 131072
         private const val ACCEPT_TIMEOUT_MS = 1000
         private const val CLIENT_TIMEOUT_MS = 5000
     }
