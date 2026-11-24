@@ -52,6 +52,12 @@ A allowlist é limitada a Host, User-Agent, Accept, Accept-Language, Content-Typ
 
 O relatório RED e a linha do tempo BLUE exibem método, rota, status, bytes, origem, cabeçalhos permitidos, resposta enviada, motivo de rejeição, falha interna, categorias de cookies e estados de permissão. BLUE não gera alertas sem evento correspondente.
 
+## Interrupção e recuperação
+
+- Ao ir para segundo plano ou bloquear a tela, o processo encerra hotspot/portal, grava `SESSION_INTERRUPTED` e limpa evidências efêmeras.
+- Ao recriar o ViewModel, sessões sem `endedAt` e sem estado final são marcadas como interrompidas; nenhuma sessão é retomada automaticamente.
+- O encerramento normal usa `SESSION_ENDED`; interrupção nunca é apresentada como conclusão.
+
 ## Validação pendente
 
 Testes de serialização/migração, limites, ordenação, limpeza, falha e renderização BLUE ficam para a fase final. Nenhum teste/build/compilação foi executado nesta implementação.
