@@ -23,6 +23,7 @@
 - RED-13: matriz física final documentada para A operador/B navegador-only; nenhuma execução física iniciada. Ver `docs/red-physical-validation.md`.
 - RED-14: parcela documental/estabilização concluída neste snapshot; notas de release, matriz de compatibilidade, checklist e comparação Git atualizados. Revisão integral do diff, validação final, APK assinado/hash e PR continuam pendentes. Ver `docs/red-release-checklist.md`, `docs/red-blue-release-notes.md`, `docs/red-blue-compatibility.md` e `docs/red-branch-stabilization.md`.
 - Progresso de implementação/documentação: 14 de 16 submódulos preparados (87,5%); RED-07 e RED-14 continuam parciais. RED-07 já tem implementação inicial de TLS e preparação da CA, mas confiança do navegador e acabamento técnico ainda pendentes.
+- Submódulo atual: RED-07 — camada TLS local/offline e integração de permissões web. Próximo foco executável: revisar os estados/caminhos de falha restantes do RED-07 e concluir a implementação não dependente de teste físico; depois avançar para as pendências de implementação do RED-14.
 - Nesta execução foram feitas alterações de código e documentação no GitHub. Nenhum teste, build, compilação, lint ou validação foi executado, conforme a regra de implementação contínua. Todos permanecem acumulados para a etapa final.
 - Testes físicos nos dois aparelhos permanecem na fase final.
 - Não gerar ZIP/checkpoints; o usuário determinou execução diretamente no repositório.
