@@ -1,6 +1,6 @@
 # Área RED — laboratório de Wi-Fi e portal local
 
-**Estado:** RED-00 a RED-06, RED-08 a RED-13 e BLUE-01 possuem implementação/documentação preparada; RED-07 permanece parcial devido à dependência de HTTPS confiável. RED-14 está parcialmente preparado; APK/hash/PR aguardam validação final. Builds, auditorias e testes ficam para a fase final.  
+**Estado:** RED-07 permanece parcial; o portal HTTPS local e preparação da CA foram implementados inicialmente, mas confiança em navegadores e acabamento aguardam validação. RED-14 está parcialmente preparado; APK/hash/PR aguardam validação final. Builds, auditorias e testes ficam para a fase final.  
 **Branch:** `recovery/red-portal-integration`  
 **Roadmap ativo:** [roadmap-red-blue-laboratorio.md](roadmap-red-blue-laboratorio.md)  
 **Operação 01:** [red-operation-01.md](red-operation-01.md)
@@ -9,7 +9,7 @@
 
 O RED é a área de preparação e execução de demonstrações práticas com dois aparelhos Android dedicados e controlados pelo instrutor. Os vídeos mostram o comportamento e os resultados, não o código-fonte ou scripts internos.
 
-- **Aparelho A:** operador, hotspot criado pelas APIs públicas do Android, servidor HTTP local e painel de observação.
+- **Aparelho A:** operador, hotspot criado pelas APIs públicas do Android, portal HTTPS local e painel de observação; HTTP/8080 é restrito à preparação da CA pública.
 - **Aparelho B:** participante passivo, conecta-se à rede, abre o portal no navegador, faz login de teste e responde às solicitações web legítimas, quando suportadas. Não instala KhaLinux nem executa ferramentas.
 
 A interface do participante deve ser clara e semelhante a um portal Wi-Fi convencional. A identificação da sessão e a telemetria completa ficam no painel do instrutor. Solicitações web, quando suportadas, usam os avisos reais do navegador.
@@ -18,7 +18,7 @@ A interface do participante deve ser clara e semelhante a um portal Wi-Fi conven
 
 1. Criar uma sessão RED e selecionar login local ou acesso direto.
 2. Solicitar ao Android o `LocalOnlyHotspot`; exibir somente SSID, senha e parâmetros que o sistema disponibilizar.
-3. Identificar o IPv4 da interface Wi-Fi/AP e iniciar o servidor HTTP local, porta padrão **8080** (configurável explicitamente).
+3. Identificar o IPv4 da interface Wi-Fi/AP, iniciar o endpoint HTTP restrito de preparação em **8080** e o portal HTTPS em **8443**.
 4. Exibir URL e QR Code.
 5. Conectar manualmente o aparelho B e abrir o portal.
 6. Percorrer páginas locais, links e redirecionamentos.
@@ -27,14 +27,14 @@ A interface do participante deve ser clara e semelhante a um portal Wi-Fi conven
 9. Se a aula incluir permissões web, abrir a página correspondente e usar cada solicitação separadamente.
 10. Alternar para BLUE para analisar o mesmo cenário pela perspectiva defensiva.
 
-O servidor faz bind somente no IPv4 da interface Wi-Fi/AP identificada; não usa `0.0.0.0`. HTTP na porta 8080 é HTTP sem TLS, não HTTPS. Não há proxy transparente, interceptação de tráfego externo ou dependência de serviços remotos para a operação básica.
+Os dois serviços fazem bind somente no IPv4 da interface Wi-Fi/AP identificada; não usam `0.0.0.0`. HTTP/8080 publica somente a página de preparação e a CA pública; o portal participante e suas APIs usam HTTPS/8443. Não há proxy transparente, interceptação de tráfego externo ou dependência de serviços remotos.
 
 ## Modos de portal
 
 ### Login local
 
 - Página de acesso fictícia, sem imitar marcas ou serviços reais.
-- Formulário faz POST HTTP real para o servidor local.
+- Formulário faz POST HTTPS real para o servidor local.
 - O backend aceita exclusivamente os campos sintéticos `demo_id` e `demo_code`, com formatos de teste restritos.
 - O painel mostra os valores aceitos somente durante a sessão ativa.
 - Valores não são gravados no histórico nem no relatório; podem ser removidos do painel pelo operador.
@@ -54,7 +54,7 @@ O aparelho B participa somente pelo navegador. Não instala nem executa o KhaLin
 - A escolha é enviada ao servidor local e aparece na linha do tempo do aparelho A, com categorias aceitas/recusadas. Valores de cookies e cabeçalhos Cookie não são armazenados.
 - “Aceitar todos” refere-se somente às categorias de cookies descritas no aviso. Não concede permissões do Android ou do navegador.
 - A página **Permissões do navegador** oferece ações independentes para câmera, microfone e localização; cada solicitação depende de clique próprio, origem segura e suporte do navegador, além dos avisos próprios.
-- O portal atual é HTTP em endereço IP local. Se o navegador não considerar essa origem segura, a API sensível fica indisponível. Não há modo participante nativo como alternativa.
+- O portal participante usa HTTPS local em endereço IP. Se a CA não for confiável pelo navegador, o handshake não será concluído e as APIs sensíveis permanecem indisponíveis. A instalação da CA não garante compatibilidade universal; o painel registra download e handshake como fatos separados.
 - O aparelho A centraliza toda a observabilidade e a explicação. O B mostra somente o portal e os avisos normais do navegador.
 
 
