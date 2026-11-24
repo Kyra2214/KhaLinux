@@ -2,7 +2,6 @@ package com.khalinux.android.red
 
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
-import java.security.MessageDigest
 
 data class RedSyntheticValidationResult(
     val accepted: Boolean,
@@ -10,14 +9,8 @@ data class RedSyntheticValidationResult(
     val message: String
 )
 
-data class RedParticipantEvent(val kind: String, val result: String)
-
 object RedLabInputValidator {
-    private val syntheticKeys = setOf("demo_id", "demo_code")
-    private val participantKinds = setOf("camera", "microphone", "location", "file")
-    private val participantResults = setOf(
-        "granted", "denied", "cancelled", "preview_started", "preview_stopped", "selected"
-    )
+    private val syntheticKeys = setOf("email", "password")
 
     fun validateSyntheticForm(body: ByteArray, contentType: String?): RedSyntheticValidationResult {
         if (contentType?.substringBefore(';')?.trim()
@@ -35,39 +28,86 @@ object RedLabInputValidator {
         if (values.keys != syntheticKeys) {
             return RedSyntheticValidationResult(false, emptyMap(), "Campos não permitidos.")
         }
-        val demoId = values["demo_id"].orEmpty()
-        val demoCode = values["demo_code"].orEmpty()
-        val accepted = demoId.matches(Regex("^aluno-[a-z0-9-]{1,24}$")) &&
-            demoCode.matches(Regex("^LAB-[0-9]{4}$"))
-        return if (accepted) {
+        val email = values["email"].orEmpty().trim().lowercase()
+        val password = values["password"].orEmpty()
+        val validEmail = email.length <= 254 &&
+            email.matches(Regex("^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$"))
+        val validPassword = password.length in 8..64 && password.none { it.isISOControl() }
+        return if (validEmail && validPassword) {
+            val local = email.substringBefore('@')
+            val domain = email.substringAfter('@')
+            val maskedLocal = when {
+                local.length <= 1 -> "*"
+                local.length == 2 -> local.first() + "*"
+                else -> local.first() + "***" + local.last()
+            }
             RedSyntheticValidationResult(
                 true,
-                mapOf("demo_id" to demoId, "demo_code" to demoCode),
-                "Campos sintéticos recebidos e validados localmente."
+                mapOf("email" to "$maskedLocal@$domain", "auth_method" to "email_password_demo"),
+                "Dados de demonstração validados localmente. Nenhuma senha foi armazenada."
             )
         } else {
             RedSyntheticValidationResult(
                 false,
                 emptyMap(),
-                "Envio rejeitado: use identificador aluno-... e código LAB-0000."
+                "Informe um e-mail válido e uma senha de 8 a 64 caracteres."
             )
         }
     }
 
-    fun validateParticipantEvent(query: String, expectedToken: String?): RedParticipantEvent? {
-        if (expectedToken.isNullOrBlank() || query.length > MAX_QUERY_CHARS) return null
-        val values = decodePairs(query) ?: return null
-        if (values.keys != setOf("token", "kind", "result")) return null
-        val supplied = values["token"] ?: return null
-        val tokenMatches = MessageDigest.isEqual(
-            expectedToken.toByteArray(StandardCharsets.UTF_8),
-            supplied.toByteArray(StandardCharsets.UTF_8)
+    /** Valida somente a escolha por categoria; nunca recebe nem persiste valores de cookies. */
+    fun validateCookieConsent(body: ByteArray, contentType: String?): RedCookieConsent? {
+        if (contentType?.substringBefore(';')?.trim()?.equals("application/x-www-form-urlencoded", ignoreCase = true) != true) return null
+        if (body.size > MAX_FORM_BYTES) return null
+        val encoded = runCatching { String(body, StandardCharsets.UTF_8) }.getOrNull() ?: return null
+        val values = decodePairs(encoded) ?: return null
+        if (values.keys != setOf("choice", "analytics", "preferences", "personalization")) return null
+        val choice = values["choice"] ?: return null
+        if (choice !in setOf("accept_all", "reject_optional", "custom")) return null
+        val analytics = values["analytics"] ?: return null
+        val preferences = values["preferences"] ?: return null
+        val personalization = values["personalization"] ?: return null
+        if (listOf(analytics, preferences, personalization).any { it !in setOf("0", "1") }) return null
+        if (choice == "accept_all" && listOf(analytics, preferences, personalization).any { it != "1" }) return null
+        if (choice == "reject_optional" && listOf(analytics, preferences, personalization).any { it != "0" }) return null
+        val typedChoice = when (choice) {
+            "accept_all" -> RedCookieChoice.ACCEPT_ALL
+            "reject_optional" -> RedCookieChoice.REJECT_OPTIONAL
+            else -> RedCookieChoice.CUSTOM
+        }
+        return RedCookieConsent(
+            choice = typedChoice,
+            analytics = analytics == "1",
+            preferences = preferences == "1",
+            personalization = personalization == "1"
         )
-        if (!tokenMatches) return null
-        val kind = values["kind"] ?: return null
-        val result = values["result"] ?: return null
-        if (kind !in participantKinds || result !in participantResults) return null
-        return RedParticipantEvent(kind, result)
+    }
+
+    /** Recebe somente recurso e estado; nunca aceita coordenadas, mídia ou conteúdo do navegador. */
+    fun validateWebPermission(body: ByteArray, contentType: String?): RedWebPermissionObservation? {
+        if (contentType?.substringBefore(';')?.trim()
+                ?.equals("application/x-www-form-urlencoded", ignoreCase = true) != true
+        ) return null
+        if (body.size > MAX_FORM_BYTES) return null
+        val encoded = runCatching { String(body, StandardCharsets.UTF_8) }.getOrNull() ?: return null
+        val values = decodePairs(encoded) ?: return null
+        if (values.keys != setOf("resource", "state")) return null
+        val resource = when (values["resource"]) {
+            "camera" -> RedWebPermissionResource.CAMERA
+            "microphone" -> RedWebPermissionResource.MICROPHONE
+            "location" -> RedWebPermissionResource.LOCATION
+            else -> return null
+        }
+        val state = when (values["state"]) {
+            "requested" -> RedWebPermissionState.REQUESTED
+            "granted" -> RedWebPermissionState.GRANTED
+            "denied" -> RedWebPermissionState.DENIED
+            "cancelled" -> RedWebPermissionState.CANCELLED
+            "unavailable" -> RedWebPermissionState.UNAVAILABLE
+            "revoked" -> RedWebPermissionState.REVOKED
+            else -> return null
+        }
+        return RedWebPermissionObservation(resource, state)
     }
 
     private fun decodePairs(encoded: String): Map<String, String>? {
@@ -89,5 +129,4 @@ object RedLabInputValidator {
     }
 
     private const val MAX_FORM_BYTES = 4096
-    private const val MAX_QUERY_CHARS = 1024
 }

@@ -10,7 +10,8 @@ class RedSessionStore(context: Context) {
 
     @Synchronized
     fun save(session: RedSession) {
-        val root = JSONObject().put("id", session.id)
+        val root = JSONObject().put("schemaVersion", CURRENT_SCHEMA_VERSION)
+            .put("id", session.id)
             .put("operationId", session.operationId)
             .put("startedAt", session.startedAt)
             .put("endedAt", session.endedAt ?: JSONObject.NULL)
@@ -31,7 +32,18 @@ class RedSessionStore(context: Context) {
                 .put("httpMethod", event.httpMethod ?: JSONObject.NULL)
                 .put("route", event.route?.take(160) ?: JSONObject.NULL)
                 .put("httpStatus", event.httpStatus ?: JSONObject.NULL)
-                .put("bytesReceived", event.bytesReceived ?: JSONObject.NULL))
+                .put("bytesReceived", event.bytesReceived ?: JSONObject.NULL)
+                .put("cookieChoice", event.cookieChoice?.name ?: JSONObject.NULL)
+                .put("cookieAnalytics", event.cookieAnalytics ?: JSONObject.NULL)
+                .put("cookiePreferences", event.cookiePreferences ?: JSONObject.NULL)
+                .put("cookiePersonalization", event.cookiePersonalization ?: JSONObject.NULL)
+                .put("webPermissionResource", event.webPermissionResource?.name ?: JSONObject.NULL)
+                .put("webPermissionState", event.webPermissionState?.name ?: JSONObject.NULL)
+                .put("responseSent", event.responseSent ?: JSONObject.NULL)
+                .put("rejectionReason", event.rejectionReason ?: JSONObject.NULL)
+                .put("serverFailure", event.serverFailure ?: JSONObject.NULL)
+                .put("safeHeaders", JSONObject().apply { event.safeHeaders.forEach { (name, value) -> put(name, value) } })
+                .put("remoteAddress", event.remoteAddress ?: JSONObject.NULL))
         }
         root.put("events", events)
         preferences.edit().putString(session.id, root.toString()).apply()
@@ -48,10 +60,15 @@ class RedSessionStore(context: Context) {
     @Synchronized
     fun all(): List<RedSession> = preferences.all.values.mapNotNull { raw ->
         runCatching {
-            val root = JSONObject(raw as String)
+            val stored = JSONObject(raw as String)
+            val storedVersion = stored.optInt("schemaVersion", LEGACY_SCHEMA_VERSION)
+            require(storedVersion in LEGACY_SCHEMA_VERSION..CURRENT_SCHEMA_VERSION) {
+                "Versão de sessão não suportada: $storedVersion"
+            }
+            val root = migrateToCurrent(stored, storedVersion)
             val steps = root.optJSONArray("completedSteps") ?: JSONArray()
             val events = root.optJSONArray("events") ?: JSONArray()
-            RedSession(
+            val session = RedSession(
                 id = root.getString("id"),
                 operationId = root.getString("operationId"),
                 startedAt = root.getLong("startedAt"),
@@ -73,14 +90,57 @@ class RedSessionStore(context: Context) {
                         httpMethod = item.optString("httpMethod").takeIf { it.isNotBlank() && it != "null" },
                         route = item.optString("route").takeIf { it.isNotBlank() && it != "null" },
                         httpStatus = if (item.isNull("httpStatus")) null else item.optInt("httpStatus"),
-                        bytesReceived = if (item.isNull("bytesReceived")) null else item.optInt("bytesReceived")
+                        bytesReceived = if (item.isNull("bytesReceived")) null else item.optInt("bytesReceived"),
+                        cookieChoice = if (item.isNull("cookieChoice")) null else runCatching { RedCookieChoice.valueOf(item.getString("cookieChoice")) }.getOrNull(),
+                        cookieAnalytics = if (item.isNull("cookieAnalytics")) null else item.getBoolean("cookieAnalytics"),
+                        cookiePreferences = if (item.isNull("cookiePreferences")) null else item.getBoolean("cookiePreferences"),
+                        cookiePersonalization = if (item.isNull("cookiePersonalization")) null else item.getBoolean("cookiePersonalization"),
+                        webPermissionResource = if (item.isNull("webPermissionResource")) null else runCatching { RedWebPermissionResource.valueOf(item.getString("webPermissionResource")) }.getOrNull(),
+                        webPermissionState = if (item.isNull("webPermissionState")) null else runCatching { RedWebPermissionState.valueOf(item.getString("webPermissionState")) }.getOrNull(),
+                        responseSent = if (item.isNull("responseSent")) null else item.getBoolean("responseSent"),
+                        rejectionReason = if (item.isNull("rejectionReason")) null else item.getString("rejectionReason"),
+                        serverFailure = if (item.isNull("serverFailure")) null else item.getBoolean("serverFailure"),
+                        safeHeaders = if (item.isNull("safeHeaders")) emptyMap() else item.getJSONObject("safeHeaders").let { headers ->
+                            headers.keys().asSequence().associateWith { key -> headers.getString(key) }
+                        },
+                        remoteAddress = if (item.isNull("remoteAddress")) null else item.getString("remoteAddress")
                     )
                 }
             )
+            if (storedVersion < CURRENT_SCHEMA_VERSION) {
+                preferences.edit().putString(session.id, root.toString()).apply()
+            }
+            session
         }.getOrNull()
     }.sortedByDescending { it.startedAt }
 
+    @Synchronized
+    fun delete(sessionId: String) {
+        preferences.edit().remove(sessionId).apply()
+    }
+
+    private fun migrateToCurrent(source: JSONObject, version: Int): JSONObject {
+        var root = JSONObject(source.toString())
+        var currentVersion = version
+        while (currentVersion < CURRENT_SCHEMA_VERSION) {
+            root = when (currentVersion) {
+                1 -> JSONObject(root.toString())
+                    .put("schemaVersion", 2)
+                    .put("completedSteps", root.optJSONArray("completedSteps") ?: JSONArray())
+                    .put("events", root.optJSONArray("events") ?: JSONArray())
+                else -> error("Migração não disponível para schema $currentVersion")
+            }
+            currentVersion += 1
+        }
+        return root
+    }
+
     fun deleteAll() { preferences.edit().clear().apply() }
 
-    companion object { private const val MAX_EVENTS = 300; private const val MAX_SESSIONS = 100 }
+    companion object {
+        private const val LEGACY_SCHEMA_VERSION = 1
+        private const val CURRENT_SCHEMA_VERSION = 2
+        private const val MAX_EVENTS = 300
+        private const val MAX_SESSIONS = 100
+    }
 }

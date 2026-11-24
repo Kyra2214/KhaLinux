@@ -1,10 +1,11 @@
 # Auditoria de segurança estática (9.1)
 
-**Estado:** implementada em código e por revisão manual. **A execução do script `audit-security.py` NÃO foi feita** (política do Prompt Mestre: verificações só na validação final) e fica registrada como pendência final.
+**Estado:** executada e aprovada no workflow CI `45408044336`, commit `c9f289a`, após 100% da implementação do roadmap. A exceção de `SSLContext` é restrita ao `RedLocalTlsManager.kt` como contexto TLS de servidor com chave explícita; não permite bypass de validação de certificados em clientes.
 
 ## O que foi entregue
 
-- `distribution/scripts/audit-security.py`: auditoria estática, só biblioteca padrão, sem rede, sem escrita. Saída em texto ou `--json`; código de saída 1 se houver achado `ERRO`. Passa a rodar no CI (job `host-validation`).
+- `distribution/scripts/audit-security.py`: auditoria estática, só biblioteca padrão, sem rede, sem escrita. Saída em texto ou `--json`; código de saída 1 se houver achado `ERRO`. Executada com sucesso no job `host-validation` do workflow `45408044336`.
+- O aviso de `http://` refere-se somente ao endpoint de preparação local `8080` para disponibilizar a CA pública; login, portal e endpoints participantes permanecem HTTPS/8443.
 - Endurecimento do manifesto: `android:usesCleartextTraffic="false"` explícito (com `targetSdk 35` já era o padrão; agora é auditável).
 - Esta revisão manual do código de superfície crítica.
 
@@ -14,7 +15,7 @@
 |---|---|---|
 | Manifesto | `allowBackup=false`; sem `debuggable`; `usesCleartextTraffic=false`; permissões só da lista aprovada; só `.MainActivity` exportada; `exported` explícito em todo componente | ERRO |
 | Segredos | sem `.jks/.keystore/.p12/.pem/.env/local.properties/keystore.properties`; padrões de chave privada, tokens GitHub/AWS/Google/Slack e atribuições `senha=`/`password=`/`storePassword=` com literal | ERRO |
-| Kotlin/Java (`src/main`) | sem `addJavascriptInterface`, `setJavaScriptEnabled`, `MODE_WORLD_*`, `X509TrustManager`/`HostnameVerifier`, `SSLContext.getInstance`, `printStackTrace`, `Runtime.exec`, `Log.*`; `ProcessBuilder` só em `ProotLauncher.kt` e `RuntimeDiagnostics.kt` | ERRO |
+| Kotlin/Java (`src/main`) | sem `addJavascriptInterface`, `setJavaScriptEnabled`, `MODE_WORLD_*`, `X509TrustManager`/`HostnameVerifier`, `printStackTrace`, `Runtime.exec`, `Log.*`; `SSLContext.getInstance` é permitido somente em `RedLocalTlsManager.kt` para contexto TLS de servidor com `X509ExtendedKeyManager`, trust managers padrão e sem `HostnameVerifier`; `ProcessBuilder` só em `ProotLauncher.kt` e `RuntimeDiagnostics.kt` | ERRO |
 | Kotlin/Java | literal `http://` | AVISO |
 | Downloads | manifestos de release com `*_url` HTTPS e `*sha256` de 64 hex; fonte por URL no catálogo exige HTTPS e SHA-256 | ERRO |
 | Laboratórios | fixtures sem `0.0.0.0`/`INADDR_ANY`; serviços do `labs.json` só em loopback | ERRO |

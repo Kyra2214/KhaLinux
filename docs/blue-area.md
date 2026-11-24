@@ -1,8 +1,12 @@
 # Área BLUE — análise defensiva do laboratório RED
 
 **Estado:** primeira integração implementada em código; validação final pendente.  
-**Branch:** plan/area-red-wifi-publico  
+**Branch:** recovery/red-portal-integration  
 **Cenário compartilhado:** red-wifi-public-01
+
+## Interpretação de HTTPS local
+
+O download da CA pública é apenas uma etapa de preparação e não prova instalação nem confiança. O evento `TLS_HANDSHAKE_OBSERVED` indica que uma conexão concluiu o handshake TLS; não comprova concessão de câmera, microfone ou localização.
 
 ## Objetivo
 
@@ -11,10 +15,12 @@ A Área BLUE apresenta a perspectiva defensiva do mesmo laboratório executado p
 ## Evidências compartilhadas
 
 - Sessões e eventos persistidos são lidos de RedSessionStore.
-- Durante uma sessão ativa, RedLiveEvidenceStore compartilha temporariamente requisições, campos sintéticos aceitos e eventos atuais.
+- Durante uma sessão ativa, RedLiveEvidenceStore compartilha temporariamente requisições, campos sintéticos aceitos e eventos atuais. A tela seleciona a mesma sessão RED e não altera seus eventos.
 - Os valores do formulário são sintéticos e existem somente em memória; ao encerrar/parar a sessão, são removidos.
-- BLUE não recebe áudio, vídeo, coordenadas nem conteúdo de arquivos.
+- B participa somente pelo navegador. BLUE não recebe áudio, vídeo, coordenadas nem conteúdo de arquivos.
 - Eventos não observados não são apresentados como detecções.
+- A tela separa **fatos observados** (eventos e contagens derivadas) de **interpretação defensiva** (orientações, não alertas).
+- As interpretações consideram estados de cookies e permissões web, além de rejeições por token inválido, origem divergente, limite de tentativas e expiração da sessão.
 
 ## Perspectiva defensiva
 
@@ -24,10 +30,9 @@ A Área BLUE apresenta a perspectiva defensiva do mesmo laboratório executado p
 - Acesso direto: ausência de login não significa ausência de risco.
 - Links: verificar URL, domínio e destino após redirecionamentos.
 - HTTP: conteúdo não é protegido por TLS; serviços reais devem usar HTTPS válido.
-- Permissões: avaliar necessidade e contexto de cada pedido; recusar quando não fizer sentido.
-- Câmera/microfone: observar indicadores do sistema e encerrar uso após a demonstração.
-- Localização: conceder somente quando necessária; revisar permissões posteriormente.
-- Arquivos: usar seletor do sistema e conferir o arquivo/destino antes de compartilhar.
+- Permissões: avaliar necessidade e contexto de cada pedido; recusar quando não fizer sentido. Aceitar cookies não concede permissões web; cada pedido é separado; o portal final usa HTTPS local, enquanto HTTP na porta 8080 serve apenas a CA pública de preparação.
+- Permissões web: cada recurso tem solicitação separada e explícita; sem HTTPS confiável, o navegador pode marcar as APIs como indisponíveis; o endpoint HTTP de preparação não solicita permissões.
+- O portal não abre seletor de arquivos e não recebe mídia, coordenadas ou conteúdo pessoal.
 - Resposta: desconectar, esquecer rede suspeita, revisar permissões e conferir URLs.
 
 ## Navegação e ciclo de sessão
@@ -40,6 +45,7 @@ A Área BLUE apresenta a perspectiva defensiva do mesmo laboratório executado p
 ## Limitações
 
 - A linha do tempo reflete eventos do laboratório, não uma captura geral de tráfego.
+- Contagens no BLUE são derivadas dos eventos persistidos/ao vivo da sessão selecionada; não representam todos os pacotes nem todos os clientes Wi-Fi.
 - O painel não inspeciona conexões externas ou conteúdo HTTPS.
 - Dados efêmeros de formulários não permanecem disponíveis após limpeza ou encerramento.
 - A compatibilidade e a experiência em aparelho real serão verificadas somente na validação final.

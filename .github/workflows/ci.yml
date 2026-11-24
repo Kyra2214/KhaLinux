@@ -4,14 +4,14 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
   push:
-    branches: [main, plan/area-red-wifi-publico]
+    branches: [main, plan/area-red-wifi-publico, recovery/red-portal-integration]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: khalinux-ci-${{ github.event.pull_request.head.ref || github.ref_name }}-${{ github.run_id }}
+  group: khalinux-ci-${{ github.event.pull_request.head.ref || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
@@ -56,7 +56,7 @@ jobs:
         run: bash distribution/scripts/test-proot-runtime.sh
 
   android-tests:
-    name: Android unit tests (no APK)
+    name: Android unit tests and debug APK build
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
@@ -89,6 +89,12 @@ jobs:
 
       - name: Run runtime unit tests
         run: ./gradlew --no-daemon :android:runtime:testDebugUnitTest :android:app:testDebugUnitTest
+
+      - name: Assemble debug APK (no publish)
+        run: ./gradlew --no-daemon :android:app:assembleDebug
+
+      - name: Android lint (debug)
+        run: ./gradlew --no-daemon :android:app:lintDebug
 
   android-release-apk:
     name: Android signed release APK (main)

@@ -23,7 +23,7 @@ O primeiro runtime planejado é baseado em PRoot. PRoot não é uma fronteira de
 - `KhaLinuxRuntimeService` com Binder local e separação UI/runtime.
 - Activity Compose, ViewModel com `StateFlow`, casos de uso de terminal, porta de domínio/adaptador do Service e transcript limitado em memória.
 
-Nenhuma funcionalidade é considerada implementada sem código, testes executados, evidência e documentação correspondente.
+Implementação e validação são registradas separadamente: código e documentação podem estar implementados enquanto os testes ficam acumulados; nenhuma funcionalidade é declarada validada sem testes e evidências correspondentes.
 
 ## Estrutura
 
@@ -53,6 +53,10 @@ Nenhuma funcionalidade é considerada implementada sem código, testes executado
 - [`docs/install-guide.md`](docs/install-guide.md): requisitos (Android 15+, ARM64, sem root), instalação, primeira abertura, atualização e problemas comuns.
 - [`docs/user-guide.md`](docs/user-guide.md): terminal, abas, scripts, arquivos, pacotes, ferramentas, laboratórios, tutor e diagnóstico.
 - Na primeira abertura o app baixa e instala PRoot e Debian ARM64 sozinho, com barra de progresso (0–100%) e download retomável; releases são imutáveis e os hashes são pinados no app ([`docs/installation-flow.md`](docs/installation-flow.md)). O build usa `./gradlew`.
+
+## Área RED/BLUE
+
+O laboratório de dois aparelhos está sendo implementado na branch `recovery/red-portal-integration`. O aparelho A opera e observa; o aparelho B participa somente pelo navegador. O portal participante usa HTTPS local offline; há um modo `LocalOnlyHotspot` isolado e um modo alternativo de hotspot do sistema para ativar upstream depois sem trocar a rede de B. Consulte o [roadmap RED/BLUE](docs/roadmap-red-blue-laboratorio.md) e o [estado de retomada](RESUME_SESSION.md). A implementação/documentação do roadmap RED/BLUE está em 100%; a validação automatizada final passou no workflow `45408044336` (host, auditoria, testes Android, APK Debug e lint); validação física A/B e navegador real continuam pendentes. Não confundir implementação concluída com funcionamento validado.
 
 ## Estado atual
 

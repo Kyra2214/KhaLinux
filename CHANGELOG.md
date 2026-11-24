@@ -1,3 +1,213 @@
+## [Não lançado] — Home Security: formulário local de demonstração (implementado, CI pendente)
+
+- Portal RED renomeado visualmente para **Home Security**, com página inicial e chamada “Cadastre-se para logar”.
+- Formulário local recebe e-mail e senha apenas para validar o cenário de demonstração; valida e-mail e senha entre 8 e 64 caracteres.
+- A senha não é incluída em modelos, callbacks, painel, logs, histórico ou relatórios. O painel A recebe somente e-mail mascarado e método demonstrativo.
+- Facebook e Instagram aparecem apenas como exemplos visuais, sem OAuth, navegação externa ou coleta de credenciais.
+- Testes unitários atualizados para validar e-mail, senha, campos extras e ausência de senha no resultado. CI/build após este ajuste ainda pendentes.
+
+## [Não lançado] — RED-15: modo hotspot do sistema, upstream e heartbeat (implementado, não validado)
+
+- **Validação automatizada final: PASS** no workflow `45408044336` (commit `c9f289a`): host checks, auditoria estática, JNI PTY, smoke PRoot, testes unitários Android, `assembleDebug` e `lintDebug` aprovados. O build exigiu excluir metadado OSGi duplicado do APK; o lint exigiu substituir `InputStream.readNBytes` (API 33) por leitura limitada compatível com minSdk 28.
+- **Pendente:** validação física A/B de confiança TLS, prompts do navegador, heartbeat e continuidade do hotspot/encaminhamento externo.
+
+- Primeira compilação Android (workflow `45405105200`) encontrou dois erros Kotlin: import `weight` inacessível no `BlueScreen` e literal `\\t` inválido no parser HTTP. Corrigidos nos commits `36945e3` e `fd82386`; nova execução pendente.
+- Workflow `45405903861` revelou testes legados chamando APIs removidas (`validateParticipantEvent`/`RedParticipantEvent`); `RedLabInputValidatorTest` foi reescrito para validar formulário sintético, cookies e permissões atuais. Retorno nullable de IPv4 foi corrigido. Workflow `45406501672` executa a suíte atualizada, build e lint.
+
+- Adicionado `RedSystemHotspotController`: abre as Configurações de tethering do Android sem APIs ocultas, captura baseline de IPv4 Wi-Fi e identifica somente interface/endereço inequívoco.
+- Adicionada observação do upstream padrão do aparelho A por `ConnectivityManager.registerDefaultNetworkCallback`, distinguindo capacidade INTERNET de acesso validado.
+- ViewModel passou a compartilhar a inicialização do portal HTTPS entre `LocalOnlyHotspot` e o hotspot do sistema.
+- Tela RED ganhou modo alternativo para ligar o hotspot do sistema sem upstream, conectar B e ativar dados móveis depois sem desligar o hotspot; o modo local-only permanece isolado.
+- Painel e relatório mostram upstream validado em A sem afirmar que B navegou externamente.
+- Páginas HTML do portal enviam heartbeat same-origin autenticado a cada 20 segundos enquanto visíveis; A mostra último contato local e registra evento no máximo uma vez por minuto para limitar volume.
+- Seleção de interface do hotspot do sistema extraída para função pura com testes JVM para endereço novo, endereço do upstream, AP-named, ambiguidade e ausência de candidato.
+- Validação do cookie do heartbeat extraída para função pura com cinco casos JVM, incluindo rejeição de token incorreto, ausência de cookie e duplicidade ambígua.
+- Encerrar o portal não desliga o hotspot do sistema; essa ação permanece sob controle do Android.
+- **Validação pendente:** descoberta de interface depende do padrão OEM; permanência da conexão B e encaminhamento externo exigem validação física na fase final.
+
+## [Não lançado] — RED-07: HTTPS local offline (implementado, não validado)
+
+- Adicionado `RedLocalTlsManager`: CA e chave de servidor RSA geradas pelo Android Keystore; chaves privadas não são exportadas.
+- Certificado do servidor emitido para o IPv4 atual com SAN IP, validade limitada e uso `serverAuth`.
+- Adicionado endpoint HTTP de preparação isolado em `8080`, com página `/`, download `/ca.cer` (certificado público DER) e `/health`; não publica rotas do portal.
+- `RedPortalServer` tornou-se HTTPS-only por `SSLServerSocket`, restrito à interface/IPv4 do laboratório, com TLS 1.2/1.3 e conjuntos modernos; não há fallback HTTP para o participante.
+- ViewModel passou a preparar CA, iniciar a entrega pública e abrir o portal participante HTTPS em `8443`.
+- Cookie de sessão recebe `Secure`; validação de origem acompanha o esquema HTTPS.
+- Tela RED apresenta URL de preparação e impressão digital SHA-256 da CA.
+- Página HTTP de preparação orienta a instalação manual da CA, oferece download do certificado público e repete o fingerprint para conferência independente.
+- A registra separadamente o download da CA e o primeiro handshake TLS concluído pelo navegador; não presume confiança apenas pela instalação do certificado.
+- Chave privada efêmera do certificado de servidor removida do Android Keystore nos caminhos de encerramento e falha; a chave privada da CA permanece protegida para sessões futuras.
+- Relatórios distinguem download da CA pública e handshake TLS concluído; ausência de handshake não é apresentada como prova de ausência de instalação.
+- Dependência Bouncy Castle adicionada para geração X.509.
+- Implementação de código/documentação concluída; confiança da CA em navegadores reais e permissões web aguardam validação final.
+- Escritas de evidência e observações de requisição serializadas no ViewModel para preservar sequência em callbacks concorrentes.
+- Primeira validação final: host checks, auditoria estática, JNI PTY e smoke PRoot passaram no workflow `45405105200`; testes Android e APK Debug em execução.
+
+## [Não lançado] — RED-14: estabilização documental atualizada
+
+- Parcela documental de RED-14 concluída: notas preliminares, matriz de compatibilidade, checklist e registro de estabilização alinhados.
+- Comparação registrada no snapshot `791df372d9d94d2dc8555250f247a3414f4518cc`: branch 568 commits à frente de `main`, 0 atrás, 52 arquivos alterados (snapshot após 100% da implementação e validação automatizada). A contagem deve ser refeita antes do PR.
+- Revisão direcionada documentada; revisão integral do diff permanece pendente.
+- Release continua bloqueada: RED-07 depende de HTTPS confiável; build, testes, auditoria final e testes físicos não foram executados; APK, assinatura, SHA-256 e PR não foram produzidos.
+
+## [Não lançado] — RED-14: preparação da entrega
+
+- Notas preliminares de release e matriz de compatibilidade adicionadas.
+- Checklist de estabilização registra portões de auditoria, testes, validação física, versionamento, assinatura, SHA-256 e PR.
+- Nenhum APK, assinatura, hash ou PR foi criado; geração depende da validação final.
+- Sem ZIP/checkpoints, conforme instrução do usuário.
+- Documentação: docs/red-blue-release-notes.md, docs/red-blue-compatibility.md, docs/red-release-checklist.md e docs/red-branch-stabilization.md.
+
+## [Não lançado] — RED-11: hardening de segurança e privacidade
+
+- CSP por resposta com nonce aleatório; removidos handlers inline dos botões de cookies e removido unsafe-inline de script-src. A página de permissões web exige login de teste aceito no modo local.
+- Mantidos headers de defesa: nosniff, no-store, Referrer-Policy, X-Frame-Options, Permissions-Policy, CORP e X-Permitted-Cross-Domain-Policies.
+- Allowlist de evidência reduzida a Host, Accept, Content-Type e Referer path; User-Agent/Accept-Language não persistidos.
+- Limitado o número de IPs acompanhados por rate limit de autenticação e login; headers com caracteres de controle são rejeitados.
+- Manifest revisado: allowBackup=false, sem permissões de câmera/microfone/armazenamento para RED, serviços não exportados e cleartext de saída desabilitado.
+- Riscos HTTP sem TLS e dependência de origem HTTPS confiável documentados. Auditoria/testes finais não executados.
+
+## [Não lançado] — RED-12/RED-13: preparação da validação final
+
+- Plano de build/lint/testes host/Android documentado sem executar comandos de validação.
+- Matriz física revisada para a topologia atual: B somente navegador, login de teste, cookies e solicitações web separadas.
+- Removidos da matriz física do B os cenários antigos de app participante, permissões nativas, SAF, prévia de câmera e medidor de microfone.
+- Execução de testes, build, auditoria e validação física permanece adiada até a conclusão integral do roadmap.
+- Documentação: docs/red-validation-plan.md e docs/red-physical-validation.md.
+
+## [Não lançado] — RED-10: interface do operador e acessibilidade
+
+- RED exibe estados reais de hotspot/servidor/interface/IPv4/participante e só mostra URL/QR após bind confirmado.
+- Permissão do operador distingue solicitação pendente, concessão, recusa, revogação e recuperação.
+- Removido aviso antigo que rotulava as páginas como simulação; roteiro B atualizado para cookies e permissões web individuais.
+- Diagnóstico HTTP sem TLS, visibilidade limitada, requisições recentes e ações de recuperação permanecem no A.
+- Estado de permissão usa `rememberSaveable`; ciclo de vida interrompe sessão em segundo plano; QR tem descrição acessível.
+- RED/BLUE compartilham eventos sem duplicar evidências. Documentação: `docs/red-operator-ui.md`.
+- Nenhum teste/build/compilação foi executado.
+
+## [Não lançado] — RED-10: interface do operador e estados operacionais
+
+- Painel A apresenta estados separados para permissão pendente, solicitação de hotspot, confirmação Android, descoberta de interface, inicialização do servidor, espera de participante, atividade HTTP, encerramento e falha.
+- Botão de início é desabilitado durante solicitações pendentes; a confirmação só aparece após callback real.
+- Adicionado aviso visível de HTTP sem TLS e limites do que o painel observa.
+- Estados de permissão transitórios são preservados em recriação e resolvidos no retorno à Activity.
+- Roteiro e textos atualizados para B navegador-only e solicitações web independentes.
+- QR Code possui descrição acessível; erros mantêm instruções de recuperação.
+- Nenhum teste/build/compilação foi executado.
+
+## [Não lançado] — RED-09: histórico, relatório e exportação
+
+- Schema de sessão versionado (v2) e migração automática de registros legados v1.
+- Persistência limitada a 100 sessões e 300 eventos por sessão, com metadados e campos tipados.
+- Mantidos fora da persistência corpos HTTP, valores de formulário, códigos, cookies, tokens, mídia, coordenadas e arquivos.
+- Relatório Markdown inclui versão do app/Android, estado da sessão, contagens, linha do tempo, limitações e status de validação pendente. Valores de rota, origem e headers recebidos são escapados para não alterar a estrutura Markdown.
+- Adicionada exclusão individual de sessão com confirmação; sessão ativa exige encerramento antes de excluir.
+- Exportação continua pelo seletor de documentos; cópias exportadas permanecem sob controle do usuário.
+- Nenhum teste/build/compilação foi executado.
+
+## [Não lançado] — BLUE-01: análise defensiva das evidências RED
+
+- Painel BLUE mantém a mesma sessão e IDs de eventos da perspectiva RED, usando o store ao vivo sem alterar a evidência original.
+- Adicionado resumo de fatos observados com contagens derivadas de eventos recebidos, rejeitados, respostas, consentimentos e estados de permissões.
+- Cada evento agora separa fato observado de interpretação defensiva.
+- Interpretações específicas cobrem rejeição por token/origem, limite de tentativas e expiração; orientações não são apresentadas como detecções.
+- Documentação BLUE alinhada à topologia A operador/B navegador-only.
+- Nenhum teste/build/compilação foi executado.
+
+## [Não lançado] — RED-08: segurança da sessão e ciclo de vida
+
+- Token aleatório de 256 bits gerado por sessão e mantido somente em memória.
+- Cookie HttpOnly/SameSite vinculado ao primeiro acesso do participante; token não é exposto em URL, HTML ou logs.
+- POST de login, consentimento e permissões web exige cookie válido, IP vinculado e origem same-origin.
+- Comparação de token em tempo constante, distinção de falhas e bloqueio temporário após cinco tentativas.
+- Expiração por 30 minutos de inatividade e duração máxima de duas horas. Encerramento inesperado do portal libera também a reserva do hotspot.
+- Respostas válidas renovam cookie; stop limpa token, participante vinculado, sockets e estado de tentativas.
+- HTTP local permanece sem TLS; a proteção de sessão não fornece confidencialidade contra observação do tráfego.
+- Nenhum teste/build/compilação foi executado.
+
+## [Não lançado] — RED-07: permissões web do navegador (parcial)
+
+- Endpoint `POST /browser-permission` valida apenas recurso e estado, sem aceitar mídia ou coordenadas.
+- Após login, o portal oferece link para página com ações separadas de câmera, microfone e localização; cada solicitação exige clique próprio. Em contexto seguro, tracks são encerrados e coordenadas descartadas.
+- Em origem HTTP insegura, APIs não são chamadas e A registra `UNAVAILABLE`; aceitar cookies ou concluir login não dispara solicitações.
+- Eventos tipados são persistidos e exibidos em RED/BLUE.
+- Bloqueio: o endereço atual é HTTP por IPv4 privado; prompts nativos exigem HTTPS confiável. Domínio/certificado ainda não definido.
+- Documentação: `docs/red-browser-permissions.md`. Nenhum teste/build foi executado.
+
+## [Não lançado] — RED-06: eventos, persistência e BLUE
+
+- Requisições agora distinguem recebimento, rejeição, resposta enviada e falha interna, com timestamp de recebimento.
+- Eventos persistem método, rota, status, bytes, IP remoto, resultado e allowlist de cabeçalhos.
+- Cookie/Authorization, corpos HTTP e valores de formulário não são gravados; valores sintéticos permanecem efêmeros.
+- SessionStore mantém até 100 sessões/300 eventos por sessão, com campos opcionais compatíveis com histórico anterior.
+- RED e BLUE exibem respostas, rejeições, falhas, consentimento por categoria e permissões observadas.
+- Evidências efêmeras são preservadas para revisão após parar a rede e limpas ao encerrar a sessão.
+- Documentação: `docs/red-event-evidence.md`. Nenhum teste/build/compilação foi executado.
+
+## [Não lançado] — RED-05: portal de navegador e aviso de cookies
+
+- Banner adicionado a todas as respostas HTML do portal, com aceitar todos, recusar opcionais e configuração por categoria.
+- Cookie de consentimento e flags opcionais só são gravados no navegador depois que o A confirma o POST de consentimento.
+- Consentimento é validado e registrado no A em evento tipado, com categorias e sem valores dos cookies.
+- Texto do banner descreve que as categorias opcionais armazenam somente preferências de demonstração, sem rastreadores de terceiros.
+- Login permanece restrito a identificador/código do laboratório; páginas e redirecionamentos são locais.
+- Aviso explícito de HTTP sem TLS adicionado ao portal e ao login.
+- Nenhum teste/build/compilação foi executado.
+
+## [Não lançado] — RED-04: servidor HTTP local vinculado à interface
+
+- Bind exige IPv4 privado/compartilhado literal da interface Wi-Fi/AP identificada; sem fallback para wildcard ou interface arbitrária.
+- Servidor monitora a interface e o IPv4 durante a execução e encerra quando a associação deixa de existir.
+- Host, Content-Length, Content-Type, path, query, métodos e cabeçalhos duplicados/malformados são validados.
+- Limites: header 8 KiB, body 4 KiB, resposta 128 KiB, 4 clientes, timeout de socket 5 s, path 512 caracteres.
+- Requisições recebidas são observadas uma vez, inclusive rejeições; Cookie, Authorization e corpo não são registrados.
+- CSP, nosniff, Referrer-Policy, X-Frame-Options e Permissions-Policy adicionados; portal avisa que HTTP local não tem TLS.
+- Documentação: `docs/red-http-server.md`. Nenhum teste/build/compilação foi executado.
+
+## [Não lançado] — RED-03: LocalOnlyHotspot e correlação da interface
+
+- Controlador ganhou geração por solicitação, timeout de 30 s, cancelamento, tratamento de callback tardio e encerramento idempotente.
+- Após `onStarted`, a interface AP é identificada por diferença de interfaces/IPv4 antes/depois da solicitação; sem candidato único, a reserva é encerrada e o portal não inicia.
+- Android 11+ lê `SoftApConfiguration`; Android 9/10 mantêm fallback legado `WifiConfiguration`.
+- SSID, passphrase e segurança vêm da configuração retornada; banda permanece desconhecida quando não há valor utilizável.
+- Estado `DISCOVERING_INTERFACE` separado de hotspot pronto e portal ativo.
+- Documentação: `docs/red-hotspot-lifecycle.md`. Nenhum teste/build/compilação foi executado.
+
+## [Não lançado] — RED-02: permissões e capacidades do Android
+
+- O aparelho A solicita ACCESS_FINE_LOCATION e ACCESS_COARSE_LOCATION somente ao iniciar o hotspot, com explicação de finalidade.
+- O estado diferencia concessão precisa/aproximada, recusa, recusa permanente e revogação ao retornar à Activity.
+- Recusa permanente/revogação direciona o operador às Configurações do aplicativo.
+- O KhaLinux não consulta coordenadas nesse fluxo; o resultado do hotspot continua dependente do callback real do Android.
+- B permanece navegador-only e não recebe permissões do Manifest do KhaLinux.
+- Matriz registrada em `docs/red-permissions.md`. Nenhum teste/build/compilação foi executado.
+
+## [Não lançado] — RED-01: modelo de domínio e estados reais
+
+- Introduzidos modelos tipados para configuração do portal, endpoint iniciado e origem HTTP observada.
+- Consentimento de cookies agora usa modelo tipado com escolha e categorias opcionais; os campos são persistidos no evento da sessão.
+- Introduzidos tipos explícitos para recurso/estado de permissões web, sem gerar eventos até existir resultado observado do navegador.
+- Persistência de eventos ampliada com campos opcionais, mantendo leitura de sessões antigas.
+- Painel e relatório usam endpoint real, origem HTTP observada e consentimento por categoria.
+- Documentação: `docs/red-domain-model.md`. Nenhum teste, build ou compilação foi executado.
+
+## [Não lançado] — RED-00: baseline e arquitetura de dois aparelhos
+
+- Inventário de código e documentação registrado em `docs/red-baseline-inventory.md`.
+- RED-00 concluído em documentação/inspeção; próximo submódulo é RED-01.
+- Progresso do roadmap RED/BLUE: 1/16 submódulos (6,25%); implementações parciais não contam como concluídas.
+- Nenhum teste, build, compilação ou validação executado; atividades acumuladas para a fase final.
+- Execução diretamente na branch `recovery/red-portal-integration`; sem ZIP/checkpoints.
+
+## [Não lançado] — RED/BLUE: participante somente pelo navegador e consentimento de cookies
+
+- Definida a topologia: A opera o laboratório e concentra o painel; B conecta ao Wi-Fi, abre o portal, faz login de teste e usa somente o navegador.
+- Removido do fluxo do app o modo participante nativo, seu endpoint de eventos, permissões de câmera/microfone e dependências CameraX.
+- Adicionado aviso de cookies com aceitar todos, recusar opcionais e configuração por categoria.
+- Adicionado endpoint local `POST /consent`, validação estrita das categorias e registro da escolha na linha do tempo do aparelho A.
+- O botão de cookies não concede permissões de recursos. Permissões web dependem de origem segura e de solicitação explícita do navegador.
+- Nenhum teste, build ou compilação foi executado; validação permanece para a etapa final.
+
 ## [1.0.0-rc.7] — 2026-11-23
 
 - Candidata pública baseada na `main`, com build Android `release` ARM64 assinado e minificado; o CI verifica a assinatura com `apksigner`.

@@ -62,6 +62,13 @@ android {
         compose = true
     }
 
+    packaging {
+        resources {
+            // Metadado OSGi duplicado pelos módulos BouncyCastle; não é necessário no APK Android.
+            excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+        }
+    }
+
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.14"
     }
@@ -89,13 +96,12 @@ dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.2")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.2")
+    implementation("androidx.lifecycle:lifecycle-process:2.8.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
     implementation("com.google.zxing:core:3.5.3")
-    implementation("androidx.camera:camera-core:1.4.1")
-    implementation("androidx.camera:camera-camera2:1.4.1")
-    implementation("androidx.camera:camera-lifecycle:1.4.1")
-    implementation("androidx.camera:camera-view:1.4.1")
+    // Geração X.509 local para HTTPS offline do laboratório RED.
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.80")
 
     implementation("androidx.compose.foundation:foundation")
     implementation("androidx.compose.material3:material3")
