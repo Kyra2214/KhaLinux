@@ -71,7 +71,7 @@
 - **Porta 8080 ocupada:** encerrar a sessão/servidor anterior; o app não deve trocar silenciosamente para outra porta.
 - **Servidor sem IPv4 de interface AP:** o RED não deve abrir em todas as interfaces como fallback. Rever estado da rede e registrar indisponibilidade.
 - **Permissão não aparece:** verificar se já foi concedida, revogada ou bloqueada nas configurações do Android.
-- **Evento não chega ao painel:** conferir endereço do aparelho A, porta 8080, código temporário e conexão Wi-Fi do aparelho B.
+- **Evento não chega ao painel:** conferir endereço do aparelho A, porta 8080, cookie de sessão do navegador e conexão Wi-Fi do aparelho B.
 
 ## Limitações que devem ser explicadas
 
