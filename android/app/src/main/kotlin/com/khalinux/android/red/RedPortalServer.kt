@@ -451,6 +451,7 @@ class RedPortalServer(
             414 -> "URI Too Long"
             415 -> "Unsupported Media Type"
             421 -> "Misdirected Request"
+            500 -> "Internal Server Error"
             501 -> "Not Implemented"
             else -> "Error"
         }
