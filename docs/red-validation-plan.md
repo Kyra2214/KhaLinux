@@ -4,11 +4,14 @@
 
 ## Execução registrada — 24/11/2026
 
-- **Host validation: PASS** no workflow `45405105200`: `test-build-config.py`, sintaxe shell, auditoria estática de segurança, teste nativo JNI PTY e smoke test PRoot ARM64.
-- **Android unit tests: IN PROGRESS** (`:android:runtime:testDebugUnitTest` e `:android:app:testDebugUnitTest`) no workflow `45406501672`.
-- **APK Debug: IN PROGRESS** (`:android:app:assembleDebug`, etapa seguinte após os testes no workflow `45406501672`).
-- **Lint Debug: PENDING** (`:android:app:lintDebug`, etapa após o build). **Integração dedicada do portal: PENDING**; não há resultado registrado ainda.
-- **Testes físicos A/B: NOT STARTED**, reservados para depois dos portões automatizados/estáticos.
+- **Workflow final: PASS** — [45408044336](https://github.com/Kyra2214/KhaLinux/actions/runs/45408044336), commit `c9f289a`.
+- **Host checks: PASS** — configuração RootFS, sintaxe shell, auditoria estática, teste nativo JNI PTY e smoke PRoot ARM64 com binds.
+- **Android unit tests: PASS** — `:android:runtime:testDebugUnitTest` e `:android:app:testDebugUnitTest`, incluindo testes do seletor de interface, cookie de heartbeat e validador atual.
+- **APK Debug: PASS** — `:android:app:assembleDebug`; artefato não foi publicado nem anexado.
+- **Android lint: PASS** — `:android:app:lintDebug`; incompatibilidade API 33 de `InputStream.readNBytes` corrigida com leitura limitada compatível com minSdk 28.
+- **Testes físicos A/B: NOT STARTED** — continuam reservados para a última etapa.
+- **Validação no navegador real: PENDING** — confiança da CA, SAN IP, prompts de câmera/microfone/localização, heartbeat e continuidade durante ativação do upstream precisam ser confirmados no aparelho B.
+- **Integração dedicada do portal em hardware: PENDING** — o CI compila e testa unidades, mas não substitui a sessão real A/B.
 
 ## Ambiente a registrar na fase final
 
