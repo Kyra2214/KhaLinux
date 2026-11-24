@@ -212,26 +212,24 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                         val cookieEvent = session.events.lastOrNull { it.type == RedEventType.COOKIE_CONSENT_RECORDED }
                         Text(cookieEvent?.detail ?: "Nenhuma escolha de cookies recebida nesta sessão.", style = MaterialTheme.typography.bodySmall)
                         Text("Permissões web do navegador", style = MaterialTheme.typography.titleMedium)
-                        val resourceEventTypes = setOf(
-                            RedEventType.PERMISSION_REQUESTED,
-                            RedEventType.PERMISSION_GRANTED,
-                            RedEventType.PERMISSION_DENIED,
-                            RedEventType.PERMISSION_CANCELLED,
-                            RedEventType.RESOURCE_PREVIEW_STARTED,
-                            RedEventType.RESOURCE_PREVIEW_STOPPED,
-                            RedEventType.FILE_PICKER_OPENED,
-                            RedEventType.FILE_SELECTED
-                        )
-                        val resourceLabels = listOf("câmera", "microfone", "localização")
-                        val latestResourceEvents = resourceLabels.mapNotNull { resource ->
-                            session.events.lastOrNull { it.type in resourceEventTypes && it.detail.contains(resource, ignoreCase = true) }
-                                ?.let { resource to it }
+                        val webPermissionEvents = session.events.filter {
+                            it.type in setOf(
+                                RedEventType.WEB_PERMISSION_REQUESTED,
+                                RedEventType.WEB_PERMISSION_GRANTED,
+                                RedEventType.WEB_PERMISSION_DENIED,
+                                RedEventType.WEB_PERMISSION_CANCELLED,
+                                RedEventType.WEB_PERMISSION_UNAVAILABLE,
+                                RedEventType.WEB_PERMISSION_REVOKED
+                            )
                         }
-                        if (latestResourceEvents.isEmpty()) {
+                        if (webPermissionEvents.isEmpty()) {
                             Text("Nenhum resultado de permissão web foi recebido nesta sessão. O navegador exige contexto seguro para APIs sensíveis; o portal HTTP por IP local pode não oferecer esse contexto.", style = MaterialTheme.typography.bodySmall)
                         } else {
-                            latestResourceEvents.forEach { (resource, event) ->
-                                Text("$resource: ${event.type} · ${event.detail}", style = MaterialTheme.typography.bodySmall)
+                            webPermissionEvents.takeLast(12).forEach { event ->
+                                Text(
+                                    "${event.webPermissionResource ?: "recurso"}: ${event.webPermissionState ?: event.type} · ${event.detail}",
+                                    style = MaterialTheme.typography.bodySmall
+                                )
                             }
                         }
                         Text("Eventos da sessão", style = MaterialTheme.typography.titleMedium)
