@@ -238,7 +238,7 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                             RedNetworkState.REQUESTING_HOTSPOT -> "Aguardando o callback real do Android; o hotspot ainda não foi confirmado."
                             RedNetworkState.DISCOVERING_INTERFACE -> "Hotspot confirmado; interface e endereço ainda em identificação."
                             RedNetworkState.STARTING_SERVER -> "Interface identificada; servidor em inicialização."
-                            RedNetworkState.WAITING_PARTICIPANT -> "Portal ativo; nenhuma requisição HTTP do B foi recebida ainda."
+                            RedNetworkState.WAITING_PARTICIPANT -> "Portal HTTPS ativo; nenhuma requisição do navegador B foi recebida ainda."
                             RedNetworkState.PARTICIPANT_ACTIVE -> "Requisição HTTP recebida; atividade do navegador confirmada."
                             RedNetworkState.STOPPING -> "Aguardando encerramento do hotspot e dos sockets."
                             RedNetworkState.ERROR -> "Ação de recuperação: use Parar para liberar eventual reserva restante ou tente novamente."
