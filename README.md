@@ -54,6 +54,10 @@ Nenhuma funcionalidade é considerada implementada sem código, testes executado
 - [`docs/user-guide.md`](docs/user-guide.md): terminal, abas, scripts, arquivos, pacotes, ferramentas, laboratórios, tutor e diagnóstico.
 - Na primeira abertura o app baixa e instala PRoot e Debian ARM64 sozinho, com barra de progresso (0–100%) e download retomável; releases são imutáveis e os hashes são pinados no app ([`docs/installation-flow.md`](docs/installation-flow.md)). O build usa `./gradlew`.
 
+## Área RED/BLUE
+
+O laboratório de dois aparelhos está sendo implementado na branch `recovery/red-portal-integration`. O aparelho A opera e observa; o aparelho B participa somente pelo navegador. Consulte o [roadmap RED/BLUE](docs/roadmap-red-blue-laboratorio.md) e o [estado de retomada](RESUME_SESSION.md). A validação final do RED/BLUE ainda não foi executada; não confundir código/documentação preparados com funcionamento validado.
+
 ## Estado atual
 
 Fases 0–9 implementadas em código (candidata `1.0.0-rc.1`, ver [`RELEASE_NOTES.md`](RELEASE_NOTES.md)). Validação parcial: o runtime foi compilado e testado no host (166 testes, 0 falhas) e o PTY nativo passou; o módulo `:android:app`, o build release e o app em aparelho físico (use **Diagnóstico**) ainda não foram validados ([`docs/final-validation.md`](docs/final-validation.md)). Auditoria estática em [`docs/security-audit.md`](docs/security-audit.md). Documentos de validação: [`docs/phase1-validation.md`](docs/phase1-validation.md) a [`docs/phase8-validation.md`](docs/phase8-validation.md). Consulte também [`ARCHITECTURE.md`](ARCHITECTURE.md) e [`SECURITY.md`](SECURITY.md).
