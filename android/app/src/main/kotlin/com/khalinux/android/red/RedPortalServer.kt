@@ -347,7 +347,9 @@ class RedPortalServer(
             }
             val separator = line.indexOf(':')
             if (separator <= 0) throw IllegalArgumentException("Cabeçalho HTTP inválido.")
-            val name = line.substring(0, separator).trim().lowercase(Locale.ROOT)
+            val rawName = line.substring(0, separator)
+            if (rawName != rawName.trim()) throw IllegalArgumentException("Espaço inválido no nome do cabeçalho.")
+            val name = rawName.lowercase(Locale.ROOT)
             val value = line.substring(separator + 1).trim()
             if (!name.matches(Regex("[a-z0-9-]{1,64}")) || value.length > 512) {
                 throw IllegalArgumentException("Nome ou valor de cabeçalho inválido.")
