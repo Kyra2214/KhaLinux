@@ -44,13 +44,14 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
     private val portal = RedPortalServer(
         onEvent = { detail -> recordRuntimeEvent(detail) },
         onAddress = { address ->
+            val previousState = mutableState.value
+            val portalWasActive = previousState.networkState in setOf(
+                RedNetworkState.HOTSPOT_READY,
+                RedNetworkState.STARTING_SERVER,
+                RedNetworkState.WAITING_PARTICIPANT,
+                RedNetworkState.PARTICIPANT_ACTIVE
+            )
             mutableState.update { current ->
-                val portalWasActive = current.networkState in setOf(
-                    RedNetworkState.HOTSPOT_READY,
-                    RedNetworkState.STARTING_SERVER,
-                    RedNetworkState.WAITING_PARTICIPANT,
-                    RedNetworkState.PARTICIPANT_ACTIVE
-                )
                 current.copy(
                     portalEndpoint = address?.let {
                         RedPortalEndpoint(it, null, current.portalConfiguration.requestedPort)
@@ -58,6 +59,17 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                     networkState = if (address == null && portalWasActive) RedNetworkState.ERROR else current.networkState,
                     networkRunning = if (address == null && portalWasActive) true else current.networkRunning
                 )
+            }
+            if (address == null && portalWasActive) {
+                hotspot.stop()
+                mutableState.update {
+                    it.copy(
+                        networkState = RedNetworkState.ERROR,
+                        networkRunning = false,
+                        portalEndpoint = null,
+                        message = "Portal encerrado inesperadamente; hotspot liberado. Inicie uma nova sessão para continuar."
+                    )
+                }
             }
         },
         onRequest = { observation -> recordRequest(observation) },
