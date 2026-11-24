@@ -62,6 +62,11 @@ class RedLocalTlsManager(context: Context) {
         )
     }
 
+    @Synchronized
+    fun clearEphemeralServerIdentity() {
+        if (keyStore.containsAlias(SERVER_ALIAS)) keyStore.deleteEntry(SERVER_ALIAS)
+    }
+
     private fun getOrCreateCaCertificate(pair: KeyPair): X509Certificate {
         val existing = keyStore.getCertificate(CA_ALIAS) as? X509Certificate
         if (existing != null && existing.basicConstraints >= 0 && existing.notAfter.after(Date())) return existing
