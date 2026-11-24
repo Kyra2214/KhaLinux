@@ -130,7 +130,10 @@ class RedLocalTlsManager(context: Context) {
         val generator = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_RSA, "AndroidKeyStore")
         generator.initialize(
             KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_SIGN or KeyProperties.PURPOSE_VERIFY)
-                .setKeySize(bits).setDigests(KeyProperties.DIGEST_SHA256).build()
+                .setKeySize(bits)
+                .setDigests(KeyProperties.DIGEST_SHA256)
+                .setSignaturePaddings(KeyProperties.SIGNATURE_PADDING_RSA_PKCS1, KeyProperties.SIGNATURE_PADDING_RSA_PSS)
+                .build()
         )
         return generator.generateKeyPair()
     }
