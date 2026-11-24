@@ -6,7 +6,7 @@
 
 - Ao iniciar o servidor, é gerado um token aleatório de 256 bits com `SecureRandom`.
 - O token permanece somente em memória e é invalidado ao parar o servidor.
-- O primeiro acesso GET à raiz do portal vincula a sessão ao endereço remoto observado do participante e recebe um cookie `HttpOnly`, `SameSite=Strict`, limitado ao path `/`.
+- O primeiro acesso GET à raiz do portal HTTPS vincula a sessão ao endereço remoto observado do participante e recebe um cookie `HttpOnly`, `SameSite=Strict`, `Secure`, limitado ao path `/`.
 - O token não aparece em URL, QR Code, HTML, JavaScript, eventos, relatórios ou cabeçalhos permitidos.
 - O navegador envia o cookie automaticamente nas operações same-origin. O JavaScript não consegue ler o token por causa de `HttpOnly`.
 
@@ -15,7 +15,7 @@
 Os endpoints POST de login, consentimento de cookies e estado de permissões web exigem:
 - sessão ainda válida;
 - endereço remoto igual ao participante vinculado no primeiro acesso;
-- origem HTTP correspondente ao endpoint do portal, obtida de `Origin` ou, como alternativa, de `Referer`;
+- origem HTTPS correspondente ao endpoint do portal, obtida de `Origin` ou, como alternativa, de `Referer`;
 - cookie de sessão com token correspondente, comparado por `MessageDigest.isEqual`.
 
 Falhas são diferenciadas: token/endereço inválido, origem inválida, sessão expirada e excesso de tentativas. O servidor aplica bloqueio temporário após cinco falhas de autenticação por endereço remoto. A observação HTTP registra apenas status e motivo; Cookie e Authorization continuam fora da allowlist.
@@ -29,9 +29,9 @@ Falhas são diferenciadas: token/endereço inválido, origem inválida, sessão 
 - `stop()` fecha o socket de escuta e os sockets de clientes, limpa a referência do worker, endpoint, interface, token, horários, participante vinculado e tentativas falhas.
 - Encerramento repetido não recria nem mantém recursos. Recuperação de processo marca sessões antigas como interrompidas e não reativa a rede.
 
-## Limitação de segurança do transporte
+## Transporte HTTPS local
 
-O portal continua usando HTTP em IPv4 privado, sem TLS. O cookie é HttpOnly e SameSite, mas **não oferece confidencialidade contra alguém capaz de observar o tráfego local**. Esta proteção limita submissões cross-origin e operações sem token no escopo do laboratório; não substitui HTTPS nem deve ser apresentada como autenticação forte contra um atacante com acesso à rede.
+O portal participante usa TLS local em IPv4 privado, com certificado SAN IP e CA do laboratório. O endpoint HTTP/8080 é restrito à página de preparação e ao certificado público da CA; não recebe login, consentimento ou permissões web. O cookie de sessão recebe `Secure`, e os POSTs validam a origem HTTPS. A confiança da CA deve ser observada por handshake concluído, não inferida apenas do download ou instalação.
 
 ## Validação acumulada para a fase final
 
