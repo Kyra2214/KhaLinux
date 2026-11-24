@@ -46,8 +46,23 @@ data class RedUiState(
 class RedViewModel(application: Application) : AndroidViewModel(application) {
     private val store = RedSessionStore(application)
     private val appLifecycleObserver = LifecycleEventObserver { _, event ->
-        if (event == Lifecycle.Event.ON_STOP) {
-            interruptActiveSession("Aplicativo foi para segundo plano ou a tela foi bloqueada; rede e portal foram encerrados.")
+        when (event) {
+            Lifecycle.Event.ON_STOP -> {
+                if (!mutableState.value.systemSettingsLaunchPending) {
+                    interruptActiveSession("Aplicativo foi para segundo plano ou a tela foi bloqueada; rede e portal foram encerrados.")
+                }
+            }
+            Lifecycle.Event.ON_START -> {
+                if (mutableState.value.systemSettingsLaunchPending) {
+                    mutableState.update {
+                        it.copy(
+                            systemSettingsLaunchPending = false,
+                            message = "Retorno das Configurações do Android. Ative o hotspot do sistema (se ainda não estiver ativo) e toque em Detectar hotspot."
+                        )
+                    }
+                }
+            }
+            else -> Unit
         }
     }
     private val tlsManager = RedLocalTlsManager(application)
@@ -83,13 +98,21 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 )
             }
             if (address == null && portalWasActive) {
-                hotspot.stop()
+                if (previousState.systemHotspotMode) {
+                    systemHotspot.stopMonitoring()
+                } else {
+                    hotspot.stop()
+                }
                 mutableState.update {
                     it.copy(
                         networkState = RedNetworkState.ERROR,
                         networkRunning = false,
                         portalEndpoint = null,
-                        message = "Portal encerrado inesperadamente; hotspot liberado. Inicie uma nova sessão para continuar."
+                        message = if (previousState.systemHotspotMode) {
+                            "Portal encerrado inesperadamente. O hotspot do Android permanece ativo; tente detectar novamente ou desligue-o nas Configurações."
+                        } else {
+                            "Portal encerrado inesperadamente; hotspot local liberado. Inicie uma nova sessão para continuar."
+                        }
                     )
                 }
             }
@@ -390,14 +413,67 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
         mutableState.update {
-            it.copy(message = "Solicitando hotspot local ao Android...", networkState = RedNetworkState.REQUESTING_HOTSPOT, requests = emptyList())
+            it.copy(
+                systemHotspotMode = false,
+                systemSettingsLaunchPending = false,
+                message = "Solicitando hotspot local isolado ao Android...",
+                networkState = RedNetworkState.REQUESTING_HOTSPOT,
+                requests = emptyList()
+            )
         }
         hotspot.start()
     }
 
+    fun startSystemHotspotLab() {
+        if (mutableState.value.session == null) {
+            mutableState.update { it.copy(message = "Inicie uma sessão antes de ativar recursos de rede.") }
+            return
+        }
+        if (mutableState.value.networkRunning || mutableState.value.networkState !in setOf(RedNetworkState.IDLE, RedNetworkState.ERROR)) {
+            mutableState.update { it.copy(message = "Encerre a rede atual antes de configurar o hotspot do sistema.") }
+            return
+        }
+        mutableState.update {
+            it.copy(
+                systemHotspotMode = true,
+                systemSettingsLaunchPending = true,
+                networkState = RedNetworkState.REQUESTING_HOTSPOT,
+                networkRunning = false,
+                message = "Abrindo as Configurações do Android. Ligue o hotspot do sistema sem desligá-lo depois; a internet poderá ser ativada mais tarde."
+            )
+        }
+        if (!systemHotspot.openSystemHotspotSettings()) {
+            mutableState.update {
+                it.copy(
+                    systemHotspotMode = false,
+                    systemSettingsLaunchPending = false,
+                    networkState = RedNetworkState.ERROR,
+                    message = "Não foi possível abrir as Configurações de hotspot do Android."
+                )
+            }
+            recordStructuredEvent(RedEventType.ERROR, "Falha ao abrir Configurações de tethering do Android.", source = "system-tethering")
+        } else {
+            recordStructuredEvent(
+                RedEventType.HOTSPOT_REQUESTED,
+                "Operador abriu as Configurações do hotspot do sistema; ativação será feita pelo Android.",
+                source = "system-tethering"
+            )
+        }
+    }
+
+    fun detectSystemHotspot() {
+        if (!mutableState.value.systemHotspotMode) {
+            mutableState.update { it.copy(message = "Abra primeiro as Configurações do hotspot do sistema.") }
+            return
+        }
+        handleHotspotSnapshot(systemHotspot.discoverSystemHotspot())
+    }
+
     fun stopNetworkLab() {
+        val systemMode = mutableState.value.systemHotspotMode
         mutableState.update { it.copy(networkState = RedNetworkState.STOPPING) }
         hotspot.stop()
+        systemHotspot.stopMonitoring()
         portal.stop()
         tlsPreparation.stop()
         runCatching { tlsManager.clearEphemeralServerIdentity() }
@@ -409,7 +485,18 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 tlsCaFingerprint = null,
                 tlsBrowserTrustObserved = false,
                 hotspotInfo = null,
-                networkState = RedNetworkState.IDLE
+                networkState = RedNetworkState.IDLE,
+                systemHotspotMode = false,
+                systemSettingsLaunchPending = false,
+                upstreamInternetAvailable = false,
+                upstreamInternetValidated = false,
+                upstreamTransport = null,
+                upstreamMessage = null,
+                message = if (systemMode) {
+                    "Portal encerrado. O hotspot do Android permanece ligado; desligue-o nas Configurações quando terminar."
+                } else {
+                    "Hotspot local isolado e portal encerrados."
+                }
             )
         }
     }
