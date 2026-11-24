@@ -34,6 +34,7 @@ O servidor HTTP não deve redirecionar automaticamente para HTTPS antes da insta
 ## Segurança da CA
 
 - A chave privada da CA nunca é exportada, exibida, enviada ao B ou incluída em relatórios.
+- A chave privada do certificado de servidor é separada da CA e removida do Android Keystore ao encerrar o portal; a chave da CA permanece protegida para reutilização entre sessões.
 - O certificado público da CA é o único arquivo destinado ao B.
 - A impressão digital SHA-256 deve ser mostrada no A e conferida durante a instalação no B.
 - A CA deve ser identificada como autoridade local de laboratório, com validade limitada e instruções claras para removê-la ao terminar.
