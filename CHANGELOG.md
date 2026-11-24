@@ -4,14 +4,14 @@
 - Checklist de estabilização registra portões de auditoria, testes, validação física, versionamento, assinatura, SHA-256 e PR.
 - Nenhum APK, assinatura, hash ou PR foi criado; geração depende da validação final.
 - Sem ZIP/checkpoints, conforme instrução do usuário.
-- Documentação: docs/red-blue-release-notes.md, docs/red-blue-compatibility.md e docs/red-release-checklist.md.
+- Documentação: docs/red-blue-release-notes.md, docs/red-blue-compatibility.md, docs/red-release-checklist.md e docs/red-branch-stabilization.md.
 
 ## [Não lançado] — RED-11: hardening de segurança e privacidade
 
 - CSP por resposta com nonce aleatório; removidos handlers inline dos botões de cookies e removido unsafe-inline de script-src.
 - Mantidos headers de defesa: nosniff, no-store, Referrer-Policy, X-Frame-Options, Permissions-Policy, CORP e X-Permitted-Cross-Domain-Policies.
 - Allowlist de evidência reduzida a Host, Accept, Content-Type e Referer path; User-Agent/Accept-Language não persistidos.
-- Limitado o número de IPs acompanhados por rate limit de autenticação e login.
+- Limitado o número de IPs acompanhados por rate limit de autenticação e login; headers com caracteres de controle são rejeitados.
 - Manifest revisado: allowBackup=false, sem permissões de câmera/microfone/armazenamento para RED, serviços não exportados e cleartext de saída desabilitado.
 - Riscos HTTP sem TLS e dependência de origem HTTPS confiável documentados. Auditoria/testes finais não executados.
 
@@ -22,16 +22,6 @@
 - Removidos da matriz física do B os cenários antigos de app participante, permissões nativas, SAF, prévia de câmera e medidor de microfone.
 - Execução de testes, build, auditoria e validação física permanece adiada até a conclusão integral do roadmap.
 - Documentação: docs/red-validation-plan.md e docs/red-physical-validation.md.
-
-## [Não lançado] — RED-11: hardening de segurança e privacidade
-
-- Allowlist de headers persistidos reduzida; User-Agent e Accept-Language removidos.
-- Valores de cabeçalho com caracteres de controle são rejeitados.
-- Limite de endereços remotos em falhas de autenticação evita crescimento ilimitado do mapa de bloqueio.
-- CSP reforçada com object-src/base-uri none; adicionados Cross-Origin-Resource-Policy e X-Permitted-Cross-Domain-Policies.
-- Manifest/documentação alinhados ao papel A operador/B navegador-only; sem permissões CAMERA/RECORD_AUDIO ou armazenamento para B.
-- Checklist de auditoria estática/manual e testes negativos registrados para a fase final; nenhuma auditoria ou teste foi executado agora.
-- Documentação: docs/red-security-privacy.md.
 
 ## [Não lançado] — RED-10: interface do operador e acessibilidade
 
