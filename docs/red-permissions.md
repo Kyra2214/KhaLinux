@@ -15,7 +15,7 @@
 | `ACCESS_FINE_LOCATION` | Perigosa/runtime | Somente ao iniciar hotspot, se o Android exigir | Solicitada junto com coarse; não é usada para consultar coordenadas |
 | `ACCESS_COARSE_LOCATION` | Perigosa/runtime | Somente ao iniciar hotspot, se o Android exigir | Permite registrar concessão aproximada; a API de hotspot ainda pode impor requisitos adicionais |
 
-O app solicita fine e coarse juntas no aparelho A, no momento em que o operador inicia o hotspot. A interface explica que o Android pode exigir a permissão para disponibilizar a rede e que o KhaLinux não consulta coordenadas. A resposta é observada novamente ao retornar à Activity; revogação é registrada na sessão.
+O app solicita fine e coarse juntas no aparelho A, no momento em que o operador inicia o hotspot. A interface explica que o Android pode exigir a permissão para disponibilizar a rede e que o KhaLinux não consulta coordenadas. A resposta é observada novamente ao retornar à Activity; concessão, recusa, recusa permanente e revogação são distinguidas. Quando a solicitação deixa de ser apresentada pelo Android, o A oferece atalho para as Configurações do aplicativo.
 
 O resultado de permissão não é confundido com sucesso do hotspot. A confirmação da rede depende do callback real de `LocalOnlyHotspot`. Se o Android negar ou a API falhar, o painel mostra o erro recebido.
 
