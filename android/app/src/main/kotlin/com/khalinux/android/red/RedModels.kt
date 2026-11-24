@@ -183,7 +183,7 @@ object RedCatalog {
                 RedTutorialStep("portal", "Abrir o portal local", "Use o endereço HTTP e o QR Code mostrados pelo operador. A abertura automática depende do Android."),
                 RedTutorialStep("access", "Comparar os modos de acesso", "Percorra o portal com autenticação local fictícia e o modo de acesso direto sem login."),
                 RedTutorialStep("navigation", "Explorar navegação", "Abra os links locais e observe no painel as rotas e respostas efetivamente recebidas."),
-                RedTutorialStep("permissions", "Observar permissões", "No aparelho participante, execute as demonstrações nativas e observe os diálogos reais do Android."),
+                RedTutorialStep("permissions", "Observar permissões web", "No navegador do aparelho B, abra Permissões do navegador e escolha separadamente câmera, microfone ou localização. Cada pedido exige ação explícita e pode ficar indisponível em HTTP por IP local."),
                 RedTutorialStep("report", "Encerrar e revisar", "Encerre a sessão e revise a linha do tempo e o relatório local.")
             ),
             completionCriteria = listOf(
