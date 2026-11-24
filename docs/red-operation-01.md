@@ -15,7 +15,7 @@
 3. No B, conectar-se ao Wi-Fi e abrir o endereço/QR Code exibido pelo A.
 4. No navegador, responder ao aviso de cookies.
 5. Fazer login somente com identificador e código de teste do laboratório.
-6. Responder ao aviso de cookies; essa escolha não concede permissões de recursos.
+6. Se a aula incluir permissões web, abrir a página correspondente e escolher cada recurso separadamente; aceitar cookies não concede permissões.
 7. Se a demonstração de permissões fizer parte da aula, abrir **Permissões do navegador** e escolher separadamente câmera, microfone ou localização. Cada botão tem finalidade explícita e depende de contexto seguro.
 8. Navegar pelas páginas locais.
 9. No A, acompanhar requisições HTTP, escolha de cookies e eventos realmente recebidos.
