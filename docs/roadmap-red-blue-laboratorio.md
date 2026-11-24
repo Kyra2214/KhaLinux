@@ -8,10 +8,10 @@ Este documento é o plano de execução da Área RED/BLUE nesta branch. O `ROADM
 
 ## Progresso da execução
 
-- **Implementação RED/BLUE:** 25% (4 de 16 submódulos concluídos).
-- **Concluídos:** RED-00 — [inventário de baseline](red-baseline-inventory.md); RED-01 — [modelo de domínio](red-domain-model.md); RED-02 — [matriz de permissões](red-permissions.md); RED-03 — [ciclo de vida do hotspot](red-hotspot-lifecycle.md).
+- **Implementação RED/BLUE:** 31,25% (5 de 16 submódulos concluídos).
+- **Concluídos:** RED-00 — [inventário de baseline](red-baseline-inventory.md); RED-01 — [modelo de domínio](red-domain-model.md); RED-02 — [matriz de permissões](red-permissions.md); RED-03 — [ciclo de vida do hotspot](red-hotspot-lifecycle.md); RED-04 — [servidor HTTP local](red-http-server.md).
 - **Parciais:** RED-05 — banner e registro de consentimento de cookies; RED-07 — remoção do participante nativo e redefinição do fluxo web.
-- **Próximo submódulo:** RED-04 — identificação da interface, bind do servidor e endereço do portal.
+- **Próximo submódulo:** RED-05 — portal local, aviso de cookies e experiência do navegador.
 - **Validação:** não iniciada nesta execução; todas as atividades de teste/build/compilação ficam para a etapa final.
 - **Pacotes ZIP:** desativados; execução diretamente no repositório conforme instrução do usuário.
 
@@ -177,6 +177,8 @@ Atividades:
 
 ## RED-04 — Interface de rede e servidor HTTP local
 
+**Estado:** implementação concluída em código/documentação; testes host e integração ficam para a fase final. Ver [red-http-server.md](red-http-server.md).
+
 **Objetivo:** disponibilizar o portal apenas na interface e endereço de laboratório identificados.
 
 Atividades:
@@ -197,7 +199,7 @@ Atividades:
 - Traversal, encoding inválido, métodos não permitidos e framing malformado.
 - Verificar que o servidor não escuta em interfaces externas ou endereço curinga.
 
-**Aceite:** servidor responde apenas no endpoint local autorizado, respeita limites e encerra junto com a sessão.
+**Aceite de implementação:** bind exclusivo no IPv4 privado/compartilhado observado, Host e interface revalidados, limites de request/response/conexão, framing ambíguo rejeitado, eventos únicos inclusive requisições rejeitadas e encerramento ao perder a interface. Testes ficam para a fase final.
 
 ## RED-05 — Portal local, aviso de cookies e experiência do navegador
 
