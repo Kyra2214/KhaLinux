@@ -63,6 +63,8 @@ data class RedHotspotSnapshot(
     val message: String,
     val ssid: String? = null,
     val passphrase: String? = null,
+    val security: String? = null,
+    val band: String? = null,
     val interfaceName: String? = null,
     val ipv4Address: String? = null,
     val androidFailureCode: Int? = null
