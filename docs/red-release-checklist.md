@@ -13,9 +13,9 @@
 ## Snapshot Git registrado
 
 - Branch: `recovery/red-portal-integration`.
-- Commit observado antes desta atualização documental: `72f612deb08c425fdb1e1418bb9be7a98d1511ab`.
+- Commit observado antes desta atualização documental: `791df372d9d94d2dc8555250f247a3414f4518cc`.
 - Base `main`: `a4de5eb7ef3d72404ea1171af5eaa135a48bde0c`.
-- Comparação: 520 commits à frente, 0 atrás; 48 arquivos alterados.
+- Comparação: 568 commits à frente, 0 atrás; 52 arquivos alterados.
 - A contagem é um retrato e precisa ser atualizada antes do PR se a branch avançar.
 
 ## Portões obrigatórios da etapa final
