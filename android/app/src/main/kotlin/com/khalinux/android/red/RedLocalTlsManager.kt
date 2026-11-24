@@ -92,7 +92,7 @@ class RedLocalTlsManager(context: Context) {
         )
         val extensions = JcaX509ExtensionUtils()
         builder.addExtension(Extension.basicConstraints, true, BasicConstraints(false))
-        builder.addExtension(Extension.keyUsage, true, KeyUsage(KeyUsage.digitalSignature or KeyUsage.keyEncipherment))
+        builder.addExtension(Extension.keyUsage, true, KeyUsage(KeyUsage.digitalSignature))
         builder.addExtension(Extension.extendedKeyUsage, false, ExtendedKeyUsage(KeyPurposeId.id_kp_serverAuth))
         builder.addExtension(Extension.subjectAlternativeName, true, GeneralNames(GeneralName(GeneralName.iPAddress, ipv4Address)))
         builder.addExtension(Extension.subjectKeyIdentifier, false, extensions.createSubjectKeyIdentifier(serverPair.public))
