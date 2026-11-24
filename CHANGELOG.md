@@ -1,3 +1,10 @@
+## [Não lançado] — RED-14: estabilização documental atualizada
+
+- Parcela documental de RED-14 concluída: notas preliminares, matriz de compatibilidade, checklist e registro de estabilização alinhados.
+- Comparação registrada no snapshot `d445ebcc8f7fb15d5ecac1c9493da5fea72409a2`: branch 296 commits à frente de `main`, 0 atrás, 41 arquivos alterados. A contagem deve ser refeita antes do PR.
+- Revisão direcionada documentada; revisão integral do diff permanece pendente.
+- Release continua bloqueada: RED-07 depende de HTTPS confiável; build, testes, auditoria final e testes físicos não foram executados; APK, assinatura, SHA-256 e PR não foram produzidos.
+
 ## [Não lançado] — RED-14: preparação da entrega
 
 - Notas preliminares de release e matriz de compatibilidade adicionadas.
