@@ -56,6 +56,7 @@ class RedHotspotController(
                 starting = false
                 activeRequestGeneration = null
                 requestGeneration += 1
+                interfacesBeforeStart = emptySet()
                 timeoutRunnable = null
                 onState(
                     RedHotspotSnapshot(
@@ -99,6 +100,7 @@ class RedHotspotController(
                         interfaceDiscoveryRunnable = null
                         reservation = null
                         reservationGeneration = null
+                        interfacesBeforeStart = emptySet()
                         onState(RedHotspotSnapshot(RedNetworkState.IDLE, "O Android encerrou o hotspot local."))
                     }
                 }
@@ -147,11 +149,20 @@ class RedHotspotController(
                     candidates.size == 1 -> {
                         interfaceDiscoveryRunnable = null
                         val (interfaceName, address) = candidates.single()
-                        val config = readHotspotDetails(activeReservation)
+                        val config = try {
+                            readHotspotDetails(activeReservation)
+                        } catch (_: Exception) {
+                            HotspotDetails(null, null, null, null)
+                        }
+                        interfacesBeforeStart = emptySet()
                         onState(
                             RedHotspotSnapshot(
                                 state = RedNetworkState.HOTSPOT_READY,
-                                message = "Hotspot local e interface AP identificados por endereço IPv4 novo.",
+                                message = if (config.ssid.isNullOrBlank()) {
+                                    "Hotspot e interface identificados; o Android não expôs o SSID nesta API."
+                                } else {
+                                    "Hotspot local e interface AP identificados por endereço IPv4 novo."
+                                },
                                 ssid = config.ssid,
                                 passphrase = config.passphrase,
                                 security = config.security,
@@ -168,6 +179,7 @@ class RedHotspotController(
                         interfaceDiscoveryRunnable = null
                         reservation = null
                         reservationGeneration = null
+                        interfacesBeforeStart = emptySet()
                         runCatching { activeReservation.close() }
                         onState(
                             RedHotspotSnapshot(
@@ -195,6 +207,7 @@ class RedHotspotController(
         starting = false
         activeRequestGeneration = null
         requestGeneration += 1
+        interfacesBeforeStart = emptySet()
         onState(RedHotspotSnapshot(RedNetworkState.ERROR, message))
     }
 
@@ -208,6 +221,7 @@ class RedHotspotController(
         timeoutRunnable = null
         interfaceDiscoveryRunnable?.let(handler::removeCallbacks)
         interfaceDiscoveryRunnable = null
+        interfacesBeforeStart = emptySet()
 
         if (wasStarting) {
             starting = false
