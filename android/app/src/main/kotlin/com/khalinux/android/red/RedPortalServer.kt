@@ -49,6 +49,7 @@ class RedPortalServer(
     @Volatile private var sessionStartedAt: Long = 0L
     @Volatile private var lastActivityAt: Long = 0L
     @Volatile private var sessionOwnerAddress: String? = null
+    @Volatile private var participantLoginAccepted: Boolean = false
     private val failedSessionAttempts = ConcurrentHashMap<String, FailedAttempt>()
     private val failedLoginAttempts = ConcurrentHashMap<String, FailedAttempt>()
     private data class FailedAttempt(val count: Int, val blockedUntil: Long)
@@ -72,6 +73,7 @@ class RedPortalServer(
         sessionStartedAt = now
         lastActivityAt = now
         sessionOwnerAddress = null
+        participantLoginAccepted = false
         failedSessionAttempts.clear()
         failedLoginAttempts.clear()
         socket = server
@@ -314,6 +316,10 @@ class RedPortalServer(
                         onEvent("Redirecionamento local executado: /go/notice → /notice.")
                         return
                     }
+                    method == "GET" && path == "/permissions" && portalMode == RedPortalMode.LOCAL_LOGIN && !participantLoginAccepted -> {
+                        status = 403
+                        resultHtml("Login necessário", "Faça o login de teste antes de abrir as permissões do navegador.")
+                    }
                     method == "GET" && path == "/permissions" -> {
                         status = 200
                         permissionsHtml(cspNonce)
@@ -475,6 +481,7 @@ class RedPortalServer(
             )
         )
         return if (result.accepted) {
+            participantLoginAccepted = true
             val page = resultHtml("Acesso liberado", "Os dados de teste foram aceitos pelo portal local.")
                 .replace("</body>", browserPermissionPanelHtml() + "</body>")
             200 to page
