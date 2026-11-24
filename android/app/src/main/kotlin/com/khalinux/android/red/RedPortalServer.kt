@@ -134,13 +134,24 @@ class RedPortalServer(
                     return
                 }
                 val headers = parseHeaders(lines.drop(1))
+                val expectedHost = "${boundIpv4Address}:${boundPort}"
+                val hostHeader = headers["host"]
+                if ((parts[2] == "HTTP/1.1" && hostHeader.isNullOrBlank()) ||
+                    (!hostHeader.isNullOrBlank() && !hostHeader.equals(expectedHost, ignoreCase = true))
+                ) {
+                    status = 421
+                    writeResponse(output, status, "Host não corresponde ao endereço do portal local.")
+                    return
+                }
                 contentType = headers["content-type"]
                 if (headers.containsKey("transfer-encoding")) {
                     status = 501
                     writeResponse(output, status, "Transfer-Encoding não disponível neste laboratório.")
                     return
                 }
-                val declaredLength = headers["content-length"]?.toIntOrNull() ?: 0
+                val contentLength = headers["content-length"]
+                val declaredLength = if (contentLength == null) 0 else contentLength.toIntOrNull()
+                    ?: throw IllegalArgumentException("Content-Length inválido.")
                 if (declaredLength < 0 || declaredLength > MAX_BODY_BYTES) {
                     status = 413
                     writeResponse(output, status, "Corpo acima do limite permitido.")
@@ -366,6 +377,7 @@ class RedPortalServer(
             405 -> "Method Not Allowed"
             408 -> "Request Timeout"
             413 -> "Payload Too Large"
+            421 -> "Misdirected Request"
             501 -> "Not Implemented"
             else -> "Error"
         }
@@ -510,6 +522,7 @@ class RedPortalServer(
         }
         val requested = runCatching { InetAddress.getByName(preferredAddress) as? Inet4Address }.getOrNull()
             ?: throw IllegalStateException("Endereço do hotspot não é um IPv4 literal válido.")
+        if (requested.hostAddress != preferredAddress) throw IllegalStateException("O endereço do hotspot deve ser IPv4 literal, sem hostname.")
         if (requested.isLoopbackAddress || requested.isLinkLocalAddress || requested.isAnyLocalAddress ||
             requested.isMulticastAddress || !requested.isSiteLocalAddress
         ) {
