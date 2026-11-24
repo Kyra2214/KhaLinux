@@ -496,7 +496,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
     fun report(session: RedSession): String {
         val operation = RedCatalog.find(session.operationId)
         val orderedEvents = session.events.sortedBy { it.sequence }
-        val requestEvents = orderedEvents.filter { it.type == RedEventType.HTTP_REQUEST_RECEIVED || (it.type == RedEventType.HTTP_REQUEST_REJECTED && it.httpMethod == "UNKNOWN") }
+        val requestEvents = orderedEvents.filter { it.type == RedEventType.HTTP_REQUEST_RECEIVED || (it.type == RedEventType.HTTP_REQUEST_REJECTED && it.rejectionReason == "invalid_request_line") }
         val permissionEvents = orderedEvents.filter {
             it.type in setOf(
                 RedEventType.WEB_PERMISSION_REQUESTED,
