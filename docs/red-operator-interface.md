@@ -31,6 +31,7 @@ O botão de início fica desabilitado enquanto a solicitação de permissão ou 
 - Mostra endereço remoto e contagem de requisições somente depois de tráfego HTTP efetivamente recebido.
 - Exibe portal **HTTPS local**, URL HTTP restrita para baixar a CA pública, fingerprint SHA-256 e estado de handshake observado; a confiança do navegador não é presumida antes da primeira conexão TLS.
 - Oferece modo alternativo de hotspot do sistema iniciado nas Configurações do Android; exibe upstream validado no A sem afirmar que B recebeu internet.
+- Exibe horário do último heartbeat autenticado de B; o indicador confirma alcance local do portal, não acesso externo, e não transforma ausência de heartbeat em desconexão confirmada.
 - Explica que o painel observa somente requisições destinadas ao portal; não captura tráfego externo nem oferece lista universal de clientes Wi-Fi.
 - Erros de inicialização/encerramento permanecem visíveis e orientam o operador a parar recursos restantes ou tentar novamente.
 - QR Code tem descrição acessível; controles usam rótulos textuais e estados anunciados.
