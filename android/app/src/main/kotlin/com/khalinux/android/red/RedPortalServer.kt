@@ -28,14 +28,16 @@ import javax.net.ssl.SSLSocket
  */
 internal fun hasValidHeartbeatSessionCookie(cookieHeader: String?, expectedToken: String?): Boolean {
     if (expectedToken.isNullOrBlank() || cookieHeader.isNullOrBlank()) return false
-    val supplied = cookieHeader.split(';').firstNotNullOfOrNull { part ->
+    val suppliedTokens = cookieHeader.split(';').mapNotNull { part ->
         val cookie = part.trim()
         if (cookie.startsWith("kl_lab_session=")) {
             cookie.substringAfter('=').takeIf { it.isNotBlank() }
         } else {
             null
         }
-    } ?: return false
+    }
+    if (suppliedTokens.size != 1) return false
+    val supplied = suppliedTokens.single()
     return MessageDigest.isEqual(
         expectedToken.toByteArray(StandardCharsets.UTF_8),
         supplied.toByteArray(StandardCharsets.UTF_8)
