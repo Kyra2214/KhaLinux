@@ -219,7 +219,10 @@ class RedPortalServer(
                         "Rota não encontrada neste laboratório."
                     }
                 }
-                writeResponse(output, status, response, contentType = if (path == "/health") "application/json" else "text/html")
+                val renderedResponse = if (
+                    status in 200..299 && path != "/health" && response.contains("</body>")
+                ) response.replace("</body>", cookieBannerHtml() + "</body>") else response
+                writeResponse(output, status, renderedResponse, contentType = if (path == "/health") "application/json" else "text/html")
                 onRequest(
                     RedRequestObservation(
                         method = method,
@@ -383,7 +386,7 @@ class RedPortalServer(
         <div class="actions">
         <a href="${if (mode == RedPortalMode.LOCAL_LOGIN) "/login" else "/open"}">${if (mode == RedPortalMode.LOCAL_LOGIN) "Acessar Wi-Fi" else "Continuar navegando"}</a>
         <a class="secondary" href="/terms">Termos de utilização</a><a class="secondary" href="/links">Conteúdo e navegação</a>
-        </div><p class="foot">Conecta Local · Acesso de visitantes</p></section></main>${cookieBannerHtml()}</body></html>
+        </div><p class="foot">Conecta Local · Acesso de visitantes</p></section></main></body></html>
     """.trimIndent()
 
     private fun loginHtml() = """
@@ -397,7 +400,7 @@ class RedPortalServer(
         <form method="post" action="/login"><label for="demo_id">Identificação de teste</label><input id="demo_id" name="demo_id" maxlength="30" autocomplete="off" placeholder="aluno-demo" required>
         <label for="demo_code">Código de acesso de teste</label><input id="demo_code" name="demo_code" maxlength="8" autocomplete="off" placeholder="LAB-2048" required>
         <button type="submit">Conectar</button></form><p class="muted">Use identificador aluno-... e código LAB-0000, fornecidos para o laboratório.</p>
-        <p><a href="/">Voltar</a></p></section></main>${cookieBannerHtml()}</body></html>
+        <p><a href="/">Voltar</a></p></section></main></body></html>
     """.trimIndent()
 
     private fun cookieBannerHtml() = """
