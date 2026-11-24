@@ -1149,7 +1149,7 @@ class RedPortalServer(
             val exactAddress = network.inetAddresses.toList()
                 .filterIsInstance<Inet4Address>()
                 .firstOrNull { it.hostAddress == requested.hostAddress && !it.isLoopbackAddress && !it.isLinkLocalAddress }
-            exactAddress?.let { network.name to it.hostAddress }
+            exactAddress?.hostAddress?.let { hostAddress -> network.name to hostAddress }
         } ?: throw IllegalStateException("O IPv4 fornecido não pertence à interface Wi-Fi/AP ativa da sessão.")
     }
 
