@@ -14,6 +14,10 @@
 - O painel RED e a área BLUE exibem o resultado tipado.
 - A escolha de cookies permanece independente e não concede permissões.
 
+## Proteção da sessão
+
+O portal entrega um token aleatório em cookie HttpOnly/SameSite Strict. O token não aparece na URL, QR code ou painel. POSTs de login, consentimento e permissão web exigem token, origem e IP do participante. A sessão expira por inatividade ou duração máxima; tentativas inválidas são limitadas.
+
 ## Limitação atual: origem HTTP local
 
 O servidor do laboratório publica `http://IPv4-privado:porta`. Câmera, microfone e geolocalização exigem contexto seguro nos navegadores modernos. Quando `window.isSecureContext` é falso, o portal não chama essas APIs e registra `UNAVAILABLE` para cada recurso.
