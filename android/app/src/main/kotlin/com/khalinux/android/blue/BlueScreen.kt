@@ -67,6 +67,33 @@ fun BlueScreen(state: BlueUiState, viewModel: BlueViewModel) {
                         }
                     }
                 }
+                item {
+                    val received = displayEvents.count { it.type == RedEventType.HTTP_REQUEST_RECEIVED }
+                    val rejected = displayEvents.count { it.type == RedEventType.HTTP_REQUEST_REJECTED }
+                    val responses = displayEvents.count { it.type == RedEventType.HTTP_RESPONSE_SENT }
+                    val cookieChoices = displayEvents.count { it.type == RedEventType.COOKIE_CONSENT_RECORDED }
+                    val webPermissionResults = displayEvents.count {
+                        it.type in setOf(
+                            RedEventType.WEB_PERMISSION_REQUESTED,
+                            RedEventType.WEB_PERMISSION_GRANTED,
+                            RedEventType.WEB_PERMISSION_DENIED,
+                            RedEventType.WEB_PERMISSION_CANCELLED,
+                            RedEventType.WEB_PERMISSION_UNAVAILABLE,
+                            RedEventType.WEB_PERMISSION_REVOKED
+                        )
+                    }
+                    Card(Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text("Fatos observados", style = MaterialTheme.typography.titleMedium)
+                            Text("Requisições recebidas: $received")
+                            Text("Requisições rejeitadas: $rejected")
+                            Text("Respostas HTTP enviadas: $responses")
+                            Text("Escolhas de cookies registradas: $cookieChoices")
+                            Text("Estados de permissões web recebidos: $webPermissionResults")
+                            Text("Contagens derivadas somente dos eventos desta sessão; não representam detecção de ataque ou lista completa de clientes.")
+                        }
+                    }
+                }
                 if (state.liveEvidence.sessionId == session.id) {
                     item {
                         Card(Modifier.fillMaxWidth()) {
@@ -166,6 +193,7 @@ private fun BlueEventCard(event: RedEvent) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text("#${event.sequence} · ${event.type} · ${event.timestamp}", style = MaterialTheme.typography.labelLarge)
+            Text("Fato observado", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
             Text(event.detail, style = MaterialTheme.typography.bodySmall)
             event.httpMethod?.let { method ->
                 Text("HTTP: $method ${event.route ?: "/"} · ${event.httpStatus ?: "?"} · ${event.bytesReceived ?: 0} bytes", style = MaterialTheme.typography.bodySmall)
@@ -177,12 +205,24 @@ private fun BlueEventCard(event: RedEvent) {
             event.safeHeaders.forEach { (name, value) -> Text("$name: $value", style = MaterialTheme.typography.bodySmall) }
             event.cookieChoice?.let { Text("Cookies: $it · análise=${event.cookieAnalytics}, preferências=${event.cookiePreferences}, personalização=${event.cookiePersonalization}", style = MaterialTheme.typography.bodySmall) }
             event.webPermissionResource?.let { Text("Permissão web: $it · ${event.webPermissionState}", style = MaterialTheme.typography.bodySmall) }
-            Text("Leitura BLUE: ${defensiveAdvice(event.type)}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+            Text("Interpretação defensiva", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
+            Text(defensiveAdvice(event), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
         }
     }
 }
 
-private fun defensiveAdvice(type: RedEventType): String = when (type) {
+private fun defensiveAdvice(event: RedEvent): String {
+    if (event.type == RedEventType.HTTP_REQUEST_REJECTED) {
+        when (event.rejectionReason) {
+            "invalid_session_token" -> return "O servidor recusou a operação porque o token de sessão estava ausente ou inválido. Reabra o portal pela sessão atual; não reutilize cookies antigos."
+            "invalid_request_origin" -> return "A origem do POST não correspondeu ao portal esperado e a operação foi bloqueada. Não envie formulários após redirecionamentos para origens desconhecidas."
+            "session_rate_limited" -> return "O servidor aplicou um bloqueio temporário após falhas repetidas. Isso é um controle preventivo, não prova isolada de ataque."
+            "session_expired" -> return "A sessão atingiu seu limite de tempo. Solicite ao operador uma nova sessão em vez de reutilizar uma página antiga."
+        }
+    }
+    return when (event.type) {
+    RedEventType.SESSION_STARTED -> "Uma sessão de laboratório foi iniciada. Confirme o escopo e o operador antes de qualquer ação."
+    RedEventType.SESSION_ENDED -> "A sessão foi encerrada pelo operador; tokens e recursos temporários devem deixar de ser válidos."
     RedEventType.HOTSPOT_READY -> "A conexão Wi-Fi, por si só, não comprova que o ponto de acesso é legítimo. Confirme a rede com o estabelecimento."
     RedEventType.PORTAL_OPENED -> "A abertura de um portal não autentica a rede nem comprova a identidade de quem a administra."
     RedEventType.HTTP_REQUEST_RECEIVED -> "O servidor recebeu uma requisição HTTP local. HTTP não cifra o conteúdo da comunicação."
@@ -195,15 +235,15 @@ private fun defensiveAdvice(type: RedEventType): String = when (type) {
     RedEventType.ANDROID_PERMISSION_GRANTED -> "O Android concedeu a permissão ao aplicativo operador. Isso não concede acesso ao aparelho B."
     RedEventType.ANDROID_PERMISSION_DENIED -> "O Android negou a permissão ao aplicativo operador; o recurso dependente deve permanecer indisponível."
     RedEventType.ANDROID_PERMISSION_REVOKED -> "A permissão do aplicativo operador foi revogada nas configurações do Android."
-    RedEventType.WEB_PERMISSION_REQUESTED -> "O navegador solicitou uma permissão web para uma origem específica."
-    RedEventType.WEB_PERMISSION_GRANTED -> "O navegador concedeu a permissão web solicitada para a origem do portal."
+    RedEventType.WEB_PERMISSION_REQUESTED -> "O navegador iniciou uma solicitação web para um recurso específico da origem do portal."
+    RedEventType.WEB_PERMISSION_GRANTED -> "O navegador concedeu a permissão web solicitada para a origem do portal. O laboratório não recebeu mídia nem coordenadas."
     RedEventType.WEB_PERMISSION_DENIED -> "O navegador negou a permissão web; o recurso não deve ser considerado disponível."
     RedEventType.WEB_PERMISSION_CANCELLED -> "O pedido de permissão web foi cancelado."
-    RedEventType.WEB_PERMISSION_UNAVAILABLE -> "A API de permissão não estava disponível neste contexto do navegador."
+    RedEventType.WEB_PERMISSION_UNAVAILABLE -> "A API de permissão não estava disponível neste contexto do navegador. Nenhuma concessão deve ser presumida."
     RedEventType.WEB_PERMISSION_REVOKED -> "A permissão web deixou de estar concedida; confira as configurações do navegador."
     RedEventType.NAVIGATION -> "Confira a URL e o destino antes de seguir. Uma página familiar não garante que o domínio seja legítimo."
     RedEventType.REDIRECT -> "Redirecionamentos podem levar a destinos inesperados. Verifique a URL final antes de inserir qualquer dado."
-    RedEventType.FORM_SUBMITTED -> "O formulário foi enviado ao portal local. Não reutilize senhas pessoais em portais de Wi-Fi."
+    RedEventType.FORM_SUBMITTED -> "O formulário de demonstração foi enviado ao portal local. Não reutilize senhas pessoais em portais Wi-Fi."
     RedEventType.FORM_REJECTED -> "O envio foi rejeitado pelo laboratório. Uma falha ou erro não deve ser confundido com acesso liberado."
     RedEventType.FILE_PICKER_OPENED -> "O seletor do sistema permite ao usuário escolher o item, em vez de liberar a biblioteca inteira."
     RedEventType.FILE_SELECTED -> "Antes de compartilhar um arquivo, confirme o destino e o conteúdo escolhido."
@@ -211,4 +251,5 @@ private fun defensiveAdvice(type: RedEventType): String = when (type) {
     RedEventType.RESOURCE_PREVIEW_STOPPED -> "A prévia foi encerrada. Revise permissões e indicadores de uso do recurso."
     RedEventType.HOTSPOT_FAILED, RedEventType.PORTAL_ERROR, RedEventType.ERROR -> "Ocorreu uma falha observada. Não trate uma tentativa como ação concluída."
     else -> "Compare o evento com a ação realizada e mantenha o escopo da demonstração."
+    }
 }
