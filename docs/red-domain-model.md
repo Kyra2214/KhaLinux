@@ -35,6 +35,7 @@
 - `RedEvent` conserva ID, sessão, sequência, timestamp, origem, rota/status HTTP e campos tipados de consentimento/permissão; os eventos `TLS_CA_CERTIFICATE_DOWNLOADED` e `TLS_HANDSHAKE_OBSERVED` registram separadamente preparação e confiança observada.
 - `RedSessionStore` serializa os novos campos como opcionais. Sessões antigas sem esses campos continuam sendo lidas com valores nulos.
 - `RedLiveEvidenceStore` compartilha os mesmos eventos com a perspectiva BLUE.
+- `UPSTREAM_STATUS_CHANGED` registra somente capacidades do upstream observadas no aparelho A; não representa telemetria do aparelho B.
 - O relatório inclui escolha de cookies e categorias, sem valores dos cookies.
 
 ## Limites
