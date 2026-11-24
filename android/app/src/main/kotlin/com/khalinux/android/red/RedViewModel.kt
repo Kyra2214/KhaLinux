@@ -63,6 +63,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 hotspotSnapshot = snapshot,
                 networkState = snapshot.state,
                 networkRunning = snapshot.state == RedNetworkState.HOTSPOT_READY ||
+                    snapshot.state == RedNetworkState.DISCOVERING_INTERFACE ||
                     snapshot.state == RedNetworkState.STARTING_SERVER ||
                     snapshot.state == RedNetworkState.WAITING_PARTICIPANT ||
                     snapshot.state == RedNetworkState.PARTICIPANT_ACTIVE
@@ -70,6 +71,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         }
         val eventType = when (snapshot.state) {
             RedNetworkState.REQUESTING_HOTSPOT -> RedEventType.HOTSPOT_REQUESTED
+            RedNetworkState.DISCOVERING_INTERFACE -> RedEventType.HOTSPOT_INTERFACE_DISCOVERY
             RedNetworkState.HOTSPOT_READY -> RedEventType.HOTSPOT_READY
             RedNetworkState.IDLE -> RedEventType.HOTSPOT_STOPPED
             RedNetworkState.ERROR -> RedEventType.HOTSPOT_FAILED
