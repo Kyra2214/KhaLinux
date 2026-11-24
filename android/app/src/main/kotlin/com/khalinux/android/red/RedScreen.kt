@@ -202,12 +202,19 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                         Text("Portal: ${endpoint.url}", style = MaterialTheme.typography.bodySmall)
                         RedQrCode(endpoint.url)
                         TextButton(onClick = { clipboard.setText(AnnotatedString(endpoint.url)) }) { Text("Copiar endereço do portal") }
-                        Text("Servidor HTTP local · porta ${endpoint.port}", style = MaterialTheme.typography.labelLarge)
+                        Text("Servidor HTTPS local · porta ${endpoint.port}", style = MaterialTheme.typography.labelLarge)
                         Text("Interface: ${endpoint.interfaceName ?: "não identificada"}", style = MaterialTheme.typography.bodySmall)
+                        state.tlsPreparationUrl?.let { caUrl ->
+                            Text("Preparação da CA pública: $caUrl", style = MaterialTheme.typography.bodySmall)
+                            TextButton(onClick = { clipboard.setText(AnnotatedString(caUrl)) }) { Text("Copiar endereço do certificado") }
+                        }
+                        state.tlsCaFingerprint?.let { fingerprint ->
+                            Text("Impressão digital SHA-256 da CA: $fingerprint", style = MaterialTheme.typography.bodySmall)
+                        }
                         Card(Modifier.fillMaxWidth()) {
                             Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                                Text("Aviso: HTTP sem TLS", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelLarge)
-                                Text("Este portal não usa HTTPS e não criptografa a comunicação. Use somente identificadores e códigos de teste; nunca informe senhas pessoais.", style = MaterialTheme.typography.bodySmall)
+                                Text("HTTPS local · sem internet", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge)
+                                Text("O portal participante usa TLS na rede local. Antes de abrir o endereço HTTPS no B, instale a CA pública do laboratório e confira a impressão digital SHA-256 exibida aqui.", style = MaterialTheme.typography.bodySmall)
                                 Text("Visibilidade: o painel observa requisições destinadas a este portal. Não captura tráfego externo nem fornece uma lista universal de clientes Wi-Fi.", style = MaterialTheme.typography.bodySmall)
                             }
                         }
@@ -234,10 +241,10 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                         },
                         style = MaterialTheme.typography.bodySmall
                     )
-                    Text("Observações HTTP recentes: ${state.requests.size}/100", style = MaterialTheme.typography.bodySmall)
+                    Text("Requisições recentes do portal HTTPS: ${state.requests.size}/100", style = MaterialTheme.typography.bodySmall)
                     state.participantObservation?.let { peer ->
                         Text(
-                            "Última origem HTTP observada: " + (peer.remoteAddress ?: "não identificada") + " · " + peer.requestCount + " requisições desta origem",
+                            "Última origem observada: " + (peer.remoteAddress ?: "não identificada") + " · " + peer.requestCount + " requisições desta origem",
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
