@@ -45,6 +45,17 @@
 - Referer é reduzido ao path; Host e metadados não sensíveis podem aparecer no painel.
 - O servidor serve somente páginas/recursos locais embarcados; não busca páginas externas.
 
+## Proteção da sessão do navegador
+
+- A cada start, o servidor gera token aleatório de 256 bits com `SecureRandom`; o token existe somente em memória.
+- O token é entregue por cookie `HttpOnly; SameSite=Strict; Path=/`, nunca em URL, QR code, HTML ou log.
+- A primeira página de entrada (`/`, `/login` ou `/open`) vincula a sessão ao IP remoto do primeiro navegador participante.
+- POSTs de login, consentimento e permissão web exigem cookie válido, origem correspondente e IP participante vinculado.
+- Comparação do token usa `MessageDigest.isEqual`; cinco falhas por IP acionam bloqueio de 60 segundos.
+- Cinco falhas de login de demonstração também acionam bloqueio de 60 segundos.
+- Sessão expira após 30 minutos sem atividade ou duas horas de duração absoluta; o servidor encerra e invalida o token.
+- `stop()` limpa token, IP participante, contadores e sockets. O cookie é renovado nas respostas bem-sucedidas do participante.
+
 ## HTTP sem TLS
 
 O portal é HTTP local, não HTTPS. O portal avisa o participante para usar somente dados de teste. Não inserir credenciais reais. As APIs web sensíveis do navegador podem ficar indisponíveis por não ser uma origem segura.
