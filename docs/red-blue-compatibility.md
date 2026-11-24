@@ -9,11 +9,11 @@
 | SDK de compilação | compileSdk 35 | Build ainda pendente. |
 | Hotspot | LocalOnlyHotspot | API pública; disponibilidade, parâmetros e ciclo de vida dependem do Android/OEM. |
 | Permissão A | ACCESS_FINE_LOCATION | Solicitada no momento de iniciar hotspot; o app não consulta coordenadas. |
-| Servidor | HTTP local IPv4 privado, porta padrão 8080 | Sem TLS; bind somente na interface/IP identificados. |
+| Servidor participante | HTTPS local IPv4 privado, porta 8443 | Certificado X.509 com SAN IP e CA própria; confiança do navegador ainda não validada fisicamente. |
 | Navegador B | Navegador Android compatível com HTML/JavaScript/fetch | Nenhuma versão ou navegador foi validado fisicamente. |
 | Cookies | Cookie de preferência e POST same-origin | Consentimento por categoria; não concede permissões de recursos. |
-| Câmera/microfone/localização web | APIs do navegador em contexto seguro | HTTP por IP privado normalmente não é contexto seguro; estado esperado pode ser UNAVAILABLE. |
-| HTTPS | Não configurado | Exige certificado confiável e nome/IP compatível; domínio/certificado ainda não fornecido. |
+| Câmera/microfone/localização web | APIs do navegador em contexto seguro | Exigem HTTPS confiável, permissão do usuário e suporte do navegador; validação física pendente. |
+| Preparação TLS | HTTP local, porta 8080 | Página de instruções, download da CA pública e health; não hospeda portal nem endpoints sensíveis. |
 | Histórico | SharedPreferences, schema v2 | Migração v1→v2 e retenção 100 sessões/300 eventos aguardam testes. |
 
 ## Regras de apresentação
