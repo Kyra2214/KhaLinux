@@ -24,7 +24,7 @@ class RedPortalServer(
     private val onAddress: (String?) -> Unit,
     private val onRequest: (RedRequestObservation) -> Unit = {},
     private val onSyntheticSubmission: (RedSyntheticSubmission) -> Unit = {},
-    private val onCookieConsent: (String) -> Unit = {},
+    private val onCookieConsent: (RedCookieConsent) -> Unit = {},
     private val configuredPort: Int = PORT
 ) {
     @Volatile private var socket: ServerSocket? = null
