@@ -53,7 +53,7 @@
 - POSTs de login, consentimento e permissão web exigem cookie válido, origem correspondente e IP participante vinculado.
 - Comparação do token usa `MessageDigest.isEqual`; cinco falhas por IP acionam bloqueio de 60 segundos.
 - Cinco falhas de login de demonstração também acionam bloqueio de 60 segundos.
-- Sessão expira após 30 minutos sem atividade ou duas horas de duração absoluta; o servidor encerra e invalida o token.
+- Sessão expira após 30 minutos sem atividade ou duas horas de duração absoluta; o servidor encerra e invalida o token. O ViewModel libera também o hotspot quando o portal termina inesperadamente ou expira.
 - `stop()` limpa token, IP participante, contadores e sockets. O cookie é renovado nas respostas bem-sucedidas do participante. Como o servidor atual é HTTP, o cookie não recebe atributo `Secure` e o token trafega sem TLS; ele protege contra CSRF e reutilização fora da sessão, não contra captura de tráfego por alguém na mesma rede. Usar somente o hotspot isolado de laboratório.
 
 ## HTTP sem TLS
