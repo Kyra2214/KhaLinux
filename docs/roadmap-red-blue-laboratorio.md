@@ -134,7 +134,8 @@ Atividades:
 Atividades:
 - Auditar `AndroidManifest.xml`, `targetSdk`, `minSdk`, permissões normais, perigosas e permissões especiais.
 - Criar uma matriz por recurso: API usada, permissão, versão mínima, fluxo de solicitação, retorno concedido/negado/permanentemente negado/revogado/não suportado.
-- Usar Activity Result APIs e APIs públicas compatíveis com a versão Android alvo.\n- No aparelho A, solicitar fine/coarse somente ao iniciar hotspot e distinguir concessão precisa/aproximada, recusa, recusa permanente e revogação.
+- Usar Activity Result APIs e APIs públicas compatíveis com a versão Android alvo.
+- No aparelho A, solicitar fine/coarse somente ao iniciar hotspot e distinguir concessão precisa/aproximada, recusa, recusa permanente e revogação.
 - Consultar novamente o estado após retorno de Configurações e ao retomar a Activity.
 - Tratar revogação durante uso e interrupção do ciclo de vida.
 - Solicitar no aparelho A somente permissões exigidas pela operação de hotspot/rede, no momento em que forem necessárias.
