@@ -1,6 +1,7 @@
 package com.khalinux.android.red
 
 import android.graphics.Bitmap
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -25,13 +26,20 @@ import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 
 @Composable
 fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
@@ -41,8 +49,48 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
     val exportReport = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/markdown")) { uri ->
         if (uri != null) runCatching { context.contentResolver.openOutputStream(uri)?.use { it.write(reportContent.value.toByteArray(Charsets.UTF_8)) } }
     }
-    val hotspotPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) viewModel.startNetworkLab()
+    var hotspotPermissionState by remember(context) { mutableStateOf(readHotspotPermissionState(context)) }
+    var hotspotPermissionMessage by remember { mutableStateOf<String?>(null) }
+    val previousPermissionState = remember { mutableStateOf(hotspotPermissionState) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner, context) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                val current = readHotspotPermissionState(context)
+                val previous = previousPermissionState.value
+                if (previous in setOf(RedAndroidPermissionState.PRECISE_GRANTED, RedAndroidPermissionState.APPROXIMATE_GRANTED) &&
+                    current == RedAndroidPermissionState.DENIED
+                ) {
+                    viewModel.recordStructuredEvent(
+                        RedEventType.ANDROID_PERMISSION_REVOKED,
+                        "A permissão de localização usada pelo fluxo de hotspot foi revogada nas configurações do Android.",
+                        source = "android-permission"
+                    )
+                }
+                previousPermissionState.value = current
+                hotspotPermissionState = current
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+    val hotspotPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+        val current = readHotspotPermissionState(context)
+        hotspotPermissionState = current
+        previousPermissionState.value = current
+        val granted = current in setOf(RedAndroidPermissionState.PRECISE_GRANTED, RedAndroidPermissionState.APPROXIMATE_GRANTED)
+        viewModel.recordStructuredEvent(
+            if (granted) RedEventType.ANDROID_PERMISSION_GRANTED else RedEventType.ANDROID_PERMISSION_DENIED,
+            if (granted) "O Android concedeu permissão de localização para o fluxo de hotspot."
+            else "O Android não concedeu permissão de localização para o fluxo de hotspot.",
+            source = "android-permission"
+        )
+        if (granted) {
+            hotspotPermissionMessage = null
+            viewModel.startNetworkLab()
+        } else {
+            hotspotPermissionMessage = "Permissão não concedida. O hotspot não foi solicitado."
+        }
     }
     Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -177,11 +225,19 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                             label = { Text("Acesso direto") }
                         )
                     }
+                    Text("Permissão do Android para hotspot: ${hotspotPermissionState.permissionLabel()}", style = MaterialTheme.typography.bodySmall)
+                    Text("O Android pode exigir permissão de localização para disponibilizar o hotspot. O KhaLinux não consulta nem registra coordenadas.", style = MaterialTheme.typography.bodySmall)
+                    hotspotPermissionMessage?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
                     Button(onClick = {
-                        if (context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                        if (hotspotPermissionState in setOf(RedAndroidPermissionState.PRECISE_GRANTED, RedAndroidPermissionState.APPROXIMATE_GRANTED)) {
                             viewModel.startNetworkLab()
                         } else {
-                            hotspotPermission.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                            viewModel.recordStructuredEvent(
+                                RedEventType.ANDROID_PERMISSION_REQUESTED,
+                                "Solicitando ao Android permissão de localização necessária ao fluxo de hotspot.",
+                                source = "android-permission"
+                            )
+                            hotspotPermission.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
                         }
                     }) { Text("Iniciar hotspot e portal local") }
                 }
@@ -272,6 +328,23 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
     }
 }
 
+
+private fun readHotspotPermissionState(context: Context): RedAndroidPermissionState {
+    val precise = context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+    val approximate = context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+    return when {
+        precise -> RedAndroidPermissionState.PRECISE_GRANTED
+        approximate -> RedAndroidPermissionState.APPROXIMATE_GRANTED
+        else -> RedAndroidPermissionState.DENIED
+    }
+}
+
+private fun RedAndroidPermissionState.permissionLabel(): String = when (this) {
+    RedAndroidPermissionState.UNKNOWN -> "não consultada"
+    RedAndroidPermissionState.PRECISE_GRANTED -> "precisa concedida"
+    RedAndroidPermissionState.APPROXIMATE_GRANTED -> "aproximada concedida"
+    RedAndroidPermissionState.DENIED -> "negada ou não concedida"
+}
 
 @Composable
 private fun RedQrCode(value: String) {
