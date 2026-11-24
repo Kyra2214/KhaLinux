@@ -1,3 +1,13 @@
+## [Não lançado] — RED-05: portal de navegador e aviso de cookies
+
+- Banner adicionado a todas as respostas HTML do portal, com aceitar todos, recusar opcionais e configuração por categoria.
+- Cookie de consentimento e flags opcionais só são gravados no navegador depois que o A confirma o POST de consentimento.
+- Consentimento é validado e registrado no A em evento tipado, com categorias e sem valores dos cookies.
+- Texto do banner descreve que as categorias opcionais armazenam somente preferências de demonstração, sem rastreadores de terceiros.
+- Login permanece restrito a identificador/código do laboratório; páginas e redirecionamentos são locais.
+- Aviso explícito de HTTP sem TLS adicionado ao portal e ao login.
+- Nenhum teste/build/compilação foi executado.
+
 ## [Não lançado] — RED-04: servidor HTTP local vinculado à interface
 
 - Bind exige IPv4 privado/compartilhado literal da interface Wi-Fi/AP identificada; sem fallback para wildcard ou interface arbitrária.
