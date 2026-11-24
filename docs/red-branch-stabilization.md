@@ -6,8 +6,8 @@
 
 - Branch: `recovery/red-portal-integration`.
 - Base `main`: `a4de5eb7ef3d72404ea1171af5eaa135a48bde0c`.
-- Snapshot revisado antes desta atualização: `732d1d28f360b657bf76613d9c33bbd17f6c78de`.
-- Comparação nesse snapshot: 273 commits à frente, 0 atrás; 40 arquivos alterados.
+- Snapshot revisado antes desta atualização: `142f4c773573062060b18eb6be9e1ce1481ea801`.
+- Comparação nesse snapshot: 276 commits à frente, 0 atrás; 40 arquivos alterados.
 - `main` não foi alterada; nenhum merge, force push ou PR foi executado.
 
 ## Revisão direcionada concluída
