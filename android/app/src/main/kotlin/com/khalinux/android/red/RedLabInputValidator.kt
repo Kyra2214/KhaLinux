@@ -54,6 +54,25 @@ object RedLabInputValidator {
         }
     }
 
+    /** Valida somente a escolha por categoria; nunca recebe nem persiste valores de cookies. */
+    fun validateCookieConsent(body: ByteArray, contentType: String?): String? {
+        if (contentType?.substringBefore(';')?.trim()?.equals("application/x-www-form-urlencoded", ignoreCase = true) != true) return null
+        if (body.size > MAX_FORM_BYTES) return null
+        val encoded = runCatching { String(body, StandardCharsets.UTF_8) }.getOrNull() ?: return null
+        val values = decodePairs(encoded) ?: return null
+        if (values.keys != setOf("choice", "analytics", "preferences", "personalization")) return null
+        val choice = values["choice"] ?: return null
+        if (choice !in setOf("accept_all", "reject_optional", "custom")) return null
+        val analytics = values["analytics"] ?: return null
+        val preferences = values["preferences"] ?: return null
+        val personalization = values["personalization"] ?: return null
+        if (listOf(analytics, preferences, personalization).any { it !in setOf("0", "1") }) return null
+        if (choice == "accept_all" && listOf(analytics, preferences, personalization).any { it != "1" }) return null
+        if (choice == "reject_optional" && listOf(analytics, preferences, personalization).any { it != "0" }) return null
+        fun label(value: String) = if (value == "1") "aceito" else "recusado"
+        return "Escolha=$choice; análise=${'${'}label(analytics)}; preferências=${'${'}label(preferences)}; personalização=${'${'}label(personalization)}"
+    }
+
     fun validateParticipantEvent(query: String, expectedToken: String?): RedParticipantEvent? {
         if (expectedToken.isNullOrBlank() || query.length > MAX_QUERY_CHARS) return null
         val values = decodePairs(query) ?: return null
