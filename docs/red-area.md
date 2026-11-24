@@ -45,18 +45,17 @@ O servidor faz bind somente no IPv4 da interface Wi-Fi/AP identificada; não usa
 - A rota de demonstração de redirecionamento responde com HTTP 302 para outra página local.
 - O painel registra método, caminho, status, bytes, origem e cabeçalhos permitidos.
 
-## Modo participante e permissões
+## Cookies e permissões do navegador
 
-O modo participante Android é executado no próprio aparelho B. Ele usa as APIs reais do sistema:
+O aparelho B participa somente pelo navegador. Não instala nem executa o KhaLinux e não abre ferramentas ou painéis.
 
-- **Câmera:** permissão real e prévia local controlável.
-- **Microfone:** permissão real e medidor de nível; amostras são descartadas, sem gravação ou transmissão.
-- **Localização:** consulta e exibição local no aparelho B.
-- **Arquivos:** seletor SAF; o app não lê nem transmite nome/conteúdo do arquivo escolhido.
+- O portal apresenta um aviso de cookies com “Aceitar todos”, “Recusar opcionais” e “Configurar”.
+- A escolha é enviada ao servidor local e aparece na linha do tempo do aparelho A, com categorias aceitas/recusadas. Valores de cookies e cabeçalhos Cookie não são armazenados.
+- “Aceitar todos” refere-se somente às categorias de cookies descritas no aviso. Não concede permissões do Android ou do navegador.
+- Solicitações web de câmera, microfone ou localização dependem de origem segura e de suporte do navegador, além de ação explícita e avisos próprios do navegador.
+- O portal atual é HTTP em endereço IP local. Se o navegador não considerar essa origem segura, a API sensível fica indisponível. Não há modo participante nativo como alternativa.
+- O aparelho A centraliza toda a observabilidade e a explicação. O B mostra somente o portal e os avisos normais do navegador.
 
-O aparelho A recebe somente o tipo e o estado da ação por endpoint local autenticado com token temporário. O app atualiza o estado das permissões ao retornar de Configurações e encerra prévia/medição quando o acesso foi revogado.
-
-A página HTTP não pode conceder permissões Android. Login ou conexão Wi-Fi não concede acesso a câmera, microfone, localização ou arquivos. O fluxo nativo é executado e autorizado no aparelho B.
 
 ## Observabilidade RED
 
@@ -96,7 +95,7 @@ Os vídeos devem mostrar a criação da rede, conexão do segundo aparelho, port
 - `RedHotspotController.kt`: integração com `LocalOnlyHotspot`.
 - `RedPortalServer.kt`: servidor HTTP local, rotas, formulários e redirecionamentos.
 - `RedLabInputValidator.kt`: allowlist e validação de dados sintéticos/eventos do participante.
-- `RedParticipantScreen.kt`: demonstrações nativas no aparelho B.
+- O banner de cookies e o endpoint `/consent` ficam no `RedPortalServer.kt`; o B usa somente o navegador.
 - `RedLiveEvidenceStore.kt`: evidências efêmeras compartilhadas com BLUE.
 - `RedScreen.kt`: painel do operador, histórico e relatórios.
 
