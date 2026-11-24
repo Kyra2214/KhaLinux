@@ -10,99 +10,152 @@ import java.util.Locale
 
 /**
  * Controla somente o LocalOnlyHotspot fornecido pelo Android.
- * SSID/senha são mostrados apenas quando a API os disponibiliza.
+ * Cada solicitação tem geração própria: callbacks atrasados nunca podem reativar uma sessão cancelada.
  */
 class RedHotspotController(
     context: Context,
     private val onState: (RedHotspotSnapshot) -> Unit
 ) {
     private val wifi = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+    private val handler = Handler(Looper.getMainLooper())
+
     @Volatile private var reservation: WifiManager.LocalOnlyHotspotReservation? = null
     @Volatile private var starting = false
-    @Volatile private var stopRequested = false
+    private var requestGeneration = 0L
+    private var activeRequestGeneration: Long? = null
+    private var reservationGeneration: Long? = null
+    private var timeoutRunnable: Runnable? = null
 
+    @Synchronized
     fun start() {
-        if (reservation != null || starting || stopRequested) return
+        if (reservation != null || starting) return
+
+        requestGeneration += 1
+        val generation = requestGeneration
+        activeRequestGeneration = generation
         starting = true
-        stopRequested = false
         onState(RedHotspotSnapshot(RedNetworkState.REQUESTING_HOTSPOT, "Solicitando hotspot local ao Android."))
+
+        val timeout = Runnable {
+            synchronized(this@RedHotspotController) {
+                if (activeRequestGeneration != generation || !starting) return@synchronized
+                starting = false
+                activeRequestGeneration = null
+                requestGeneration += 1
+                timeoutRunnable = null
+                onState(
+                    RedHotspotSnapshot(
+                        state = RedNetworkState.ERROR,
+                        message = "O Android não respondeu à solicitação de hotspot dentro do tempo limite."
+                    )
+                )
+            }
+        }
+        timeoutRunnable = timeout
+        handler.postDelayed(timeout, START_TIMEOUT_MS)
+
         try {
             wifi.startLocalOnlyHotspot(object : WifiManager.LocalOnlyHotspotCallback() {
                 override fun onStarted(value: WifiManager.LocalOnlyHotspotReservation) {
-                    starting = false
-                    if (stopRequested) {
+                    synchronized(this@RedHotspotController) {
+                        if (activeRequestGeneration != generation || !starting) {
+                            runCatching { value.close() }
+                            return
+                        }
+                        timeoutRunnable?.let(handler::removeCallbacks)
+                        timeoutRunnable = null
+                        starting = false
+                        activeRequestGeneration = null
                         reservation = value
-                        runCatching { value.close() }
-                        reservation = null
-                        stopRequested = false
-                        onState(RedHotspotSnapshot(RedNetworkState.IDLE, "Hotspot local encerrado antes de iniciar o portal."))
-                        return
-                    }
-                    reservation = value
-                    val config = value.wifiConfiguration
-                    val network = discoverWifiInterface()
-                    onState(
-                        RedHotspotSnapshot(
-                            state = RedNetworkState.HOTSPOT_READY,
-                            message = "Hotspot local ativado pelo Android.",
-                            ssid = config?.SSID?.trim('"'),
-                            passphrase = config?.preSharedKey,
-                            interfaceName = network?.first,
-                            ipv4Address = network?.second
+                        reservationGeneration = generation
+
+                        val config = value.wifiConfiguration
+                        val network = discoverWifiInterface()
+                        onState(
+                            RedHotspotSnapshot(
+                                state = RedNetworkState.HOTSPOT_READY,
+                                message = "Hotspot local ativado pelo Android.",
+                                ssid = config?.SSID?.trim('"'),
+                                passphrase = config?.preSharedKey,
+                                interfaceName = network?.first,
+                                ipv4Address = network?.second
+                            )
                         )
-                    )
+                    }
                 }
 
                 override fun onStopped() {
-                    starting = false
-                    stopRequested = false
-                    reservation = null
-                    onState(RedHotspotSnapshot(RedNetworkState.IDLE, "O Android encerrou o hotspot local."))
+                    synchronized(this@RedHotspotController) {
+                        if (reservationGeneration != generation) return
+                        reservation = null
+                        reservationGeneration = null
+                        onState(RedHotspotSnapshot(RedNetworkState.IDLE, "O Android encerrou o hotspot local."))
+                    }
                 }
 
                 override fun onFailed(reason: Int) {
-                    starting = false
-                    stopRequested = false
-                    reservation = null
-                    onState(
-                        RedHotspotSnapshot(
-                            state = RedNetworkState.ERROR,
-                            message = "O Android não conseguiu iniciar o hotspot local.",
-                            androidFailureCode = reason
+                    synchronized(this@RedHotspotController) {
+                        if (activeRequestGeneration != generation || !starting) return
+                        timeoutRunnable?.let(handler::removeCallbacks)
+                        timeoutRunnable = null
+                        starting = false
+                        activeRequestGeneration = null
+                        onState(
+                            RedHotspotSnapshot(
+                                state = RedNetworkState.ERROR,
+                                message = "O Android não conseguiu iniciar o hotspot local.",
+                                androidFailureCode = reason
+                            )
                         )
-                    )
+                    }
                 }
-            }, Handler(Looper.getMainLooper()))
+            }, handler)
         } catch (security: SecurityException) {
-            starting = false
-            onState(
-                RedHotspotSnapshot(
-                    state = RedNetworkState.ERROR,
-                    message = "O Android bloqueou a solicitação. Verifique as permissões de Wi-Fi/localização e os serviços do sistema."
-                )
+            failCurrentRequest(
+                generation,
+                "O Android bloqueou a solicitação. Verifique as permissões de Wi-Fi/localização e os serviços do sistema."
             )
         } catch (error: Exception) {
-            starting = false
-            onState(
-                RedHotspotSnapshot(
-                    state = RedNetworkState.ERROR,
-                    message = "Falha ao solicitar hotspot local: ${error.message ?: "erro desconhecido"}"
-                )
+            failCurrentRequest(
+                generation,
+                "Falha ao solicitar hotspot local: ${error.message ?: "erro desconhecido"}"
             )
         }
     }
 
+    @Synchronized
+    private fun failCurrentRequest(generation: Long, message: String) {
+        if (activeRequestGeneration != generation) return
+        timeoutRunnable?.let(handler::removeCallbacks)
+        timeoutRunnable = null
+        starting = false
+        activeRequestGeneration = null
+        requestGeneration += 1
+        onState(RedHotspotSnapshot(RedNetworkState.ERROR, message))
+    }
+
+    @Synchronized
     fun stop() {
         val active = reservation
         val wasStarting = starting
         if (active == null && !wasStarting) return
-        stopRequested = wasStarting
-        starting = false
-        reservation = null
-        if (active != null) {
-            runCatching { active.close() }
-        } else {
+
+        timeoutRunnable?.let(handler::removeCallbacks)
+        timeoutRunnable = null
+
+        if (wasStarting) {
+            starting = false
+            activeRequestGeneration = null
+            requestGeneration += 1
             onState(RedHotspotSnapshot(RedNetworkState.IDLE, "Solicitação de hotspot cancelada pelo operador."))
+        }
+
+        if (active != null) {
+            reservation = null
+            reservationGeneration = null
+            requestGeneration += 1
+            runCatching { active.close() }
+            onState(RedHotspotSnapshot(RedNetworkState.IDLE, "Hotspot local encerrado pelo operador."))
         }
     }
 
@@ -124,4 +177,8 @@ class RedHotspotController(
             .firstOrNull { !it.second.isNullOrBlank() }
             ?.let { it.first to it.second!! }
     }.getOrNull()
+
+    companion object {
+        private const val START_TIMEOUT_MS = 30_000L
+    }
 }
