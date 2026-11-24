@@ -1,3 +1,11 @@
+## [Não lançado] — RED-14: preparação da entrega
+
+- Notas preliminares de release e matriz de compatibilidade adicionadas.
+- Checklist de estabilização registra portões de auditoria, testes, validação física, versionamento, assinatura, SHA-256 e PR.
+- Nenhum APK, assinatura, hash ou PR foi criado; geração depende da validação final.
+- Sem ZIP/checkpoints, conforme instrução do usuário.
+- Documentação: docs/red-blue-release-notes.md, docs/red-blue-compatibility.md e docs/red-release-checklist.md.
+
 ## [Não lançado] — RED-11: hardening de segurança e privacidade
 
 - CSP por resposta com nonce aleatório; removidos handlers inline dos botões de cookies e removido unsafe-inline de script-src.
