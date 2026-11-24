@@ -287,6 +287,10 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                         tlsPreparationUrl = null,
                         tlsCaFingerprint = null,
                         tlsBrowserTrustObserved = false,
+                        upstreamInternetAvailable = false,
+                        upstreamInternetValidated = false,
+                        upstreamTransport = null,
+                        upstreamMessage = if (mutableState.value.systemHotspotMode) "Monitoramento de upstream encerrado; hotspot do Android permanece ativo." else null,
                         networkState = RedNetworkState.ERROR
                     )
                 }
