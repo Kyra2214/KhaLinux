@@ -76,9 +76,10 @@ O servidor HTTP não deve redirecionar automaticamente para HTTPS antes da insta
 - `RedLocalTlsManager` gera uma CA RSA e uma chave de servidor usando Android Keystore; as chaves privadas não são exportadas.
 - O certificado de servidor é emitido para o IPv4 atual e inclui SAN do tipo IP, validade limitada e EKU `serverAuth`.
 - O contexto TLS oferece TLS 1.2/1.3 e o servidor principal pode abrir `SSLServerSocket` vinculado ao IPv4 do hotspot.
-- `RedTlsPreparationServer` expõe somente o certificado DER público em HTTP `8080/ca.cer` e um endpoint `/health`; não publica o portal nem endpoints de sessão.
+- `RedTlsPreparationServer` expõe em HTTP `8080` uma página de preparação (`/`), o certificado DER público (`/ca.cer`) e um endpoint `/health`; não publica o portal nem endpoints de sessão. A página orienta a instalação manual, exibe fingerprint e explica que a confiança varia por navegador.
 - A integração inicial no ViewModel prepara a CA, inicia o endpoint de preparação e inicia o portal HTTPS em `8443`.
-- A tela do operador apresenta a URL do certificado e a impressão digital SHA-256 para conferência independente.
+- A tela do operador apresenta a URL de preparação e a impressão digital SHA-256 para conferência independente.
+- O A registra o download do certificado público e distingue esse evento de confiança TLS. A primeira requisição HTTPS que conclui handshake TLS válido gera evidência `TLS_HANDSHAKE_OBSERVED`; esse evento comprova que aquela conexão foi aceita, não que as APIs web foram concedidas.
 
 **Ainda pendente:** confirmar compatibilidade de instalação/confiabilidade da CA com navegador/Android alvo; revisar ciclo de vida e falhas parciais; tratar rotação e renovação de certificado; finalizar fluxo de instalação manual e estados de confiança; atualizar todos os relatórios e telas; validar tudo na fase final. A implementação não está aprovada por build ou teste.
 
