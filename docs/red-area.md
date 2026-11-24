@@ -23,7 +23,7 @@ A interface do participante deve ser natural e semelhante a um portal Wi-Fi conv
 5. Conectar manualmente o aparelho B e abrir o portal.
 6. Percorrer páginas locais, links e redirecionamentos.
 7. Observar no painel as requisições realmente recebidas.
-8. Executar, no aparelho B, as demonstrações de permissões nativas e registrar somente o tipo/estado da ação no painel.
+8. Responder ao aviso de cookies no navegador do B e acompanhar a escolha registrada no painel A.
 9. Alternar para BLUE para analisar o mesmo cenário pela perspectiva defensiva.
 
 O servidor faz bind somente no IPv4 da interface Wi-Fi/AP identificada; não usa `0.0.0.0`. HTTP na porta 8080 é HTTP sem TLS, não HTTPS. Não há proxy transparente, interceptação de tráfego externo ou dependência de serviços remotos para a operação básica.
@@ -64,7 +64,7 @@ O aparelho B participa somente pelo navegador. Não instala nem executa o KhaLin
 - Requisições com método, rota, status, horário, bytes, tipo, endereço de origem e cabeçalhos permitidos.
 - Campos sintéticos recebidos durante a sessão.
 - Linha do tempo de navegação, formulários, redirecionamentos, permissões e recursos.
-- Resumo do evento mais recente para câmera, microfone, localização e seletor de arquivos.
+- Resumo das escolhas de cookies e dos estados de permissões web que o navegador efetivamente disponibilizar.
 - Histórico limitado a 100 sessões e 300 eventos por sessão.
 - Relatório Markdown com metadados e eventos, sem valores de formulário, códigos, cookies, tokens, arquivos, áudio, vídeo ou coordenadas.
 
