@@ -559,6 +559,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    @Synchronized
     fun recordStructuredEvent(
         type: RedEventType,
         detail: String,
@@ -631,6 +632,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         )
     }
 
+    @Synchronized
     fun recordRequest(observation: RedRequestObservation) {
         val current = mutableState.value
         val updatedRequests = (current.requests + observation).takeLast(100)
