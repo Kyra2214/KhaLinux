@@ -56,11 +56,11 @@
 - Comparação do token usa `MessageDigest.isEqual`; cinco falhas por IP acionam bloqueio de 60 segundos.
 - Cinco falhas de login de demonstração também acionam bloqueio de 60 segundos.
 - Sessão expira após 30 minutos sem atividade ou duas horas de duração absoluta; o servidor encerra e invalida o token. O ViewModel libera também o hotspot quando o portal termina inesperadamente ou expira.
-- `stop()` limpa token, IP participante, contadores e sockets. O cookie é renovado nas respostas bem-sucedidas do participante. Como o servidor atual é HTTP, o cookie não recebe atributo `Secure` e o token trafega sem TLS; ele protege contra CSRF e reutilização fora da sessão, não contra captura de tráfego por alguém na mesma rede. Usar somente o hotspot isolado de laboratório.
+- `stop()` limpa token, IP participante, contadores e sockets. O cookie é renovado nas respostas bem-sucedidas do participante. Na implementação-base HTTP anterior ao RED-07, o cookie não recebia `Secure` e o token trafegava sem TLS. No fluxo atual, o portal participante usa HTTPS/8443, o cookie recebe `Secure` e os POSTs validam a origem HTTPS. O HTTP/8080 permanece restrito à preparação e ao certificado público da CA.
 
-## HTTP sem TLS
+## Histórico da base HTTP
 
-O portal é HTTP local, não HTTPS. O portal avisa o participante para usar somente dados de teste. Não inserir credenciais reais. As APIs web sensíveis do navegador podem ficar indisponíveis por não ser uma origem segura.
+A implementação-base descrita neste documento era HTTP local e não oferecia contexto seguro para as APIs sensíveis do navegador. Esse comportamento não representa mais o transporte do portal participante: o ViewModel inicia `RedPortalServer.startHttps` em `8443`. O endpoint HTTP `8080` publica somente preparação e CA pública; não hospeda login, consentimento ou permissões web.
 
 ## Limitações
 
