@@ -8,7 +8,7 @@ O Manifest atual declara foreground service e notificações para o runtime; INT
 
 Não declara CAMERA, RECORD_AUDIO, armazenamento ou acesso amplo a arquivos para o laboratório. A Activity principal é exportada por ser o launcher; o serviço do runtime é exported=false. Não há provider declarado neste Manifest. O app usa allowBackup=false.
 
-O app mantém usesCleartextTraffic=false para tráfego HTTP de saída do próprio app. Isso não transforma o servidor local do laboratório em HTTPS: o portal RED continua explicitamente HTTP sem TLS e o navegador B aplica suas próprias regras de origem segura.
+O app mantém usesCleartextTraffic=false para tráfego HTTP de saída do próprio app. O portal participante RED usa HTTPS local em `8443`; HTTP em `8080` é um endpoint separado e restrito à entrega do certificado público da CA e health check. A confiança dessa CA no navegador B continua sendo uma condição explícita e não é inferida pela instalação.
 
 ## Hardening implementado
 
@@ -24,8 +24,9 @@ O app mantém usesCleartextTraffic=false para tráfego HTTP de saída do própri
 
 ## Limitações e riscos residuais
 
-1. HTTP sem TLS não protege o token de sessão contra observação do tráfego local. O mecanismo reduz submissões cross-origin e operações sem token, mas não substitui HTTPS.
-2. O portal por IP privado não habilita APIs web sensíveis em navegadores que exigem contexto seguro. O estado deve ser UNAVAILABLE, não uma concessão presumida.
+1. O endpoint de preparação HTTP não protege a confidencialidade do certificado público, que não é secreto; sua autenticidade depende da conferência independente do fingerprint SHA-256 antes de instalar a CA.
+2. A confiança em CA de usuário varia por versão Android/navegador. Um handshake TLS concluído é evidência de que aquela conexão foi aceita, mas não garante que as APIs de câmera, microfone ou localização serão concedidas.
+3. HTTPS local por IP exige SAN IP correspondente ao endereço exato e renovação do certificado de servidor quando o IP mudar ou o certificado expirar.
 3. O hotspot depende de callbacks e limitações do fabricante/versão Android.
 4. O endereço remoto e alguns metadados HTTP são persistidos para correlação da sessão; cabeçalhos de fingerprinting foram removidos da allowlist.
 5. A auditoria final ainda deve revisar componentes, intents, dependências, assets, logs, retenção, sanitização e cenários negativos.
