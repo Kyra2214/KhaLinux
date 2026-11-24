@@ -505,27 +505,37 @@ class RedPortalServer(
     """.trimIndent()
 
     private fun resolveLabAddress(preferredAddress: String?): Pair<String, String>? {
-        val candidates = runCatching { NetworkInterface.getNetworkInterfaces()?.toList().orEmpty() }.getOrDefault(emptyList())
+        if (preferredAddress.isNullOrBlank()) {
+            throw IllegalStateException("O servidor exige o IPv4 exato observado pelo controlador do hotspot.")
+        }
+        val requested = runCatching { InetAddress.getByName(preferredAddress) as? Inet4Address }.getOrNull()
+            ?: throw IllegalStateException("Endereço do hotspot não é um IPv4 literal válido.")
+        if (requested.isLoopbackAddress || requested.isLinkLocalAddress || requested.isAnyLocalAddress ||
+            requested.isMulticastAddress || !requested.isSiteLocalAddress
+        ) {
+            throw IllegalStateException("O endereço do hotspot não é um IPv4 privado utilizável.")
+        }
+        val candidates = runCatching { NetworkInterface.getNetworkInterfaces()?.toList().orEmpty() }
+            .getOrElse { throw IllegalStateException("Não foi possível enumerar interfaces de rede.") }
         val interfaces = candidates.filter { network ->
             val name = network.name.lowercase(Locale.ROOT)
             runCatching { network.isUp && !network.isLoopback }.getOrDefault(false) &&
                 (name.startsWith("wlan") || name.startsWith("ap") || name.startsWith("swlan") || name.contains("softap"))
         }
-        if (!preferredAddress.isNullOrBlank()) {
-            interfaces.firstNotNullOfOrNull { network ->
-                val address = network.inetAddresses.toList().filterIsInstance<Inet4Address>()
-                    .firstOrNull { it.hostAddress == preferredAddress }
-                address?.let { network.name to it.hostAddress }
-            }?.let { return it }
-            throw IllegalStateException("O endereço fornecido pelo hotspot não pertence a uma interface Wi-Fi/AP ativa.")
-        }
-        return interfaces.asSequence().flatMap { network ->
-            network.inetAddresses.toList().asSequence()
+        return interfaces.firstNotNullOfOrNull { network ->
+            val exactAddress = network.inetAddresses.toList()
                 .filterIsInstance<Inet4Address>()
-                .filter { !it.isLoopbackAddress && !it.isLinkLocalAddress }
-                .map { network.name to it.hostAddress }
-        }.firstOrNull { it.second.isNotBlank() }
+                .firstOrNull { it.hostAddress == requested.hostAddress && !it.isLoopbackAddress && !it.isLinkLocalAddress }
+            exactAddress?.let { network.name to it.hostAddress }
+        } ?: throw IllegalStateException("O IPv4 fornecido não pertence à interface Wi-Fi/AP ativa da sessão.")
     }
+
+    private fun isBoundAddressAvailable(interfaceName: String, address: String): Boolean = runCatching {
+        val network = NetworkInterface.getByName(interfaceName) ?: return@runCatching false
+        network.isUp && !network.isLoopback && network.inetAddresses.toList()
+            .filterIsInstance<Inet4Address>()
+            .any { it.hostAddress == address }
+    }.getOrDefault(false)
 
     @Synchronized
     fun stop() {
