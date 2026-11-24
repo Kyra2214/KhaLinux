@@ -114,7 +114,17 @@ class RedPortalServer(
             var requestBody = ByteArray(0)
             var status = 400
             var receivedHeader = false
+            var responseSent = false
+            var rejectionReason: String? = null
+            var serverFailure = false
             var observedHeaders: Map<String, String> = emptyMap()
+
+            fun respond(code: Int, body: String, responseContentType: String = "text/html") {
+                status = code
+                writeResponse(output, code, body, responseContentType)
+                responseSent = true
+            }
+
             try {
                 val headerBytes = readHeader(input) ?: return
                 receivedHeader = true
@@ -122,30 +132,34 @@ class RedPortalServer(
                 val lines = headerText.split("\r\n")
                 val requestLine = lines.firstOrNull().orEmpty()
                 val parts = requestLine.split(' ')
-                if (parts.size != 3 || !parts[2].matches(Regex("HTTP/1\\.[01]"))) {
-                    writeResponse(output, 400, "Requisição inválida.")
+                method = parts.getOrNull(0)?.uppercase(Locale.ROOT) ?: "UNKNOWN"
+                if (parts.size > 1) path = parts[1].substringBefore('?').take(512)
+                if (parts.size != 3 || (parts[2] != "HTTP/1.0" && parts[2] != "HTTP/1.1")) {
+                    rejectionReason = "invalid_request_line"
+                    respond(400, "Requisição inválida.")
                     return
                 }
-                method = parts[0].uppercase(Locale.ROOT)
+
                 val rawTarget = parts[1]
                 val rawPath = rawTarget.substringBefore('?')
                 val query = rawTarget.substringAfter('?', "")
                 if (rawPath.length > 512 || query.length > 1024) {
-                    status = 414
-                    writeResponse(output, status, "URI acima do limite permitido.")
+                    rejectionReason = "uri_too_long"
+                    respond(414, "URI acima do limite permitido.")
                     return
                 }
                 path = rawPath
                 if (query.isNotEmpty()) {
-                    status = 400
-                    writeResponse(output, status, "Query string não é aceita por este portal local.")
+                    rejectionReason = "query_not_supported"
+                    respond(400, "Query string não é aceita por este portal local.")
                     return
                 }
                 if (path.isBlank() || !path.startsWith("/") || path.contains("..") || path.contains('\\')) {
-                    status = 400
-                    writeResponse(output, status, "Caminho inválido.")
+                    rejectionReason = "invalid_path"
+                    respond(400, "Caminho inválido.")
                     return
                 }
+
                 val headers = parseHeaders(lines.drop(1))
                 observedHeaders = safeRequestHeaders(headers)
                 val expectedHost = "${boundIpv4Address}:${boundPort}"
@@ -153,22 +167,23 @@ class RedPortalServer(
                 if ((parts[2] == "HTTP/1.1" && hostHeader.isNullOrBlank()) ||
                     (!hostHeader.isNullOrBlank() && !hostHeader.equals(expectedHost, ignoreCase = true))
                 ) {
-                    status = 421
-                    writeResponse(output, status, "Host não corresponde ao endereço do portal local.")
+                    rejectionReason = "host_mismatch"
+                    respond(421, "Host não corresponde ao endereço do portal local.")
                     return
                 }
+
                 contentType = headers["content-type"]
                 if (method == "POST" && path in setOf("/consent", "/login") &&
                     contentType?.substringBefore(';')?.trim()
                         ?.equals("application/x-www-form-urlencoded", ignoreCase = true) != true
                 ) {
-                    status = 415
-                    writeResponse(output, status, "Content-Type não suportado para este formulário.")
+                    rejectionReason = "unsupported_content_type"
+                    respond(415, "Content-Type não suportado para este formulário.")
                     return
                 }
                 if (headers.containsKey("transfer-encoding")) {
-                    status = 501
-                    writeResponse(output, status, "Transfer-Encoding não disponível neste laboratório.")
+                    rejectionReason = "transfer_encoding_unsupported"
+                    respond(501, "Transfer-Encoding não disponível neste laboratório.")
                     return
                 }
                 val contentLength = headers["content-length"]
@@ -177,15 +192,15 @@ class RedPortalServer(
                 }
                 val declaredLength = contentLength?.toIntOrNull() ?: 0
                 if (declaredLength < 0 || declaredLength > MAX_BODY_BYTES) {
-                    status = 413
-                    writeResponse(output, status, "Corpo acima do limite permitido.")
+                    rejectionReason = "body_too_large"
+                    respond(413, "Corpo acima do limite permitido.")
                     return
                 }
                 requestBody = readBody(input, declaredLength) ?: ByteArray(0)
                 bodyBytes = requestBody.size
                 if (bodyBytes != declaredLength) {
-                    status = 400
-                    writeResponse(output, status, "Corpo incompleto.")
+                    rejectionReason = "incomplete_body"
+                    respond(400, "Corpo incompleto.")
                     return
                 }
 
@@ -225,6 +240,7 @@ class RedPortalServer(
                     method == "GET" && path == "/go/notice" -> {
                         status = 302
                         writeRedirect(output, "/notice")
+                        responseSent = true
                         onEvent("Redirecionamento local executado: /go/notice → /notice.")
                         return
                     }
@@ -240,6 +256,7 @@ class RedPortalServer(
                         val consent = RedLabInputValidator.validateCookieConsent(requestBody, contentType)
                         if (consent == null) {
                             status = 400
+                            rejectionReason = "invalid_cookie_consent"
                             resultHtml("Escolha inválida", "Não foi possível validar as categorias selecionadas.")
                         } else {
                             status = 200
@@ -250,6 +267,7 @@ class RedPortalServer(
                     method == "POST" && path == "/login" && portalMode == RedPortalMode.LOCAL_LOGIN -> {
                         val result = processSyntheticLogin(requestBody, contentType)
                         status = result.first
+                        if (status >= 400) rejectionReason = "form_validation_failed"
                         result.second
                     }
                     method == "HEAD" && (
@@ -262,14 +280,17 @@ class RedPortalServer(
                     }
                     method == "HEAD" -> {
                         status = 404
+                        rejectionReason = "route_not_found"
                         ""
                     }
                     method !in setOf("GET", "POST", "HEAD") -> {
                         status = 405
+                        rejectionReason = "method_not_allowed"
                         "Método não permitido."
                     }
                     else -> {
                         status = 404
+                        rejectionReason = "route_not_found"
                         "Rota não encontrada neste laboratório."
                     }
                 }
@@ -277,14 +298,30 @@ class RedPortalServer(
                     status in 200..299 && path != "/health" && response.contains("</body>")
                 ) response.replace("</body>", cookieBannerHtml() + "</body>") else response
                 writeResponse(output, status, renderedResponse, contentType = if (path == "/health") "application/json" else "text/html")
+                responseSent = true
                 if (method == "GET" && path == "/") {
                     onEvent("Portal de treinamento acessado pelo aparelho participante.")
-                } else {
-                    Unit
                 }
             } catch (error: Exception) {
-                status = if (error is SocketTimeoutException) 408 else 400
-                runCatching { writeResponse(output, status, "Não foi possível processar a requisição.") }
+                status = when {
+                    error is SocketTimeoutException -> 408
+                    error is IllegalArgumentException -> 400
+                    else -> 500
+                }
+                rejectionReason = when {
+                    error is SocketTimeoutException -> "client_timeout"
+                    error is IllegalArgumentException -> "malformed_request"
+                    else -> null
+                }
+                serverFailure = error !is SocketTimeoutException && error !is IllegalArgumentException
+                runCatching {
+                    writeResponse(
+                        output,
+                        status,
+                        if (serverFailure) "Falha interna ao processar a requisição." else "Não foi possível processar a requisição."
+                    )
+                    responseSent = true
+                }
                 onEvent("Falha ao processar requisição HTTP local: ${error.javaClass.simpleName}.")
             } finally {
                 if (receivedHeader) {
@@ -297,7 +334,10 @@ class RedPortalServer(
                                 contentType = contentType,
                                 bodyBytes = bodyBytes,
                                 remoteAddress = peer.inetAddress?.hostAddress,
-                                safeHeaders = observedHeaders
+                                safeHeaders = observedHeaders,
+                                responseSent = responseSent,
+                                rejectionReason = rejectionReason,
+                                serverFailure = serverFailure
                             )
                         )
                     }
