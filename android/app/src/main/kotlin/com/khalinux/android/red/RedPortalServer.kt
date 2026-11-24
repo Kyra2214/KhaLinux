@@ -90,6 +90,11 @@ class RedPortalServer(
             val client = try {
                 server.accept()
             } catch (_: SocketTimeoutException) {
+                if (isSessionExpired()) {
+                    onEvent("Sessão do portal expirou por inatividade ou tempo máximo.")
+                    stop()
+                    break
+                }
                 if (!isBoundAddressAvailable(expectedInterface, expectedAddress)) {
                     onEvent("Interface $expectedInterface perdeu o IPv4 $expectedAddress; encerrando o portal.")
                     stop()
