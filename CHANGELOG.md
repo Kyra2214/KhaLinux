@@ -1,3 +1,13 @@
+## [Não lançado] — RED-15: modo hotspot do sistema e observação de upstream (parcial)
+
+- Adicionado `RedSystemHotspotController`: abre as Configurações de tethering do Android sem APIs ocultas, captura baseline de IPv4 Wi-Fi e identifica somente interface/endereço inequívoco.
+- Adicionada observação do upstream padrão do aparelho A por `ConnectivityManager.registerDefaultNetworkCallback`, distinguindo capacidade INTERNET de acesso validado.
+- ViewModel passou a compartilhar a inicialização do portal HTTPS entre `LocalOnlyHotspot` e o hotspot do sistema.
+- Tela RED ganhou modo alternativo para ligar o hotspot do sistema sem upstream, conectar B e ativar dados móveis depois sem desligar o hotspot; o modo local-only permanece isolado.
+- Painel e relatório mostram upstream validado em A sem afirmar que B navegou externamente.
+- Encerrar o portal não desliga o hotspot do sistema; essa ação permanece sob controle do Android.
+- **Parcial:** descoberta de interface depende do padrão OEM; permanência da conexão B e encaminhamento externo exigem validação física após concluir o roadmap.
+
 ## [Não lançado] — RED-07: primeira integração HTTPS local offline (parcial)
 
 - Adicionado `RedLocalTlsManager`: CA e chave de servidor RSA geradas pelo Android Keystore; chaves privadas não são exportadas.
