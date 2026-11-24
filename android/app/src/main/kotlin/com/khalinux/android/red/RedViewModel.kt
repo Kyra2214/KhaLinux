@@ -329,7 +329,8 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         webPermissionState: RedWebPermissionState? = null,
         responseSent: Boolean? = null,
         rejectionReason: String? = null,
-        serverFailure: Boolean? = null
+        serverFailure: Boolean? = null,
+        eventTimestamp: Long? = null
     ) {
         val current = mutableState.value.session ?: return
         val nextState = when (type) {
@@ -359,7 +360,8 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             webPermissionState = webPermissionState,
             responseSent = responseSent,
             rejectionReason = rejectionReason,
-            serverFailure = serverFailure
+            serverFailure = serverFailure,
+            eventTimestamp = eventTimestamp
         )
         store.save(updated)
         RedLiveEvidenceStore.updateSession(updated)
@@ -410,7 +412,8 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 bytesReceived = observation.bodyBytes,
                 responseSent = observation.responseSent,
                 rejectionReason = observation.rejectionReason,
-                serverFailure = observation.serverFailure
+                serverFailure = observation.serverFailure,
+                eventTimestamp = observation.timestamp
             )
         }
         observation.rejectionReason?.let { reason ->
@@ -424,7 +427,8 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 bytesReceived = observation.bodyBytes,
                 responseSent = observation.responseSent,
                 rejectionReason = reason,
-                serverFailure = observation.serverFailure
+                serverFailure = observation.serverFailure,
+                eventTimestamp = observation.timestamp
             )
         }
         if (observation.serverFailure) {
@@ -437,7 +441,8 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 httpStatus = observation.statusCode,
                 bytesReceived = observation.bodyBytes,
                 responseSent = observation.responseSent,
-                serverFailure = true
+                serverFailure = true,
+                eventTimestamp = observation.timestamp
             )
         }
         if (observation.responseSent) {
@@ -454,7 +459,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             )
         }
         if (observation.path.startsWith("/go/") && observation.statusCode in 300..399) {
-            recordStructuredEvent(RedEventType.REDIRECT, "Redirecionamento local executado: ${observation.path}.", source = "http", route = observation.path, httpStatus = observation.statusCode)
+            recordStructuredEvent(RedEventType.REDIRECT, "Redirecionamento local executado: ${observation.path}.", source = "http", route = observation.path, httpStatus = observation.statusCode, eventTimestamp = observation.timestamp)
         } else if (observation.method == "GET" && observation.path != "/" && observation.statusCode in 200..299) {
             recordStructuredEvent(RedEventType.NAVIGATION, "Navegação local: ${observation.path}.", source = "http", route = observation.path, httpStatus = observation.statusCode)
         }
@@ -565,7 +570,8 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         webPermissionState: RedWebPermissionState? = null,
         responseSent: Boolean? = null,
         rejectionReason: String? = null,
-        serverFailure: Boolean? = null
+        serverFailure: Boolean? = null,
+        eventTimestamp: Long? = null
     ) = copy(events = (events + RedEvent(
         sessionId = id,
         type = type,
