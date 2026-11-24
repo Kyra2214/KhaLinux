@@ -31,6 +31,14 @@ O app mantém usesCleartextTraffic=false para tráfego HTTP de saída do própri
 4. O endereço remoto e alguns metadados HTTP são persistidos para correlação da sessão; cabeçalhos de fingerprinting foram removidos da allowlist.
 5. A auditoria final ainda deve revisar componentes, intents, dependências, assets, logs, retenção, sanitização e cenários negativos.
 
+## Hotspot do sistema e upstream
+
+- O modo de hotspot do sistema é ativado manualmente pelo operador nas Configurações do Android; o app não usa reflexão, APIs ocultas ou permissões privilegiadas de tethering.
+- O KhaLinux observa somente nomes de interface e IPv4 locais necessários para vincular o portal; SSID/senha permanecem sob controle do Android e não são presumidos.
+- `ConnectivityManager` observa somente capacidades da rede padrão no aparelho A. `NET_CAPABILITY_VALIDATED` significa que A possui upstream validado, não prova que B conseguiu navegar externamente.
+- Se mais de uma interface/IPv4 for candidato, a descoberta falha fechada e não inicia o portal em endereço ambíguo.
+- Encerrar o portal não desliga o hotspot do sistema; o operador controla sua ativação/desativação nas Configurações.
+
 ## Checklist de auditoria final (não executado nesta fase)
 
 - [ ] Conferir exported components, intents, providers, services e permissões do Manifest.
