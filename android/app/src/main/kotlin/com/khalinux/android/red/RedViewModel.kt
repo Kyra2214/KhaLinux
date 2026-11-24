@@ -588,6 +588,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             )
         }
         RedLiveEvidenceStore.clear()
+        refreshHistory()
     }
 
     fun clearSensitivePanelData() {
