@@ -110,6 +110,9 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                         networkState = RedNetworkState.ERROR,
                         networkRunning = false,
                         portalEndpoint = null,
+                        tlsPreparationUrl = null,
+                        tlsCaFingerprint = null,
+                        tlsBrowserTrustObserved = false,
                         message = if (previousState.systemHotspotMode) {
                             "Portal encerrado inesperadamente. O hotspot do Android permanece ativo; tente detectar novamente ou desligue-o nas Configurações."
                         } else {
