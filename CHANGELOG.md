@@ -1,8 +1,8 @@
 ## [Não lançado] — RED-07: permissões web do navegador (parcial)
 
 - Endpoint `POST /browser-permission` valida apenas recurso e estado, sem aceitar mídia ou coordenadas.
-- Portal após login tem fluxo de solicitação real de câmera/microfone/localização em contexto seguro; tracks são encerrados e coordenadas descartadas.
-- Em origem HTTP insegura, APIs não são chamadas e A registra `UNAVAILABLE`.
+- Após login, o portal oferece link para página com ações separadas de câmera, microfone e localização; cada solicitação exige clique próprio. Em contexto seguro, tracks são encerrados e coordenadas descartadas.
+- Em origem HTTP insegura, APIs não são chamadas e A registra `UNAVAILABLE`; aceitar cookies ou concluir login não dispara solicitações.
 - Eventos tipados são persistidos e exibidos em RED/BLUE.
 - Bloqueio: o endereço atual é HTTP por IPv4 privado; prompts nativos exigem HTTPS confiável. Domínio/certificado ainda não definido.
 - Documentação: `docs/red-browser-permissions.md`. Nenhum teste/build foi executado.
