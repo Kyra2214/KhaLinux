@@ -26,6 +26,7 @@ class RedSystemHotspotController(
     private val connectivity = appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
     @Volatile private var baseline: Set<Pair<String, String>> = emptySet()
     @Volatile private var callback: ConnectivityManager.NetworkCallback? = null
+    @Volatile private var lastUpstream: RedUpstreamSnapshot? = null
 
     fun openSystemHotspotSettings(): Boolean {
         val initial = snapshotWifiIpv4Addresses() ?: return false
@@ -79,6 +80,7 @@ class RedSystemHotspotController(
 
     private fun startUpstreamMonitoring() {
         if (callback != null) return
+        lastUpstream = null
         val observer = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
                 report(connectivity.getNetworkCapabilities(network))
@@ -103,7 +105,7 @@ class RedSystemHotspotController(
             connectivity.registerDefaultNetworkCallback(observer)
             callback = observer
         } catch (_: Exception) {
-            onUpstreamChanged(
+            publishUpstream(
                 RedUpstreamSnapshot(
                     internetAvailable = false,
                     validated = false,
@@ -129,7 +131,7 @@ class RedSystemHotspotController(
             internet -> "Aparelho A detectou rede com capacidade INTERNET, mas sem validação de acesso externo ($transport)."
             else -> "Aparelho A está sem upstream de internet; o portal local continua independente."
         }
-        onUpstreamChanged(RedUpstreamSnapshot(internet, validated, transport, message))
+        publishUpstream(RedUpstreamSnapshot(internet, validated, transport, message))
     }
 
     fun stopMonitoring() {
@@ -137,7 +139,7 @@ class RedSystemHotspotController(
         if (active != null) {
             runCatching { connectivity.unregisterNetworkCallback(active) }
             callback = null
-            onUpstreamChanged(
+            publishUpstream(
                 RedUpstreamSnapshot(
                     internetAvailable = false,
                     validated = false,
@@ -146,6 +148,12 @@ class RedSystemHotspotController(
                 )
             )
         }
+    }
+
+    private fun publishUpstream(snapshot: RedUpstreamSnapshot) {
+        if (lastUpstream == snapshot) return
+        lastUpstream = snapshot
+        onUpstreamChanged(snapshot)
     }
 
     private fun snapshotWifiIpv4Addresses(): Set<Pair<String, String>>? = runCatching {
