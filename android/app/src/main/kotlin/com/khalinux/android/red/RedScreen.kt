@@ -58,6 +58,7 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
     }
     var hotspotPermissionState by remember(context) { mutableStateOf(readHotspotPermissionState(context)) }
     var hotspotPermissionMessage by remember { mutableStateOf<String?>(null) }
+    var hotspotPermissionPending by remember { mutableStateOf(false) }
     val previousPermissionState = remember { mutableStateOf(hotspotPermissionState) }
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner, context) {
@@ -83,6 +84,7 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
     val hotspotPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+        hotspotPermissionPending = false
         val current = readHotspotPermissionState(context)
         hotspotPermissionState = current
         previousPermissionState.value = current
@@ -178,7 +180,20 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
             }
             state.session?.let { session ->
                 Text("Sessão: ${session.state} · ${session.completedSteps.size}/${operation.steps.size} etapas")
-                Text("Rede: ${state.networkState}", style = MaterialTheme.typography.bodySmall)
+                Text(
+                    when (state.networkState) {
+                        RedNetworkState.IDLE -> "Rede: inativa."
+                        RedNetworkState.REQUESTING_HOTSPOT -> "Rede: solicitação enviada ao Android; aguardando resposta."
+                        RedNetworkState.HOTSPOT_READY -> "Rede: hotspot confirmado pelo Android."
+                        RedNetworkState.DISCOVERING_INTERFACE -> "Rede: identificando interface e IPv4 do hotspot."
+                        RedNetworkState.STARTING_SERVER -> "Portal: iniciando servidor na interface identificada."
+                        RedNetworkState.WAITING_PARTICIPANT -> "Portal: ativo; aguardando a primeira requisição do navegador."
+                        RedNetworkState.PARTICIPANT_ACTIVE -> "Participante: atividade HTTP observada pelo portal."
+                        RedNetworkState.STOPPING -> "Rede e portal: encerrando recursos."
+                        RedNetworkState.ERROR -> "Rede/portal: ocorreu uma falha; consulte os detalhes e a ação de recuperação."
+                    },
+                    style = MaterialTheme.typography.bodySmall
+                )
                 state.hotspotSnapshot?.let { snapshot ->
                     Text(snapshot.message, style = MaterialTheme.typography.bodySmall)
                     snapshot.ssid?.let { Text("SSID: $it", style = MaterialTheme.typography.bodySmall) }
@@ -193,6 +208,13 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                         TextButton(onClick = { clipboard.setText(AnnotatedString(endpoint.url)) }) { Text("Copiar endereço do portal") }
                         Text("Servidor HTTP local · porta ${endpoint.port}", style = MaterialTheme.typography.labelLarge)
                         Text("Interface: ${endpoint.interfaceName ?: "não identificada"}", style = MaterialTheme.typography.bodySmall)
+                        Card(Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                Text("Aviso: HTTP sem TLS", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelLarge)
+                                Text("Este portal não usa HTTPS e não criptografa a comunicação. Use somente identificadores e códigos de teste; nunca informe senhas pessoais.", style = MaterialTheme.typography.bodySmall)
+                                Text("Visibilidade: o painel observa requisições destinadas a este portal. Não captura tráfego externo nem fornece uma lista universal de clientes Wi-Fi.", style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
                     } ?: Text(
                         if (state.networkState == RedNetworkState.ERROR) {
                             "O portal foi encerrado ou não pôde iniciar. A reserva do hotspot ainda pode estar ativa; use Parar para liberá-la."
@@ -204,9 +226,15 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                     state.hotspotInfo?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
                     Text(
                         when (state.networkState) {
-                            RedNetworkState.DISCOVERING_INTERFACE -> "Hotspot: identificando interface e endereço."
-                            RedNetworkState.PARTICIPANT_ACTIVE -> "Participante: atividade HTTP observada."
-                            else -> "Portal: aguardando primeiro acesso do navegador."
+                            RedNetworkState.REQUESTING_HOTSPOT -> "Aguardando o callback real do Android; o hotspot ainda não foi confirmado."
+                            RedNetworkState.DISCOVERING_INTERFACE -> "Hotspot confirmado; interface e endereço ainda em identificação."
+                            RedNetworkState.STARTING_SERVER -> "Interface identificada; servidor em inicialização."
+                            RedNetworkState.WAITING_PARTICIPANT -> "Portal ativo; nenhuma requisição HTTP do B foi recebida ainda."
+                            RedNetworkState.PARTICIPANT_ACTIVE -> "Requisição HTTP recebida; atividade do navegador confirmada."
+                            RedNetworkState.STOPPING -> "Aguardando encerramento do hotspot e dos sockets."
+                            RedNetworkState.ERROR -> "Ação de recuperação: use Parar para liberar eventual reserva restante ou tente novamente."
+                            RedNetworkState.IDLE -> "Rede inativa."
+                            RedNetworkState.HOTSPOT_READY -> "Hotspot confirmado pelo Android."
                         },
                         style = MaterialTheme.typography.bodySmall
                     )
@@ -254,6 +282,7 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                         if (hotspotPermissionState == RedAndroidPermissionState.GRANTED) {
                             viewModel.startNetworkLab()
                         } else if (hotspotPermissionState in setOf(RedAndroidPermissionState.PERMANENTLY_DENIED, RedAndroidPermissionState.REVOKED)) {
+                            hotspotPermissionMessage = "Permissão não disponível. Ative a permissão necessária nas Configurações e retorne ao KhaLinux."
                             context.startActivity(
                                 Intent(
                                     Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
@@ -261,6 +290,8 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                                 )
                             )
                         } else {
+                            hotspotPermissionPending = true
+                            hotspotPermissionMessage = "Aguardando a resposta do diálogo de permissão do Android."
                             context.getSharedPreferences("red_permission_state", Context.MODE_PRIVATE)
                                 .edit().putBoolean("hotspot_location_asked", true).apply()
                             viewModel.recordStructuredEvent(
@@ -270,7 +301,15 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                             )
                             hotspotPermission.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION))
                         }
-                    }) { Text("Iniciar hotspot e portal local") }
+                    }, enabled = !hotspotPermissionPending && state.networkState != RedNetworkState.REQUESTING_HOTSPOT) {
+                        Text(
+                            when {
+                                hotspotPermissionPending -> "Aguardando permissão do Android…"
+                                state.networkState == RedNetworkState.REQUESTING_HOTSPOT -> "Solicitando hotspot…"
+                                else -> "Iniciar hotspot e portal local"
+                            }
+                        )
+                    }
                 }
                 LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(operation.steps, key = { it.id }) { step ->
