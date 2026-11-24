@@ -1,3 +1,11 @@
+## [Não lançado] — RED-12/RED-13: preparação da validação final
+
+- Plano de build/lint/testes host/Android documentado sem executar comandos de validação.
+- Matriz física revisada para a topologia atual: B somente navegador, login de teste, cookies e solicitações web separadas.
+- Removidos da matriz física do B os cenários antigos de app participante, permissões nativas, SAF, prévia de câmera e medidor de microfone.
+- Execução de testes, build, auditoria e validação física permanece adiada até a conclusão integral do roadmap.
+- Documentação: docs/red-validation-plan.md e docs/red-physical-validation.md.
+
 ## [Não lançado] — RED-11: hardening de segurança e privacidade
 
 - Allowlist de headers persistidos reduzida; User-Agent e Accept-Language removidos.
