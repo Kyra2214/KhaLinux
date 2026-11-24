@@ -46,6 +46,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         onRequest = { observation -> recordRequest(observation) },
         onSyntheticSubmission = { submission -> recordSyntheticSubmission(submission) },
         onCookieConsent = { consent -> recordStructuredEvent(RedEventType.COOKIE_CONSENT_RECORDED, consent.summary(), source = "browser-cookie-consent", cookieConsent = consent) },
+        configuredPort = RedPortalConfiguration().requestedPort
     )
     private val hotspot = RedHotspotController(application) { snapshot ->
         val info = buildList {
