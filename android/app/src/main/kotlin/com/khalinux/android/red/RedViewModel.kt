@@ -2,6 +2,9 @@ package com.khalinux.android.red
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,6 +35,11 @@ data class RedUiState(
 
 class RedViewModel(application: Application) : AndroidViewModel(application) {
     private val store = RedSessionStore(application)
+    private val appLifecycleObserver = LifecycleEventObserver { _, event ->
+        if (event == Lifecycle.Event.ON_STOP) {
+            interruptActiveSession("Aplicativo foi para segundo plano ou a tela foi bloqueada; rede e portal foram encerrados.")
+        }
+    }
     private val portal = RedPortalServer(
         onEvent = { detail -> recordRuntimeEvent(detail) },
         onAddress = { address ->
@@ -167,6 +175,8 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         }.onFailure { error ->
             mutableState.update { it.copy(message = "Catálogo RED embarcado inválido; usando catálogo interno de contingência: " + (error.message ?: "erro de leitura")) }
         }
+        ProcessLifecycleOwner.get().lifecycle.addObserver(appLifecycleObserver)
+        viewModelScope.launch(Dispatchers.IO) { recoverInterruptedSessions() }
     }
 
     fun open() {
@@ -514,9 +524,70 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     override fun onCleared() {
-        stopNetworkLab()
+        ProcessLifecycleOwner.get().lifecycle.removeObserver(appLifecycleObserver)
+        interruptActiveSession("Área RED encerrada; sessão marcada como interrompida.")
         RedLiveEvidenceStore.clear()
         super.onCleared()
+    }
+
+    private fun recoverInterruptedSessions() {
+        val now = System.currentTimeMillis()
+        store.all().filter { session ->
+            session.endedAt == null &&
+                session.state !in setOf(RedOperationState.COMPLETED, RedOperationState.INTERRUPTED)
+        }.forEach { session ->
+            val sequence = (session.events.maxOfOrNull { it.sequence } ?: 0) + 1
+            val event = RedEvent(
+                sessionId = session.id,
+                type = RedEventType.SESSION_INTERRUPTED,
+                timestamp = now,
+                detail = "Processo anterior encerrou sem finalizar a sessão; recuperada como interrompida.",
+                sequence = sequence,
+                source = "recovery"
+            )
+            store.save(
+                session.copy(
+                    state = RedOperationState.INTERRUPTED,
+                    endedAt = now,
+                    events = (session.events + event).takeLast(300)
+                )
+            )
+        }
+        mutableState.update { it.copy(history = store.all()) }
+    }
+
+    private fun interruptActiveSession(reason: String) {
+        val current = mutableState.value.session
+        stopNetworkLab()
+        if (current == null || current.endedAt != null ||
+            current.state in setOf(RedOperationState.COMPLETED, RedOperationState.INTERRUPTED)
+        ) return
+        val now = System.currentTimeMillis()
+        val sequence = (current.events.maxOfOrNull { it.sequence } ?: 0) + 1
+        val event = RedEvent(
+            sessionId = current.id,
+            type = RedEventType.SESSION_INTERRUPTED,
+            timestamp = now,
+            detail = reason,
+            sequence = sequence,
+            source = "lifecycle"
+        )
+        val updated = current.copy(
+            state = RedOperationState.INTERRUPTED,
+            endedAt = now,
+            events = (current.events + event).takeLast(300)
+        )
+        store.save(updated)
+        mutableState.update {
+            it.copy(
+                session = updated,
+                latestSubmission = null,
+                requests = emptyList(),
+                participantObservation = null,
+                message = reason
+            )
+        }
+        RedLiveEvidenceStore.clear()
     }
 
     fun clearSensitivePanelData() {
