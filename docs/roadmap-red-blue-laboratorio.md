@@ -8,10 +8,10 @@ Este documento é o plano de execução da Área RED/BLUE nesta branch. O `ROADM
 
 ## Progresso da execução
 
-- **Implementação RED/BLUE:** 18,75% (3 de 16 submódulos concluídos).
-- **Concluídos:** RED-00 — [inventário de baseline](red-baseline-inventory.md); RED-01 — [modelo de domínio](red-domain-model.md); RED-02 — [matriz de permissões](red-permissions.md).
+- **Implementação RED/BLUE:** 25% (4 de 16 submódulos concluídos).
+- **Concluídos:** RED-00 — [inventário de baseline](red-baseline-inventory.md); RED-01 — [modelo de domínio](red-domain-model.md); RED-02 — [matriz de permissões](red-permissions.md); RED-03 — [ciclo de vida do hotspot](red-hotspot-lifecycle.md).
 - **Parciais:** RED-05 — banner e registro de consentimento de cookies; RED-07 — remoção do participante nativo e redefinição do fluxo web.
-- **Próximo submódulo:** RED-03 — rede de laboratório e hotspot.
+- **Próximo submódulo:** RED-04 — identificação da interface, bind do servidor e endereço do portal.
 - **Validação:** não iniciada nesta execução; todas as atividades de teste/build/compilação ficam para a etapa final.
 - **Pacotes ZIP:** desativados; execução diretamente no repositório conforme instrução do usuário.
 
@@ -151,6 +151,8 @@ Atividades:
 
 ## RED-03 — Rede de laboratório e hotspot
 
+**Estado:** implementação concluída em código/documentação; testes e validação de fabricante/versão ficam para a fase final. Ver [red-hotspot-lifecycle.md](red-hotspot-lifecycle.md).
+
 **Objetivo:** iniciar e encerrar a rede usando a API suportada pelo Android.
 
 Atividades:
@@ -171,7 +173,7 @@ Atividades:
 - Corridas entre start/stop e prevenção de duas reservas simultâneas.
 - Validação de configuração sem fabricar valores do Android.
 
-**Aceite:** implementação determinística e sem corrida conhecida; build do módulo Android aprovado antes de testes físicos; parâmetros exibidos têm origem comprovada.
+**Aceite de implementação:** geração de solicitação, timeout, cancelamento, callbacks tardios, stop idempotente e correlação inequívoca de interface/IPv4 implementados; configurações vêm da reserva Android e campos não fornecidos permanecem nulos. Build e testes ficam para a fase final.
 
 ## RED-04 — Interface de rede e servidor HTTP local
 
