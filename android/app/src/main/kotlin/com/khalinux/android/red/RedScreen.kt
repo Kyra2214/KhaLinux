@@ -2,6 +2,11 @@ package com.khalinux.android.red
 
 import android.graphics.Bitmap
 import android.content.Context
+import android.app.Activity
+import android.content.ContextWrapper
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -59,7 +64,7 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                 val current = readHotspotPermissionState(context)
                 val previous = previousPermissionState.value
                 if (previous in setOf(RedAndroidPermissionState.PRECISE_GRANTED, RedAndroidPermissionState.APPROXIMATE_GRANTED) &&
-                    current == RedAndroidPermissionState.DENIED
+                    current in setOf(RedAndroidPermissionState.DENIED, RedAndroidPermissionState.PERMANENTLY_DENIED)
                 ) {
                     viewModel.recordStructuredEvent(
                         RedEventType.ANDROID_PERMISSION_REVOKED,
@@ -67,8 +72,9 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                         source = "android-permission"
                     )
                 }
-                previousPermissionState.value = current
-                hotspotPermissionState = current
+                val resolved = if (previous in setOf(RedAndroidPermissionState.PRECISE_GRANTED, RedAndroidPermissionState.APPROXIMATE_GRANTED) && current in setOf(RedAndroidPermissionState.DENIED, RedAndroidPermissionState.PERMANENTLY_DENIED)) RedAndroidPermissionState.REVOKED else current
+                previousPermissionState.value = resolved
+                hotspotPermissionState = resolved
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -231,7 +237,16 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                     Button(onClick = {
                         if (hotspotPermissionState in setOf(RedAndroidPermissionState.PRECISE_GRANTED, RedAndroidPermissionState.APPROXIMATE_GRANTED)) {
                             viewModel.startNetworkLab()
+                        } else if (hotspotPermissionState in setOf(RedAndroidPermissionState.PERMANENTLY_DENIED, RedAndroidPermissionState.REVOKED)) {
+                            context.startActivity(
+                                Intent(
+                                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                    Uri.parse("package:${context.packageName}")
+                                )
+                            )
                         } else {
+                            context.getSharedPreferences("red_permission_state", Context.MODE_PRIVATE)
+                                .edit().putBoolean("hotspot_location_asked", true).apply()
                             viewModel.recordStructuredEvent(
                                 RedEventType.ANDROID_PERMISSION_REQUESTED,
                                 "Solicitando ao Android permissão de localização necessária ao fluxo de hotspot.",
@@ -332,11 +347,23 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
 private fun readHotspotPermissionState(context: Context): RedAndroidPermissionState {
     val precise = context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
     val approximate = context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
-    return when {
-        precise -> RedAndroidPermissionState.PRECISE_GRANTED
-        approximate -> RedAndroidPermissionState.APPROXIMATE_GRANTED
-        else -> RedAndroidPermissionState.DENIED
-    }
+    if (precise) return RedAndroidPermissionState.PRECISE_GRANTED
+    if (approximate) return RedAndroidPermissionState.APPROXIMATE_GRANTED
+    val askedBefore = context.getSharedPreferences("red_permission_state", Context.MODE_PRIVATE)
+        .getBoolean("hotspot_location_asked", false)
+    val activity = context.findActivity()
+    val canShowRationale = activity?.let {
+        it.shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) ||
+            it.shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_COARSE_LOCATION)
+    } ?: true
+    return if (askedBefore && !canShowRationale) RedAndroidPermissionState.PERMANENTLY_DENIED
+    else RedAndroidPermissionState.DENIED
+}
+
+private fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
 }
 
 private fun RedAndroidPermissionState.permissionLabel(): String = when (this) {
@@ -344,6 +371,8 @@ private fun RedAndroidPermissionState.permissionLabel(): String = when (this) {
     RedAndroidPermissionState.PRECISE_GRANTED -> "precisa concedida"
     RedAndroidPermissionState.APPROXIMATE_GRANTED -> "aproximada concedida"
     RedAndroidPermissionState.DENIED -> "negada ou não concedida"
+    RedAndroidPermissionState.PERMANENTLY_DENIED -> "negada permanentemente; exige Configurações"
+    RedAndroidPermissionState.REVOKED -> "revogada nas Configurações"
 }
 
 @Composable
