@@ -50,6 +50,7 @@ class RedPortalServer(
     @Volatile private var lastActivityAt: Long = 0L
     @Volatile private var sessionOwnerAddress: String? = null
     private val failedSessionAttempts = ConcurrentHashMap<String, FailedAttempt>()
+    private val failedLoginAttempts = ConcurrentHashMap<String, FailedAttempt>()
     private data class FailedAttempt(val count: Int, val blockedUntil: Long)
     private enum class AuthorizationResult { AUTHORIZED, INVALID_TOKEN, INVALID_ORIGIN, RATE_LIMITED, EXPIRED }
 
@@ -72,6 +73,7 @@ class RedPortalServer(
         lastActivityAt = now
         sessionOwnerAddress = null
         failedSessionAttempts.clear()
+        failedLoginAttempts.clear()
         socket = server
         running.set(true)
         boundInterface = binding.first
@@ -348,10 +350,22 @@ class RedPortalServer(
                         }
                     }
                     method == "POST" && path == "/login" && portalMode == RedPortalMode.LOCAL_LOGIN -> {
-                        val result = processSyntheticLogin(requestBody, contentType)
-                        status = result.first
-                        if (status >= 400) rejectionReason = "form_validation_failed"
-                        result.second
+                        val remote = peer.inetAddress?.hostAddress ?: "unknown"
+                        if (isLoginRateLimited(remote)) {
+                            status = 429
+                            rejectionReason = "login_rate_limited"
+                            resultHtml("Aguarde", "Limite de tentativas atingido. Aguarde antes de tentar novamente.")
+                        } else {
+                            val result = processSyntheticLogin(requestBody, contentType)
+                            status = result.first
+                            if (status >= 400) {
+                                rejectionReason = "form_validation_failed"
+                                recordLoginFailure(remote)
+                            } else {
+                                failedLoginAttempts.remove(remote)
+                            }
+                            result.second
+                        }
                     }
                     method == "HEAD" && (
                         path == "/" || path in setOf("/terms", "/links", "/permissions", "/destination/news", "/destination/offers", "/notice", "/health", "/favicon.ico") ||
@@ -829,6 +843,18 @@ class RedPortalServer(
         <h1>$title</h1><p>$message</p><p><a href="/links">Voltar ao conteúdo</a></p></body></html>
     """.trimIndent()
 
+    private fun isLoginRateLimited(remoteAddress: String): Boolean =
+        failedLoginAttempts[remoteAddress]?.blockedUntil?.let { it > System.currentTimeMillis() } == true
+
+    private fun recordLoginFailure(remoteAddress: String) {
+        val now = System.currentTimeMillis()
+        failedLoginAttempts.compute(remoteAddress) { _, previous ->
+            val previousCount = if (previous != null && previous.blockedUntil > 0L && previous.blockedUntil <= now) 0 else previous?.count ?: 0
+            val count = previousCount + 1
+            FailedAttempt(count, if (count >= MAX_LOGIN_FAILURES) now + LOGIN_LOCKOUT_MS else 0L)
+        }
+    }
+
     private fun createSessionToken(): String {
         val bytes = ByteArray(32)
         SecureRandom().nextBytes(bytes)
@@ -884,7 +910,8 @@ class RedPortalServer(
         )
         if (!tokenMatches) {
             val updated = failedSessionAttempts.compute(remoteKey) { _, previous ->
-                val count = (previous?.count ?: 0) + 1
+                val previousCount = if (previous != null && previous.blockedUntil > 0L && previous.blockedUntil <= now) 0 else previous?.count ?: 0
+                val count = previousCount + 1
                 FailedAttempt(
                     count = count,
                     blockedUntil = if (count >= MAX_AUTH_FAILURES) now + AUTH_LOCKOUT_MS else previous?.blockedUntil ?: 0L
@@ -955,6 +982,7 @@ class RedPortalServer(
         lastActivityAt = 0L
         sessionOwnerAddress = null
         failedSessionAttempts.clear()
+        failedLoginAttempts.clear()
         onAddress(null)
         onEvent("Servidor do portal local encerrado.")
     }
@@ -973,5 +1001,7 @@ class RedPortalServer(
         private const val SESSION_COOKIE_MAX_AGE_SECONDS = 1800
         private const val MAX_AUTH_FAILURES = 5
         private const val AUTH_LOCKOUT_MS = 60 * 1000L
+        private const val MAX_LOGIN_FAILURES = 5
+        private const val LOGIN_LOCKOUT_MS = 60 * 1000L
     }
 }
