@@ -21,9 +21,9 @@
 - RED-11: hardening concluído; CSP com object-src/base-uri none, cabeçalhos de segurança, allowlist mínima, rejeição de caracteres de controle, rate limit com mapa limitado, revisão documental do Manifest e riscos residuais documentados. Auditoria e testes negativos ficam para a fase final. Ver `docs/red-security-privacy.md`.
 - RED-12: integração e plano de validação documentados; build, lint, testes host/Android e auditoria não executados por ordem de execução. Ver `docs/red-validation-plan.md`.
 - RED-13: matriz física final documentada para A operador/B navegador-only; nenhuma execução física iniciada. Ver `docs/red-physical-validation.md`.
-- RED-14: parcial; notas de release, matriz de compatibilidade e checklist preparados. APK/hash, revisão final do diff e PR aguardam os portões de validação final. Ver `docs/red-release-checklist.md`.
+- RED-14: parcial; notas de release, matriz de compatibilidade, checklist e revisão direcionada da branch preparados. Revisão integral do diff, APK/hash e PR aguardam os portões finais. Ver `docs/red-release-checklist.md` e `docs/red-branch-stabilization.md`.
 - Progresso de implementação/documentação: 14 de 16 submódulos preparados (87,5%); RED-07 e RED-14 parciais. Submódulo atual: RED-14.
 - Nenhum teste, build, compilação, lint ou validação foi executado nesta execução. Todos permanecem acumulados para a etapa final.
 - Testes físicos nos dois aparelhos permanecem na fase final.
 - Não gerar ZIP/checkpoints; o usuário determinou execução diretamente no repositório.
-- Pendências: HTTPS confiável para prompts nativos do RED-07; auditoria final RED-11; execução de build/testes RED-12; testes físicos RED-13; APK assinado/hash e PR RED-14; revisar integração final de relatório/BLUE.
+- Pendências: HTTPS confiável para prompts nativos do RED-07; auditoria final RED-11; execução de build/testes RED-12; testes físicos RED-13; APK assinado/hash e PR RED-14; concluir revisão integral do diff; RED-07 depende de HTTPS confiável no B.
