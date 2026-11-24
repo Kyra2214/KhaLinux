@@ -1,6 +1,6 @@
 # RED-14 — Checklist de estabilização e entrega
 
-**Estado:** implementação/documentação do roadmap RED/BLUE concluídas (100%); host checks, testes unitários Android, APK Debug e lint aprovados no workflow `45408044336`; validação browser/hardware e release publicável pendentes. Este checklist separa implementação de validação.
+**Estado:** roadmap-base RED/BLUE implementado (17/17); workflow `45408044336` aprovou host checks, auditoria estática, testes unitários Android, APK Debug e lint antes do ajuste complementar Home Security. O novo formulário aguarda CI. Validação browser/hardware e release assinada continuam pendentes.
 
 ## Entregáveis documentais concluídos
 
@@ -13,16 +13,16 @@
 ## Snapshot Git registrado
 
 - Branch: `recovery/red-portal-integration`.
-- Commit observado antes desta atualização documental: `791df372d9d94d2dc8555250f247a3414f4518cc`.
+- Snapshot histórico anterior: `791df372d9d94d2dc8555250f247a3414f4518cc`; atualizar após os commits Home Security.
 - Base `main`: `a4de5eb7ef3d72404ea1171af5eaa135a48bde0c`.
-- Comparação: 568 commits à frente, 0 atrás; 52 arquivos alterados.
+- Comparação histórica: 568 commits à frente, 0 atrás; 52 arquivos alterados. O snapshot será atualizado antes da integração.
 - A contagem é um retrato e precisa ser atualizada antes do PR se a branch avançar.
 
 ## Portões obrigatórios da etapa final
 
 - [ ] Validar no B a instalação manual da CA pública, conferência do fingerprint, confiança no navegador e handshake TLS; confirmar prompts web reais.
 - [ ] Executar RED-11: auditoria final e resolver achados críticos/altos.
-- [ ] Executar RED-12: build, lint, testes unitários e integração host/Android.
+- [ ] Executar RED-12 novamente após Home Security: build, lint, testes unitários e integração host/Android. O workflow `45408044336` cobre apenas o estado anterior.
 - [ ] Corrigir falhas e repetir testes afetados.
 - [ ] Executar RED-13: testes físicos A+B somente após aprovação do portão RED-12.
 - [ ] Atualizar guias, changelog, notas de release e matriz de compatibilidade com resultados reais.
@@ -31,7 +31,7 @@
 - [ ] Atualizar versionName/versionCode somente após aprovação dos portões.
 - [ ] Gerar APK assinado usando segredos fornecidos por variáveis de ambiente, nunca armazenados no Git.
 - [ ] Calcular SHA-256 do APK e registrar commit, versão, ambiente e resultados dos testes.
-- [ ] Preparar PR de `recovery/red-portal-integration` para revisão; não fazer merge nem alterar `main` sem instrução explícita.
+- [ ] Abrir PR de `recovery/red-portal-integration` para `main`, aguardar CI e integrar após aprovação dos checks. O usuário autorizou explicitamente a integração nesta etapa.
 
 ## Revisão já realizada, com escopo limitado
 
@@ -46,9 +46,9 @@
 
 ## Estado atual do pacote
 
-- APK Debug/Release: não gerado.
+- APK Debug: gerado no CI anterior à alteração Home Security; novo build pendente. APK Release assinado: ainda não gerado.
 - Assinatura e SHA-256: não produzidos.
-- Testes/build/lint/auditoria final/testes físicos: não executados nesta etapa.
+- CI anterior aprovado no workflow `45408044336`; CI do ajuste Home Security pendente. Testes físicos A/B continuam pendentes.
 - PR: não aberto.
 - ZIP/checkpoints: não gerar; o trabalho permanece diretamente no GitHub conforme instrução do usuário.
 
