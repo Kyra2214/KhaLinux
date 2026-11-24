@@ -411,6 +411,10 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun startNetworkLab() {
+        if (mutableState.value.systemHotspotMode) {
+            mutableState.update { it.copy(message = "O hotspot do sistema permanece selecionado. Desligue-o nas Configurações e escolha Voltar para hotspot local isolado antes de usar LocalOnlyHotspot.") }
+            return
+        }
         if (mutableState.value.session == null) {
             mutableState.update { it.copy(message = "Inicie uma sessão antes de ativar recursos de rede.") }
             return
@@ -490,7 +494,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 tlsBrowserTrustObserved = false,
                 hotspotInfo = null,
                 networkState = RedNetworkState.IDLE,
-                systemHotspotMode = false,
+                systemHotspotMode = systemMode,
                 systemSettingsLaunchPending = false,
                 upstreamInternetAvailable = false,
                 upstreamInternetValidated = false,
@@ -501,6 +505,26 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 } else {
                     "Hotspot local isolado e portal encerrados."
                 }
+            )
+        }
+    }
+
+    fun resetSystemHotspotMode() {
+        if (mutableState.value.networkRunning) {
+            mutableState.update { it.copy(message = "Encerre primeiro o portal antes de trocar o modo de hotspot.") }
+            return
+        }
+        systemHotspot.stopMonitoring()
+        mutableState.update {
+            it.copy(
+                systemHotspotMode = false,
+                systemSettingsLaunchPending = false,
+                upstreamInternetAvailable = false,
+                upstreamInternetValidated = false,
+                upstreamTransport = null,
+                upstreamMessage = null,
+                networkState = RedNetworkState.IDLE,
+                message = "Modo local isolado selecionado. Confirme que o hotspot do sistema foi desligado nas Configurações antes de iniciar LocalOnlyHotspot."
             )
         }
     }
