@@ -777,8 +777,7 @@ class RedPortalServer(
             fetch('/heartbeat', {
               method: 'GET',
               credentials: 'same-origin',
-              cache: 'no-store',
-              headers: { 'X-KhaLinux-Heartbeat': '1' }
+              cache: 'no-store'
             }).catch(() => {});
           };
           sendHeartbeat();
