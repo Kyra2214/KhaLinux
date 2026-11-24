@@ -75,7 +75,7 @@ class RedSystemHotspotController(
                 val (interfaceName, address) = candidates.single()
                 RedHotspotSnapshot(
                     state = RedNetworkState.HOTSPOT_READY,
-                    message = "Hotspot do sistema identificado por um IPv4 novo. SSID e senha permanecem sob controle do Android.",
+                    message = "IPv4 inequívoco do hotspot do sistema identificado. SSID e senha permanecem sob controle do Android.",
                     interfaceName = interfaceName,
                     ipv4Address = address
                 )
