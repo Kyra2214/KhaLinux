@@ -26,6 +26,12 @@ data class RedUiState(
     val tlsPreparationUrl: String? = null,
     val tlsCaFingerprint: String? = null,
     val tlsBrowserTrustObserved: Boolean = false,
+    val systemHotspotMode: Boolean = false,
+    val systemSettingsLaunchPending: Boolean = false,
+    val upstreamInternetAvailable: Boolean = false,
+    val upstreamInternetValidated: Boolean = false,
+    val upstreamTransport: String? = null,
+    val upstreamMessage: String? = null,
     val portalConfiguration: RedPortalConfiguration = RedPortalConfiguration(),
     val participantObservation: RedParticipantObservation? = null,
     val hotspotInfo: String? = null,
@@ -128,7 +134,37 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             )
         }
     )
-    private val hotspot = RedHotspotController(application) { snapshot ->
+    private val hotspot = RedHotspotController(application) { snapshot -> handleHotspotSnapshot(snapshot) }
+    private val systemHotspot = RedSystemHotspotController(application) { upstream ->
+        mutableState.update {
+            it.copy(
+                upstreamInternetAvailable = upstream.internetAvailable,
+                upstreamInternetValidated = upstream.validated,
+                upstreamTransport = upstream.transport,
+                upstreamMessage = upstream.message
+            )
+        }
+        recordStructuredEvent(
+            RedEventType.UPSTREAM_STATUS_CHANGED,
+            upstream.message,
+            source = "system-tethering"
+        )
+    }
+    private val mutableState = MutableStateFlow(RedUiState())
+    val uiState: StateFlow<RedUiState> = mutableState.asStateFlow()
+
+    init {
+        runCatching {
+            val json = application.assets.open("operations.json").bufferedReader().use { it.readText() }
+            RedCatalog.replace(RedCatalogJson.parse(json))
+        }.onFailure { error ->
+            mutableState.update { it.copy(message = "Catálogo RED embarcado inválido; usando catálogo interno de contingência: " + (error.message ?: "erro de leitura")) }
+        }
+        ProcessLifecycleOwner.get().lifecycle.addObserver(appLifecycleObserver)
+        viewModelScope.launch(Dispatchers.IO) { recoverInterruptedSessions() }
+    }
+
+    private fun handleHotspotSnapshot(snapshot: RedHotspotSnapshot) {
         val info = buildList {
             snapshot.ssid?.let { add("SSID: $it") }
             snapshot.passphrase?.let { add("Senha: $it") }
@@ -162,16 +198,23 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         recordStructuredEvent(
             eventType,
             snapshot.message,
-            source = "android",
+            source = if (mutableState.value.systemHotspotMode) "android-system-tethering" else "android-local-only",
             route = snapshot.interfaceName,
             httpStatus = snapshot.androidFailureCode
         )
         if (snapshot.state == RedNetworkState.IDLE) {
             portal.stop()
             tlsPreparation.stop()
+            systemHotspot.stopMonitoring()
             runCatching { tlsManager.clearEphemeralServerIdentity() }
             mutableState.update {
-                it.copy(networkRunning = false, portalEndpoint = null, tlsPreparationUrl = null, tlsCaFingerprint = null, tlsBrowserTrustObserved = false, hotspotInfo = null, hotspotSnapshot = null)
+                it.copy(
+                    networkRunning = false, portalEndpoint = null, tlsPreparationUrl = null,
+                    tlsCaFingerprint = null, tlsBrowserTrustObserved = false, hotspotInfo = null,
+                    hotspotSnapshot = null, systemHotspotMode = false, systemSettingsLaunchPending = false,
+                    upstreamInternetAvailable = false, upstreamInternetValidated = false,
+                    upstreamTransport = null, upstreamMessage = null
+                )
             }
         }
         if (snapshot.state == RedNetworkState.HOTSPOT_READY) {
@@ -195,7 +238,11 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 portal.stop()
                 tlsPreparation.stop()
                 runCatching { tlsManager.clearEphemeralServerIdentity() }
-                hotspot.stop()
+                if (mutableState.value.systemHotspotMode) {
+                    systemHotspot.stopMonitoring()
+                } else {
+                    hotspot.stop()
+                }
                 mutableState.update {
                     it.copy(
                         message = "O hotspot foi liberado porque o portal não pôde ser vinculado à rede do laboratório: " +
@@ -215,19 +262,6 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 )
             }
         }
-    }
-    private val mutableState = MutableStateFlow(RedUiState())
-    val uiState: StateFlow<RedUiState> = mutableState.asStateFlow()
-
-    init {
-        runCatching {
-            val json = application.assets.open("operations.json").bufferedReader().use { it.readText() }
-            RedCatalog.replace(RedCatalogJson.parse(json))
-        }.onFailure { error ->
-            mutableState.update { it.copy(message = "Catálogo RED embarcado inválido; usando catálogo interno de contingência: " + (error.message ?: "erro de leitura")) }
-        }
-        ProcessLifecycleOwner.get().lifecycle.addObserver(appLifecycleObserver)
-        viewModelScope.launch(Dispatchers.IO) { recoverInterruptedSessions() }
     }
 
     fun open() {
