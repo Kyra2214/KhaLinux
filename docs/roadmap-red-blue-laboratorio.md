@@ -2,16 +2,16 @@
 
 **Branch:** `recovery/red-portal-integration`  
 **Escopo:** somente o laboratório com dois aparelhos Android definidos em `AGENTS.md`.  
-**Estado deste roadmap:** execução contínua em andamento. RED-00 a RED-06, RED-08, BLUE-01 e RED-09 implementados em código/documentação; RED-07 permanece parcial porque a origem HTTP atual não permite prompts nativos. Testes, builds, compilação e validações ficam acumulados para a etapa final.
+**Estado deste roadmap:** execução contínua em andamento. RED-00 a RED-06, RED-08, BLUE-01 e RED-09 a RED-13 preparados em código/documentação; RED-07 permanece parcial porque a origem HTTP atual não permite prompts nativos; RED-14 é o último submódulo pendente. Testes, builds, compilação e validações ficam acumulados para a etapa final.
 
 Este documento é o plano de execução da Área RED/BLUE nesta branch. O `ROADMAP.md` da raiz continua sendo o roadmap geral do KhaLinux.
 
 ## Progresso da execução
 
 - **Implementação/documentação RED/BLUE:** 87,5% (14 de 16 submódulos preparados; RED-07 parcial e RED-14 pendente. Validação permanece separada e não iniciada).
-- **Concluídos:** RED-00 — [inventário de baseline](red-baseline-inventory.md); RED-01 — [modelo de domínio](red-domain-model.md); RED-02 — [matriz de permissões](red-permissions.md); RED-03 — [ciclo de vida do hotspot](red-hotspot-lifecycle.md); RED-04 — [servidor HTTP local](red-http-server.md); RED-05 — portal local e aviso de cookies; RED-06 — [eventos e evidências](red-event-evidence.md); RED-08 — integridade da sessão; BLUE-01 — análise defensiva; RED-09 — [histórico, relatório e exportação](red-session-reports.md); RED-10 — [interface do operador](red-operator-ui.md); RED-11 — [segurança e privacidade](red-security-privacy.md).
+- **Concluídos:** RED-00 — [inventário de baseline](red-baseline-inventory.md); RED-01 — [modelo de domínio](red-domain-model.md); RED-02 — [matriz de permissões](red-permissions.md); RED-03 — [ciclo de vida do hotspot](red-hotspot-lifecycle.md); RED-04 — [servidor HTTP local](red-http-server.md); RED-05 — portal local e aviso de cookies; RED-06 — [eventos e evidências](red-event-evidence.md); RED-08 — integridade da sessão; BLUE-01 — análise defensiva; RED-09 — [histórico, relatório e exportação](red-session-reports.md); RED-10 — [interface do operador](red-operator-ui.md); RED-11 — [segurança e privacidade](red-security-privacy.md); RED-12 — [plano de validação](red-validation-plan.md); RED-13 — [matriz física](red-physical-validation.md).
 - **Parcial:** RED-07 — fluxo e telemetria web implementados; HTTPS confiável pendente para prompts nativos no B.
-- **Próximo submódulo:** BLUE-01 — painel defensivo baseado nas evidências RED.
+- **Próximo submódulo:** RED-14 — estabilização e entrega da branch.
 - **Validação:** não iniciada nesta execução; todas as atividades de teste/build/compilação ficam para a etapa final.
 - **Pacotes ZIP:** desativados; execução diretamente no repositório conforme instrução do usuário.
 
@@ -452,6 +452,8 @@ Para cada execução registrar: ID do teste, modelo dos dois aparelhos, versão 
 **Aceite:** todos os testes obrigatórios aprovados ou bloqueios documentados; nenhuma falha crítica/alta; resultados reproduzíveis; relatório final assinado pelo responsável do laboratório.
 
 ## RED-14 — Estabilização e entrega da branch
+
+**Estado:** pendente. A estabilização documental, revisão do diff e preparação da branch ainda precisam ser concluídas; não fazer merge nem alterar main.
 
 Atividades:
 - Corrigir falhas da validação física.
