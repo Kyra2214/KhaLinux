@@ -479,6 +479,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             mutableState.update { it.copy(message = "Abra primeiro as Configurações do hotspot do sistema.") }
             return
         }
+        mutableState.update { it.copy(systemSettingsLaunchPending = false) }
         handleHotspotSnapshot(systemHotspot.discoverSystemHotspot())
     }
 
