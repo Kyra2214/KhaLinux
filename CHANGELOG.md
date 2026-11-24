@@ -1,3 +1,16 @@
+## [Não lançado] — RED-07: primeira integração HTTPS local offline (parcial)
+
+- Adicionado `RedLocalTlsManager`: CA e chave de servidor RSA geradas pelo Android Keystore; chaves privadas não são exportadas.
+- Certificado do servidor emitido para o IPv4 atual com SAN IP, validade limitada e uso `serverAuth`.
+- Adicionado endpoint HTTP de preparação isolado em `8080`, limitado a `/ca.cer` (certificado público DER) e `/health`.
+- `RedPortalServer` ganhou inicialização TLS por `SSLServerSocket`, restrita à interface/IPv4 do laboratório, com TLS 1.2/1.3.
+- ViewModel passou a preparar CA, iniciar a entrega pública e abrir o portal participante HTTPS em `8443`.
+- Cookie de sessão recebe `Secure`; validação de origem acompanha o esquema HTTPS.
+- Tela RED apresenta URL de preparação e impressão digital SHA-256 da CA.
+- Dependência Bouncy Castle adicionada para geração X.509.
+- **Parcial:** instalação e confiança da CA pelo navegador, rotação/renovação, estados de confiança, ciclo de vida de falhas e validação final permanecem pendentes.
+- Nenhum teste, build ou compilação foi executado, conforme a regra de implementação contínua.
+
 ## [Não lançado] — RED-14: estabilização documental atualizada
 
 - Parcela documental de RED-14 concluída: notas preliminares, matriz de compatibilidade, checklist e registro de estabilização alinhados.
