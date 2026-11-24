@@ -552,6 +552,7 @@ Implementação inicial registrada:
 - O mesmo portal HTTPS/8443 e preparação CA/8080 são hospedados na interface do hotspot do sistema.
 - `ConnectivityManager.registerDefaultNetworkCallback` observa se A tem upstream com capacidade INTERNET e se ele foi validado.
 - O painel e o relatório distinguem upstream validado em A de acesso externo efetivamente confirmado em B; não inventam sucesso de roteamento.
+- As páginas participantes enviam heartbeat same-origin autenticado a cada 20 segundos enquanto visíveis; A registra último contato e evento limitado a uma ocorrência por minuto. Isso comprova alcance local do portal, não internet externa.
 - O KhaLinux não usa reflexão, APIs ocultas nem permissões privilegiadas para iniciar tethering. No Android 15, a ativação é feita pelo usuário nas Configurações.
 
 Fluxo recomendado para manter B conectado: ativar o hotspot do sistema sem upstream, conectar B e abrir o portal; depois ativar dados móveis/upstream em A sem desligar o hotspot. A permanência da conexão depende da implementação Android/OEM/operadora e será confirmada na validação física.
