@@ -58,17 +58,17 @@ class RedSystemHotspotController(
             .orEmpty()
             .mapNotNull { it.address.hostAddress }
             .toSet()
-        val nonDefault = current.filter { (_, address) -> address !in defaultAddresses }.toSet()
+        val newlyObservedOutsideDefault = newlyObserved.filter { (_, address) -> address !in defaultAddresses }.toSet()
         val apNamed = current.filter { (name, _) ->
             val normalized = name.lowercase(Locale.ROOT)
             normalized.startsWith("ap") || normalized.startsWith("swlan") || normalized.contains("softap")
         }.toSet()
         val candidates = when {
             apNamed.size == 1 -> apNamed
-            newlyObserved.size == 1 -> newlyObserved
-            nonDefault.size == 1 -> nonDefault
+            newlyObservedOutsideDefault.size == 1 -> newlyObservedOutsideDefault
             newlyObserved.isNotEmpty() -> newlyObserved
-            else -> nonDefault
+            apNamed.isNotEmpty() -> apNamed
+            else -> emptySet()
         }
         return when {
             candidates.size == 1 -> {
@@ -86,7 +86,7 @@ class RedSystemHotspotController(
             )
             else -> RedHotspotSnapshot(
                 state = RedNetworkState.DISCOVERING_INTERFACE,
-                message = "Hotspot do sistema ainda não identificado. Ative o hotspot nas Configurações do Android e tente detectar novamente."
+                message = "Hotspot do sistema ainda não identificado. Mantenha-o desligado antes de iniciar este modo; depois ative-o nas Configurações do Android e tente detectar novamente."
             )
         }
     }
