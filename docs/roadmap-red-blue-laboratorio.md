@@ -2,7 +2,7 @@
 
 **Branch:** `recovery/red-portal-integration`  
 **Escopo:** somente o laboratório com dois aparelhos Android definidos em `AGENTS.md`.  
-**Estado deste roadmap:** planejamento criado; auditoria de baseline ainda não concluída. Nenhuma fase deste documento é declarada aprovada apenas porque há arquivos ou documentação no repositório.
+**Estado deste roadmap:** execução em andamento. O baseline documental e de código está sendo inventariado; nenhuma fase é declarada concluída sem implementação correspondente. Testes, builds e validações ficam acumulados para RED-13/RED-14.
 
 Este documento é o plano de execução da Área RED/BLUE nesta branch. O `ROADMAP.md` da raiz continua sendo o roadmap geral do KhaLinux.
 
@@ -16,18 +16,18 @@ Construir uma ferramenta Android de laboratório que permita ao instrutor:
 2. Exibir os dados efetivamente fornecidos pelo sistema: estado, SSID, credenciais de rede quando disponibilizadas pela API, interface, endereço IP, porta e erros.
 3. Hospedar um portal HTTP local e transparente, acessível pelo segundo aparelho.
 4. Observar as requisições que realmente chegam ao servidor, sem inventar clientes, eventos ou telemetria.
-5. Demonstrar permissões Android por meio de solicitações nativas e explícitas no aparelho participante.
+5. Demonstrar escolhas de cookies e, quando o contexto seguro permitir, permissões do próprio navegador com solicitações explícitas e visíveis.
 6. Comparar a visão operacional RED com a análise defensiva BLUE, usando as mesmas evidências observadas.
 7. Encerrar a sessão e produzir um relatório fiel, distinguindo observações, ações do operador, permissões, resultados e indisponibilidades.
 
-O produto não deve apresentar uma página web como se ela pudesse conceder permissões Android. Câmera, microfone, localização e arquivos serão demonstrados no próprio aplicativo Android do aparelho participante, usando as APIs e os diálogos reais do sistema.
+O aparelho B participa exclusivamente pelo navegador. O portal não concede permissões nativas do Android nem acessa arquivos arbitrários. Permissões web de câmera, microfone e localização só podem ser solicitadas pelas APIs do navegador em contexto seguro e com ação explícita; HTTP em IP privado normalmente não atende a esse requisito. Não ocultar finalidade, não agrupar permissões nativas sob o botão de cookies e não inventar concessões. O aparelho A concentra a operação, a linha do tempo e o relatório.
 
 ## 2. Topologia fixa do laboratório
 
 | Elemento | Função |
 |---|---|
 | Aparelho A | Operador: executa KhaLinux, solicita a rede, hospeda o servidor local e exibe RED/BLUE. |
-| Aparelho B | Participante: aparelho dedicado, conecta-se manualmente à rede, abre o portal e executa os fluxos Android autorizados. |
+| Aparelho B | Participante passivo: conecta-se ao Wi-Fi, abre o portal no navegador, faz o login de teste e responde aos avisos legítimos do navegador. Não instala nem executa o KhaLinux e não opera ferramentas ou painéis. |
 | Comunicação | Rede local criada para a sessão; servidor limitado à interface/endereço do laboratório. |
 | Dados | Eventos mínimos necessários à aula; nenhum dado pessoal ou segredo deve ser coletado ou persistido. |
 
@@ -182,12 +182,12 @@ Atividades:
 
 **Aceite:** servidor responde apenas no endpoint local autorizado, respeita limites e encerra junto com a sessão.
 
-## RED-05 — Portal local e experiência do participante
+## RED-05 — Portal local, aviso de cookies e experiência do navegador
 
 **Objetivo:** criar uma página de laboratório clara e funcional, sem imitação de serviços reais.
 
 Atividades:
-- Criar landing page local com identificação de laboratório e descrição do exercício.
+- Criar landing page local com identificação de laboratório e descrição do exercício.\n- Implementar aviso de cookies com categorias necessárias, preferências, análise e marketing, quando efetivamente usadas.\n- Oferecer “Aceitar todos”, “Recusar opcionais” e “Configurar”; registrar no A a escolha e as categorias, sem gravar valores de cookies ou identificadores pessoais.\n- O botão de cookies não pode conceder permissões do navegador/Android nem disparar solicitações não descritas.
 - Oferecer cenários separados: acesso direto e formulário de demonstração.
 - Se houver formulário, usar somente campos neutros próprios do exercício, por exemplo identificador e código de demonstração não reutilizáveis.
 - Não pedir e-mail/senha de contas, não imitar Google/Facebook/Instagram ou páginas bancárias e não enviar credenciais a terceiros.
@@ -227,9 +227,9 @@ Atividades:
 
 **Aceite:** cada linha do painel corresponde a um evento observável e rastreável.
 
-## RED-07 — Demonstrações de permissões no aparelho B
+## RED-07 — Demonstrações de permissões no navegador do aparelho B
 
-**Objetivo:** mostrar permissões Android reais no dispositivo participante, sem confundir portal web com permissões nativas.
+**Objetivo:** registrar escolhas e permissões web efetivamente oferecidas pelo navegador do B, sem aplicativo participante instalado.
 
 Atividades:
 - Criar modo participante no app Android do aparelho B.
@@ -315,12 +315,12 @@ Atividades:
 
 **Aceite:** relatório reproduz o que foi observado e não contém conteúdo sensível.
 
-## RED-10 — Integração da interface e acessibilidade operacional
+## RED-10 — Integração da interface do operador e acessibilidade operacional
 
 **Objetivo:** painel claro para o instrutor e fluxo simples para o participante.
 
 Atividades:
-- Integrar estados do ViewModel sem duplicar fontes de verdade.
+- Integrar estados do ViewModel sem duplicar fontes de verdade.\n- Manter toda a observabilidade, os resultados e as explicações no aparelho A; B recebe somente a experiência do navegador.
 - Mostrar estado real de hotspot, servidor, interface, endereço, porta e participante.
 - Exibir erros e ações possíveis para recuperação.
 - Diferenciar botão de solicitar, estado pendente e resultado confirmado.
