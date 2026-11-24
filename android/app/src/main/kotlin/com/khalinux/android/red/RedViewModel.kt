@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.UUID
 
 data class RedUiState(
     val visible: Boolean = false,
@@ -390,7 +389,6 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
 
     fun deleteHistory() {
         stopNetworkLab()
-        portal.setParticipantToken(null)
         store.deleteAll()
         RedLiveEvidenceStore.clear()
         mutableState.update { it.copy(history = emptyList(), session = null, message = "Histórico RED apagado.") }
