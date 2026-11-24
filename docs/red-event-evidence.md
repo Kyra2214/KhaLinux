@@ -30,7 +30,7 @@ O formulário usa dados de demonstração. Os valores podem existir temporariame
 
 ## Cabeçalhos permitidos
 
-A allowlist é limitada a Host, User-Agent, Accept, Accept-Language, Content-Type e Referer reduzido ao path. Valores são limitados; Cookie e Authorization ficam excluídos.
+A allowlist é limitada a Host, Accept, Content-Type e Referer reduzido ao path. User-Agent e Accept-Language não são persistidos para reduzir fingerprinting. Valores são limitados; Cookie e Authorization ficam excluídos.
 
 ## Persistência e limites
 
