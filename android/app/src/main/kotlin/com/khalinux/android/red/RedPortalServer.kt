@@ -202,15 +202,15 @@ class RedPortalServer(
                 }
 
                 val remoteAddress = peer.inetAddress?.hostAddress
-                if (sessionOwnerAddress != null && sessionOwnerAddress != remoteAddress) {
-                    rejectionReason = "participant_ip_mismatch"
-                    respond(403, "Esta sessão já está vinculada ao aparelho participante.")
-                    return
-                }
                 if (isSessionExpired()) {
                     sessionExpired = true
                     rejectionReason = "session_expired"
                     respond(410, "Sessão do portal expirada. Solicite uma nova sessão ao operador.")
+                    return
+                }
+                if (sessionOwnerAddress != null && sessionOwnerAddress != remoteAddress) {
+                    rejectionReason = "participant_ip_mismatch"
+                    respond(403, "Esta sessão já está vinculada ao aparelho participante.")
                     return
                 }
 
