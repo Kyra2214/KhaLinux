@@ -8,10 +8,10 @@ Este documento é o plano de execução da Área RED/BLUE nesta branch. O `ROADM
 
 ## Progresso da execução
 
-- **Implementação RED/BLUE:** 37,5% (6 de 16 submódulos concluídos).
-- **Concluídos:** RED-00 — [inventário de baseline](red-baseline-inventory.md); RED-01 — [modelo de domínio](red-domain-model.md); RED-02 — [matriz de permissões](red-permissions.md); RED-03 — [ciclo de vida do hotspot](red-hotspot-lifecycle.md); RED-04 — [servidor HTTP local](red-http-server.md); RED-05 — portal local e aviso de cookies.
+- **Implementação RED/BLUE:** 43,75% (7 de 16 submódulos concluídos).
+- **Concluídos:** RED-00 — [inventário de baseline](red-baseline-inventory.md); RED-01 — [modelo de domínio](red-domain-model.md); RED-02 — [matriz de permissões](red-permissions.md); RED-03 — [ciclo de vida do hotspot](red-hotspot-lifecycle.md); RED-04 — [servidor HTTP local](red-http-server.md); RED-05 — portal local e aviso de cookies; RED-06 — [eventos e evidências](red-event-evidence.md).
 - **Parciais:** RED-05 — banner e registro de consentimento de cookies; RED-07 — remoção do participante nativo e redefinição do fluxo web.
-- **Próximo submódulo:** RED-06 — captura mínima de eventos e armazenamento seguro.
+- **Próximo submódulo:** RED-07 — permissões web reais e limites do navegador no aparelho B.
 - **Validação:** não iniciada nesta execução; todas as atividades de teste/build/compilação ficam para a etapa final.
 - **Pacotes ZIP:** desativados; execução diretamente no repositório conforme instrução do usuário.
 
