@@ -181,7 +181,7 @@ object RedCatalog {
                 RedTutorialStep("prepare", "Preparar o operador", "Confirme que os dois aparelhos pertencem ao laboratório e escolha o cenário da aula."),
                 RedTutorialStep("hotspot", "Ativar a rede de laboratório", "Solicite ao Android a criação do hotspot local. O sistema informa os parâmetros que o aplicativo pode exibir."),
                 RedTutorialStep("connect", "Conectar o participante", "No segundo aparelho, abra as configurações Wi-Fi e conecte-se à rede exibida pelo operador."),
-                RedTutorialStep("portal", "Abrir o portal local", "Use o endereço HTTP e o QR Code mostrados pelo operador. A abertura automática depende do Android."),
+                RedTutorialStep("portal", "Abrir o portal local", "Primeiro abra o endereço HTTP de preparação, baixe a CA pública e confira a impressão digital no aparelho A. Depois instale a CA pelas configurações do Android e abra o endereço HTTPS/QR do portal. A confiança depende do navegador."),
                 RedTutorialStep("access", "Comparar os modos de acesso", "Percorra o portal com autenticação local fictícia e o modo de acesso direto sem login."),
                 RedTutorialStep("navigation", "Explorar navegação", "Abra os links locais e observe no painel as rotas e respostas efetivamente recebidas."),
                 RedTutorialStep("permissions", "Observar permissões web", "No navegador do aparelho B, abra Permissões do navegador e escolha separadamente câmera, microfone ou localização. Cada pedido exige ação explícita e pode ficar indisponível em HTTP por IP local."),
