@@ -35,6 +35,7 @@
 - Cabeçalhos duplicados, nomes inválidos, header folding e valores excessivos são rejeitados.
 - Transfer-Encoding/chunked não é aceito; Content-Length precisa ser decimal, único e dentro do limite.
 - Formulários `/login` e `/consent` exigem `application/x-www-form-urlencoded`.
+- `GET /heartbeat` exige o IP já vinculado e o cookie `kl_lab_session`, não recebe corpo e responde `204`; a página visível envia o sinal periodicamente para observar alcance local do participante.
 - Paths absolutos, traversal, barra invertida, path excessivo e query string são rejeitados.
 - Métodos aceitos: GET, POST e HEAD nas rotas previstas. Demais métodos recebem 405.
 - Respostas têm tamanho limitado, Cache-Control no-store, nosniff, Referrer-Policy, X-Frame-Options e CSP local.
