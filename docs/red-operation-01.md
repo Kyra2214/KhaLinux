@@ -1,6 +1,6 @@
 # RED-01 — Wi-Fi de laboratório, portal e navegação
 
-**Estado:** implementação em andamento nesta branch. O servidor HTTP local, o portal, o formulário de login com dados exclusivos do laboratório e a primeira versão do aviso de cookies estão no código. A escolha de cookies é registrada na linha do tempo do operador. A validação funcional, compilação e testes permanecem reservados à etapa final.  
+**Estado:** implementação em código/documentação preparada. O portal, login sintético, aviso de cookies, página de permissões web individuais, telemetria e painel A estão integrados. RED-07 permanece parcial porque o HTTP local por IP privado não habilita APIs sensíveis em navegadores modernos; validação/build/testes ficam para a etapa final.  
 **Roadmap:** [roadmap-red-blue-laboratorio.md](roadmap-red-blue-laboratorio.md)
 
 ## Topologia
@@ -13,10 +13,8 @@
 1. No A, abrir RED, selecionar a Operação 01 e iniciar uma sessão.
 2. Solicitar o hotspot ao Android e iniciar o portal local.
 3. No B, conectar-se ao Wi-Fi e abrir o endereço/QR Code exibido pelo A.
-4. No navegador, responder ao aviso de cookies.
-5. Fazer login somente com identificador e código de teste do laboratório.
-6. Se a aula incluir permissões web, abrir a página correspondente e escolher cada recurso separadamente; aceitar cookies não concede permissões.
-7. Se a demonstração de permissões fizer parte da aula, abrir **Permissões do navegador** e escolher separadamente câmera, microfone ou localização. Cada botão tem finalidade explícita e depende de contexto seguro.
+4. Na própria página do portal, responder ao aviso de cookies e depois fazer login somente com identificador e código de teste do laboratório.
+5. Após o login, abrir **Permissões do navegador** e escolher separadamente câmera, microfone ou localização. Cada botão tem finalidade explícita e depende de contexto seguro; em HTTP local, o resultado pode ser UNAVAILABLE.
 8. Navegar pelas páginas locais.
 9. No A, acompanhar requisições HTTP, escolha de cookies e eventos realmente recebidos.
 10. Encerrar a sessão no A e consultar o relatório.
