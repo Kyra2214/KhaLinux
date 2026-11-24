@@ -24,7 +24,7 @@
 7. O operador pode ativar dados móveis/upstream sem desligar o hotspot; a associação de B deve permanecer, conforme suporte do Android/OEM/operadora.
 8. A página participante envia heartbeat same-origin autenticado periodicamente; o A registra o último contato local de B. Heartbeats contínuos durante a mudança de upstream confirmam que B continua alcançando o portal pela rede local, não que B tenha acesso externo. O heartbeat pausa quando a página fica oculta; ausência de atualização não é prova de desconexão.
 
-O KhaLinux não chama APIs ocultas de tethering nem desliga o hotspot do sistema ao encerrar o portal. O operador desliga o hotspot nas Configurações. Se a interface/IPv4 for ambígua, o portal não inicia.
+O KhaLinux não chama APIs ocultas de tethering nem desliga o hotspot do sistema ao encerrar o portal. O operador desliga o hotspot nas Configurações. Se a interface/IPv4 for ambígua, o portal não inicia. A função pura `selectSystemHotspotCandidates` tem testes JVM para candidatos novos, endereços do upstream, nomes AP, ambiguidade e conjunto vazio.
 
 ## Máquina de estados
 
