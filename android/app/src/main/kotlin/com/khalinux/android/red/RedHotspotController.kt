@@ -44,6 +44,7 @@ class RedHotspotController(
             starting = false
             activeRequestGeneration = null
             requestGeneration += 1
+            interfacesBeforeStart = emptySet()
             onState(RedHotspotSnapshot(RedNetworkState.ERROR, "Não foi possível obter a lista inicial de interfaces; hotspot não solicitado."))
             return
         }
@@ -112,6 +113,7 @@ class RedHotspotController(
                         timeoutRunnable = null
                         starting = false
                         activeRequestGeneration = null
+                        interfacesBeforeStart = emptySet()
                         onState(
                             RedHotspotSnapshot(
                                 state = RedNetworkState.ERROR,
