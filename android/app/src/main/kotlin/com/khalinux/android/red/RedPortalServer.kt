@@ -397,6 +397,20 @@ class RedPortalServer(
                         status = 200
                         permissionsHtml(cspNonce)
                     }
+                    method == "GET" && path == "/heartbeat" -> {
+                        val token = activeSessionToken
+                        val cookie = headers["cookie"].orEmpty()
+                        val hasSessionCookie = !token.isNullOrBlank() &&
+                            cookie.split(';').any { it.trim() == "kl_lab_session=$token" }
+                        if (remoteAddress != null && sessionOwnerAddress == remoteAddress && hasSessionCookie) {
+                            status = 204
+                            ""
+                        } else {
+                            status = 403
+                            rejectionReason = "heartbeat_session_invalid"
+                            "Sessão do participante não vinculada."
+                        }
+                    }
                     method == "GET" && path == "/health" -> {
                         status = 200
                         """{"status":"ok","service":"khalinux-red-local-lab"}"""
@@ -476,8 +490,11 @@ class RedPortalServer(
                     }
                 }
                 val renderedResponse = if (
-                    status in 200..299 && path != "/health" && response.contains("</body>")
-                ) response.replace("</body>", cookieBannerHtml(cspNonce) + "</body>") else response
+                    status in 200..299 && path !in setOf("/health", "/heartbeat") && response.contains("</body>")
+                ) response.replace(
+                    "</body>",
+                    cookieBannerHtml(cspNonce) + participantHeartbeatHtml(cspNonce) + "</body>"
+                ) else response
                 if (renderedResponse.toByteArray(StandardCharsets.UTF_8).size > MAX_RESPONSE_BYTES) {
                     rejectionReason = "response_too_large"
                     respond(413, "Resposta acima do limite permitido.")
@@ -486,7 +503,11 @@ class RedPortalServer(
                         output,
                         status,
                         renderedResponse,
-                        contentType = if (path == "/health") "application/json" else "text/html",
+                        contentType = when (path) {
+                            "/health" -> "application/json"
+                            "/heartbeat" -> "text/plain"
+                            else -> "text/html"
+                        },
                         setCookieHeader = if (status in 200..299) {
                             sessionCookieHeader(
                                 peer.inetAddress?.hostAddress,
@@ -746,6 +767,27 @@ class RedPortalServer(
           <p style="font:14px system-ui;color:#4b5563">Câmera, microfone e localização são permissões independentes. Nenhuma é solicitada pelo botão de cookies ou pelo login. Abra a página de permissões e escolha individualmente cada solicitação; o navegador exibirá seus próprios avisos.</p>
           <a href="/permissions" style="display:inline-block;padding:10px 16px;border-radius:8px;background:#1f2937;color:white;text-decoration:none">Ver permissões disponíveis</a>
         </section>
+    """.trimIndent()
+
+    private fun participantHeartbeatHtml(nonce: String) = """
+        <script nonce="$nonce">
+        (() => {
+          const sendHeartbeat = () => {
+            if (document.visibilityState !== 'visible') return;
+            fetch('/heartbeat', {
+              method: 'GET',
+              credentials: 'same-origin',
+              cache: 'no-store',
+              headers: { 'X-KhaLinux-Heartbeat': '1' }
+            }).catch(() => {});
+          };
+          sendHeartbeat();
+          window.setInterval(sendHeartbeat, 20000);
+          document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') sendHeartbeat();
+          });
+        })();
+        </script>
     """.trimIndent()
 
     private fun cookieBannerHtml(nonce: String) = """
