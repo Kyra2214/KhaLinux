@@ -1,12 +1,12 @@
 # RED-12 — Plano de validação automatizada (execução adiada)
 
-**Estado:** implementação do roadmap concluída (100%) e fase final de validação iniciada. Workflow `45405105200` (commit `0c0ca2e`) já aprovou os checks de host; testes unitários Android estão em execução e `assembleDebug` aguarda a conclusão deles. Lint, testes específicos do portal e testes físicos A/B ainda não foram executados.
+**Estado:** implementação do roadmap concluída (100%) e fase final de validação iniciada. Workflow `45405105200` (commit `0c0ca2e`) aprovou os checks de host, mas a etapa Android falhou na compilação Kotlin: import Compose `weight` inacessível e literal de tab inválido no parser HTTP. Correções aplicadas nos commits `36945e3` e `fd82386`; rerun da suíte e `assembleDebug` pendente. Lint, testes específicos do portal e testes físicos A/B ainda não foram executados.
 
 ## Execução registrada — 24/11/2026
 
 - **Host validation: PASS** no workflow `45405105200`: `test-build-config.py`, sintaxe shell, auditoria estática de segurança, teste nativo JNI PTY e smoke test PRoot ARM64.
 - **Android unit tests: IN PROGRESS** (`:android:runtime:testDebugUnitTest` e `:android:app:testDebugUnitTest`).
-- **APK Debug: PENDING** (`:android:app:assembleDebug`, etapa seguinte no mesmo workflow).
+- **APK Debug: PENDING** (`:android:app:assembleDebug`, etapa seguinte no mesmo workflow; não executada porque a compilação Kotlin falhou antes).
 - **Lint e integração dedicada do portal: PENDING**; não há resultado registrado ainda.
 - **Testes físicos A/B: NOT STARTED**, reservados para depois dos portões automatizados/estáticos.
 
