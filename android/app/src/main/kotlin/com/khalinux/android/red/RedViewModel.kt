@@ -455,13 +455,14 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 httpStatus = observation.statusCode,
                 responseSent = true,
                 rejectionReason = observation.rejectionReason,
-                serverFailure = observation.serverFailure
+                serverFailure = observation.serverFailure,
+                eventTimestamp = observation.timestamp
             )
         }
         if (observation.path.startsWith("/go/") && observation.statusCode in 300..399) {
             recordStructuredEvent(RedEventType.REDIRECT, "Redirecionamento local executado: ${observation.path}.", source = "http", route = observation.path, httpStatus = observation.statusCode, eventTimestamp = observation.timestamp)
         } else if (observation.method == "GET" && observation.path != "/" && observation.statusCode in 200..299) {
-            recordStructuredEvent(RedEventType.NAVIGATION, "Navegação local: ${observation.path}.", source = "http", route = observation.path, httpStatus = observation.statusCode)
+            recordStructuredEvent(RedEventType.NAVIGATION, "Navegação local: ${observation.path}.", source = "http", route = observation.path, httpStatus = observation.statusCode, eventTimestamp = observation.timestamp)
         }
     }
 
@@ -576,6 +577,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         sessionId = id,
         type = type,
         detail = detail,
+        timestamp = eventTimestamp ?: System.currentTimeMillis(),
         stepId = stepId,
         sequence = (events.maxOfOrNull { it.sequence } ?: 0) + 1,
         source = source,
