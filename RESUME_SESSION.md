@@ -1,12 +1,17 @@
-# RESUME_SESSION — KhaLinux / Área RED
+# RESUME_SESSION — KhaLinux RED/BLUE
 
 - Repositório: `Kyra2214/KhaLinux`.
-- Branch de trabalho: `plan/area-red-wifi-publico` (não alterar `main`; não gerar ZIP/checkpoints).
-- Última alteração confirmada nesta retomada: `6e726d52d5ed47f2b5c920b6a763fb8e29e24d10` — documentação de congelamento atualizada com implementação 100% e bloqueio de validação atual.
-- Estado do roadmap RED: RED-0 a RED-12 implementados em código/documentação (100% da implementação, 13/13); RED-13 validação final pendente. Projeto ainda não concluído. RED-13 é exclusivamente a validação final.
-- RED-3: `RedPortalServer` aceita `configuredPort`, valida 1024..65535 e mantém bind apenas no IPv4 da interface Wi-Fi/AP identificada.
-- RED-4: servidor contém portal local com modo de login de laboratório e acesso direto, páginas locais e redirecionamento 302.
-- RED-5 confirmado por inspeção: POST local, validação estrita de `demo_id`/`demo_code`, visualização efêmera no painel e ausência dos valores no histórico/relatório. RED-6 confirmado por inspeção: páginas locais, modo sem login, links internos, redirect 302 e linha do tempo de requisições. RED-7 confirmado e complementado: permissões Android reais, prévia local de câmera, medidor local de microfone, localização local, seletor SAF e reporte de estado; revogação agora é atualizada ao retomar o app. RED-8: painel exibe requisições, metadados, eventos e resumo por recurso do último estado de câmera/microfone/localização/arquivos. RED-9 confirmado: histórico com limites, recuperação de sessão, relatório Markdown sem valores sensíveis e exportação/exclusão. RED-10: BLUE lê a mesma sessão e evidências RED; agora exibe metadados HTTP permitidos e estado mais recente dos recursos com leitura defensiva. RED-11: guia do instrutor, roteiro de vídeo e guia do usuário alinhados aos fluxos atuais. RED-12: encerramento idempotente do hotspot/servidor e limpeza do token/dados efêmeros revisados; documentação consolidada. Próximo: RED-13 validação final somente após conclusão de toda implementação. RED-7 permissões reais no aparelho participante, RED-8 observabilidade, RED-9 relatórios/retensão, RED-10 integração BLUE, RED-11 aulas/documentação e RED-12 fechamento.
-- Regras ativas: não executar testes, builds, compilação, auditorias, simulações ou testes físicos até RED-0..RED-12 estarem integralmente implementados. Não remover os requisitos de validação; acumular em RED-13.
-- Nenhum teste/build foi executado nesta retomada. Implementação RED-0..RED-12 concluída em código/documentação; RED-13 bloqueada nesta sessão porque não há ação de dispatch de workflow nem checkout local executável. Para retomar, disparar GitHub Actions na branch ou disponibilizar checkout local. Testes físicos permanecem por último. Não declarar funcionalidades validadas. Não fazer merge sem autorização.
-- Próxima ação: iniciar RED-5, inspecionando `RedLabInputValidator`, `RedPortalServer`, `RedViewModel`, `RedScreen` e os modelos de submissão antes de alterar código.
+- Branch de trabalho: `recovery/red-portal-integration`.
+- Não alterar `main`, não fazer merge e não fazer force push.
+- Roadmap ativo: `docs/roadmap-red-blue-laboratorio.md`.
+- Topologia definida: **A** é a central que executa KhaLinux, cria a rede, hospeda o portal e exibe toda a observabilidade; **B** apenas conecta ao Wi-Fi, abre o portal no navegador, faz login de teste e responde ao aviso de cookies.
+- RED-00: concluído como inventário documental e inspeção do código RED. Ver `docs/red-baseline-inventory.md`.
+- RED-05: parcial. Banner de cookies, escolhas por categoria e endpoint `POST /consent` adicionados; falta completar integração/experiência e documentação final do submódulo.
+- RED-07: escopo corrigido para navegador-only. Modo participante nativo, endpoint de token, permissões CAMERA/RECORD_AUDIO e dependências CameraX removidos. Permissões web reais ainda pendentes e dependem de contexto seguro.
+- RED-01: próximo submódulo a implementar, conforme ordem do roadmap.
+- Progresso provisório: 1 de 16 submódulos RED/BLUE concluído (6,25%). Itens parciais não contam como concluídos.
+- Último commit conhecido antes desta atualização de retomada: `a62bbc431cd7342f928f7af327ab0effc2480a86`; conferir o HEAD remoto ao retomar.
+- Nenhum teste, build, compilação, lint ou validação foi executado nesta execução. Todos permanecem acumulados para a etapa final.
+- Testes físicos nos dois aparelhos permanecem na fase final.
+- Não gerar ZIP/checkpoints; o usuário determinou execução diretamente no repositório.
+- Pendências técnicas já identificadas: descoberta/correlação confiável da interface AP; limitações de contexto seguro para permissões web; revisão dos rótulos legados no painel; integração final do relatório/BLUE com o evento de consentimento.
