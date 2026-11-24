@@ -6,15 +6,15 @@
 
 - Branch: `recovery/red-portal-integration`.
 - Base `main`: `a4de5eb7ef3d72404ea1171af5eaa135a48bde0c`.
-- Snapshot revisado antes deste documento: `d21a96cc7f089ee9e071ffabbc45159fc631157d`.
-- Comparação nesse snapshot: 258 commits à frente, 0 atrás; 39 arquivos alterados.
+- Snapshot revisado antes desta atualização: `732d1d28f360b657bf76613d9c33bbd17f6c78de`.
+- Comparação nesse snapshot: 273 commits à frente, 0 atrás; 40 arquivos alterados.
 - `main` não foi alterada; nenhum merge, force push ou PR foi executado.
 
 ## Revisão direcionada concluída
 
 - Manifest: `allowBackup=false`; sem permissões CAMERA, RECORD_AUDIO ou armazenamento para RED; Activity principal exportada apenas como launcher; serviço runtime não exportado; sem provider/receiver declarado.
 - Rede: `usesCleartextTraffic=false` para tráfego de saída do app. O portal de entrada continua HTTP local, sem TLS; isso não deve ser descrito como HTTPS.
-- Servidor RED: bind ao IPv4/interface identificados; Host, origem, método, Content-Type, framing e limites validados; timeout, rate limit, token efêmero e expiração; cabeçalhos defensivos e CSP por nonce.
+- Servidor RED: bind ao IPv4/interface identificados; Host, origem, método, Content-Type, framing e limites validados; timeout, rate limit, token efêmero e expiração; cabeçalhos defensivos e CSP por nonce aleatório por resposta, sem `unsafe-inline` em script-src.
 - Evidências: Cookie, Authorization e corpos HTTP não entram no histórico; allowlist persistida limitada a Host, Accept, Content-Type e Referer path; User-Agent e Accept-Language excluídos.
 - Sessões: schema versionado, migração, retenção limitada, relatório e exclusão; metadados ficam em storage app-private não criptografado, sem credenciais ou tokens persistidos.
 - Ciclo de vida: segundo plano/tela bloqueada encerra rede/portal e marca sessão interrompida; reinício recupera sessões sem finalização como interrompidas.
