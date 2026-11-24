@@ -1,3 +1,12 @@
+## [Não lançado] — RED-03: LocalOnlyHotspot e correlação da interface
+
+- Controlador ganhou geração por solicitação, timeout de 30 s, cancelamento, tratamento de callback tardio e encerramento idempotente.
+- Após `onStarted`, a interface AP é identificada por diferença de interfaces/IPv4 antes/depois da solicitação; sem candidato único, a reserva é encerrada e o portal não inicia.
+- Android 11+ lê `SoftApConfiguration`; Android 9/10 mantêm fallback legado `WifiConfiguration`.
+- SSID, passphrase e segurança vêm da configuração retornada; banda permanece desconhecida quando não há valor utilizável.
+- Estado `DISCOVERING_INTERFACE` separado de hotspot pronto e portal ativo.
+- Documentação: `docs/red-hotspot-lifecycle.md`. Nenhum teste/build/compilação foi executado.
+
 ## [Não lançado] — RED-02: permissões e capacidades do Android
 
 - O aparelho A solicita ACCESS_FINE_LOCATION e ACCESS_COARSE_LOCATION somente ao iniciar o hotspot, com explicação de finalidade.
