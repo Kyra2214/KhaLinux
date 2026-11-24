@@ -98,6 +98,8 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 )
             }
             if (address == null && portalWasActive) {
+                tlsPreparation.stop()
+                runCatching { tlsManager.clearEphemeralServerIdentity() }
                 if (previousState.systemHotspotMode) {
                     systemHotspot.stopMonitoring()
                 } else {
