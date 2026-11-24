@@ -5,6 +5,22 @@ import java.util.UUID
 enum class RedOperationState { NOT_STARTED, PREPARING, WAITING_PARTICIPANT, ACTIVE, ENDING, COMPLETED, INTERRUPTED }
 enum class RedNetworkState { IDLE, REQUESTING_HOTSPOT, HOTSPOT_READY, STARTING_SERVER, WAITING_PARTICIPANT, PARTICIPANT_ACTIVE, STOPPING, ERROR }
 enum class RedPortalMode { LOCAL_LOGIN, OPEN_ACCESS }
+enum class RedCookieChoice { ACCEPT_ALL, REJECT_OPTIONAL, CUSTOM }
+enum class RedWebPermissionResource { CAMERA, MICROPHONE, LOCATION }
+enum class RedWebPermissionState { REQUESTED, GRANTED, DENIED, CANCELLED, UNAVAILABLE, REVOKED }
+
+data class RedCookieConsent(
+    val choice: RedCookieChoice,
+    val analytics: Boolean,
+    val preferences: Boolean,
+    val personalization: Boolean,
+    val recordedAt: Long = System.currentTimeMillis()
+) {
+    fun summary(): String =
+        "Escolha=${choice.name.lowercase()}; análise=${if (analytics) "aceito" else "recusado"}; " +
+            "preferências=${if (preferences) "aceito" else "recusado"}; " +
+            "personalização=${if (personalization) "aceito" else "recusado"}"
+}
 enum class RedEventType {
     SESSION_STARTED,
     COOKIE_CONSENT_RECORDED,
@@ -12,8 +28,7 @@ enum class RedEventType {
     PORTAL_STARTING, PORTAL_STARTED, PORTAL_STOPPED, PORTAL_OPENED, PORTAL_ERROR,
     HTTP_REQUEST_RECEIVED, HTTP_RESPONSE_SENT, NAVIGATION, REDIRECT,
     FORM_SUBMITTED, FORM_REJECTED, DEMO_FORM_COMPLETED,
-    PERMISSION_REQUESTED, PERMISSION_GRANTED, PERMISSION_DENIED, PERMISSION_CANCELLED,
-    PERMISSION_DEMO, RESOURCE_PREVIEW_STARTED, RESOURCE_PREVIEW_STOPPED,
+    PERMISSION_REQUESTED, PERMISSION_GRANTED, PERMISSION_DENIED, PERMISSION_CANCELLED,\n    WEB_PERMISSION_REQUESTED, WEB_PERMISSION_GRANTED, WEB_PERMISSION_DENIED, WEB_PERMISSION_CANCELLED, WEB_PERMISSION_UNAVAILABLE, WEB_PERMISSION_REVOKED,\n    PERMISSION_DEMO, RESOURCE_PREVIEW_STARTED, RESOURCE_PREVIEW_STOPPED,
     FILE_PICKER_OPENED, FILE_SELECTED, STEP_OPENED, STEP_COMPLETED,
     ERROR, SESSION_ENDED
 }
@@ -84,7 +99,13 @@ data class RedEvent(
     val httpMethod: String? = null,
     val route: String? = null,
     val httpStatus: Int? = null,
-    val bytesReceived: Int? = null
+    val bytesReceived: Int? = null,
+    val cookieChoice: RedCookieChoice? = null,
+    val cookieAnalytics: Boolean? = null,
+    val cookiePreferences: Boolean? = null,
+    val cookiePersonalization: Boolean? = null,
+    val webPermissionResource: RedWebPermissionResource? = null,
+    val webPermissionState: RedWebPermissionState? = null
 )
 
 data class RedSession(
