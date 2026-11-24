@@ -564,7 +564,7 @@ class RedPortalServer(
             ?: throw IllegalStateException("Endereço do hotspot não é um IPv4 literal válido.")
         if (requested.hostAddress != preferredAddress) throw IllegalStateException("O endereço do hotspot deve ser IPv4 literal, sem hostname.")
         if (requested.isLoopbackAddress || requested.isLinkLocalAddress || requested.isAnyLocalAddress ||
-            requested.isMulticastAddress || !requested.isSiteLocalAddress
+            requested.isMulticastAddress || !(requested.isSiteLocalAddress || isSharedAddressSpace(requested))
         ) {
             throw IllegalStateException("O endereço do hotspot não é um IPv4 privado utilizável.")
         }
@@ -581,6 +581,11 @@ class RedPortalServer(
                 .firstOrNull { it.hostAddress == requested.hostAddress && !it.isLoopbackAddress && !it.isLinkLocalAddress }
             exactAddress?.let { network.name to it.hostAddress }
         } ?: throw IllegalStateException("O IPv4 fornecido não pertence à interface Wi-Fi/AP ativa da sessão.")
+    }
+
+    private fun isSharedAddressSpace(address: Inet4Address): Boolean {
+        val bytes = address.address.map { it.toInt() and 0xff }
+        return bytes[0] == 100 && bytes[1] in 64..127
     }
 
     private fun isBoundAddressAvailable(interfaceName: String, address: String): Boolean = runCatching {
