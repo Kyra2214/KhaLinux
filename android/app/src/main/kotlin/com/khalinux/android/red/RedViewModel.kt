@@ -373,6 +373,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         RedLiveEvidenceStore.updateRequests(updatedRequests)
         val type = when {
             observation.path.startsWith("/go/") && observation.statusCode in 300..399 -> RedEventType.REDIRECT
+            observation.path == "/consent" -> RedEventType.HTTP_REQUEST_RECEIVED
             observation.method == "POST" && observation.statusCode in 200..299 -> RedEventType.FORM_SUBMITTED
             observation.method == "POST" -> RedEventType.FORM_REJECTED
             observation.path != "/" -> RedEventType.NAVIGATION
