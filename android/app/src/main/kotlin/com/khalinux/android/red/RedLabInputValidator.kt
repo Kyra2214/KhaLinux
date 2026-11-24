@@ -10,14 +10,8 @@ data class RedSyntheticValidationResult(
     val message: String
 )
 
-data class RedParticipantEvent(val kind: String, val result: String)
-
 object RedLabInputValidator {
     private val syntheticKeys = setOf("demo_id", "demo_code")
-    private val participantKinds = setOf("camera", "microphone", "location", "file")
-    private val participantResults = setOf(
-        "granted", "denied", "cancelled", "preview_started", "preview_stopped", "selected"
-    )
 
     fun validateSyntheticForm(body: ByteArray, contentType: String?): RedSyntheticValidationResult {
         if (contentType?.substringBefore(';')?.trim()
@@ -71,22 +65,6 @@ object RedLabInputValidator {
         if (choice == "reject_optional" && listOf(analytics, preferences, personalization).any { it != "0" }) return null
         fun label(value: String) = if (value == "1") "aceito" else "recusado"
         return "Escolha=$choice; análise=${'${'}label(analytics)}; preferências=${'${'}label(preferences)}; personalização=${'${'}label(personalization)}"
-    }
-
-    fun validateParticipantEvent(query: String, expectedToken: String?): RedParticipantEvent? {
-        if (expectedToken.isNullOrBlank() || query.length > MAX_QUERY_CHARS) return null
-        val values = decodePairs(query) ?: return null
-        if (values.keys != setOf("token", "kind", "result")) return null
-        val supplied = values["token"] ?: return null
-        val tokenMatches = MessageDigest.isEqual(
-            expectedToken.toByteArray(StandardCharsets.UTF_8),
-            supplied.toByteArray(StandardCharsets.UTF_8)
-        )
-        if (!tokenMatches) return null
-        val kind = values["kind"] ?: return null
-        val result = values["result"] ?: return null
-        if (kind !in participantKinds || result !in participantResults) return null
-        return RedParticipantEvent(kind, result)
     }
 
     private fun decodePairs(encoded: String): Map<String, String>? {
