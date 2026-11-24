@@ -228,7 +228,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         if (snapshot.state == RedNetworkState.IDLE) {
             portal.stop()
             tlsPreparation.stop()
-            systemHotspot.stopMonitoring()
+            if (mutableState.value.systemHotspotMode) systemHotspot.stopMonitoring()
             runCatching { tlsManager.clearEphemeralServerIdentity() }
             mutableState.update {
                 it.copy(
@@ -268,8 +268,11 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 mutableState.update {
                     it.copy(
-                        message = "O hotspot foi liberado porque o portal não pôde ser vinculado à rede do laboratório: " +
-                            (error.message ?: "erro desconhecido"),
+                        message = if (mutableState.value.systemHotspotMode) {
+                            "O portal não pôde ser vinculado. O hotspot do Android permanece ativo: " + (error.message ?: "erro desconhecido")
+                        } else {
+                            "O hotspot local foi liberado porque o portal não pôde ser vinculado: " + (error.message ?: "erro desconhecido")
+                        },
                         networkRunning = false,
                         portalEndpoint = null,
                         tlsPreparationUrl = null,
@@ -473,7 +476,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         val systemMode = mutableState.value.systemHotspotMode
         mutableState.update { it.copy(networkState = RedNetworkState.STOPPING) }
         hotspot.stop()
-        systemHotspot.stopMonitoring()
+        if (systemMode) systemHotspot.stopMonitoring()
         portal.stop()
         tlsPreparation.stop()
         runCatching { tlsManager.clearEphemeralServerIdentity() }
