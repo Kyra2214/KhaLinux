@@ -726,6 +726,20 @@ class RedPortalServer(
           const response=await fetch('/browser-permission',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:body.toString(),credentials:'same-origin'});
           if(!response.ok) throw new Error('Não foi possível registrar o estado no aparelho A.');
         }
+        async function watchPermissionRevocation(resource,permissionName){
+          if(!navigator.permissions||typeof navigator.permissions.query!=='function') return;
+          try{
+            const permission=await navigator.permissions.query({name:permissionName});
+            if(permission.state!=='granted') return;
+            permission.addEventListener('change',()=>{
+              if(permission.state==='denied'){
+                reportPermission(resource,'revoked').catch(()=>{});
+              }
+            });
+          }catch(error){
+            // O navegador pode não expor consulta para todos os recursos; não inferir revogação.
+          }
+        }
         async function requestResource(resource){
           const result=document.getElementById(resource+'-result');
           const button=document.querySelector('[data-resource="'+resource+'"]');
@@ -748,6 +762,7 @@ class RedPortalServer(
               const stream=await navigator.mediaDevices.getUserMedia(constraints);
               stream.getTracks().forEach(track=>track.stop());
               await reportPermission(resource,'granted');
+              watchPermissionRevocation(resource,resource);
               result.textContent='Permissão concedida pelo navegador. Faixas interrompidas imediatamente; nenhum conteúdo foi transmitido.';
               return;
             }
@@ -764,6 +779,7 @@ class RedPortalServer(
               );
             });
             await reportPermission(resource,'granted');
+            watchPermissionRevocation(resource,'geolocation');
             result.textContent='Permissão concedida pelo navegador. Coordenadas descartadas localmente e não transmitidas.';
           }catch(error){
             const state=error&&error.name==='AbortError'?'cancelled':
