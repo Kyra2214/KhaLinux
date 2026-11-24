@@ -326,12 +326,16 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         bytesReceived: Int? = null,
         cookieConsent: RedCookieConsent? = null,
         webPermissionResource: RedWebPermissionResource? = null,
-        webPermissionState: RedWebPermissionState? = null
+        webPermissionState: RedWebPermissionState? = null,
+        responseSent: Boolean? = null,
+        rejectionReason: String? = null,
+        serverFailure: Boolean? = null
     ) {
         val current = mutableState.value.session ?: return
         val nextState = when (type) {
             RedEventType.HOTSPOT_READY, RedEventType.PORTAL_STARTED -> RedOperationState.WAITING_PARTICIPANT
-            RedEventType.PORTAL_OPENED, RedEventType.HTTP_REQUEST_RECEIVED, RedEventType.FORM_SUBMITTED,
+            RedEventType.PORTAL_OPENED, RedEventType.HTTP_REQUEST_RECEIVED, RedEventType.HTTP_REQUEST_REJECTED,
+            RedEventType.HTTP_RESPONSE_SENT, RedEventType.FORM_SUBMITTED,
             RedEventType.DEMO_FORM_COMPLETED, RedEventType.FORM_REJECTED,
             RedEventType.NAVIGATION, RedEventType.REDIRECT, RedEventType.COOKIE_CONSENT_RECORDED,
             RedEventType.WEB_PERMISSION_REQUESTED, RedEventType.WEB_PERMISSION_GRANTED,
@@ -352,7 +356,10 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             bytesReceived = bytesReceived,
             cookieConsent = cookieConsent,
             webPermissionResource = webPermissionResource,
-            webPermissionState = webPermissionState
+            webPermissionState = webPermissionState,
+            responseSent = responseSent,
+            rejectionReason = rejectionReason,
+            serverFailure = serverFailure
         )
         store.save(updated)
         RedLiveEvidenceStore.updateSession(updated)
@@ -390,23 +397,78 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         }
         mutableState.update { it.copy(requests = updatedRequests, participantObservation = peer) }
         RedLiveEvidenceStore.updateRequests(updatedRequests)
-        val type = when {
-            observation.path.startsWith("/go/") && observation.statusCode in 300..399 -> RedEventType.REDIRECT
-            observation.path == "/consent" -> RedEventType.HTTP_REQUEST_RECEIVED
-            observation.method == "POST" && observation.statusCode in 200..299 -> RedEventType.FORM_SUBMITTED
-            observation.method == "POST" -> RedEventType.FORM_REJECTED
-            observation.path != "/" -> RedEventType.NAVIGATION
-            else -> RedEventType.HTTP_REQUEST_RECEIVED
-        }
-        recordStructuredEvent(
-            type = type,
-            detail = "${observation.method} ${observation.path} → HTTP ${observation.statusCode} · ${observation.bodyBytes} bytes",
-            source = "http",
-            httpMethod = observation.method,
-            route = observation.path,
-            httpStatus = observation.statusCode,
-            bytesReceived = observation.bodyBytes
+
+        val detail = "${observation.method} ${observation.path} → HTTP ${observation.statusCode} · ${observation.bodyBytes} bytes"
+        val common = mapOf(
+            "source" to "http",
+            "httpMethod" to observation.method,
+            "route" to observation.path,
+            "httpStatus" to observation.statusCode,
+            "bytesReceived" to observation.bodyBytes,
+            "responseSent" to observation.responseSent,
+            "rejectionReason" to observation.rejectionReason,
+            "serverFailure" to observation.serverFailure
         )
+
+        if (observation.method != "UNKNOWN" && observation.rejectionReason != "invalid_request_line") {
+            recordStructuredEvent(
+                RedEventType.HTTP_REQUEST_RECEIVED,
+                "Requisição recebida: $detail",
+                source = "http",
+                httpMethod = observation.method,
+                route = observation.path,
+                httpStatus = observation.statusCode,
+                bytesReceived = observation.bodyBytes,
+                responseSent = observation.responseSent,
+                rejectionReason = observation.rejectionReason,
+                serverFailure = observation.serverFailure
+            )
+        }
+        observation.rejectionReason?.let { reason ->
+            recordStructuredEvent(
+                RedEventType.HTTP_REQUEST_REJECTED,
+                "Requisição rejeitada ($reason): $detail",
+                source = "http",
+                httpMethod = observation.method,
+                route = observation.path,
+                httpStatus = observation.statusCode,
+                bytesReceived = observation.bodyBytes,
+                responseSent = observation.responseSent,
+                rejectionReason = reason,
+                serverFailure = observation.serverFailure
+            )
+        }
+        if (observation.serverFailure) {
+            recordStructuredEvent(
+                RedEventType.HTTP_SERVER_FAILURE,
+                "Falha interna do servidor: $detail",
+                source = "http",
+                httpMethod = observation.method,
+                route = observation.path,
+                httpStatus = observation.statusCode,
+                bytesReceived = observation.bodyBytes,
+                responseSent = observation.responseSent,
+                serverFailure = true
+            )
+        }
+        if (observation.responseSent) {
+            recordStructuredEvent(
+                RedEventType.HTTP_RESPONSE_SENT,
+                "Resposta enviada: HTTP ${observation.statusCode} para ${observation.method} ${observation.path}.",
+                source = "http",
+                httpMethod = observation.method,
+                route = observation.path,
+                httpStatus = observation.statusCode,
+                responseSent = true,
+                rejectionReason = observation.rejectionReason,
+                serverFailure = observation.serverFailure
+            )
+        }
+        if (observation.path.startsWith("/go/") && observation.statusCode in 300..399) {
+            recordStructuredEvent(RedEventType.REDIRECT, "Redirecionamento local executado: ${observation.path}.", source = "http", route = observation.path, httpStatus = observation.statusCode)
+        } else if (observation.method == "GET" && observation.path != "/" && observation.statusCode in 200..299) {
+            recordStructuredEvent(RedEventType.NAVIGATION, "Navegação local: ${observation.path}.", source = "http", route = observation.path, httpStatus = observation.statusCode)
+        }
     }
 
     fun finishSession() {
@@ -508,7 +570,10 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         bytesReceived: Int? = null,
         cookieConsent: RedCookieConsent? = null,
         webPermissionResource: RedWebPermissionResource? = null,
-        webPermissionState: RedWebPermissionState? = null
+        webPermissionState: RedWebPermissionState? = null,
+        responseSent: Boolean? = null,
+        rejectionReason: String? = null,
+        serverFailure: Boolean? = null
     ) = copy(events = (events + RedEvent(
         sessionId = id,
         type = type,
@@ -525,6 +590,9 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         cookiePreferences = cookieConsent?.preferences,
         cookiePersonalization = cookieConsent?.personalization,
         webPermissionResource = webPermissionResource,
-        webPermissionState = webPermissionState
+        webPermissionState = webPermissionState,
+        responseSent = responseSent,
+        rejectionReason = rejectionReason,
+        serverFailure = serverFailure
     )).takeLast(300))
 }
