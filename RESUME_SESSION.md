@@ -2,7 +2,7 @@
 
 - Repositório: `Kyra2214/KhaLinux`.
 - Branch de trabalho: `recovery/red-portal-integration`.
-- Último checkpoint Git confirmado antes desta atualização: `d21a96cc7f089ee9e071ffabbc45159fc631157d`.
+- Último checkpoint Git confirmado antes desta atualização: `1abaab3f04689f215fc4120366cf08c96b25f32a`. Snapshot de código revisado: `a845177073368f79beabb6b082e9de1bd0eaece3`. Base `main`: `a4de5eb7ef3d72404ea1171af5eaa135a48bde0c`.
 - Não alterar `main`, não fazer merge e não fazer force push.
 - Roadmap ativo: `docs/roadmap-red-blue-laboratorio.md`.
 - Topologia definida: **A** é a central que executa KhaLinux, cria a rede, hospeda o portal e exibe toda a observabilidade; **B** apenas conecta ao Wi-Fi, abre o portal no navegador, faz login de teste, responde ao aviso de cookies e às solicitações individuais do navegador quando a origem permitir.
@@ -14,11 +14,11 @@
 - RED-02: concluído em código/documentação; ACCESS_FINE_LOCATION solicitada somente ao iniciar hotspot no A, com concessão, recusa, recusa permanente e revogação. Ver `docs/red-permissions.md`.
 - RED-03: concluído em código/documentação; LocalOnlyHotspot com timeout/cancelamento/callbacks tardios e correlação por interface/IPv4 diferencial; sem interface inequívoca, não inicia servidor. Ver `docs/red-hotspot-lifecycle.md`.
 - RED-04: concluído em código/documentação; servidor HTTP bindado ao IPv4 exato, valida Host/headers/framing, monitora interface e aplica limites. Ver `docs/red-http-server.md`.
-- RED-08: concluído; token aleatório efêmero, cookie HttpOnly/SameSite, validação de IP/origem, comparação em tempo constante, bloqueio após falhas, expiração por inatividade/tempo absoluto e limpeza no stop; background/reinício marcam sessão interrompida. Ver `docs/red-session-security.md`.
+- RED-08: concluído; token aleatório efêmero, cookie HttpOnly/SameSite, validação de IP/origem, comparação em tempo constante, bloqueio após falhas, expiração por inatividade/tempo absoluto e limpeza no stop; background/reinício marcam sessão interrompida; encerramento inesperado do portal libera o hotspot e a página de permissões exige login aceito no modo local. Ver `docs/red-session-security.md`.
 - BLUE-01: concluído; painel BLUE apresenta fatos observados, interpretação defensiva, eventos HTTP, cookies e permissões sem criar detecções sem evidência. Ver `docs/blue-area.md`.
 - RED-09: concluído; schema v2, migração v1→v2, retenção 100 sessões/300 eventos, relatório Markdown, exportação SAF e exclusão individual/global. Ver `docs/red-session-reports.md`.
 - RED-10: concluído; interface A centraliza estado real, URL/QR após bind, diagnóstico, ações de recuperação, consentimento/permissões e evidências; B continua navegador-only. Ver `docs/red-operator-interface.md`.
-- RED-11: hardening concluído; CSP com object-src/base-uri none, cabeçalhos de segurança, allowlist mínima, rejeição de caracteres de controle, rate limit com mapa limitado, revisão documental do Manifest e riscos residuais documentados. Auditoria e testes negativos ficam para a fase final. Ver `docs/red-security-privacy.md`.
+- RED-11: hardening concluído; CSP por resposta com nonce e sem unsafe-inline em script-src, cabeçalhos de segurança, allowlist mínima, rejeição de caracteres de controle, rate limit com mapa limitado, revisão documental do Manifest e riscos residuais documentados. Auditoria e testes negativos ficam para a fase final. Ver `docs/red-security-privacy.md`.
 - RED-12: integração e plano de validação documentados; build, lint, testes host/Android e auditoria não executados por ordem de execução. Ver `docs/red-validation-plan.md`.
 - RED-13: matriz física final documentada para A operador/B navegador-only; nenhuma execução física iniciada. Ver `docs/red-physical-validation.md`.
 - RED-14: parcial; notas de release, matriz de compatibilidade, checklist e revisão direcionada da branch preparados. Revisão integral do diff, APK/hash e PR aguardam os portões finais. Ver `docs/red-release-checklist.md` e `docs/red-branch-stabilization.md`.
