@@ -1,6 +1,6 @@
 # RED-01 — Wi-Fi de laboratório, portal e navegação
 
-**Estado:** implementação em código/documentação preparada. O portal, login sintético, aviso de cookies, página de permissões web individuais, telemetria e painel A estão integrados. RED-07 permanece parcial porque o HTTP local por IP privado não habilita APIs sensíveis em navegadores modernos; validação/build/testes ficam para a etapa final.  
+**Estado:** implementação em código/documentação parcial. Portal HTTPS local, preparação de CA, login sintético, cookies, página de permissões individuais, telemetria e painel A estão integrados. RED-07 permanece parcial até confiança efetiva do navegador e acabamento; validação/build/testes ficam para a etapa final.  
 **Roadmap:** [roadmap-red-blue-laboratorio.md](roadmap-red-blue-laboratorio.md)
 
 ## Topologia
@@ -11,10 +11,10 @@
 ## Fluxo principal
 
 1. No A, abrir RED, selecionar a Operação 01 e iniciar uma sessão.
-2. Solicitar o hotspot ao Android e iniciar o portal local.
-3. No B, conectar-se ao Wi-Fi e abrir o endereço/QR Code exibido pelo A.
+2. Solicitar o hotspot ao Android, iniciar a preparação HTTP da CA em 8080 e o portal HTTPS em 8443.
+3. No B, conectar-se ao Wi-Fi, abrir a URL de preparação, baixar a CA pública, conferir o fingerprint com o A e instalar a CA nas configurações do Android; depois abrir o endereço HTTPS/QR.
 4. Na própria página do portal, responder ao aviso de cookies e depois fazer login somente com identificador e código de teste do laboratório.
-5. Após o login, abrir **Permissões do navegador** e escolher separadamente câmera, microfone ou localização. Cada botão tem finalidade explícita e depende de contexto seguro; em HTTP local, o resultado pode ser UNAVAILABLE.
+5. Após o login, abrir **Permissões do navegador** e escolher separadamente câmera, microfone ou localização. Cada botão tem finalidade explícita e depende de HTTPS confiável, contexto seguro e suporte do navegador.
 8. Navegar pelas páginas locais.
 9. No A, acompanhar requisições HTTP, escolha de cookies e eventos realmente recebidos.
 10. Encerrar a sessão no A e consultar o relatório.
@@ -37,9 +37,9 @@ O formulário usa apenas identificador e código próprios da aula. Não imita p
 
 ## Permissões do navegador
 
-O B permanece exclusivamente no navegador. Câmera, microfone e localização via APIs web exigem contexto seguro, suporte do navegador e ação explícita do participante. O portal atual usa HTTP em IP local; nessa condição, navegadores modernos normalmente não disponibilizam APIs sensíveis por não ser uma origem segura.
+O B permanece exclusivamente no navegador. Câmera, microfone e localização via APIs web exigem contexto seguro, suporte do navegador e ação explícita do participante. O portal participante usa HTTPS local em IP privado. Se a CA não for confiável pelo navegador, a conexão HTTPS não será estabelecida e as APIs sensíveis continuarão indisponíveis.
 
-O projeto não contorna essa política, não oculta a finalidade dos pedidos e não apresenta concessões fictícias. Quando o navegador não considerar o IP local um contexto seguro, o painel registra indisponibilidade e não exibe os prompts. Se uma API não estiver disponível, o A registra a limitação em vez de declarar uma permissão concedida.
+O projeto não contorna essa política, não oculta a finalidade dos pedidos e não apresenta concessões fictícias. Quando o navegador não aceitar a cadeia TLS ou não considerar a origem segura, o painel registra indisponibilidade e não exibe os prompts. Se uma API não estiver disponível, o A registra a limitação em vez de declarar uma permissão concedida.
 
 ## Painel do operador A
 
