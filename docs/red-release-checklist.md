@@ -1,6 +1,6 @@
 # RED-14 — Checklist de estabilização e entrega
 
-**Estado:** documentação e estabilização da branch concluídas no snapshot registrado; release publicável ainda bloqueada. Este checklist separa o que foi preparado do que só pode ser declarado após validação.
+**Estado:** documentação e estabilização da branch parcialmente concluídas; RED-07 tem implementação HTTPS local offline, mas validação browser/hardware ainda pendente. Release publicável bloqueada. Este checklist separa implementação de validação.
 
 ## Entregáveis documentais concluídos
 
@@ -20,7 +20,7 @@
 
 ## Portões obrigatórios da etapa final
 
-- [ ] Resolver dependências externas registradas, inclusive HTTPS confiável para RED-07, caso seja fornecido sem exigir configuração manual no B.
+- [ ] Validar no B a instalação manual da CA pública, conferência do fingerprint, confiança no navegador e handshake TLS; confirmar prompts web reais.
 - [ ] Executar RED-11: auditoria final e resolver achados críticos/altos.
 - [ ] Executar RED-12: build, lint, testes unitários e integração host/Android.
 - [ ] Corrigir falhas e repetir testes afetados.
@@ -40,7 +40,7 @@
 - [x] Revisar direcionadamente Manifest, configuração Android e arquivos RED/BLUE relevantes.
 - [x] Buscar chamadas de logging de depuração nos arquivos Kotlin RED/BLUE revisados; nenhuma encontrada.
 - [ ] Revisar integralmente o diff de todos os arquivos/commits antes do PR.
-- [ ] Resolver RED-07 com origem HTTPS confiável, se houver solução compatível com B navegador-only.
+- [ ] Validar RED-07 no navegador B: CA confiável, SAN IP correto, ausência de alerta e permissões web reais quando suportadas.
 - [ ] Executar os portões finais de validação e gerar artefatos.
 
 ## Estado atual do pacote
