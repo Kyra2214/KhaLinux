@@ -1,6 +1,6 @@
 # Auditoria de segurança estática (9.1)
 
-**Estado:** implementada em código e por revisão manual. **A execução do script `audit-security.py` NÃO foi feita** (política do Prompt Mestre: verificações só na validação final) e fica registrada como pendência final.
+**Estado:** implementada em código e por revisão manual. A execução do script `audit-security.py` pertence à fase final de validação, após 100% da implementação do roadmap.
 
 ## O que foi entregue
 
@@ -14,7 +14,7 @@
 |---|---|---|
 | Manifesto | `allowBackup=false`; sem `debuggable`; `usesCleartextTraffic=false`; permissões só da lista aprovada; só `.MainActivity` exportada; `exported` explícito em todo componente | ERRO |
 | Segredos | sem `.jks/.keystore/.p12/.pem/.env/local.properties/keystore.properties`; padrões de chave privada, tokens GitHub/AWS/Google/Slack e atribuições `senha=`/`password=`/`storePassword=` com literal | ERRO |
-| Kotlin/Java (`src/main`) | sem `addJavascriptInterface`, `setJavaScriptEnabled`, `MODE_WORLD_*`, `X509TrustManager`/`HostnameVerifier`, `SSLContext.getInstance`, `printStackTrace`, `Runtime.exec`, `Log.*`; `ProcessBuilder` só em `ProotLauncher.kt` e `RuntimeDiagnostics.kt` | ERRO |
+| Kotlin/Java (`src/main`) | sem `addJavascriptInterface`, `setJavaScriptEnabled`, `MODE_WORLD_*`, `X509TrustManager`/`HostnameVerifier`, `printStackTrace`, `Runtime.exec`, `Log.*`; `SSLContext.getInstance` é permitido somente em `RedLocalTlsManager.kt` para contexto TLS de servidor com `X509ExtendedKeyManager`, trust managers padrão e sem `HostnameVerifier`; `ProcessBuilder` só em `ProotLauncher.kt` e `RuntimeDiagnostics.kt` | ERRO |
 | Kotlin/Java | literal `http://` | AVISO |
 | Downloads | manifestos de release com `*_url` HTTPS e `*sha256` de 64 hex; fonte por URL no catálogo exige HTTPS e SHA-256 | ERRO |
 | Laboratórios | fixtures sem `0.0.0.0`/`INADDR_ANY`; serviços do `labs.json` só em loopback | ERRO |
