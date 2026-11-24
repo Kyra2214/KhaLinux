@@ -1,12 +1,19 @@
-## [Não lançado] — Home Security: formulário local de demonstração (implementado, CI pendente)
+## [1.0.0-rc.8] — 2026-11-24
+
+- Candidata pública baseada na `main`, com laboratório RED/BLUE ampliado: portal local HTTPS/8443, preparação da CA pública por endpoint HTTP restrito/8080, opção de hotspot do sistema, observação do upstream em A e heartbeat autenticado local.
+- Formulário Home Security de demonstração usa e-mail/senha apenas no cenário local; o painel recebe e-mail mascarado e método demonstrativo, sem manter a senha em modelos, callbacks, painel, logs, histórico ou relatórios. Sem OAuth; não usar credenciais reais.
+- `versionCode=10`, build release ARM64 assinado com R8/minificação; release workflow valida assinatura e publica SHA-256. `versionCode=8` continua reservado ao APK automático da main.
+- A CI da main passou no commit `a33833f` (run `45431915888`; essa execução ainda montou APK debug). Nesta preparação, a etapa `assembleDebug` foi removida; permanecem testes unitários/lint e o APK automático release assinado. Testes físicos A/B de TLS, hotspot e permissões continuam pendentes.
+
+## [Incluído em 1.0.0-rc.8] — Home Security: formulário local de demonstração
 
 - Portal RED renomeado visualmente para **Home Security**, com página inicial e chamada “Cadastre-se para logar”.
 - Formulário local recebe e-mail e senha apenas para validar o cenário de demonstração; valida e-mail e senha entre 8 e 64 caracteres.
 - A senha não é incluída em modelos, callbacks, painel, logs, histórico ou relatórios. O painel A recebe somente e-mail mascarado e método demonstrativo.
 - Facebook e Instagram aparecem apenas como exemplos visuais, sem OAuth, navegação externa ou coleta de credenciais.
-- Testes unitários atualizados para validar e-mail, senha, campos extras e ausência de senha no resultado. CI/build após este ajuste ainda pendentes.
+- Testes unitários validam e-mail, senha, campos extras e ausência da senha no resultado. CI e build da main passaram no run `45431915888`; validação física segue pendente.
 
-## [Não lançado] — RED-15: modo hotspot do sistema, upstream e heartbeat (implementado, não validado)
+## [Incluído em 1.0.0-rc.8] — RED-15: modo hotspot do sistema, upstream e heartbeat (validação física pendente)
 
 - **Validação automatizada final: PASS** no workflow `45408044336` (commit `c9f289a`): host checks, auditoria estática, JNI PTY, smoke PRoot, testes unitários Android, `assembleDebug` e `lintDebug` aprovados. O build exigiu excluir metadado OSGi duplicado do APK; o lint exigiu substituir `InputStream.readNBytes` (API 33) por leitura limitada compatível com minSdk 28.
 - **Pendente:** validação física A/B de confiança TLS, prompts do navegador, heartbeat e continuidade do hotspot/encaminhamento externo.
@@ -25,7 +32,7 @@
 - Encerrar o portal não desliga o hotspot do sistema; essa ação permanece sob controle do Android.
 - **Validação pendente:** descoberta de interface depende do padrão OEM; permanência da conexão B e encaminhamento externo exigem validação física na fase final.
 
-## [Não lançado] — RED-07: HTTPS local offline (implementado, não validado)
+## [Incluído em 1.0.0-rc.8] — RED-07: HTTPS local offline (validação física pendente)
 
 - Adicionado `RedLocalTlsManager`: CA e chave de servidor RSA geradas pelo Android Keystore; chaves privadas não são exportadas.
 - Certificado do servidor emitido para o IPv4 atual com SAN IP, validade limitada e uso `serverAuth`.
