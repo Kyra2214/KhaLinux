@@ -71,8 +71,6 @@
 - **Porta 8080 ocupada:** encerrar a sessão/servidor anterior; o app não deve trocar silenciosamente para outra porta.
 - **Servidor sem IPv4 de interface AP:** o RED não deve abrir em todas as interfaces como fallback. Rever estado da rede e registrar indisponibilidade.
 - **Permissão não aparece:** verificar se já foi concedida, revogada ou bloqueada nas configurações do Android.
-- **Câmera/microfone sem prévia:** conferir permissões, disponibilidade do hardware e uso por outro aplicativo.
-- **Localização indisponível:** habilitar serviços de localização; o provedor pode não retornar posição atual.
 - **Evento não chega ao painel:** conferir endereço do aparelho A, porta 8080, código temporário e conexão Wi-Fi do aparelho B.
 
 ## Limitações que devem ser explicadas
@@ -80,5 +78,5 @@
 - O Android controla o hotspot; o app não escolhe arbitrariamente todos os parâmetros.
 - O Android não oferece uma lista universal de clientes do LocalOnlyHotspot; o RED confirma atividade do participante quando recebe uma requisição HTTP.
 - O portal usa HTTP local sem TLS. Não é HTTPS e não deve ser apresentado como conexão protegida.
-- O navegador não ganha acesso nativo à câmera, microfone ou localização por estar conectado ou por preencher login.
+- O navegador não ganha acesso a câmera, microfone ou localização por estar conectado, fazer login ou aceitar cookies. APIs sensíveis exigem contexto seguro e uma ação explícita.
 - A aula demonstra somente o que o servidor local realmente recebeu.
