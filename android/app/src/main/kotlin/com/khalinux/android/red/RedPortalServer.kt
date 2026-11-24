@@ -367,9 +367,9 @@ class RedPortalServer(
                                 serverFailure = serverFailure
                             )
                         )
-                        pendingCookieConsent?.let(onCookieConsent)
-                        pendingWebPermission?.let(onWebPermission)
                     }
+                    runCatching { pendingCookieConsent?.let(onCookieConsent) }
+                    runCatching { pendingWebPermission?.let(onWebPermission) }
                 }
             }
         }
