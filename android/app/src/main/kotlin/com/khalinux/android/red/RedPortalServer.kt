@@ -92,6 +92,16 @@ class RedPortalServer(
                 error("A plataforma não oferece TLS 1.2 ou TLS 1.3.")
             }
             tlsSocket.enabledProtocols = protocols
+            val cipherSuites = tlsSocket.enabledCipherSuites.filter { suite ->
+                suite.startsWith("TLS_AES_") ||
+                    suite.startsWith("TLS_CHACHA20_") ||
+                    suite.startsWith("TLS_ECDHE_RSA_WITH_")
+            }.toTypedArray()
+            if (cipherSuites.isEmpty()) {
+                runCatching { tlsSocket.close() }
+                error("A plataforma não oferece conjuntos TLS modernos compatíveis com o certificado do laboratório.")
+            }
+            tlsSocket.enabledCipherSuites = cipherSuites
             tlsSocket
         }
         server.soTimeout = ACCEPT_TIMEOUT_MS
