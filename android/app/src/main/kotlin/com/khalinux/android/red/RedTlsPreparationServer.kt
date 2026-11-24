@@ -153,6 +153,9 @@ class RedTlsPreparationServer(
             append("Cache-Control: no-store\r\n")
             disposition?.let { append("Content-Disposition: $it\r\n") }
             append("X-Content-Type-Options: nosniff\r\n")
+            append("X-Frame-Options: DENY\r\n")
+            append("Referrer-Policy: no-referrer\r\n")
+            append("Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'\r\n")
             append("Connection: close\r\n")
             append("Content-Length: ${body.size}\r\n\r\n")
         }
