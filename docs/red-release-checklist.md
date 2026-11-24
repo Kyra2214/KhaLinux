@@ -41,7 +41,7 @@
 - [x] Buscar chamadas de logging de depuração nos arquivos Kotlin RED/BLUE revisados; nenhuma encontrada.
 - [ ] Revisar integralmente o diff de todos os arquivos/commits antes do PR.
 - [ ] Validar RED-07 no navegador B: CA confiável, SAN IP correto, ausência de alerta e permissões web reais quando suportadas.
-- [ ] Validar RED-15 no A/B: hotspot do sistema permanece ativo, B não perde associação ao ativar upstream, upstream de A é observado e navegação externa de B é confirmada diretamente no B.
+- [ ] Validar RED-15 no A/B: hotspot do sistema permanece ativo, B não perde associação ao ativar upstream, heartbeat local continua atualizando, upstream de A é observado e navegação externa de B é confirmada diretamente no B.
 - [ ] Executar os portões finais de validação e gerar artefatos.
 
 ## Estado atual do pacote
