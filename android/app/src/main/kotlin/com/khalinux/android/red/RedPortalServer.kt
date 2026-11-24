@@ -136,6 +136,11 @@ class RedPortalServer(
                     return
                 }
                 path = rawPath
+                if (query.isNotEmpty()) {
+                    status = 400
+                    writeResponse(output, status, "Query string não é aceita por este portal local.")
+                    return
+                }
                 if (path.isBlank() || !path.startsWith("/") || path.contains("..") || path.contains('\\')) {
                     status = 400
                     writeResponse(output, status, "Caminho inválido.")
@@ -153,6 +158,14 @@ class RedPortalServer(
                     return
                 }
                 contentType = headers["content-type"]
+                if (method == "POST" && path in setOf("/consent", "/login") &&
+                    contentType?.substringBefore(';')?.trim()
+                        ?.equals("application/x-www-form-urlencoded", ignoreCase = true) != true
+                ) {
+                    status = 415
+                    writeResponse(output, status, "Content-Type não suportado para este formulário.")
+                    return
+                }
                 if (headers.containsKey("transfer-encoding")) {
                     status = 501
                     writeResponse(output, status, "Transfer-Encoding não disponível neste laboratório.")
@@ -392,6 +405,7 @@ class RedPortalServer(
             408 -> "Request Timeout"
             413 -> "Payload Too Large"
             414 -> "URI Too Long"
+            415 -> "Unsupported Media Type"
             421 -> "Misdirected Request"
             501 -> "Not Implemented"
             else -> "Error"
