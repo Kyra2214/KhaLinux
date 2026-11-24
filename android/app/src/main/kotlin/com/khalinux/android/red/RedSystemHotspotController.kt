@@ -18,6 +18,26 @@ import java.util.Locale
  * o aparelho A possui upstream validado. Ativar dados móveis depois pode
  * disponibilizar internet a B sem trocar a rede Wi-Fi, conforme suporte da OEM/operadora.
  */
+internal fun selectSystemHotspotCandidates(
+    current: Set<Pair<String, String>>,
+    baseline: Set<Pair<String, String>>,
+    defaultNetworkAddresses: Set<String>
+): Set<Pair<String, String>> {
+    val newlyObserved = current - baseline
+    val newlyObservedOutsideDefault = newlyObserved.filter { (_, address) ->
+        address !in defaultNetworkAddresses
+    }.toSet()
+    val apNamed = current.filter { (name, _) ->
+        val normalized = name.lowercase(Locale.ROOT)
+        normalized.startsWith("ap") || normalized.startsWith("swlan") || normalized.contains("softap")
+    }.toSet()
+    return when {
+        apNamed.isNotEmpty() -> apNamed
+        newlyObservedOutsideDefault.isNotEmpty() -> newlyObservedOutsideDefault
+        else -> emptySet()
+    }
+}
+
 class RedSystemHotspotController(
     context: Context,
     private val onUpstreamChanged: (RedUpstreamSnapshot) -> Unit = {}
@@ -54,24 +74,12 @@ class RedSystemHotspotController(
                 RedNetworkState.ERROR,
                 "Não foi possível enumerar as interfaces Wi-Fi para identificar o hotspot do sistema."
             )
-        val newlyObserved = current - baseline
         val defaultAddresses = connectivity.activeNetwork
             ?.let { network -> connectivity.getLinkProperties(network)?.linkAddresses }
             .orEmpty()
             .mapNotNull { it.address.hostAddress }
             .toSet()
-        val newlyObservedOutsideDefault = newlyObserved.filter { (_, address) -> address !in defaultAddresses }.toSet()
-        val apNamed = current.filter { (name, _) ->
-            val normalized = name.lowercase(Locale.ROOT)
-            normalized.startsWith("ap") || normalized.startsWith("swlan") || normalized.contains("softap")
-        }.toSet()
-        val candidates = when {
-            apNamed.size == 1 -> apNamed
-            newlyObservedOutsideDefault.size == 1 -> newlyObservedOutsideDefault
-            newlyObserved.isNotEmpty() -> newlyObserved
-            apNamed.isNotEmpty() -> apNamed
-            else -> emptySet()
-        }
+        val candidates = selectSystemHotspotCandidates(current, baseline, defaultAddresses)
         return when {
             candidates.size == 1 -> {
                 val (interfaceName, address) = candidates.single()
