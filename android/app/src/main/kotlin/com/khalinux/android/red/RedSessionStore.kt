@@ -41,7 +41,8 @@ class RedSessionStore(context: Context) {
                 .put("responseSent", event.responseSent ?: JSONObject.NULL)
                 .put("rejectionReason", event.rejectionReason ?: JSONObject.NULL)
                 .put("serverFailure", event.serverFailure ?: JSONObject.NULL)
-                .put("safeHeaders", JSONObject().apply { event.safeHeaders.forEach { (name, value) -> put(name, value) } }))
+                .put("safeHeaders", JSONObject().apply { event.safeHeaders.forEach { (name, value) -> put(name, value) } })
+                .put("remoteAddress", event.remoteAddress ?: JSONObject.NULL))
         }
         root.put("events", events)
         preferences.edit().putString(session.id, root.toString()).apply()
@@ -95,7 +96,8 @@ class RedSessionStore(context: Context) {
                         serverFailure = if (item.isNull("serverFailure")) null else item.getBoolean("serverFailure"),
                         safeHeaders = if (item.isNull("safeHeaders")) emptyMap() else item.getJSONObject("safeHeaders").let { headers ->
                             headers.keys().asSequence().associateWith { key -> headers.getString(key) }
-                        }
+                        },
+                        remoteAddress = if (item.isNull("remoteAddress")) null else item.getString("remoteAddress")
                     )
                 }
             )
