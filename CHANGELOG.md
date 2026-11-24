@@ -1,3 +1,13 @@
+## [Não lançado] — RED-10: interface do operador e estados operacionais
+
+- Painel A apresenta estados separados para permissão pendente, solicitação de hotspot, confirmação Android, descoberta de interface, inicialização do servidor, espera de participante, atividade HTTP, encerramento e falha.
+- Botão de início é desabilitado durante solicitações pendentes; a confirmação só aparece após callback real.
+- Adicionado aviso visível de HTTP sem TLS e limites do que o painel observa.
+- Estados de permissão transitórios são preservados em recriação e resolvidos no retorno à Activity.
+- Roteiro e textos atualizados para B navegador-only e solicitações web independentes.
+- QR Code possui descrição acessível; erros mantêm instruções de recuperação.
+- Nenhum teste/build/compilação foi executado.
+
 ## [Não lançado] — RED-09: histórico, relatório e exportação
 
 - Schema de sessão versionado (v2) e migração automática de registros legados v1.
