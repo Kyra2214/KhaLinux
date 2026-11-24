@@ -37,7 +37,15 @@ class RedHotspotController(
         val generation = requestGeneration
         activeRequestGeneration = generation
         starting = true
-        interfacesBeforeStart = snapshotWifiIpv4Addresses()
+        val baseline = snapshotWifiIpv4Addresses()
+        if (baseline == null) {
+            starting = false
+            activeRequestGeneration = null
+            requestGeneration += 1
+            onState(RedHotspotSnapshot(RedNetworkState.ERROR, "Não foi possível obter a lista inicial de interfaces; hotspot não solicitado."))
+            return
+        }
+        interfacesBeforeStart = baseline
         onState(RedHotspotSnapshot(RedNetworkState.REQUESTING_HOTSPOT, "Solicitando hotspot local ao Android."))
 
         val timeout = Runnable {
@@ -132,7 +140,7 @@ class RedHotspotController(
         val task = Runnable {
             synchronized(this@RedHotspotController) {
                 if (reservationGeneration != generation || reservation !== activeReservation) return@synchronized
-                val candidates = snapshotWifiIpv4Addresses().filter { it !in baseline }
+                val candidates = snapshotWifiIpv4Addresses()?.filter { it !in baseline }.orEmpty()
                 when {
                     candidates.size == 1 -> {
                         interfaceDiscoveryRunnable = null
@@ -213,7 +221,7 @@ class RedHotspotController(
         }
     }
 
-    private fun snapshotWifiIpv4Addresses(): Set<Pair<String, String>> = runCatching {
+    private fun snapshotWifiIpv4Addresses(): Set<Pair<String, String>>? = runCatching {
         NetworkInterface.getNetworkInterfaces()?.toList().orEmpty()
             .filter { network ->
                 val name = network.name.lowercase(Locale.ROOT)
@@ -228,7 +236,7 @@ class RedHotspotController(
                     .mapNotNull { address -> address.hostAddress?.let { network.name to it } }
             }
             .toSet()
-    }.getOrDefault(emptySet())
+    }.getOrNull()
 
     companion object {
         private const val START_TIMEOUT_MS = 30_000L
