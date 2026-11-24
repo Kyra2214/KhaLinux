@@ -23,7 +23,7 @@ A linha do tempo distingue `HTTP_REQUEST_RECEIVED`, `HTTP_REQUEST_REJECTED`, `HT
 - `TLS_HANDSHAKE_OBSERVED` é emitido somente após uma resposta HTTPS válida para o participante vinculado à sessão e confirma que aquela conexão concluiu o handshake TLS.
 - `UPSTREAM_STATUS_CHANGED` registra capacidades de upstream observadas no aparelho A; `NET_CAPABILITY_VALIDATED` não prova que o aparelho B navegou externamente.
 - No modo de hotspot do sistema, `HOTSPOT_READY` significa que o KhaLinux selecionou um candidato de interface/IPv4 sem ambiguidade para vincular o portal; não é uma confirmação direta do estado de tethering fornecida pelo Android.
-- `PARTICIPANT_HEARTBEAT` é emitido quando B envia `GET /heartbeat` com o cookie de sessão válido e recebe HTTP 204. Confirma que B alcança o portal pela rede local naquele instante; não comprova acesso externo à internet.
+- `PARTICIPANT_HEARTBEAT` é emitido quando B envia `GET /heartbeat` com o cookie de sessão válido e recebe HTTP 204. Confirma que B alcança o portal pela rede local naquele instante; não comprova acesso externo à internet. A página envia o heartbeat somente enquanto está visível; ausência ou atraso de heartbeat não prova desconexão, pois o navegador pode suspender páginas em segundo plano.
 - O evento de handshake não prova concessão de câmera, microfone ou localização; esses resultados continuam em eventos de permissão web separados.
 - Escritas de eventos e observações de requisição são serializadas no ViewModel para preservar sequência e correlação quando callbacks de portal, TLS e conectividade chegam em threads diferentes.
 - O relatório distingue download observado e handshake observado. Ausência de handshake não é interpretada como prova de que a CA não foi instalada.
