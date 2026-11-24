@@ -8,41 +8,50 @@ import org.junit.Test
 
 class RedLabInputValidatorTest {
     @Test
-    fun acceptsOnlyExpectedSyntheticParticipantName() {
+    fun acceptsHomeSecurityDemoCredentialsWithoutReturningPassword() {
         val result = RedLabInputValidator.validateSyntheticForm(
-            "participant_name=Aluno%20Demo".toByteArray(),
+            "email=aluno%40example.com&password=Example123".toByteArray(),
             "application/x-www-form-urlencoded; charset=UTF-8"
         )
 
         assertTrue(result.accepted)
-        assertEquals(mapOf("participant_name" to "Aluno Demo"), result.fields)
+        assertEquals("a***o@example.com", result.fields["email"])
+        assertEquals("email_password_demo", result.fields["auth_method"])
+        assertFalse(result.fields.containsKey("password"))
+        assertFalse(result.fields.values.any { it == "Example123" })
     }
 
     @Test
-    fun rejectsCredentialAndUnknownFieldsWithoutReturningValues() {
-        val credentials = RedLabInputValidator.validateSyntheticForm(
-            "email=user%40example.com&password=Example123".toByteArray(),
+    fun rejectsInvalidEmailWeakPasswordAndUnknownFieldsWithoutReturningValues() {
+        val invalidEmail = RedLabInputValidator.validateSyntheticForm(
+            "email=not-an-email&password=Example123".toByteArray(),
+            "application/x-www-form-urlencoded"
+        )
+        val weakPassword = RedLabInputValidator.validateSyntheticForm(
+            "email=user%40example.com&password=short".toByteArray(),
             "application/x-www-form-urlencoded"
         )
         val unknown = RedLabInputValidator.validateSyntheticForm(
-            "participant_name=Aluno&token=unexpected".toByteArray(),
+            "email=user%40example.com&password=Example123&token=unexpected".toByteArray(),
             "application/x-www-form-urlencoded"
         )
 
-        assertFalse(credentials.accepted)
+        assertFalse(invalidEmail.accepted)
+        assertFalse(weakPassword.accepted)
         assertFalse(unknown.accepted)
-        assertTrue(credentials.fields.isEmpty())
+        assertTrue(invalidEmail.fields.isEmpty())
+        assertTrue(weakPassword.fields.isEmpty())
         assertTrue(unknown.fields.isEmpty())
     }
 
     @Test
     fun rejectsDuplicateFieldsUnsupportedContentTypeAndOversizedBody() {
         val duplicate = RedLabInputValidator.validateSyntheticForm(
-            "participant_name=Aluno&participant_name=Outra".toByteArray(),
+            "email=a%40example.com&email=b%40example.com&password=Example123".toByteArray(),
             "application/x-www-form-urlencoded"
         )
         val wrongType = RedLabInputValidator.validateSyntheticForm(
-            "participant_name=Aluno".toByteArray(),
+            "email=a%40example.com&password=Example123".toByteArray(),
             "application/json"
         )
         val oversized = RedLabInputValidator.validateSyntheticForm(
