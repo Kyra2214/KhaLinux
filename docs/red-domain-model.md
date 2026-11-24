@@ -36,6 +36,7 @@
 - `RedSessionStore` serializa os novos campos como opcionais. Sessões antigas sem esses campos continuam sendo lidas com valores nulos.
 - `RedLiveEvidenceStore` compartilha os mesmos eventos com a perspectiva BLUE.
 - `UPSTREAM_STATUS_CHANGED` registra somente capacidades do upstream observadas no aparelho A; não representa telemetria do aparelho B.
+- `PARTICIPANT_HEARTBEAT` registra um GET same-origin autenticado com resposta 204; a ausência de heartbeat não prova desconexão, pois páginas ocultas suspendem o envio.
 - O relatório inclui escolha de cookies e categorias, sem valores dos cookies.
 
 ## Limites
