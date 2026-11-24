@@ -6,8 +6,8 @@
 
 - Branch: `recovery/red-portal-integration`.
 - Base `main`: `a4de5eb7ef3d72404ea1171af5eaa135a48bde0c`.
-- Snapshot revisado antes desta atualização: `142f4c773573062060b18eb6be9e1ce1481ea801`.
-- Comparação nesse snapshot: 276 commits à frente, 0 atrás; 40 arquivos alterados.
+- Snapshot revisado antes desta atualização: `19bcca38d49960851d7fd8259036c61b5cea4159`.
+- Comparação nesse snapshot: 281 commits à frente, 0 atrás; 40 arquivos alterados.
 - `main` não foi alterada; nenhum merge, force push ou PR foi executado.
 
 ## Revisão direcionada concluída
@@ -16,7 +16,7 @@
 - Rede: `usesCleartextTraffic=false` para tráfego de saída do app. O portal de entrada continua HTTP local, sem TLS; isso não deve ser descrito como HTTPS.
 - Servidor RED: bind ao IPv4/interface identificados; Host, origem, método, Content-Type, framing e limites validados; timeout, rate limit, token efêmero e expiração; cabeçalhos defensivos e CSP por nonce aleatório por resposta, sem `unsafe-inline` em script-src.
 - Evidências: Cookie, Authorization e corpos HTTP não entram no histórico; allowlist persistida limitada a Host, Accept, Content-Type e Referer path; User-Agent e Accept-Language excluídos.
-- Sessões: schema versionado, migração, retenção limitada, relatório e exclusão; metadados ficam em storage app-private não criptografado, sem credenciais ou tokens persistidos.
+- Sessões: schema versionado, migração, retenção limitada, relatório e exclusão; metadados ficam em storage app-private não criptografado, sem credenciais ou tokens persistidos. Expiração/falha inesperada do portal libera também a reserva do hotspot.
 - Ciclo de vida: segundo plano/tela bloqueada encerra rede/portal e marca sessão interrompida; reinício recupera sessões sem finalização como interrompidas.
 - Navegador B: somente portal, cookies e solicitações web separadas; nenhuma permissão nativa, SAF, leitura de arquivos ou captura de mídia/coordenadas.
 - Busca textual direcionada nos arquivos Kotlin do pacote RED/BLUE não encontrou chamadas `Log.*`, `println`, `System.out` ou `printStackTrace`.
