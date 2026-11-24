@@ -23,6 +23,8 @@ data class RedUiState(
     val difficulty: RedDifficulty? = null,
     val message: String? = null,
     val portalEndpoint: RedPortalEndpoint? = null,
+    val tlsPreparationUrl: String? = null,
+    val tlsCaFingerprint: String? = null,
     val portalConfiguration: RedPortalConfiguration = RedPortalConfiguration(),
     val participantObservation: RedParticipantObservation? = null,
     val hotspotInfo: String? = null,
@@ -41,6 +43,11 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             interruptActiveSession("Aplicativo foi para segundo plano ou a tela foi bloqueada; rede e portal foram encerrados.")
         }
     }
+    private val tlsManager = RedLocalTlsManager(application)
+    private val tlsPreparation = RedTlsPreparationServer(
+        onEvent = { detail -> recordRuntimeEvent(detail) },
+        port = RedPortalServer.PREPARATION_PORT
+    )
     private val portal = RedPortalServer(
         onEvent = { detail -> recordRuntimeEvent(detail) },
         onAddress = { address ->
@@ -143,23 +150,31 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         )
         if (snapshot.state == RedNetworkState.IDLE) {
             portal.stop()
+            tlsPreparation.stop()
             mutableState.update {
-                it.copy(networkRunning = false, portalEndpoint = null, hotspotInfo = null, hotspotSnapshot = null)
+                it.copy(networkRunning = false, portalEndpoint = null, tlsPreparationUrl = null, tlsCaFingerprint = null, hotspotInfo = null, hotspotSnapshot = null)
             }
         }
         if (snapshot.state == RedNetworkState.HOTSPOT_READY) {
             mutableState.update { it.copy(networkState = RedNetworkState.STARTING_SERVER) }
             try {
-                val address = portal.start(snapshot.ipv4Address, mutableState.value.portalConfiguration.mode)
+                val hotspotAddress = snapshot.ipv4Address
+                    ?: error("O Android não disponibilizou o IPv4 do hotspot para emitir o certificado TLS.")
+                val tlsMaterial = tlsManager.prepare(hotspotAddress)
+                val caUrl = tlsPreparation.start(hotspotAddress, tlsMaterial.caCertificateDer)
+                mutableState.update { it.copy(tlsPreparationUrl = caUrl, tlsCaFingerprint = tlsMaterial.caFingerprintSha256) }
+                val address = portal.startHttps(hotspotAddress, mutableState.value.portalConfiguration.mode, tlsMaterial.sslContext)
                 mutableState.update {
                     it.copy(
                         networkRunning = true,
                         portalEndpoint = RedPortalEndpoint(address, portal.boundInterface, portal.boundPort ?: mutableState.value.portalConfiguration.requestedPort),
-                        networkState = RedNetworkState.WAITING_PARTICIPANT
+                        networkState = RedNetworkState.WAITING_PARTICIPANT,
+                        message = "Portal HTTPS local iniciado. Instale a CA pública no aparelho B e confira a impressão digital antes de abrir o endereço HTTPS."
                     )
                 }
             } catch (error: Exception) {
                 portal.stop()
+                tlsPreparation.stop()
                 hotspot.stop()
                 mutableState.update {
                     it.copy(
@@ -331,6 +346,8 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             it.copy(
                 networkRunning = false,
                 portalEndpoint = null,
+                tlsPreparationUrl = null,
+                tlsCaFingerprint = null,
                 hotspotInfo = null,
                 networkState = RedNetworkState.IDLE
             )
@@ -342,7 +359,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             detail.startsWith("Operador solicitou hotspot") -> RedEventType.HOTSPOT_REQUESTED
             detail.startsWith("Hotspot local ativado") -> RedEventType.HOTSPOT_READY
             detail.startsWith("Hotspot local liberado") || detail.startsWith("O Android encerrou") -> RedEventType.HOTSPOT_STOPPED
-            detail.startsWith("Servidor local iniciado") || detail.startsWith("Servidor HTTP local iniciado") -> RedEventType.PORTAL_STARTED
+            detail.startsWith("Servidor local iniciado") || detail.startsWith("Servidor HTTP local iniciado") || detail.startsWith("Servidor HTTPS local iniciado") -> RedEventType.PORTAL_STARTED
             detail.startsWith("Servidor do portal local encerrado") -> RedEventType.PORTAL_STOPPED
             detail.startsWith("Portal de treinamento acessado") -> RedEventType.PORTAL_OPENED
             detail.startsWith("Participante concluiu") -> RedEventType.DEMO_FORM_COMPLETED
@@ -714,7 +731,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             }
             appendLine()
             appendLine("## Limitações e validação")
-            appendLine("- O portal RED usa HTTP local sem TLS; o relatório não representa uma conexão criptografada.")
+            appendLine("- O portal RED utiliza HTTPS local; a confiança da CA no navegador B ainda depende de instalação e validação manual.")
             appendLine("- Permissões web dependem de contexto seguro e suporte do navegador; indisponibilidade não equivale a recusa.")
             appendLine("- Testes automatizados, compilação e testes físicos são acumulados para a etapa final do roadmap e não são declarados aprovados neste relatório.")
             appendLine("- A ausência de evento significa somente que o servidor não recebeu esse evento durante esta sessão.")
