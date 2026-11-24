@@ -198,6 +198,13 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                     if (snapshot.ssid == null) Text("SSID não disponibilizado pela API do Android.", style = MaterialTheme.typography.bodySmall)
                 }
                 if (state.networkRunning) {
+                    if (state.systemHotspotMode) {
+                        Text("Hotspot do Android: modo de compartilhamento do sistema.", style = MaterialTheme.typography.labelLarge)
+                        state.upstreamMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+                        if (state.upstreamInternetValidated) {
+                            Text("Internet validada no aparelho A. O encaminhamento até B é gerenciado pelo Android/operadora e não é confirmado individualmente pelo KhaLinux.", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
                     state.portalEndpoint?.let { endpoint ->
                         Text("Portal: ${endpoint.url}", style = MaterialTheme.typography.bodySmall)
                         RedQrCode(endpoint.url)
@@ -233,6 +240,9 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                         },
                         style = MaterialTheme.typography.bodySmall
                     )
+                    if (state.systemHotspotMode && state.portalEndpoint == null) {
+                        OutlinedButton(onClick = viewModel::detectSystemHotspot) { Text("Detectar hotspot do Android novamente") }
+                    }
                     state.hotspotInfo?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
                     Text(
                         when (state.networkState) {
@@ -270,8 +280,14 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                             }
                         }
                     }
-                    OutlinedButton(onClick = viewModel::stopNetworkLab) { Text("Parar hotspot e portal") }
+                    OutlinedButton(onClick = viewModel::stopNetworkLab) {
+                        Text(if (state.systemHotspotMode) "Parar portal (hotspot do Android permanece ativo)" else "Parar hotspot e portal")
+                    }
                 } else {
+                    if (state.systemHotspotMode) {
+                        Text("Hotspot do sistema selecionado. Volte das Configurações do Android e detecte a interface para iniciar o portal.", style = MaterialTheme.typography.bodySmall)
+                        OutlinedButton(onClick = viewModel::detectSystemHotspot) { Text("Detectar hotspot do Android") }
+                    } else {
                     Text("Modo do portal", style = MaterialTheme.typography.titleSmall)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FilterChip(
@@ -325,6 +341,17 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                                 else -> "Iniciar hotspot e portal local"
                             }
                         )
+                    }
+                    OutlinedButton(
+                        onClick = viewModel::startSystemHotspotLab,
+                        enabled = state.networkState == RedNetworkState.IDLE && !hotspotPermissionPending
+                    ) {
+                        Text("Usar hotspot do Android (internet depois)")
+                    }
+                    Text(
+                        "Para manter B na mesma rede ao ativar internet depois: ligue o hotspot do sistema sem upstream, conecte B e só então ative os dados móveis no A. Não desligue o hotspot. LocalOnlyHotspot é isolado e não pode receber internet posteriormente.",
+                        style = MaterialTheme.typography.bodySmall
+                    )
                     }
                 }
                 LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
