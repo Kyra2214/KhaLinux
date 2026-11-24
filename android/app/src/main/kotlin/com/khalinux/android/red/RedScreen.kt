@@ -388,10 +388,15 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                             )
                             Text(submission.message, style = MaterialTheme.typography.bodySmall)
                             submission.fields.forEach { (key, value) ->
-                                Text("$key: $value", style = MaterialTheme.typography.bodyMedium)
+                                val label = when (key) {
+                                    "email" -> "E-mail (mascarado)"
+                                    "auth_method" -> "Método"
+                                    else -> key
+                                }
+                                Text("$label: $value", style = MaterialTheme.typography.bodyMedium)
                             }
                             Text(
-                                "Valores visíveis somente nesta sessão e mantidos em memória; não entram no histórico nem no relatório.",
+                                "Somente dados minimizados ficam visíveis nesta sessão; a senha nunca é exibida, armazenada ou incluída no relatório.",
                                 style = MaterialTheme.typography.bodySmall
                             )
                             OutlinedButton(onClick = viewModel::clearSensitivePanelData) { Text("Limpar valores temporários") }
