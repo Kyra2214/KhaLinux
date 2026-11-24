@@ -8,7 +8,7 @@ Este documento é o plano de execução da Área RED/BLUE nesta branch. O `ROADM
 
 ## Progresso da execução
 
-- **Implementação RED/BLUE:** 62,5% (10 de 16 submódulos concluídos em código/documentação; RED-07 parcial e validação pendente).
+- **Implementação RED/BLUE:** 68,75% (11 de 16 submódulos concluídos em código/documentação; RED-07 parcial e validação pendente).
 - **Concluídos:** RED-00 — [inventário de baseline](red-baseline-inventory.md); RED-01 — [modelo de domínio](red-domain-model.md); RED-02 — [matriz de permissões](red-permissions.md); RED-03 — [ciclo de vida do hotspot](red-hotspot-lifecycle.md); RED-04 — [servidor HTTP local](red-http-server.md); RED-05 — portal local e aviso de cookies; RED-06 — [eventos e evidências](red-event-evidence.md); RED-08 — integridade da sessão; BLUE-01 — análise defensiva; RED-09 — [histórico, relatório e exportação](red-session-reports.md).
 - **Parcial:** RED-07 — fluxo e telemetria web implementados; HTTPS confiável pendente para prompts nativos no B.
 - **Próximo submódulo:** BLUE-01 — painel defensivo baseado nas evidências RED.
@@ -344,6 +344,8 @@ Atividades:
 **Aceite:** relatório reproduz o que foi observado e não contém conteúdo sensível.
 
 ## RED-10 — Integração da interface do operador e acessibilidade operacional
+
+**Estado:** implementação em código/documentação concluída; validação pendente. Ver [red-operator-interface.md](red-operator-interface.md).
 
 **Objetivo:** painel claro para o instrutor e fluxo simples para o participante.
 
