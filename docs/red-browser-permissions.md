@@ -16,7 +16,7 @@
 
 ## Proteção da sessão
 
-O portal entrega um token aleatório em cookie HttpOnly/SameSite Strict. O token não aparece na URL, QR code ou painel. POSTs de login, consentimento e permissão web exigem token, origem e IP do participante. A sessão expira por inatividade ou duração máxima; tentativas inválidas são limitadas.
+O portal entrega um token aleatório em cookie HttpOnly/SameSite Strict. O token não aparece na URL, QR code ou painel. POSTs de login, consentimento e permissão web exigem token, origem e IP do participante. No modo LOCAL_LOGIN, a página e o POST de resultado também exigem login de teste aceito; o consentimento de cookies pode ocorrer antes do login. A sessão expira por inatividade ou duração máxima; tentativas inválidas são limitadas.
 
 ## Limitação atual: origem HTTP local
 
