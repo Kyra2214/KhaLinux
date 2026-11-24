@@ -177,7 +177,8 @@ object RedCatalog {
                 "Preparar uma rede de laboratório no aparelho operador",
                 "Conectar um segundo aparelho, preparar a confiança TLS e abrir o portal HTTPS local",
                 "Comparar autenticação local com acesso direto sem login",
-                "Observar navegação, requisições e resultados de permissões"
+                "Observar navegação, requisições e resultados de permissões",
+                "Distinguir hotspot local-only de hotspot do sistema para ativação posterior de internet"
             ),
             prerequisites = listOf(
                 "Dois aparelhos Android dedicados ou explicitamente autorizados",
@@ -187,6 +188,7 @@ object RedCatalog {
             steps = listOf(
                 RedTutorialStep("prepare", "Preparar o operador", "Confirme que os dois aparelhos pertencem ao laboratório e escolha o cenário da aula."),
                 RedTutorialStep("hotspot", "Ativar a rede de laboratório", "Solicite ao Android a criação do hotspot local. O sistema informa os parâmetros que o aplicativo pode exibir."),
+                RedTutorialStep("system-hotspot", "Preparar internet futura sem trocar a rede", "Se B precisar continuar conectado quando a internet for ativada depois, escolha o hotspot do sistema do Android desde o início. Ative o hotspot sem upstream, conecte B e depois ative os dados móveis no A sem desligar o hotspot. LocalOnlyHotspot é isolado e não recebe internet posteriormente."),
                 RedTutorialStep("connect", "Conectar o participante", "No segundo aparelho, abra as configurações Wi-Fi e conecte-se à rede exibida pelo operador."),
                 RedTutorialStep("portal", "Abrir o portal local", "Primeiro abra o endereço HTTP de preparação, baixe a CA pública e confira a impressão digital no aparelho A. Depois instale a CA pelas configurações do Android e abra o endereço HTTPS/QR do portal. A confiança depende do navegador."),
                 RedTutorialStep("access", "Comparar os modos de acesso", "Percorra o portal com autenticação local fictícia e o modo de acesso direto sem login."),
@@ -199,7 +201,8 @@ object RedCatalog {
                 "Segundo aparelho conectado e portal HTTPS local acessível após confiança TLS",
                 "Modo com login local e modo sem login demonstrados",
                 "Requisições locais observadas no painel",
-                "Relatório local disponível"
+                "Relatório local disponível",
+                "Upstream do aparelho A observado sem presumir acesso externo do B"
             ),
             environment = "Dois aparelhos Android em rede de laboratório própria"
         )
