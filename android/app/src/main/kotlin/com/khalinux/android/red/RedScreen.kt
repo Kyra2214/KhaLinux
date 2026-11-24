@@ -65,6 +65,7 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
     DisposableEffect(lifecycleOwner, context) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
+                hotspotPermissionPending = false
                 val current = readHotspotPermissionState(context)
                 val previous = previousPermissionState.value
                 if (previous == RedAndroidPermissionState.GRANTED &&
