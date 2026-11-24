@@ -1,12 +1,12 @@
 # RED-12 — Plano de validação automatizada (execução adiada)
 
-**Estado:** implementação do roadmap concluída (100%) e fase final de validação iniciada. Workflow `45405105200` (commit `0c0ca2e`) aprovou os checks de host, mas a etapa Android falhou na compilação Kotlin: import Compose `weight` inacessível e literal de tab inválido no parser HTTP. Correções aplicadas nos commits `36945e3` e `fd82386`; workflow `45405903861` está executando novamente testes Android, `assembleDebug` e `lintDebug`. Testes específicos do portal e testes físicos A/B ainda não foram executados.
+**Estado:** implementação do roadmap concluída (100%) e fase final de validação iniciada. Workflow `45405105200` (commit `0c0ca2e`) aprovou os checks de host, mas a etapa Android falhou na compilação Kotlin: import Compose `weight` inacessível e literal de tab inválido no parser HTTP. Correções aplicadas nos commits `36945e3` e `fd82386`. A execução `45405903861` revelou testes antigos que ainda referenciavam `validateParticipantEvent`/`RedParticipantEvent` removidos e um retorno nullable de IPv4; testes foram reescritos para as APIs atuais e o endereço foi estreitado. Workflow `45406501672` está executando novamente testes Android, `assembleDebug` e `lintDebug`. Testes específicos do portal e testes físicos A/B ainda não foram executados.
 
 ## Execução registrada — 24/11/2026
 
 - **Host validation: PASS** no workflow `45405105200`: `test-build-config.py`, sintaxe shell, auditoria estática de segurança, teste nativo JNI PTY e smoke test PRoot ARM64.
-- **Android unit tests: IN PROGRESS** (`:android:runtime:testDebugUnitTest` e `:android:app:testDebugUnitTest`) no workflow `45405903861`.
-- **APK Debug: IN PROGRESS** (`:android:app:assembleDebug`, etapa seguinte após os testes no workflow `45405903861`).
+- **Android unit tests: IN PROGRESS** (`:android:runtime:testDebugUnitTest` e `:android:app:testDebugUnitTest`) no workflow `45406501672`.
+- **APK Debug: IN PROGRESS** (`:android:app:assembleDebug`, etapa seguinte após os testes no workflow `45406501672`).
 - **Lint Debug: PENDING** (`:android:app:lintDebug`, etapa após o build). **Integração dedicada do portal: PENDING**; não há resultado registrado ainda.
 - **Testes físicos A/B: NOT STARTED**, reservados para depois dos portões automatizados/estáticos.
 
