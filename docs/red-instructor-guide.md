@@ -18,11 +18,11 @@
 ### Aparelho B — participante
 1. Conecte-se ao hotspot nas configurações Wi-Fi do Android.
 2. Abra o endereço local exibido pelo aparelho A ou leia o QR Code.
-3. Navegue pelo portal e observe as páginas e os links.
-4. Para a trilha de permissões, abra a Área RED e selecione **Modo participante**.
-5. Informe o endereço HTTP do aparelho A e o código temporário da sessão.
-6. Execute as demonstrações de câmera, microfone, localização ou seleção de arquivo no próprio aparelho B.
-7. Quando quiser registrar o resultado, toque em **Registrar resultado no painel do instrutor**. Somente tipo e estado da ação são enviados.
+3. Faça o login usando somente os dados de teste do laboratório.
+4. Responda ao aviso de cookies no navegador.
+5. Se houver solicitações de permissões web compatíveis, leia a finalidade e responda aos avisos próprios do navegador.
+6. Não é necessário instalar ou abrir o KhaLinux no B.
+
 
 ## Cenário A — portal com login local
 
@@ -41,25 +41,24 @@
 - No painel A, observe as requisições GET, rotas, status e sequência.
 - Na Área BLUE, veja as recomendações defensivas correspondentes.
 
-## Permissões no aparelho B
+## Cookies e permissões do navegador
 
-- O login do portal e a conexão Wi-Fi não concedem permissões do Android.
-- Câmera: o Android solicita CAMERA; a prévia CameraX aparece localmente no B.
-- Microfone: o Android solicita RECORD_AUDIO; o app mede nível de áudio e descarta as amostras.
-- Localização: o Android solicita localização; a posição aparece somente no B.
-- Arquivos: o seletor SAF permite escolha explícita; o app não lê nome/conteúdo.
-- O painel A recebe somente tipo e estado do evento, nunca mídia, coordenadas ou conteúdo de arquivos.
-- Se o Android negar, cancelar ou não disponibilizar um recurso, o resultado deve permanecer como negado/cancelado/indisponível.
+- O aviso oferece escolhas separadas para cookies necessários e categorias opcionais.
+- “Aceitar todos” registra consentimento para as categorias de cookies descritas no próprio aviso. Não concede câmera, microfone, localização ou permissões Android.
+- Solicitações web de câmera, microfone ou localização só podem ocorrer em contexto seguro e após ação explícita. O navegador exibe seus próprios avisos.
+- Se o portal HTTP por IP local não for considerado contexto seguro, o recurso aparece como indisponível; não se força nem se falsifica a permissão.
+- O aparelho A registra a escolha de cookies e os estados que o portal receber efetivamente. Não recebe mídia, coordenadas, arquivos ou senhas.
+
 
 ## Roteiro de vídeo
 
 1. Mostrar o aparelho A preparando a rede e exibindo os parâmetros que o Android disponibilizou.
 2. Mostrar o aparelho B conectando-se manualmente.
 3. Mostrar o endereço/QR Code e a abertura do portal.
-4. Comparar login local com acesso direto sem login.
+4. Responder ao aviso de cookies e observar no A a escolha registrada.\n5. Comparar login local com acesso direto sem login.
 5. Clicar nos links e observar o redirecionamento.
 6. Mostrar no painel A as requisições realmente recebidas.
-7. Executar uma permissão no B e mostrar o diálogo real do Android e a prévia local.
+7. Se disponível em contexto seguro, solicitar uma permissão web por ação explícita e mostrar o aviso real do navegador.
 8. Mostrar o evento de estado no painel A.
 9. Abrir BLUE e explicar a defesa correspondente.
 10. Não exibir código-fonte, scripts ou segredos de implementação.
