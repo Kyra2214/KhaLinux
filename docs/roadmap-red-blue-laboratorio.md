@@ -2,7 +2,7 @@
 
 **Branch:** `recovery/red-portal-integration`  
 **Escopo:** somente o laboratório com dois aparelhos Android definidos em `AGENTS.md`.  
-**Estado deste roadmap:** RED-00 a RED-06, RED-08 a RED-13 e BLUE-01 têm implementação/documentação preparada; RED-07 está implementado em código/documentação e aguarda validação final: identidade X.509 no Android Keystore, preparação HTTP restrita, portal HTTPS, eventos de CA/handshake, sessão Secure e integração das permissões web estão implementados. A parcela documental/estabilização do RED-14 está concluída; a entrega publicável permanece bloqueada pelos portões finais. Testes, builds, compilação e validações ficam acumulados para a etapa final.
+**Estado deste roadmap:** RED-00 a RED-06, RED-08 a RED-13 e BLUE-01 têm implementação/documentação preparada; RED-07 está implementado em código/documentação e aguarda validação final. RED-14 tem documentação/estabilização preparadas; artefatos de release aguardam os portões finais. RED-15 está em implementação com modo de hotspot do sistema, descoberta de interface e observação de upstream. Testes, builds, compilação e validações ficam acumulados para a etapa final.
 
 Este documento é o plano de execução da Área RED/BLUE nesta branch. O `ROADMAP.md` da raiz continua sendo o roadmap geral do KhaLinux.
 
@@ -18,8 +18,8 @@ O portal participante deverá operar por **HTTPS local**, sem domínio público,
 
 ## Progresso da execução
 
-- **Implementação/documentação RED/BLUE:** 93,75% (15 de 16 submódulos preparados; RED-07 implementado, não validado; RED-14 permanece parcial. Validação permanece separada e não iniciada).
-- **Concluídos:** RED-00 — [inventário de baseline](red-baseline-inventory.md); RED-01 — [modelo de domínio](red-domain-model.md); RED-02 — [matriz de permissões](red-permissions.md); RED-03 — [ciclo de vida do hotspot](red-hotspot-lifecycle.md); RED-04 — [servidor HTTP local](red-http-server.md); RED-05 — portal local e aviso de cookies; RED-06 — [eventos e evidências](red-event-evidence.md); RED-08 — integridade da sessão; BLUE-01 — análise defensiva; RED-09 — [histórico, relatório e exportação](red-session-reports.md); RED-10 — [interface do operador](red-operator-interface.md); RED-11 — [segurança e privacidade](red-security-privacy.md); RED-12 — [plano de validação](red-validation-plan.md); RED-13 — [matriz física](red-physical-validation.md).
+- **Implementação/documentação RED/BLUE:** 16 de 17 submódulos (94,1%); RED-07 e RED-14 implementados, não validados; RED-15 em implementação. Validação permanece separada e não iniciada.
+- **Concluídos:** RED-00 — [inventário de baseline](red-baseline-inventory.md); RED-01 — [modelo de domínio](red-domain-model.md); RED-02 — [matriz de permissões](red-permissions.md); RED-03 — [ciclo de vida do hotspot](red-hotspot-lifecycle.md); RED-04 — [servidor HTTP local](red-http-server.md); RED-05 — portal local e aviso de cookies; RED-06 — [eventos e evidências](red-event-evidence.md); RED-07 — HTTPS local e permissões web (implementado, não validado); RED-08 — integridade da sessão; BLUE-01 — análise defensiva; RED-09 — [histórico, relatório e exportação](red-session-reports.md); RED-10 — [interface do operador](red-operator-interface.md); RED-11 — [segurança e privacidade](red-security-privacy.md); RED-12 — [plano de validação](red-validation-plan.md); RED-13 — [matriz física](red-physical-validation.md); RED-14 — documentação de estabilização/release (implementada, entrega pendente).
 - **Implementado, não validado:** RED-07 — fluxo de permissões web ligado ao HTTPS local em `8443`; CA/servidor X.509 no Android Keystore; preparação HTTP restrita em `8080/`; download da CA, fingerprint, instruções de instalação, evento de handshake após vínculo do participante, cookie Secure, validação Origin HTTPS, renovação do certificado por sessão/IP e limpeza da chave efêmera do servidor. Compatibilidade real da CA e disponibilidade das APIs ficam para validação final.
 - **RED-14 — documentação/estabilização concluídas; entrega final bloqueada:** notas, matriz de compatibilidade, checklist e comparação da branch atualizados. Revisão integral do diff, validação, APK assinado/hash e PR continuam pendentes.
 - **Estado RED-14:** parcela documental concluída; pendências de entrega registradas em `docs/red-release-checklist.md`.
@@ -536,23 +536,28 @@ Uma fase só recebe o estado correspondente à evidência disponível. “Códig
 14. RED-12 — integração documentada; build/testes adiados.
 15. RED-13 — matriz física corrigida; execução adiada.
 16. RED-14 — estabilização e entrega da branch.
-17. **Evolução posterior RED-15 — compartilhamento de internet:** somente depois da rede local/HTTPS offline estabilizados, avaliar e implementar conectividade externa para B sem interromper o portal local. Esta etapa exige auditoria de viabilidade Android; `LocalOnlyHotspot` não fornece internet por si só e não se deve presumir que um app comum possa habilitar tethering/NAT em todos os aparelhos.
+17. **RED-15 — hotspot do sistema e upstream posterior:** implementar modo alternativo usando o hotspot gerenciado pelo Android, iniciado manualmente nas Configurações. B conecta-se a essa rede enquanto o upstream está ausente; depois o operador ativa dados móveis/upstream sem desligar o hotspot, preservando a associação Wi-Fi de B quando suportado pela OEM/operadora. O modo `LocalOnlyHotspot` continua isolado e não pode ser convertido em tethering em execução.
 
 Testes, builds, auditorias de validação e testes físicos só serão executados depois da conclusão da implementação integral. Dependências externas indisponíveis permanecem registradas, sem inventar resultados.
  
-## 9. Evolução posterior: RED-15 — compartilhamento de internet
+## 9. RED-15 — hotspot do sistema e upstream posterior
 
-**Não bloqueia a primeira entrega offline.** Depois que o portal HTTPS local estiver implementado e validado, avaliar separadamente o compartilhamento da conexão externa de A com B.
+**Objetivo:** permitir que B permaneça associado ao mesmo hotspot quando o operador disponibilizar internet posteriormente, sem depender de APIs ocultas.
 
-Atividades futuras:
-- Auditar APIs públicas de tethering disponíveis para o nível de API e fabricante do aparelho A.
-- Distinguir `LocalOnlyHotspot` (rede local sem internet) de tethering/compartilhamento de internet.
-- Não usar reflexão, APIs privilegiadas ou comandos ocultos como caminho presumido.
-- Definir uma estratégia suportada ou registrar formalmente a limitação do dispositivo.
-- Verificar que a rota local A↔B, o portal HTTPS e os eventos continuam funcionando quando a conectividade externa é ativada.
-- Confirmar que a perda da internet não encerra a rede local nem invalida a sessão.
+Implementação inicial registrada:
+- Modo `LocalOnlyHotspot` preservado para laboratório totalmente isolado.
+- Modo alternativo abre as Configurações de tethering do Android; o operador liga o hotspot do sistema manualmente.
+- O controlador registra os IPv4 antes da abertura das Configurações e aceita somente um IPv4 novo/inequívoco para vincular o portal.
+- O mesmo portal HTTPS/8443 e preparação CA/8080 são hospedados na interface do hotspot do sistema.
+- `ConnectivityManager.registerDefaultNetworkCallback` observa se A tem upstream com capacidade INTERNET e se ele foi validado.
+- O painel e o relatório distinguem upstream validado em A de acesso externo efetivamente confirmado em B; não inventam sucesso de roteamento.
+- O KhaLinux não usa reflexão, APIs ocultas nem permissões privilegiadas para iniciar tethering. No Android 15, a ativação é feita pelo usuário nas Configurações.
 
-**Aceite:** B mantém acesso ao portal local mesmo sem internet; quando o compartilhamento for suportado, B também navega externamente sem perder a comunicação local. Nenhuma compatibilidade será declarada sem validação no hardware alvo.
+Fluxo recomendado para manter B conectado: ativar o hotspot do sistema sem upstream, conectar B e abrir o portal; depois ativar dados móveis/upstream em A sem desligar o hotspot. A permanência da conexão depende da implementação Android/OEM/operadora e será confirmada na validação física.
+
+**Aceite:** A detecta a interface de hotspot do sistema sem ambiguidade; portal local continua funcionando sem internet; mudança de upstream em A aparece no painel; o usuário consegue habilitar internet sem trocar a rede Wi-Fi; nenhum evento afirma que B navegou externamente sem evidência direta.
+
+**Limitação registrada:** o modo LocalOnlyHotspot não pode receber upstream posteriormente. Para evitar que B tenha de trocar de rede, deve-se escolher o hotspot do sistema desde o início da sessão.
 
 ## 10. Fora do escopo desta branch
 
@@ -569,7 +574,7 @@ Atividades futuras:
 
 ## 11. Primeiro trabalho após este roadmap
 
-O próximo trabalho de implementação é concluir a auditoria e a implementação RED-07 de HTTPS local, preservando a sequência offline-first. Não iniciar RED-15 nem alterar o compartilhamento de internet antes da validação do portal local. Antes de modificar código:
+O próximo trabalho de implementação é concluir RED-15: integração do modo hotspot do sistema, estados de upstream, documentação e critérios de aceite. Testes e validação física continuam acumulados para a etapa final. Antes de modificar código:
 1. confirmar o HEAD atual da branch;
 2. recuperar e comparar os arquivos oficiais e exportados;
 3. listar incompatibilidades reais;
