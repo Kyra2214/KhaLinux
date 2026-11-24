@@ -84,6 +84,10 @@ Consulte [blue-area.md](blue-area.md).
 
 Os vídeos devem mostrar a criação da rede, conexão do segundo aparelho, portal, aviso de cookies, login de teste, navegação e o que chegou ao servidor; permissões web somente quando suportadas pelo contexto seguro. Não mostrar código-fonte, scripts ou detalhes internos.
 
+## Servidor HTTP local
+
+Consulte [red-http-server.md](red-http-server.md) para bind, validação de Host, limites HTTP, encerramento por perda da interface e privacidade de cabeçalhos.
+
 ## Modelo de domínio
 
 Consulte [red-domain-model.md](red-domain-model.md) para configuração solicitada, observações Android, endpoint real, participante observado, consentimento de cookies e estados tipados de permissões web.
