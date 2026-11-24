@@ -113,6 +113,10 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                         tlsPreparationUrl = null,
                         tlsCaFingerprint = null,
                         tlsBrowserTrustObserved = false,
+                        upstreamInternetAvailable = false,
+                        upstreamInternetValidated = false,
+                        upstreamTransport = null,
+                        upstreamMessage = if (previousState.systemHotspotMode) "Monitoramento de upstream encerrado; hotspot do Android permanece ativo." else null,
                         message = if (previousState.systemHotspotMode) {
                             "Portal encerrado inesperadamente. O hotspot do Android permanece ativo; tente detectar novamente ou desligue-o nas Configurações."
                         } else {
@@ -461,6 +465,10 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                     systemHotspotMode = false,
                     systemSettingsLaunchPending = false,
                     networkState = RedNetworkState.ERROR,
+                    upstreamInternetAvailable = false,
+                    upstreamInternetValidated = false,
+                    upstreamTransport = null,
+                    upstreamMessage = null,
                     message = "Não foi possível abrir as Configurações de hotspot do Android."
                 )
             }
