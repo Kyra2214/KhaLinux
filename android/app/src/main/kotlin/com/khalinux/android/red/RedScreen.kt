@@ -184,17 +184,23 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                     if (snapshot.ssid == null) Text("SSID não disponibilizado pela API do Android.", style = MaterialTheme.typography.bodySmall)
                 }
                 if (state.networkRunning) {
-                    Text("Portal: ${state.portalEndpoint?.url ?: "endereço local não identificado"}", style = MaterialTheme.typography.bodySmall)
                     state.portalEndpoint?.let { endpoint ->
+                        Text("Portal: ${endpoint.url}", style = MaterialTheme.typography.bodySmall)
                         RedQrCode(endpoint.url)
                         TextButton(onClick = { clipboard.setText(AnnotatedString(endpoint.url)) }) { Text("Copiar endereço do portal") }
-                    }
+                        Text("Servidor HTTP local · porta ${endpoint.port}", style = MaterialTheme.typography.labelLarge)
+                        Text("Interface: ${endpoint.interfaceName ?: "não identificada"}", style = MaterialTheme.typography.bodySmall)
+                    } ?: Text(
+                        "Hotspot solicitado. Aguardando identificação inequívoca da interface Wi-Fi e do endereço IPv4 antes de iniciar o portal.",
+                        style = MaterialTheme.typography.bodySmall
+                    )
                     state.hotspotInfo?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
-                    Text("Servidor HTTP local · porta ${state.portalEndpoint?.port ?: state.portalConfiguration.requestedPort}", style = MaterialTheme.typography.labelLarge)
-                    Text("Interface: ${state.portalEndpoint?.interfaceName ?: "não identificada"}", style = MaterialTheme.typography.bodySmall)
                     Text(
-                        if (state.networkState == RedNetworkState.PARTICIPANT_ACTIVE) "Participante: atividade HTTP observada"
-                        else "Participante: aguardando primeiro acesso ao portal",
+                        when (state.networkState) {
+                            RedNetworkState.DISCOVERING_INTERFACE -> "Hotspot: identificando interface e endereço."
+                            RedNetworkState.PARTICIPANT_ACTIVE -> "Participante: atividade HTTP observada."
+                            else -> "Portal: aguardando primeiro acesso do navegador."
+                        },
                         style = MaterialTheme.typography.bodySmall
                     )
                     Text("Requisições recebidas: ${state.requests.size}", style = MaterialTheme.typography.bodySmall)
