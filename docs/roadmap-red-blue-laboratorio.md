@@ -2,9 +2,18 @@
 
 **Branch:** `recovery/red-portal-integration`  
 **Escopo:** somente o laboratório com dois aparelhos Android definidos em `AGENTS.md`.  
-**Estado deste roadmap:** execução em andamento. O baseline documental e de código está sendo inventariado; nenhuma fase é declarada concluída sem implementação correspondente. Testes, builds e validações ficam acumulados para RED-13/RED-14.
+**Estado deste roadmap:** execução contínua em andamento. RED-00 concluído como inventário; RED-05 possui implementação parcial do aviso de cookies; RED-07 foi reescopado para navegador. Testes, builds, compilação e validações ficam acumulados para a etapa final.
 
 Este documento é o plano de execução da Área RED/BLUE nesta branch. O `ROADMAP.md` da raiz continua sendo o roadmap geral do KhaLinux.
+
+## Progresso da execução
+
+- **Implementação RED/BLUE:** 6,25% (1 de 16 submódulos concluído).
+- **Concluído:** RED-00 — inventário de baseline em [red-baseline-inventory.md](red-baseline-inventory.md).
+- **Parciais:** RED-05 — banner e registro de consentimento de cookies; RED-07 — remoção do participante nativo e redefinição do fluxo web.
+- **Próximo submódulo:** RED-01 — modelo de domínio e estados reais.
+- **Validação:** não iniciada nesta execução; todas as atividades de teste/build/compilação ficam para a etapa final.
+- **Pacotes ZIP:** desativados; execução diretamente no repositório conforme instrução do usuário.
 
 ---
 
@@ -72,6 +81,8 @@ A auditoria deverá comparar arquivo por arquivo: versão da branch, versão ofi
 
 ## RED-00 — Baseline, recuperação e inventário
 
+**Estado:** concluído em inventário documental e inspeção do código RED existente. Ver [red-baseline-inventory.md](red-baseline-inventory.md). Nenhum teste ou build foi executado.
+
 **Objetivo:** saber exatamente o que existe antes de modificar.
 
 Atividades:
@@ -122,10 +133,9 @@ Atividades:
 - Usar Activity Result APIs e APIs públicas compatíveis com a versão Android alvo.
 - Consultar novamente o estado após retorno de Configurações e ao retomar a Activity.
 - Tratar revogação durante uso e interrupção do ciclo de vida.
-- Não solicitar câmera, microfone, localização ou arquivos na inicialização se a operação atual não precisar deles.
-- Para arquivos, usar Storage Access Framework (SAF) e URI concedida pelo seletor.
-- Para localização, explicar a finalidade antes do diálogo do sistema e respeitar precisão aproximada/precisa e escopo concedido.
-- Para câmera e microfone, exibir indicador de uso, controles visíveis de iniciar/parar e encerrar imediatamente quando revogado ou a tela sair de primeiro plano.
+- Solicitar no aparelho A somente permissões exigidas pela operação de hotspot/rede, no momento em que forem necessárias.
+- Não declarar permissões de câmera/microfone para o app operador quando o B usa somente navegador.
+- Permissões web no B pertencem ao RED-07 e dependem de contexto seguro, política do navegador e ação explícita.
 
 **Testes automatizados:**
 - Testes de mapeamento de estados de permissão.
@@ -187,7 +197,7 @@ Atividades:
 **Objetivo:** criar uma página de laboratório clara e funcional, sem imitação de serviços reais.
 
 Atividades:
-- Criar landing page local com identificação de laboratório e descrição do exercício.\n- Implementar aviso de cookies com categorias necessárias, preferências, análise e marketing, quando efetivamente usadas.\n- Oferecer “Aceitar todos”, “Recusar opcionais” e “Configurar”; registrar no A a escolha e as categorias, sem gravar valores de cookies ou identificadores pessoais.\n- O botão de cookies não pode conceder permissões do navegador/Android nem disparar solicitações não descritas.
+- Criar landing page local com identificação de laboratório e descrição do exercício.\n- Implementar aviso de cookies com categorias necessárias, análise, preferências e personalização, descrevendo apenas o que o portal realmente utiliza.\n- Oferecer “Aceitar todos”, “Recusar opcionais” e “Configurar”; registrar no A a escolha e as categorias, sem gravar valores de cookies ou identificadores pessoais.\n- O botão de cookies não pode conceder permissões do navegador/Android nem disparar solicitações não descritas.
 - Oferecer cenários separados: acesso direto e formulário de demonstração.
 - Se houver formulário, usar somente campos neutros próprios do exercício, por exemplo identificador e código de demonstração não reutilizáveis.
 - Não pedir e-mail/senha de contas, não imitar Google/Facebook/Instagram ou páginas bancárias e não enviar credenciais a terceiros.
@@ -232,25 +242,20 @@ Atividades:
 **Objetivo:** registrar escolhas e permissões web efetivamente oferecidas pelo navegador do B, sem aplicativo participante instalado.
 
 Atividades:
-- Criar modo participante no app Android do aparelho B.
-- Identificar a sessão por código/token temporário, com validade curta e escopo mínimo.
-- Exibir no aparelho B explicação da ação antes de acionar a permissão nativa.
-- Câmera: abrir prévia local usando API Android; não enviar imagem ao aparelho A.
-- Microfone: demonstrar nível de áudio local; descartar amostras; não gravar nem transmitir áudio.
-- Localização: consultar somente após solicitação e exibir o resultado no aparelho B; não transmitir coordenadas ao operador.
-- Arquivos: abrir seletor SAF; demonstrar URI/permissão concedida sem ler ou transmitir conteúdo/nome.
-- Enviar ao aparelho A somente evento mínimo: tipo de ação, estado, timestamp e identificador de sessão.
-- Exibir negação, cancelamento, revogação e indisponibilidade sem tentar contornar.
-- Parar câmera/microfone ao sair da tela, pausar, perder permissão ou encerrar sessão.
+- Manter o B exclusivamente no navegador; não instalar nem executar KhaLinux nele.
+- Implementar solicitações web de câmera/microfone/localização somente quando a origem for segura e o navegador suportar a API; cada solicitação terá descrição e ação próprias.
+- Não disparar permissões como efeito colateral de “Aceitar todos” cookies.
+- Não capturar, armazenar ou transmitir mídia, coordenadas ou arquivos. Registrar somente o estado que o navegador efetivamente retornar.
+- Quando a origem HTTP local não for considerada segura, registrar “não disponível neste contexto” e explicar a limitação no painel A; não tentar contornar.
+- Exibir no A solicitações, concessões, recusas, cancelamentos e indisponibilidades que tenham sido efetivamente observadas.
 
-**Testes automatizados:**
-- Máquina de estados para cada recurso.
-- Token expirado, ausente, inválido ou de outra sessão.
+**Testes automatizados (transferidos para a etapa final):**
+- Origem segura e insegura.
+- Estados de permissão permitida, negada e não suportada.
 - Evento mínimo sem payload sensível.
-- Encerramento de recurso e limpeza em ciclo de vida.
-- SAF não abre arquivo sem ação explícita do usuário.
+- Revogação e encerramento da sessão.
 
-**Aceite:** a autorização ocorre no aparelho B por diálogo/controle real do Android; o aparelho A recebe apenas o estado/evento mínimo, nunca mídia, coordenadas ou conteúdo de arquivo.
+**Aceite:** B permanece navegador-only; nenhuma permissão é mascarada ou concedida pelo banner de cookies; A recebe apenas estado verificável e metadados mínimos.
 
 ## RED-08 — Segurança da sessão e ciclo de vida
 
@@ -260,7 +265,7 @@ Atividades:
 - Gerar token aleatório por sessão, manter em memória, comparar de forma segura e invalidar no encerramento.
 - Limitar tentativas, validade, origem e rotas autorizadas do endpoint participante.
 - Não colocar tokens em URLs, QR Codes públicos ou logs.
-- Implementar stop completo: servidor, sockets, hotspot reservation, callbacks, prévias, medidores, jobs e dados efêmeros.
+- Implementar stop completo: servidor, sockets, hotspot reservation, callbacks, jobs e dados efêmeros.
 - Lidar com rotação, processo morto, app em segundo plano, tela bloqueada, falta de memória e reinício.
 - Recuperar sessão interrompida como interrompida, nunca reiniciar hotspot automaticamente.
 - Aplicar retenção limitada a histórico de metadados não sensíveis, com ação clara de exclusão.
@@ -300,7 +305,7 @@ Atividades:
 
 Atividades:
 - Definir schema versionado e migrações.
-- Persistir apenas metadados necessários: horário, estado, modo, rota, status, erros, permissões e resultado mínimo.
+- Persistir apenas metadados necessários: horário, estado, modo, rota, status, erros, consentimento por categoria e estados web mínimos.
 - Não persistir campos de formulário, senha/código, cookies, tokens, mídia, coordenadas ou conteúdo de arquivo.
 - Exportar relatório com versão do app, versão Android informada pelo sistema, ID da sessão, horário, estado final, limitações e eventos.
 - Marcar claramente dados indisponíveis e testes não executados.
@@ -342,7 +347,7 @@ Atividades:
 
 Atividades:
 - Revisar permissões, exported components, intents, providers e serviços.
-- Revisar servidor HTTP, validação, limites, autenticação do endpoint participante e bind.
+- Revisar servidor HTTP, validação, limites, endpoint de consentimento e bind.
 - Buscar segredos, credenciais, tokens, dados pessoais e logging de corpos.
 - Revisar HTML/JS/CSS e dependências.
 - Confirmar que não há coleta de credenciais de serviços, captura de tráfego de terceiros, proxy ou persistência oculta.
