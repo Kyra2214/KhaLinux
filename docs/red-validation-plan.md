@@ -43,6 +43,7 @@ Confirmar nomes de tarefas disponíveis no wrapper antes de executá-las; a list
 - TLS local: geração/reutilização da CA, SAN IP exato, validade, assinatura X.509, seleção de protocolos/cipher suites, cadeia do servidor, cookie Secure, Origin HTTPS e ausência de fallback HTTP.
 - Preparação CA: somente GET `/`, `/ca.cer` e `/health`; limite de cabeçalho/clientes; fingerprint consistente com DER; nenhuma rota de portal, credencial ou permissão exposta em HTTP.
 - Ciclo de chave TLS: chave privada da CA permanece no Android Keystore; chave efêmera do servidor é removida em stop/falha; novo IP produz certificado SAN correspondente.
+- RED-15: abrir Configurações de tethering, detectar um IPv4 novo/inequívoco, confirmar que candidatos ambíguos falham fechados, observar mudanças de upstream validado em A e verificar que o portal continua local quando o upstream desaparece.
 - Persistência: schema v1→v2, schema atual, limites de 100 sessões/300 eventos, exclusão e sanitização.
 - Relatório: versões, metadados, estados e ausência de conteúdo sensível.
 - Ciclo de vida: callbacks tardios, stop repetido, perda de interface, segundo plano e recuperação interrompida.
