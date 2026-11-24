@@ -6,13 +6,13 @@
 - Roadmap ativo: `docs/roadmap-red-blue-laboratorio.md`.
 - Topologia definida: **A** é a central que executa KhaLinux, cria a rede, hospeda o portal e exibe toda a observabilidade; **B** apenas conecta ao Wi-Fi, abre o portal no navegador, faz login de teste e responde ao aviso de cookies.
 - RED-00: concluído como inventário documental e inspeção do código RED. Ver `docs/red-baseline-inventory.md`.
-- RED-05: parcial. Banner de cookies, escolhas por categoria e endpoint `POST /consent` adicionados; falta completar integração/experiência e documentação final do submódulo.
+- RED-05: concluído em código/documentação; banner em todas as páginas, consentimento por categoria, persistência após confirmação do A, evento tipado e login local de demonstração.
 - RED-07: escopo corrigido para navegador-only. Modo participante nativo, endpoint de token, permissões CAMERA/RECORD_AUDIO e dependências CameraX removidos. Permissões web reais ainda pendentes e dependem de contexto seguro.
 - RED-01: concluído em código/documentação; modelos tipados de configuração, endpoint, participante observado, consentimento de cookies e permissões web. Ver `docs/red-domain-model.md`.
 - RED-02: concluído em código/documentação; ACCESS_FINE_LOCATION solicitada somente ao iniciar hotspot no A, com concessão, recusa, recusa permanente e revogação. Ver `docs/red-permissions.md`.
 - RED-03: concluído em código/documentação; LocalOnlyHotspot com timeout/cancelamento/callbacks tardios e correlação por interface/IPv4 diferencial; sem interface inequívoca, não inicia servidor. Ver `docs/red-hotspot-lifecycle.md`.
 - RED-04: concluído em código/documentação; servidor HTTP bindado ao IPv4 exato, valida Host/headers/framing, monitora interface e aplica limites. Ver `docs/red-http-server.md`.
-- Progresso provisório: 5 de 16 submódulos RED/BLUE concluídos (31,25%). Itens parciais não contam como concluídos.
+- Progresso provisório: 6 de 16 submódulos RED/BLUE concluídos (37,5%). Itens parciais não contam como concluídos.
 - Último commit conhecido antes desta atualização de retomada: `a62bbc431cd7342f928f7af327ab0effc2480a86`; conferir o HEAD remoto ao retomar.
 - Nenhum teste, build, compilação, lint ou validação foi executado nesta execução. Todos permanecem acumulados para a etapa final.
 - Testes físicos nos dois aparelhos permanecem na fase final.
