@@ -37,6 +37,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
@@ -58,7 +59,7 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
     }
     var hotspotPermissionState by remember(context) { mutableStateOf(readHotspotPermissionState(context)) }
     var hotspotPermissionMessage by remember { mutableStateOf<String?>(null) }
-    var hotspotPermissionPending by remember { mutableStateOf(false) }
+    var hotspotPermissionPending by rememberSaveable { mutableStateOf(false) }
     val previousPermissionState = remember { mutableStateOf(hotspotPermissionState) }
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner, context) {
@@ -277,7 +278,13 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                     }
                     Text("Permissão do Android para hotspot: ${hotspotPermissionState.permissionLabel()}", style = MaterialTheme.typography.bodySmall)
                     Text("O Android pode exigir permissão de localização para disponibilizar o hotspot. O KhaLinux não consulta nem registra coordenadas.", style = MaterialTheme.typography.bodySmall)
-                    hotspotPermissionMessage?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
+                    hotspotPermissionMessage?.let {
+                        Text(
+                            it,
+                            color = if (hotspotPermissionPending) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                     Button(onClick = {
                         if (hotspotPermissionState == RedAndroidPermissionState.GRANTED) {
                             viewModel.startNetworkLab()
@@ -394,7 +401,13 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
             }
             TextButton(onClick = viewModel::backToCatalog) { Text("Voltar ao catálogo") }
         }
-        state.message?.let { Text(it, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall) }
+        state.message?.let {
+            Text(
+                it,
+                color = if (state.networkState == RedNetworkState.ERROR) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
     }
     sessionPendingDelete?.let { sessionId ->
         AlertDialog(
