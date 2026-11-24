@@ -20,7 +20,7 @@
 2. Abra o endereço local exibido pelo aparelho A ou leia o QR Code.
 3. Faça o login usando somente os dados de teste do laboratório.
 4. Responda ao aviso de cookies no navegador.
-5. Se houver solicitações de permissões web compatíveis, leia a finalidade e responda aos avisos próprios do navegador.
+5. Se a aula incluir permissões web, abra a página **Permissões do navegador** e escolha individualmente câmera, microfone ou localização. Leia a finalidade e responda aos avisos próprios do navegador; em HTTP por IP local, o resultado esperado pode ser indisponível.
 6. Não é necessário instalar ou abrir o KhaLinux no B.
 
 
@@ -57,11 +57,11 @@
 3. Mostrar o endereço/QR Code e a abertura do portal.
 4. Responder ao aviso de cookies e observar no A a escolha registrada.\n5. Comparar login local com acesso direto sem login.
 5. Clicar nos links e observar o redirecionamento.
-6. Mostrar no painel A as requisições realmente recebidas.
-7. Se disponível em contexto seguro, solicitar uma permissão web por ação explícita e mostrar o aviso real do navegador.
-8. Mostrar o evento de estado no painel A.
-9. Abrir BLUE e explicar a defesa correspondente.
-10. Não exibir código-fonte, scripts ou segredos de implementação.
+7. Mostrar no painel A as requisições realmente recebidas.
+8. Se disponível em contexto seguro, solicitar uma permissão web por ação explícita e mostrar o aviso real do navegador; caso contrário, mostrar UNAVAILABLE.
+9. Mostrar o evento de estado no painel A.
+10. Abrir BLUE e explicar a defesa correspondente.
+11. Não exibir código-fonte, scripts ou segredos de implementação.
 
 ## Solução de problemas
 
