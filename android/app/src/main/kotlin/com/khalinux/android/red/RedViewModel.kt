@@ -122,7 +122,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             mutableState.update { it.copy(tlsBrowserTrustObserved = true) }
             recordStructuredEvent(
                 RedEventType.TLS_HANDSHAKE_OBSERVED,
-                "Handshake TLS concluído pelo navegador participante; a origem HTTPS foi aceita para esta conexão.",
+                "Handshake TLS concluído pelo participante após o vínculo da sessão; a origem HTTPS foi aceita nesta conexão.",
                 source = "tls-server",
                 remoteAddress = remote.takeIf { it.isNotBlank() }
             )
