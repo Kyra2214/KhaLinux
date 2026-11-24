@@ -20,10 +20,11 @@ import javax.net.ssl.SSLServerSocket
 import javax.net.ssl.SSLSocket
 
 /**
- * Servidor HTTP/HTTPS estritamente local para o laboratório RED.
+ * Servidor HTTPS estritamente local para o portal participante RED.
  *
  * Vincula o socket a um IPv4 de interface Wi-Fi/AP identificada; não faz bind em 0.0.0.0.
  * O corpo de requisição não é persistido nem incluído em RedRequestObservation.
+ * Não oferece fallback HTTP; a preparação da CA é responsabilidade de RedTlsPreparationServer.
  */
 class RedPortalServer(
     private val onEvent: (String) -> Unit,
