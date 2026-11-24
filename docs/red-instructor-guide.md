@@ -77,6 +77,6 @@
 
 - O Android controla o hotspot; o app não escolhe arbitrariamente todos os parâmetros.
 - O Android não oferece uma lista universal de clientes do LocalOnlyHotspot; o RED confirma atividade do participante quando recebe uma requisição HTTP.
-- O portal usa HTTP local sem TLS. Não é HTTPS e não deve ser apresentado como conexão protegida.
+- O portal participante usa HTTPS local; o endpoint HTTP/8080 serve apenas a preparação e a CA pública. O A só marca confiança observada depois de receber uma conexão com handshake TLS concluído.
 - O navegador não ganha acesso a câmera, microfone ou localização por estar conectado, fazer login ou aceitar cookies. APIs sensíveis exigem contexto seguro e uma ação explícita.
 - A aula demonstra somente o que o servidor local realmente recebeu.
