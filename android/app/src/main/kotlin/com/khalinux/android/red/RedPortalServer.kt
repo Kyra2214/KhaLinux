@@ -17,6 +17,7 @@ import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLServerSocket
+import javax.net.ssl.SSLSocket
 
 /**
  * Servidor HTTP/HTTPS estritamente local para o laboratório RED.
@@ -31,7 +32,9 @@ class RedPortalServer(
     private val onSyntheticSubmission: (RedSyntheticSubmission) -> Unit = {},
     private val onCookieConsent: (RedCookieConsent) -> Unit = {},
     private val onWebPermission: (RedWebPermissionObservation) -> Unit = {},
-    private val configuredPort: Int = PORT
+    private val configuredPort: Int = PORT,
+    private val onTlsHandshake: (String) -> Unit = {}
+
 ) {
     @Volatile private var socket: ServerSocket? = null
     private val running = AtomicBoolean(false)
@@ -47,6 +50,7 @@ class RedPortalServer(
     @Volatile var boundIpv4Address: String? = null
         private set
     @Volatile private var secureTransport: Boolean = false
+    private val tlsHandshakeObserved = AtomicBoolean(false)
     @Volatile private var portalMode: RedPortalMode = RedPortalMode.LOCAL_LOGIN
     @Volatile private var activeSessionToken: String? = null
     @Volatile private var sessionStartedAt: Long = 0L
@@ -92,6 +96,7 @@ class RedPortalServer(
         }
         server.soTimeout = ACCEPT_TIMEOUT_MS
         secureTransport = sslContext != null
+        tlsHandshakeObserved.set(false)
         val now = System.currentTimeMillis()
         activeSessionToken = createSessionToken()
         sessionStartedAt = now
@@ -224,6 +229,9 @@ class RedPortalServer(
 
             try {
                 val headerBytes = readHeader(input) ?: return
+                if (secureTransport && peer is SSLSocket && peer.session.isValid && tlsHandshakeObserved.compareAndSet(false, true)) {
+                    runCatching { onTlsHandshake(peer.inetAddress?.hostAddress.orEmpty()) }
+                }
                 receivedHeader = true
                 requestReceivedAt = System.currentTimeMillis()
                 val headerText = String(headerBytes, StandardCharsets.ISO_8859_1)
@@ -1110,6 +1118,7 @@ class RedPortalServer(
         failedLoginAttempts.clear()
         onAddress(null)
         secureTransport = false
+        tlsHandshakeObserved.set(false)
         emitEvent("Servidor do portal local encerrado.")
     }
 
