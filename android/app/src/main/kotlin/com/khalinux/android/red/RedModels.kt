@@ -12,12 +12,6 @@ enum class RedAndroidPermissionState { UNKNOWN, GRANTED, DENIED, PERMANENTLY_DEN
 
 data class RedWebPermissionObservation(
     val resource: RedWebPermissionResource,
-    val state: RedWebPermissionState,
-    val timestamp: Long = System.currentTimeMillis()
-)
-
-data class RedWebPermissionObservation(
-    val resource: RedWebPermissionResource,
     val state: RedWebPermissionState
 )
 
