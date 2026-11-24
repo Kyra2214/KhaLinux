@@ -24,7 +24,6 @@ class RedPortalServer(
     private val onAddress: (String?) -> Unit,
     private val onRequest: (RedRequestObservation) -> Unit = {},
     private val onSyntheticSubmission: (RedSyntheticSubmission) -> Unit = {},
-    private val onParticipantEvent: (String, String) -> Unit = { _, _ -> },
     private val onCookieConsent: (String) -> Unit = {},
     private val configuredPort: Int = PORT
 ) {
@@ -40,10 +39,8 @@ class RedPortalServer(
     @Volatile var boundPort: Int? = null
         private set
     @Volatile private var portalMode: RedPortalMode = RedPortalMode.LOCAL_LOGIN
-    @Volatile private var participantToken: String? = null
 
     fun setMode(mode: RedPortalMode) { portalMode = mode }
-    fun setParticipantToken(token: String?) { participantToken = token }
 
     @Synchronized
     fun start(preferredAddress: String? = null, mode: RedPortalMode = portalMode): String {
@@ -185,11 +182,6 @@ class RedPortalServer(
                         onEvent("Redirecionamento local executado: /go/notice → /notice.")
                         return
                     }
-                    method == "GET" && path == "/participant/event" -> {
-                        val result = processParticipantEvent(rawQuery)
-                        status = result.first
-                        result.second
-                    }
                     method == "GET" && path == "/health" -> {
                         status = 200
                         """{"status":"ok","service":"khalinux-red-local-lab"}"""
@@ -262,16 +254,6 @@ class RedPortalServer(
                 }
             }
         }
-    }
-
-    private fun processParticipantEvent(query: String): Pair<Int, String> {
-        val event = RedLabInputValidator.validateParticipantEvent(query, participantToken)
-            ?: return 403 to resultHtml("Não autorizado", "O código da sessão ou o evento não corresponde ao laboratório.")
-        onParticipantEvent(event.kind, event.result)
-        return 200 to resultHtml(
-            "Registro recebido",
-            "O instrutor recebeu somente o estado da demonstração. Nenhum conteúdo de câmera, microfone, localização ou arquivo foi enviado."
-        )
     }
 
     private fun processSyntheticLogin(body: ByteArray, contentType: String?): Pair<Int, String> {
