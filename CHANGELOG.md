@@ -1,3 +1,13 @@
+## [Não lançado] — RED-10: interface do operador e acessibilidade
+
+- RED exibe estados reais de hotspot/servidor/interface/IPv4/participante e só mostra URL/QR após bind confirmado.
+- Permissão do operador distingue solicitação pendente, concessão, recusa, revogação e recuperação.
+- Removido aviso antigo que rotulava as páginas como simulação; roteiro B atualizado para cookies e permissões web individuais.
+- Diagnóstico HTTP sem TLS, visibilidade limitada, requisições recentes e ações de recuperação permanecem no A.
+- Estado de permissão usa `rememberSaveable`; ciclo de vida interrompe sessão em segundo plano; QR tem descrição acessível.
+- RED/BLUE compartilham eventos sem duplicar evidências. Documentação: `docs/red-operator-ui.md`.
+- Nenhum teste/build/compilação foi executado.
+
 ## [Não lançado] — RED-10: interface do operador e estados operacionais
 
 - Painel A apresenta estados separados para permissão pendente, solicitação de hotspot, confirmação Android, descoberta de interface, inicialização do servidor, espera de participante, atividade HTTP, encerramento e falha.
