@@ -170,16 +170,9 @@ class RedSystemHotspotController(
         if (active != null) {
             runCatching { connectivity.unregisterNetworkCallback(active) }
             callback = null
-            currentDefaultNetwork = null
-            publishUpstream(
-                RedUpstreamSnapshot(
-                    internetAvailable = false,
-                    validated = false,
-                    transport = null,
-                    message = "Monitoramento de upstream encerrado; hotspot do sistema não foi desligado pelo KhaLinux."
-                )
-            )
         }
+        currentDefaultNetwork = null
+        lastUpstream = null
     }
 
     private fun publishUpstream(snapshot: RedUpstreamSnapshot) {
