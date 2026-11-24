@@ -35,10 +35,6 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
-    if (state.participantMode) {
-        RedParticipantScreen(onExit = viewModel::exitParticipantMode)
-        return
-    }
     val clipboard = LocalClipboardManager.current
     val context = LocalContext.current
     val reportContent = remember { androidx.compose.runtime.mutableStateOf("") }
@@ -55,7 +51,6 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                 Text("Operações práticas em laboratório autorizado.", style = MaterialTheme.typography.bodySmall)
             }
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                TextButton(onClick = viewModel::enterParticipantMode) { Text("Modo participante") }
                 TextButton(onClick = viewModel::refreshHistory) { Text("Histórico") }
             }
         }
@@ -120,19 +115,13 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                     Text("Roteiro rápido de dois aparelhos", style = MaterialTheme.typography.titleSmall)
                     Text("Aparelho A: inicie a sessão, escolha o modo do portal, ative o hotspot e compartilhe SSID, endereço e código temporário.", style = MaterialTheme.typography.bodySmall)
-                    Text("Aparelho B: conecte-se ao Wi-Fi, abra o endereço local e percorra as páginas. Para permissões, abra RED > Modo participante e informe endereço e código.", style = MaterialTheme.typography.bodySmall)
+                    Text("Aparelho B: conecte-se ao Wi-Fi, abra o endereço no navegador, faça o login de teste e responda ao aviso de cookies. Toda a observabilidade fica neste painel A.", style = MaterialTheme.typography.bodySmall)
                     Text("BLUE: alterne para a análise defensiva sem encerrar a sessão RED. Volte ao RED para continuar a operação.", style = MaterialTheme.typography.bodySmall)
                 }
             }
             state.session?.let { session ->
                 Text("Sessão: ${session.state} · ${session.completedSteps.size}/${operation.steps.size} etapas")
                 Text("Rede: ${state.networkState}", style = MaterialTheme.typography.bodySmall)
-                state.participantToken?.let { token ->
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("Código de pareamento: $token", style = MaterialTheme.typography.bodySmall)
-                        TextButton(onClick = { clipboard.setText(AnnotatedString(token)) }) { Text("Copiar") }
-                    }
-                }
                 state.hotspotSnapshot?.let { snapshot ->
                     Text(snapshot.message, style = MaterialTheme.typography.bodySmall)
                     snapshot.ssid?.let { Text("SSID: $it", style = MaterialTheme.typography.bodySmall) }
@@ -219,7 +208,10 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                             )
                             OutlinedButton(onClick = viewModel::clearSensitivePanelData) { Text("Limpar valores temporários") }
                         } ?: Text("Nenhum formulário foi recebido nesta sessão.", style = MaterialTheme.typography.bodySmall)
-                        Text("Permissões e recursos do aparelho participante", style = MaterialTheme.typography.titleMedium)
+                        Text("Consentimento de cookies do navegador", style = MaterialTheme.typography.titleMedium)
+                        val cookieEvent = session.events.lastOrNull { it.type == RedEventType.COOKIE_CONSENT_RECORDED }
+                        Text(cookieEvent?.detail ?: "Nenhuma escolha de cookies recebida nesta sessão.", style = MaterialTheme.typography.bodySmall)
+                        Text("Permissões web do navegador", style = MaterialTheme.typography.titleMedium)
                         val resourceEventTypes = setOf(
                             RedEventType.PERMISSION_REQUESTED,
                             RedEventType.PERMISSION_GRANTED,
@@ -230,13 +222,13 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                             RedEventType.FILE_PICKER_OPENED,
                             RedEventType.FILE_SELECTED
                         )
-                        val resourceLabels = listOf("câmera", "microfone", "localização", "seletor de arquivos")
+                        val resourceLabels = listOf("câmera", "microfone", "localização")
                         val latestResourceEvents = resourceLabels.mapNotNull { resource ->
                             session.events.lastOrNull { it.type in resourceEventTypes && it.detail.contains(resource, ignoreCase = true) }
                                 ?.let { resource to it }
                         }
                         if (latestResourceEvents.isEmpty()) {
-                            Text("Nenhuma permissão ou recurso foi solicitado nesta sessão.", style = MaterialTheme.typography.bodySmall)
+                            Text("Nenhum resultado de permissão web foi recebido nesta sessão. O navegador exige contexto seguro para APIs sensíveis; o portal HTTP por IP local pode não oferecer esse contexto.", style = MaterialTheme.typography.bodySmall)
                         } else {
                             latestResourceEvents.forEach { (resource, event) ->
                                 Text("$resource: ${event.type} · ${event.detail}", style = MaterialTheme.typography.bodySmall)
