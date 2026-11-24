@@ -62,6 +62,13 @@ android {
         compose = true
     }
 
+    packaging {
+        resources {
+            // Metadado OSGi duplicado pelos módulos BouncyCastle; não é necessário no APK Android.
+            excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+        }
+    }
+
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.14"
     }
