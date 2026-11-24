@@ -320,7 +320,9 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             RedEventType.NAVIGATION, RedEventType.REDIRECT, RedEventType.COOKIE_CONSENT_RECORDED,
             RedEventType.WEB_PERMISSION_REQUESTED, RedEventType.WEB_PERMISSION_GRANTED,
             RedEventType.WEB_PERMISSION_DENIED, RedEventType.WEB_PERMISSION_CANCELLED,
-            RedEventType.WEB_PERMISSION_UNAVAILABLE, RedEventType.WEB_PERMISSION_REVOKED -> RedOperationState.ACTIVE
+            RedEventType.WEB_PERMISSION_UNAVAILABLE, RedEventType.WEB_PERMISSION_REVOKED,
+            RedEventType.ANDROID_PERMISSION_REQUESTED, RedEventType.ANDROID_PERMISSION_GRANTED,
+            RedEventType.ANDROID_PERMISSION_DENIED, RedEventType.ANDROID_PERMISSION_REVOKED -> RedOperationState.ACTIVE
             else -> current.state
         }
         val updated = current.copy(state = nextState).withEvent(
@@ -435,7 +437,11 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 RedEventType.WEB_PERMISSION_DENIED,
                 RedEventType.WEB_PERMISSION_CANCELLED,
                 RedEventType.WEB_PERMISSION_UNAVAILABLE,
-                RedEventType.WEB_PERMISSION_REVOKED
+                RedEventType.WEB_PERMISSION_REVOKED,
+                RedEventType.ANDROID_PERMISSION_REQUESTED,
+                RedEventType.ANDROID_PERMISSION_GRANTED,
+                RedEventType.ANDROID_PERMISSION_DENIED,
+                RedEventType.ANDROID_PERMISSION_REVOKED
             )
         }
         return buildString {
