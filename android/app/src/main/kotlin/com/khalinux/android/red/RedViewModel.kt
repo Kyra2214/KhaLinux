@@ -399,17 +399,6 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         RedLiveEvidenceStore.updateRequests(updatedRequests)
 
         val detail = "${observation.method} ${observation.path} → HTTP ${observation.statusCode} · ${observation.bodyBytes} bytes"
-        val common = mapOf(
-            "source" to "http",
-            "httpMethod" to observation.method,
-            "route" to observation.path,
-            "httpStatus" to observation.statusCode,
-            "bytesReceived" to observation.bodyBytes,
-            "responseSent" to observation.responseSent,
-            "rejectionReason" to observation.rejectionReason,
-            "serverFailure" to observation.serverFailure
-        )
-
         if (observation.method != "UNKNOWN" && observation.rejectionReason != "invalid_request_line") {
             recordStructuredEvent(
                 RedEventType.HTTP_REQUEST_RECEIVED,
