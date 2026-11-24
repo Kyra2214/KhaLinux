@@ -37,6 +37,10 @@
 - Stop remove tarefas de descoberta, invalida callbacks e fecha a reserva.
 - Callback `onStopped` só altera estado quando pertence à reserva ainda ativa.
 
+## Encerramento inesperado do portal
+
+Se o servidor encerrar por expiração, perda da interface ou falha inesperada enquanto o hotspot estiver ativo, o callback de endereço nulo faz o ViewModel liberar a reserva do hotspot e apresentar estado recuperável. O encerramento solicitado pelo operador segue o fluxo normal de parada, sem classificar a ação como falha.
+
 ## Limitações conhecidas
 
 - Alguns fabricantes não expõem a interface AP de forma identificável por nome/IP. Nesses casos, o portal não inicia.
