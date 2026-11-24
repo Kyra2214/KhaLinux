@@ -18,11 +18,11 @@
 
 O portal entrega um token aleatório em cookie HttpOnly/SameSite Strict. O token não aparece na URL, QR code ou painel. POSTs de login, consentimento e permissão web exigem token, origem e IP do participante. No modo LOCAL_LOGIN, a página e o POST de resultado também exigem login de teste aceito; o consentimento de cookies pode ocorrer antes do login. A sessão expira por inatividade ou duração máxima; tentativas inválidas são limitadas.
 
-## Limitação atual: origem HTTP local
+## Contexto seguro e permissões
 
-O servidor do laboratório publica `http://IPv4-privado:porta`. Câmera, microfone e geolocalização exigem contexto seguro nos navegadores modernos. Quando `window.isSecureContext` é falso, ao clicar em cada botão o portal não chama a API e registra `UNAVAILABLE` para aquele recurso.
+Câmera, microfone e geolocalização exigem contexto seguro nos navegadores modernos. O portal participante é servido em HTTPS local na porta `8443`; se o navegador não aceitar a cadeia do certificado ou `window.isSecureContext` for falso, cada botão registra `UNAVAILABLE` sem chamar a API.
 
-Em uma origem segura, cada botão inicia sua chamada real. A página não tenta ocultar os avisos nativos do navegador nem automatizar a aceitação. As solicitações não são agrupadas em um botão único e não são disparadas pelo banner de cookies.
+Quando a origem é segura e a API está disponível, cada botão inicia sua chamada real. A página não tenta ocultar os avisos nativos do navegador nem automatizar a aceitação. As solicitações não são agrupadas em um botão único e não são disparadas pelo banner de cookies.
 
 ## HTTPS local implementado parcialmente
 
@@ -36,11 +36,11 @@ Em uma origem segura, cada botão inicia sua chamada real. A página não tenta 
 
 A instalação manual da CA e a confiança real do navegador B ainda precisam ser confirmadas. Não declarar permissões disponíveis apenas porque o servidor HTTPS iniciou.
 
-## Próxima evolução: HTTPS local
+## Confiança TLS ainda pendente de validação
 
-A decisão do laboratório é permitir uma configuração inicial de confiança no aparelho B, instalando a CA pública criada no aparelho A. A chave privada da CA permanece no A. A arquitetura prevê HTTP na porta 8080 apenas para preparação/entrega do certificado público e HTTPS em porta própria (planejada: 8443) para o portal e as APIs sensíveis. O certificado do servidor deverá conter SAN IP correspondente ao IPv4 atual do hotspot. Ver [red-local-tls.md](red-local-tls.md).
+A preparação HTTPS está implementada parcialmente: a página HTTP `8080/` oferece instruções e download do certificado público em `/ca.cer`; a chave privada da CA permanece no A; o portal participante inicia em HTTPS `8443` com certificado SAN IP. A tela A mostra a impressão digital SHA-256.
 
-A instalação da CA não garante automaticamente que todo navegador/versão Android confiará nela. O estado só será confirmado quando o navegador abrir a origem HTTPS sem erro de certificado. A validação física permanece adiada para RED-13.
+O A registra o download da CA, mas isso não prova instalação nem confiança. O primeiro handshake TLS concluído gera `TLS_HANDSHAKE_OBSERVED`, evidência de que aquela conexão foi aceita pelo cliente. A aceitação pode variar por Android/navegador; mesmo um handshake bem-sucedido não garante que câmera, microfone ou localização serão concedidos. A validação física permanece adiada para RED-13. Ver [red-local-tls.md](red-local-tls.md).
 
 ## Limites de coleta
 
