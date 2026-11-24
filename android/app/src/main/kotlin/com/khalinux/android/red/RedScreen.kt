@@ -287,6 +287,8 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                     if (state.systemHotspotMode) {
                         Text("Hotspot do sistema selecionado. Volte das Configurações do Android e detecte a interface para iniciar o portal.", style = MaterialTheme.typography.bodySmall)
                         OutlinedButton(onClick = viewModel::detectSystemHotspot) { Text("Detectar hotspot do Android") }
+                        Text("Para voltar ao modo local isolado, desligue primeiro o hotspot do sistema nas Configurações.", style = MaterialTheme.typography.bodySmall)
+                        OutlinedButton(onClick = viewModel::resetSystemHotspotMode) { Text("Voltar para hotspot local isolado") }
                     } else {
                     Text("Modo do portal", style = MaterialTheme.typography.titleSmall)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
