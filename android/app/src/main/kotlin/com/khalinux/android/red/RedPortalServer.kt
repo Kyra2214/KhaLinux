@@ -1029,6 +1029,7 @@ class RedPortalServer(
         sessionStartedAt = 0L
         lastActivityAt = 0L
         sessionOwnerAddress = null
+        participantLoginAccepted = false
         failedSessionAttempts.clear()
         failedLoginAttempts.clear()
         onAddress(null)
