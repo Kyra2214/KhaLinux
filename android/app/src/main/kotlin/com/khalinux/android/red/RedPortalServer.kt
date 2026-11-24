@@ -175,7 +175,7 @@ class RedPortalServer(
                 }
 
                 contentType = headers["content-type"]
-                if (method == "POST" && path in setOf("/consent", "/login") &&
+                if (method == "POST" && path in setOf("/consent", "/login", "/browser-permission") &&
                     contentType?.substringBefore(';')?.trim()
                         ?.equals("application/x-www-form-urlencoded", ignoreCase = true) != true
                 ) {
@@ -264,6 +264,18 @@ class RedPortalServer(
                             status = 200
                             onCookieConsent(consent)
                             resultHtml("Preferências registradas", "Sua escolha de cookies foi registrada no laboratório.")
+                        }
+                    }
+                    method == "POST" && path == "/browser-permission" -> {
+                        val observation = RedLabInputValidator.validateWebPermission(requestBody, contentType)
+                        if (observation == null) {
+                            status = 400
+                            rejectionReason = "invalid_web_permission"
+                            resultHtml("Resultado inválido", "O estado de permissão do navegador não foi reconhecido.")
+                        } else {
+                            status = 200
+                            onWebPermission(observation)
+                            resultHtml("Resultado registrado", "O resultado da permissão foi registrado no painel do laboratório.")
                         }
                     }
                     method == "POST" && path == "/login" && portalMode == RedPortalMode.LOCAL_LOGIN -> {
