@@ -46,7 +46,7 @@ enum class RedEventType {
     ANDROID_PERMISSION_REQUESTED, ANDROID_PERMISSION_GRANTED, ANDROID_PERMISSION_DENIED, ANDROID_PERMISSION_REVOKED,
     HOTSPOT_REQUESTED, HOTSPOT_INTERFACE_DISCOVERY, HOTSPOT_READY, HOTSPOT_STOPPED, HOTSPOT_FAILED,
     PORTAL_STARTING, PORTAL_STARTED, PORTAL_STOPPED, PORTAL_OPENED, PORTAL_ERROR,
-    HTTP_REQUEST_RECEIVED, HTTP_RESPONSE_SENT, NAVIGATION, REDIRECT,
+    HTTP_REQUEST_RECEIVED, HTTP_REQUEST_REJECTED, HTTP_RESPONSE_SENT, HTTP_SERVER_FAILURE, NAVIGATION, REDIRECT,
     FORM_SUBMITTED, FORM_REJECTED, DEMO_FORM_COMPLETED,
     PERMISSION_REQUESTED, PERMISSION_GRANTED, PERMISSION_DENIED, PERMISSION_CANCELLED,
     WEB_PERMISSION_REQUESTED, WEB_PERMISSION_GRANTED, WEB_PERMISSION_DENIED, WEB_PERMISSION_CANCELLED, WEB_PERMISSION_UNAVAILABLE, WEB_PERMISSION_REVOKED,
@@ -88,7 +88,10 @@ data class RedRequestObservation(
     val contentType: String? = null,
     val bodyBytes: Int = 0,
     val remoteAddress: String? = null,
-    val safeHeaders: Map<String, String> = emptyMap()
+    val safeHeaders: Map<String, String> = emptyMap(),
+    val responseSent: Boolean = false,
+    val rejectionReason: String? = null,
+    val serverFailure: Boolean = false
 )
 
 data class RedOperation(
@@ -129,7 +132,10 @@ data class RedEvent(
     val cookiePreferences: Boolean? = null,
     val cookiePersonalization: Boolean? = null,
     val webPermissionResource: RedWebPermissionResource? = null,
-    val webPermissionState: RedWebPermissionState? = null
+    val webPermissionState: RedWebPermissionState? = null,
+    val responseSent: Boolean? = null,
+    val rejectionReason: String? = null,
+    val serverFailure: Boolean? = null
 )
 
 data class RedSession(
