@@ -22,7 +22,7 @@
 | PHY-09 | Recusar cookies opcionais | Escolha registrada sem categorias opcionais. |
 | PHY-10 | Configurar cookies | Estados customizados por categoria registrados. |
 | PHY-11 | Abrir Permissões do navegador | Página apresenta ações separadas para câmera, microfone e localização. |
-| PHY-12 | Solicitar permissões via HTTP/IP privado | Estado UNAVAILABLE se o navegador não considerar a origem segura; nenhum prompt forçado. |
+| PHY-12 | Tentar abrir rota sensível no endpoint HTTP/8080 de preparação | Rota não publicada; nenhum formulário, sessão ou prompt de permissão disponível em HTTP. |
 | PHY-13 | Instalar CA pública no B após conferir fingerprint e abrir HTTPS/8443 | Navegador aceita a cadeia sem alerta; primeiro handshake TLS é registrado no A. |
 | PHY-14 | Negar/cancelar permissão web, quando disponível | Estado negado/cancelado registrado sem declarar concessão. |
 | PHY-15 | Conceder e revogar permissão web, quando disponível | Estado real e revogação observados; nenhum payload enviado ao A. |
