@@ -2,6 +2,7 @@
 
 - Repositório: `Kyra2214/KhaLinux`.
 - Branch de trabalho: `recovery/red-portal-integration`.
+- Último checkpoint Git confirmado antes desta atualização: `d21a96cc7f089ee9e071ffabbc45159fc631157d`.
 - Não alterar `main`, não fazer merge e não fazer force push.
 - Roadmap ativo: `docs/roadmap-red-blue-laboratorio.md`.
 - Topologia definida: **A** é a central que executa KhaLinux, cria a rede, hospeda o portal e exibe toda a observabilidade; **B** apenas conecta ao Wi-Fi, abre o portal no navegador, faz login de teste, responde ao aviso de cookies e às solicitações individuais do navegador quando a origem permitir.
@@ -13,15 +14,16 @@
 - RED-02: concluído em código/documentação; ACCESS_FINE_LOCATION solicitada somente ao iniciar hotspot no A, com concessão, recusa, recusa permanente e revogação. Ver `docs/red-permissions.md`.
 - RED-03: concluído em código/documentação; LocalOnlyHotspot com timeout/cancelamento/callbacks tardios e correlação por interface/IPv4 diferencial; sem interface inequívoca, não inicia servidor. Ver `docs/red-hotspot-lifecycle.md`.
 - RED-04: concluído em código/documentação; servidor HTTP bindado ao IPv4 exato, valida Host/headers/framing, monitora interface e aplica limites. Ver `docs/red-http-server.md`.
-- RED-08: concluído; token aleatório efêmero, cookie HttpOnly/SameSite, validação de IP/origem, comparação em tempo constante, bloqueio após falhas, expiração por inatividade/tempo absoluto e limpeza no stop; background/reinício marcam sessão interrompida. Ver `docs/red-http-server.md`.
-- BLUE-01: concluído; painel BLUE apresenta fatos observados, interpretação defensiva, eventos HTTP, cookies e permissões sem criar detecções sem evidência.
+- RED-08: concluído; token aleatório efêmero, cookie HttpOnly/SameSite, validação de IP/origem, comparação em tempo constante, bloqueio após falhas, expiração por inatividade/tempo absoluto e limpeza no stop; background/reinício marcam sessão interrompida. Ver `docs/red-session-security.md`.
+- BLUE-01: concluído; painel BLUE apresenta fatos observados, interpretação defensiva, eventos HTTP, cookies e permissões sem criar detecções sem evidência. Ver `docs/blue-area.md`.
 - RED-09: concluído; schema v2, migração v1→v2, retenção 100 sessões/300 eventos, relatório Markdown, exportação SAF e exclusão individual/global. Ver `docs/red-session-reports.md`.
-- RED-10: concluído; interface A centraliza estado real, URL/QR após bind, diagnóstico, ações de recuperação, consentimento/permissões e evidências; B continua navegador-only. Ver `docs/red-operator-ui.md`.
-- RED-11: hardening concluído; CSP com nonce, cabeçalhos de segurança, allowlist mínima, rate limit com mapa limitado, revisão do Manifest e riscos residuais documentados. Auditoria e testes negativos ficam para a fase final. Ver `docs/red-security-privacy.md`.
+- RED-10: concluído; interface A centraliza estado real, URL/QR após bind, diagnóstico, ações de recuperação, consentimento/permissões e evidências; B continua navegador-only. Ver `docs/red-operator-interface.md`.
+- RED-11: hardening concluído; CSP com object-src/base-uri none, cabeçalhos de segurança, allowlist mínima, rejeição de caracteres de controle, rate limit com mapa limitado, revisão documental do Manifest e riscos residuais documentados. Auditoria e testes negativos ficam para a fase final. Ver `docs/red-security-privacy.md`.
 - RED-12: integração e plano de validação documentados; build, lint, testes host/Android e auditoria não executados por ordem de execução. Ver `docs/red-validation-plan.md`.
 - RED-13: matriz física final documentada para A operador/B navegador-only; nenhuma execução física iniciada. Ver `docs/red-physical-validation.md`.
-- Progresso de implementação/documentação: 14 de 16 submódulos preparados (87,5%); RED-07 parcial e RED-14 pendente. Próximo submódulo: RED-14.
+- RED-14: parcial; notas de release, matriz de compatibilidade e checklist preparados. APK/hash, revisão final do diff e PR aguardam os portões de validação final. Ver `docs/red-release-checklist.md`.
+- Progresso de implementação/documentação: 14 de 16 submódulos preparados (87,5%); RED-07 e RED-14 parciais. Submódulo atual: RED-14.
 - Nenhum teste, build, compilação, lint ou validação foi executado nesta execução. Todos permanecem acumulados para a etapa final.
 - Testes físicos nos dois aparelhos permanecem na fase final.
 - Não gerar ZIP/checkpoints; o usuário determinou execução diretamente no repositório.
-- Pendências: HTTPS confiável para prompts nativos do RED-07; validar sessão/CSRF/expiração e encerramento na fase final; concluir RED-11 a RED-14; revisar integração final de relatório/BLUE.
+- Pendências: HTTPS confiável para prompts nativos do RED-07; auditoria final RED-11; execução de build/testes RED-12; testes físicos RED-13; APK assinado/hash e PR RED-14; revisar integração final de relatório/BLUE.
