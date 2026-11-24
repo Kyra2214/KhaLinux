@@ -54,6 +54,32 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         onRequest = { observation -> recordRequest(observation) },
         onSyntheticSubmission = { submission -> recordSyntheticSubmission(submission) },
         onCookieConsent = { consent -> recordStructuredEvent(RedEventType.COOKIE_CONSENT_RECORDED, consent.summary(), source = "browser-cookie-consent", cookieConsent = consent) },
+        onWebPermission = { observation ->
+            val eventType = when (observation.state) {
+                RedWebPermissionState.REQUESTED -> RedEventType.WEB_PERMISSION_REQUESTED
+                RedWebPermissionState.GRANTED -> RedEventType.WEB_PERMISSION_GRANTED
+                RedWebPermissionState.DENIED -> RedEventType.WEB_PERMISSION_DENIED
+                RedWebPermissionState.CANCELLED -> RedEventType.WEB_PERMISSION_CANCELLED
+                RedWebPermissionState.UNAVAILABLE -> RedEventType.WEB_PERMISSION_UNAVAILABLE
+                RedWebPermissionState.REVOKED -> RedEventType.WEB_PERMISSION_REVOKED
+            }
+            val resource = observation.resource.name.lowercase()
+            val detail = when (observation.state) {
+                RedWebPermissionState.REQUESTED -> "Navegador iniciou solicitação de $resource."
+                RedWebPermissionState.GRANTED -> "Navegador concedeu $resource; nenhum conteúdo foi enviado ao laboratório."
+                RedWebPermissionState.DENIED -> "Navegador negou $resource."
+                RedWebPermissionState.CANCELLED -> "Solicitação de $resource foi cancelada."
+                RedWebPermissionState.UNAVAILABLE -> "$resource indisponível neste contexto/origem do navegador."
+                RedWebPermissionState.REVOKED -> "Permissão de $resource foi revogada no navegador."
+            }
+            recordStructuredEvent(
+                eventType,
+                detail,
+                source = "browser-permission",
+                webPermissionResource = observation.resource,
+                webPermissionState = observation.state
+            )
+        },
         configuredPort = RedPortalConfiguration().requestedPort
     )
     private val hotspot = RedHotspotController(application) { snapshot ->
