@@ -19,7 +19,7 @@ O app mantém usesCleartextTraffic=false para tráfego HTTP de saída do própri
 - Cookie, Authorization e corpo HTTP permanecem fora das evidências.
 - CSP por resposta usa nonce aleatório em script-src, sem unsafe-inline; botões de cookies usam addEventListener em vez de handlers inline. CSP inclui object-src none e base-uri none; headers Cross-Origin-Resource-Policy e X-Permitted-Cross-Domain-Policies também são enviados.
 - Sessão com token aleatório efêmero, cookie HttpOnly/SameSite, validação de IP/origem, comparação em tempo constante, expiração e bloqueio temporário com limite de endereços de falha.
-- Consentimento, login e permissões web aceitam apenas campos fechados e validados. Nenhuma mídia, coordenada ou arquivo é recebido.
+- Consentimento, login e permissões web aceitam apenas campos fechados e validados. O formulário Home Security valida e-mail e comprimento/sintaxe básica de senha, mas não armazena nem encaminha a senha; o painel recebe somente e-mail mascarado e método demonstrativo. Facebook/Instagram são elementos visuais sem OAuth ou coleta de credenciais. Nenhuma mídia, coordenada ou arquivo é recebido.
 - Histórico limitado a 100 sessões/300 eventos; relatório e exclusão individual/global documentados.
 
 ## Limitações e riscos residuais
@@ -27,9 +27,9 @@ O app mantém usesCleartextTraffic=false para tráfego HTTP de saída do própri
 1. O endpoint de preparação HTTP não protege a confidencialidade do certificado público, que não é secreto; sua autenticidade depende da conferência independente do fingerprint SHA-256 antes de instalar a CA.
 2. A confiança em CA de usuário varia por versão Android/navegador. Um handshake TLS concluído é evidência de que aquela conexão foi aceita, mas não garante que as APIs de câmera, microfone ou localização serão concedidas.
 3. HTTPS local por IP exige SAN IP correspondente ao endereço exato e renovação do certificado de servidor quando o IP mudar ou o certificado expirar.
-3. O hotspot depende de callbacks e limitações do fabricante/versão Android.
-4. O endereço remoto e alguns metadados HTTP são persistidos para correlação da sessão; cabeçalhos de fingerprinting foram removidos da allowlist.
-5. A auditoria final ainda deve revisar componentes, intents, dependências, assets, logs, retenção, sanitização e cenários negativos.
+4. O hotspot depende de callbacks e limitações do fabricante/versão Android.
+5. O endereço remoto e alguns metadados HTTP são persistidos para correlação da sessão; cabeçalhos de fingerprinting foram removidos da allowlist.
+6. A auditoria final ainda deve revisar componentes, intents, dependências, assets, logs, retenção, sanitização e cenários negativos.
 
 ## Hotspot do sistema e upstream
 
