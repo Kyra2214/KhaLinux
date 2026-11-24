@@ -1,4 +1,4 @@
-## [Não lançado] — RED-15: modo hotspot do sistema e observação de upstream (parcial)
+## [Não lançado] — RED-15: modo hotspot do sistema, upstream e heartbeat (implementado, não validado)
 
 - Adicionado `RedSystemHotspotController`: abre as Configurações de tethering do Android sem APIs ocultas, captura baseline de IPv4 Wi-Fi e identifica somente interface/endereço inequívoco.
 - Adicionada observação do upstream padrão do aparelho A por `ConnectivityManager.registerDefaultNetworkCallback`, distinguindo capacidade INTERNET de acesso validado.
@@ -7,7 +7,7 @@
 - Painel e relatório mostram upstream validado em A sem afirmar que B navegou externamente.
 - Páginas HTML do portal enviam heartbeat same-origin autenticado a cada 20 segundos enquanto visíveis; A mostra último contato local e registra evento no máximo uma vez por minuto para limitar volume.
 - Encerrar o portal não desliga o hotspot do sistema; essa ação permanece sob controle do Android.
-- **Parcial:** descoberta de interface depende do padrão OEM; permanência da conexão B e encaminhamento externo exigem validação física após concluir o roadmap.
+- **Validação pendente:** descoberta de interface depende do padrão OEM; permanência da conexão B e encaminhamento externo exigem validação física na fase final.
 
 ## [Não lançado] — RED-07: primeira integração HTTPS local offline (parcial)
 
