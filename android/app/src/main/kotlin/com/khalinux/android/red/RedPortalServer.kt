@@ -126,7 +126,7 @@ class RedPortalServer(
                     break
                 }
                 if (!isBoundAddressAvailable(expectedInterface, expectedAddress)) {
-                    onEvent("Interface $expectedInterface perdeu o IPv4 $expectedAddress; encerrando o portal.")
+                    emitEvent("Interface $expectedInterface perdeu o IPv4 $expectedAddress; encerrando o portal.")
                     stop()
                     break
                 }
@@ -136,6 +136,12 @@ class RedPortalServer(
                     onEvent("Socket do portal encerrou inesperadamente: " + error.javaClass.simpleName + ".")
                     stop()
                 }
+                break
+            }
+            if (!isBoundAddressAvailable(expectedInterface, expectedAddress)) {
+                runCatching { client.close() }
+                emitEvent("Interface $expectedInterface perdeu o IPv4 $expectedAddress; encerrando o portal.")
+                stop()
                 break
             }
             if (!clientSlots.tryAcquire()) {
