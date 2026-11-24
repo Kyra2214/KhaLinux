@@ -479,8 +479,9 @@ class RedPortalServer(
         <aside class="cookie-layer" id="cookie-layer" role="dialog" aria-labelledby="cookie-title">
           <div class="cookie-inner">
             <h2 id="cookie-title">Sua privacidade importa</h2>
-            <p>Usamos cookies necessários para manter suas escolhas. Com sua autorização, também registramos cookies de análise, preferências e personalização neste portal.</p>
+            <p>Este portal usa um cookie necessário para lembrar sua escolha. As categorias opcionais guardam somente preferências de demonstração para análise, preferências e personalização. Não usamos rastreadores de terceiros.</p>
             <div class="cookie-options" id="cookie-options">
+              <label><input type="checkbox" checked disabled> Necessários (sempre ativos)</label>
               <label><input type="checkbox" id="cookie-analytics"> Análise</label>
               <label><input type="checkbox" id="cookie-preferences"> Preferências</label>
               <label><input type="checkbox" id="cookie-personalization"> Personalização</label>
@@ -505,11 +506,10 @@ class RedPortalServer(
             preferences:choice==='accept_all'||(choice==='custom'&&document.getElementById('cookie-preferences').checked),
             personalization:choice==='accept_all'||(choice==='custom'&&document.getElementById('cookie-personalization').checked)
           };
-          const maxAge=86400;
-          document.cookie='kl_cookie_consent='+choice+'; Path=/; Max-Age='+maxAge+'; SameSite=Lax';
-          Object.keys(selected).forEach(key=>{
-            document.cookie='kl_'+key+'='+(selected[key]?'1':'0')+'; Path=/; Max-Age='+maxAge+'; SameSite=Lax';
-          });
+          const buttons=document.querySelectorAll('#cookie-layer button');
+          buttons.forEach(button=>button.disabled=true);
+          const maxAge=15552000;
+          const secureFlag=location.protocol==='https:'?'; Secure':'';
           const body=new URLSearchParams({
             choice:choice,
             analytics:selected.analytics?'1':'0',
@@ -519,8 +519,13 @@ class RedPortalServer(
           try{
             const response=await fetch('/consent',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:body.toString(),credentials:'same-origin'});
             if(!response.ok) throw new Error('HTTP '+response.status);
+            document.cookie='kl_cookie_consent='+choice+'; Path=/; Max-Age='+maxAge+'; SameSite=Lax'+secureFlag;
+            Object.keys(selected).forEach(key=>{
+              document.cookie='kl_'+key+'='+(selected[key]?'1':'0')+'; Path=/; Max-Age='+maxAge+'; SameSite=Lax'+secureFlag;
+            });
             document.getElementById('cookie-layer').remove();
           }catch(error){
+            buttons.forEach(button=>button.disabled=false);
             const message=document.createElement('p');
             message.textContent='Não foi possível registrar a escolha no painel do laboratório. Tente novamente.';
             document.querySelector('.cookie-inner').appendChild(message);
