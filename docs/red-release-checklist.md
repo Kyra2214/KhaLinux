@@ -13,9 +13,9 @@
 ## Snapshot Git registrado
 
 - Branch: `recovery/red-portal-integration`.
-- Snapshot histórico anterior: `791df372d9d94d2dc8555250f247a3414f4518cc`; atualizar após os commits Home Security.
+- HEAD antes da abertura do PR: `545e5d89352503aa8c1bb7afee84ad55bcc6a91f`.
 - Base `main`: `a4de5eb7ef3d72404ea1171af5eaa135a48bde0c`.
-- Comparação histórica: 568 commits à frente, 0 atrás; 52 arquivos alterados. O snapshot será atualizado antes da integração.
+- Comparação atual: 586 commits à frente, 0 atrás; 52 arquivos alterados. Base `main`: `a4de5eb7ef3d72404ea1171af5eaa135a48bde0c`.
 - A contagem é um retrato e precisa ser atualizada antes do PR se a branch avançar.
 
 ## Portões obrigatórios da etapa final
