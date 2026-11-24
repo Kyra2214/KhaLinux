@@ -399,10 +399,17 @@ class RedPortalServer(
                     }
                     method == "GET" && path == "/heartbeat" -> {
                         val token = activeSessionToken
-                        val cookie = headers["cookie"].orEmpty()
-                        val hasSessionCookie = !token.isNullOrBlank() &&
-                            cookie.split(';').any { it.trim() == "kl_lab_session=$token" }
-                        if (remoteAddress != null && sessionOwnerAddress == remoteAddress && hasSessionCookie) {
+                        val supplied = headers["cookie"]
+                            ?.split(';')
+                            ?.firstNotNullOfOrNull { part ->
+                                val cookie = part.trim()
+                                if (cookie.startsWith("kl_lab_session=")) cookie.substringAfter('=').takeIf { it.isNotBlank() } else null
+                            }
+                        val tokenMatches = token != null && supplied != null && MessageDigest.isEqual(
+                            token.toByteArray(StandardCharsets.UTF_8),
+                            supplied.toByteArray(StandardCharsets.UTF_8)
+                        )
+                        if (remoteAddress != null && sessionOwnerAddress == remoteAddress && tokenMatches) {
                             status = 204
                             ""
                         } else {
