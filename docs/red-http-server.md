@@ -1,5 +1,7 @@
 # Servidor HTTP local RED
 
+> **Atualização RED-07:** o servidor participante usado em produção pelo ViewModel agora inicia por `RedPortalServer.startHttps` na porta `8443`. A porta HTTP `8080` é fornecida por `RedTlsPreparationServer` e publica somente a página de preparação, o certificado público da CA e health check. A descrição abaixo registra a base HTTP e seus limites, não significa que o portal participante permaneça em HTTP.
+
 **Submódulo:** RED-04  
 **Estado:** implementação em código/documentação concluída; testes host e integração ficam para a fase final.
 
