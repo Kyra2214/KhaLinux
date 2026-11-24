@@ -8,7 +8,7 @@
 
 ## [Não lançado] — RED-11: hardening de segurança e privacidade
 
-- CSP por resposta com nonce aleatório; removidos handlers inline dos botões de cookies e removido unsafe-inline de script-src.
+- CSP por resposta com nonce aleatório; removidos handlers inline dos botões de cookies e removido unsafe-inline de script-src. A página de permissões web exige login de teste aceito no modo local.
 - Mantidos headers de defesa: nosniff, no-store, Referrer-Policy, X-Frame-Options, Permissions-Policy, CORP e X-Permitted-Cross-Domain-Policies.
 - Allowlist de evidência reduzida a Host, Accept, Content-Type e Referer path; User-Agent/Accept-Language não persistidos.
 - Limitado o número de IPs acompanhados por rate limit de autenticação e login; headers com caracteres de controle são rejeitados.
@@ -68,7 +68,7 @@
 - Cookie HttpOnly/SameSite vinculado ao primeiro acesso do participante; token não é exposto em URL, HTML ou logs.
 - POST de login, consentimento e permissões web exige cookie válido, IP vinculado e origem same-origin.
 - Comparação de token em tempo constante, distinção de falhas e bloqueio temporário após cinco tentativas.
-- Expiração por 30 minutos de inatividade e duração máxima de duas horas.
+- Expiração por 30 minutos de inatividade e duração máxima de duas horas. Encerramento inesperado do portal libera também a reserva do hotspot.
 - Respostas válidas renovam cookie; stop limpa token, participante vinculado, sockets e estado de tentativas.
 - HTTP local permanece sem TLS; a proteção de sessão não fornece confidencialidade contra observação do tráfego.
 - Nenhum teste/build/compilação foi executado.
