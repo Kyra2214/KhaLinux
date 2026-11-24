@@ -24,6 +24,18 @@
 - [ ] Calcular SHA-256 do APK e registrar commit, versão, ambiente e resultado dos testes.
 - [ ] Preparar PR da branch recovery/red-portal-integration para revisão; não fazer merge nem alterar main sem instrução explícita.
 
+## Revisão direcionada da branch
+
+- [x] Confirmar branch de trabalho e base main sem alterar main.
+- [x] Comparar referências Git: branch adiantada, sem commits faltantes da base.
+- [x] Revisar Manifest, configuração Android e arquivos RED/BLUE relevantes.
+- [x] Procurar chamadas de logging de depuração nos arquivos Kotlin RED/BLUE; nenhuma encontrada.
+- [ ] Revisar integralmente o diff de todos os 258 commits/39 arquivos antes de PR.
+- [ ] Resolver RED-07 com origem HTTPS confiável, se fornecida.
+- [ ] Executar os portões finais de validação e gerar artefatos.
+
+Registro detalhado: [red-branch-stabilization.md](red-branch-stabilization.md).
+
 ## Estado atual do pacote
 
 - Nenhum APK Debug/Release foi gerado nesta execução.
