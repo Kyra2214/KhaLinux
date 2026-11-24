@@ -8,6 +8,7 @@
 - Tela RED ganhou modo alternativo para ligar o hotspot do sistema sem upstream, conectar B e ativar dados móveis depois sem desligar o hotspot; o modo local-only permanece isolado.
 - Painel e relatório mostram upstream validado em A sem afirmar que B navegou externamente.
 - Páginas HTML do portal enviam heartbeat same-origin autenticado a cada 20 segundos enquanto visíveis; A mostra último contato local e registra evento no máximo uma vez por minuto para limitar volume.
+- Seleção de interface do hotspot do sistema extraída para função pura com testes JVM para endereço novo, endereço do upstream, AP-named, ambiguidade e ausência de candidato.
 - Encerrar o portal não desliga o hotspot do sistema; essa ação permanece sob controle do Android.
 - **Validação pendente:** descoberta de interface depende do padrão OEM; permanência da conexão B e encaminhamento externo exigem validação física na fase final.
 
