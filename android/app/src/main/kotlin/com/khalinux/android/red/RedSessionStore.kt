@@ -10,7 +10,8 @@ class RedSessionStore(context: Context) {
 
     @Synchronized
     fun save(session: RedSession) {
-        val root = JSONObject().put("id", session.id)
+        val root = JSONObject().put("schemaVersion", CURRENT_SCHEMA_VERSION)
+            .put("id", session.id)
             .put("operationId", session.operationId)
             .put("startedAt", session.startedAt)
             .put("endedAt", session.endedAt ?: JSONObject.NULL)
@@ -59,10 +60,15 @@ class RedSessionStore(context: Context) {
     @Synchronized
     fun all(): List<RedSession> = preferences.all.values.mapNotNull { raw ->
         runCatching {
-            val root = JSONObject(raw as String)
+            val stored = JSONObject(raw as String)
+            val storedVersion = stored.optInt("schemaVersion", LEGACY_SCHEMA_VERSION)
+            require(storedVersion in LEGACY_SCHEMA_VERSION..CURRENT_SCHEMA_VERSION) {
+                "Versão de sessão não suportada: $storedVersion"
+            }
+            val root = migrateToCurrent(stored, storedVersion)
             val steps = root.optJSONArray("completedSteps") ?: JSONArray()
             val events = root.optJSONArray("events") ?: JSONArray()
-            RedSession(
+            val session = RedSession(
                 id = root.getString("id"),
                 operationId = root.getString("operationId"),
                 startedAt = root.getLong("startedAt"),
@@ -101,10 +107,40 @@ class RedSessionStore(context: Context) {
                     )
                 }
             )
+            if (storedVersion < CURRENT_SCHEMA_VERSION) {
+                preferences.edit().putString(session.id, root.toString()).apply()
+            }
+            session
         }.getOrNull()
     }.sortedByDescending { it.startedAt }
 
+    @Synchronized
+    fun delete(sessionId: String) {
+        preferences.edit().remove(sessionId).apply()
+    }
+
+    private fun migrateToCurrent(source: JSONObject, version: Int): JSONObject {
+        var root = JSONObject(source.toString())
+        var currentVersion = version
+        while (currentVersion < CURRENT_SCHEMA_VERSION) {
+            root = when (currentVersion) {
+                1 -> JSONObject(root.toString())
+                    .put("schemaVersion", 2)
+                    .put("completedSteps", root.optJSONArray("completedSteps") ?: JSONArray())
+                    .put("events", root.optJSONArray("events") ?: JSONArray())
+                else -> error("Migração não disponível para schema $currentVersion")
+            }
+            currentVersion += 1
+        }
+        return root
+    }
+
     fun deleteAll() { preferences.edit().clear().apply() }
 
-    companion object { private const val MAX_EVENTS = 300; private const val MAX_SESSIONS = 100 }
+    companion object {
+        private const val LEGACY_SCHEMA_VERSION = 1
+        private const val CURRENT_SCHEMA_VERSION = 2
+        private const val MAX_EVENTS = 300
+        private const val MAX_SESSIONS = 100
+    }
 }
