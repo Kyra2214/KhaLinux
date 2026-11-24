@@ -33,6 +33,7 @@ data class RedUiState(
     val upstreamTransport: String? = null,
     val upstreamMessage: String? = null,
     val lastParticipantHeartbeatAt: Long? = null,
+    val lastParticipantHeartbeatEventAt: Long? = null,
     val portalConfiguration: RedPortalConfiguration = RedPortalConfiguration(),
     val participantObservation: RedParticipantObservation? = null,
     val hotspotInfo: String? = null,
@@ -399,6 +400,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 participantObservation = null,
                 portalEndpoint = null,
                 lastParticipantHeartbeatAt = null,
+                lastParticipantHeartbeatEventAt = null,
                 message = "Sessão local criada. A rede só será iniciada após a ação explícita do operador."
             )
         }
@@ -732,18 +734,28 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         if (observation.method == "GET" && observation.path == "/heartbeat" &&
             observation.statusCode == 204 && observation.responseSent
         ) {
-            mutableState.update { it.copy(lastParticipantHeartbeatAt = observation.timestamp) }
-            recordStructuredEvent(
-                RedEventType.PARTICIPANT_HEARTBEAT,
-                "Heartbeat local recebido do navegador participante; B continua alcançando o portal pela rede local.",
-                source = "portal",
-                httpMethod = observation.method,
-                route = observation.path,
-                httpStatus = observation.statusCode,
-                responseSent = true,
-                eventTimestamp = observation.timestamp,
-                remoteAddress = observation.remoteAddress
-            )
+            val previousHeartbeatEventAt = current.lastParticipantHeartbeatEventAt
+            val shouldRecordHeartbeatEvent = previousHeartbeatEventAt == null ||
+                observation.timestamp - previousHeartbeatEventAt >= 60_000L
+            mutableState.update {
+                it.copy(
+                    lastParticipantHeartbeatAt = observation.timestamp,
+                    lastParticipantHeartbeatEventAt = if (shouldRecordHeartbeatEvent) observation.timestamp else it.lastParticipantHeartbeatEventAt
+                )
+            }
+            if (shouldRecordHeartbeatEvent) {
+                recordStructuredEvent(
+                    RedEventType.PARTICIPANT_HEARTBEAT,
+                    "Heartbeat local recebido do navegador participante; B continua alcançando o portal pela rede local.",
+                    source = "portal",
+                    httpMethod = observation.method,
+                    route = observation.path,
+                    httpStatus = observation.statusCode,
+                    responseSent = true,
+                    eventTimestamp = observation.timestamp,
+                    remoteAddress = observation.remoteAddress
+                )
+            }
         }
         if (observation.path.startsWith("/go/") && observation.statusCode in 300..399) {
             recordStructuredEvent(RedEventType.REDIRECT, "Redirecionamento local executado: ${observation.path}.", source = "http", route = observation.path, httpStatus = observation.statusCode, eventTimestamp = observation.timestamp)
