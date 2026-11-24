@@ -1,6 +1,14 @@
 # RED-12 — Plano de validação automatizada (execução adiada)
 
-**Estado:** plano e integração de código registrados; nenhum build, lint, teste unitário, instrumentado ou de integração foi executado. Toda a execução está adiada até a conclusão integral dos submódulos do roadmap.
+**Estado:** implementação do roadmap concluída (100%) e fase final de validação iniciada. Workflow `45405105200` (commit `0c0ca2e`) já aprovou os checks de host; testes unitários Android estão em execução e `assembleDebug` aguarda a conclusão deles. Lint, testes específicos do portal e testes físicos A/B ainda não foram executados.
+
+## Execução registrada — 24/11/2026
+
+- **Host validation: PASS** no workflow `45405105200`: `test-build-config.py`, sintaxe shell, auditoria estática de segurança, teste nativo JNI PTY e smoke test PRoot ARM64.
+- **Android unit tests: IN PROGRESS** (`:android:runtime:testDebugUnitTest` e `:android:app:testDebugUnitTest`).
+- **APK Debug: PENDING** (`:android:app:assembleDebug`, etapa seguinte no mesmo workflow).
+- **Lint e integração dedicada do portal: PENDING**; não há resultado registrado ainda.
+- **Testes físicos A/B: NOT STARTED**, reservados para depois dos portões automatizados/estáticos.
 
 ## Ambiente a registrar na fase final
 
@@ -20,7 +28,7 @@
 6. Corrigir falhas e repetir as suítes afetadas.
 7. Gerar APK Debug, calcular SHA-256 e registrar commit, versão e artefato.
 
-## Comandos candidatos (não executados)
+## Comandos complementares pendentes
 
 ```bash
 ./gradlew tasks
