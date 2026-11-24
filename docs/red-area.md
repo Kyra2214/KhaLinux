@@ -97,9 +97,9 @@ Consulte [red-browser-permissions.md](red-browser-permissions.md) para estados r
 
 Consulte [red-event-evidence.md](red-event-evidence.md) para eventos HTTP, persistência, allowlist de cabeçalhos, limites, relatório e integração BLUE.
 
-## Servidor HTTP local
+## Servidores locais
 
-Consulte [red-http-server.md](red-http-server.md) para bind, validação de Host, limites HTTP, encerramento por perda da interface e privacidade de cabeçalhos.
+Consulte [red-http-server.md](red-http-server.md) para a base do servidor, bind, validação de Host e limites. O portal participante usa HTTPS/8443; a preparação HTTP/8080 é isolada e entrega apenas a CA pública.
 
 ## Modelo de domínio
 
@@ -114,7 +114,7 @@ Consulte [red-domain-model.md](red-domain-model.md) para configuração solicita
 - `RedSessionStore.kt`: persistência de metadados.
 - `RedViewModel.kt`: coordenação de sessão, hotspot, portal e evidências.
 - `RedHotspotController.kt`: integração com `LocalOnlyHotspot`.
-- `RedPortalServer.kt`: servidor HTTP local, rotas, formulários e redirecionamentos.
+- `RedPortalServer.kt`: servidor do portal local com HTTP/HTTPS, rotas, formulários e redirecionamentos; o ViewModel inicia o transporte HTTPS.
 - `RedLabInputValidator.kt`: allowlist e validação de dados sintéticos/eventos do participante.
 - O banner de cookies e o endpoint `/consent` ficam no `RedPortalServer.kt`; o B usa somente o navegador.
 - `RedLiveEvidenceStore.kt`: evidências efêmeras compartilhadas com BLUE.
@@ -133,6 +133,6 @@ Consulte [red-domain-model.md](red-domain-model.md) para configuração solicita
 - O Android controla os parâmetros e o ciclo de vida do hotspot; fabricantes/versões podem variar.
 - A abertura automática do portal não é garantida; endereço e QR Code são alternativas.
 - A interface AP/IPv4 pode não ser exposta ao aplicativo.
-- O portal HTTP não oferece TLS e não deve ser apresentado como HTTPS.
+- O portal participante usa HTTPS local; o endpoint HTTP de preparação entrega somente a CA pública e não oferece permissões web.
 - O navegador não recebe permissões nativas só por estar conectado ou fazer login.
 - O servidor observa apenas as requisições destinadas a ele, não o tráfego geral do aparelho participante.
