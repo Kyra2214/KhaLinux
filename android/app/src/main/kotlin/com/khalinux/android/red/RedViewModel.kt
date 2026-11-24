@@ -264,7 +264,6 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         mutableState.update {
             it.copy(
                 networkRunning = false,
-                portalAddress = null,
                 portalEndpoint = null,
                 participantObservation = null,
                 hotspotInfo = null,
@@ -317,7 +316,10 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             RedEventType.HOTSPOT_READY, RedEventType.PORTAL_STARTED -> RedOperationState.WAITING_PARTICIPANT
             RedEventType.PORTAL_OPENED, RedEventType.HTTP_REQUEST_RECEIVED, RedEventType.FORM_SUBMITTED,
             RedEventType.DEMO_FORM_COMPLETED, RedEventType.FORM_REJECTED,
-            RedEventType.NAVIGATION, RedEventType.REDIRECT, RedEventType.COOKIE_CONSENT_RECORDED -> RedOperationState.ACTIVE
+            RedEventType.NAVIGATION, RedEventType.REDIRECT, RedEventType.COOKIE_CONSENT_RECORDED,
+            RedEventType.WEB_PERMISSION_REQUESTED, RedEventType.WEB_PERMISSION_GRANTED,
+            RedEventType.WEB_PERMISSION_DENIED, RedEventType.WEB_PERMISSION_CANCELLED,
+            RedEventType.WEB_PERMISSION_UNAVAILABLE, RedEventType.WEB_PERMISSION_REVOKED -> RedOperationState.ACTIVE
             else -> current.state
         }
         val updated = current.copy(state = nextState).withEvent(
@@ -453,6 +455,13 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 appendLine("- #${event.sequence} ${event.timestamp} [${event.type}] ${event.detail}")
                 if (event.httpMethod != null || event.route != null) {
                     appendLine("  - HTTP: ${event.httpMethod ?: "?"} ${event.route ?: "?"} · status ${event.httpStatus ?: "?"} · bytes ${event.bytesReceived ?: "?"}")
+                }
+                event.cookieChoice?.let { choice ->
+                    appendLine("  - Consentimento de cookies: $choice")
+                    appendLine("  - Categorias: análise=${event.cookieAnalytics}, preferências=${event.cookiePreferences}, personalização=${event.cookiePersonalization}")
+                }
+                event.webPermissionResource?.let { resource ->
+                    appendLine("  - Permissão web: $resource · estado ${event.webPermissionState ?: "não informado"}")
                 }
                 event.source?.let { appendLine("  - Origem do evento: $it") }
             }
