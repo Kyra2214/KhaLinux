@@ -239,8 +239,12 @@ class RedPortalServer(
                         status = result.first
                         result.second
                     }
+                    method == "HEAD" && path in setOf("/", "/login", "/open", "/terms", "/links", "/destination/news", "/destination/offers", "/notice", "/health", "/favicon.ico") -> {
+                        status = if (path == "/favicon.ico") 204 else 200
+                        ""
+                    }
                     method == "HEAD" -> {
-                        status = 200
+                        status = 404
                         ""
                     }
                     method !in setOf("GET", "POST", "HEAD") -> {
@@ -404,6 +408,7 @@ class RedPortalServer(
             append("X-Content-Type-Options: nosniff\r\n")
             append("Referrer-Policy: same-origin\r\n")
             append("X-Frame-Options: DENY\r\n")
+            append("Permissions-Policy: camera=(self), microphone=(self), geolocation=(self)\\r\\n")
             append("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'; form-action 'self'; frame-ancestors 'none'\r\n")
             append("Connection: close\r\n")
             append("Content-Length: ${bytes.size}\r\n\r\n")
