@@ -1,3 +1,12 @@
+## [Não lançado] — BLUE-01: análise defensiva das evidências RED
+
+- Painel BLUE mantém a mesma sessão e IDs de eventos da perspectiva RED, usando o store ao vivo sem alterar a evidência original.
+- Adicionado resumo de fatos observados com contagens derivadas de eventos recebidos, rejeitados, respostas, consentimentos e estados de permissões.
+- Cada evento agora separa fato observado de interpretação defensiva.
+- Interpretações específicas cobrem rejeição por token/origem, limite de tentativas e expiração; orientações não são apresentadas como detecções.
+- Documentação BLUE alinhada à topologia A operador/B navegador-only.
+- Nenhum teste/build/compilação foi executado.
+
 ## [Não lançado] — RED-08: segurança da sessão e ciclo de vida
 
 - Token aleatório de 256 bits gerado por sessão e mantido somente em memória.
