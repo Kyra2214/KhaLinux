@@ -434,7 +434,8 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 responseSent = observation.responseSent,
                 rejectionReason = reason,
                 serverFailure = observation.serverFailure,
-                eventTimestamp = observation.timestamp
+                eventTimestamp = observation.timestamp,
+                remoteAddress = observation.remoteAddress
             )
         }
         if (observation.serverFailure) {
@@ -448,7 +449,8 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 bytesReceived = observation.bodyBytes,
                 responseSent = observation.responseSent,
                 serverFailure = true,
-                eventTimestamp = observation.timestamp
+                eventTimestamp = observation.timestamp,
+                remoteAddress = observation.remoteAddress
             )
         }
         if (observation.responseSent) {
@@ -462,7 +464,8 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 responseSent = true,
                 rejectionReason = observation.rejectionReason,
                 serverFailure = observation.serverFailure,
-                eventTimestamp = observation.timestamp
+                eventTimestamp = observation.timestamp,
+                remoteAddress = observation.remoteAddress
             )
         }
         if (observation.path.startsWith("/go/") && observation.statusCode in 300..399) {
