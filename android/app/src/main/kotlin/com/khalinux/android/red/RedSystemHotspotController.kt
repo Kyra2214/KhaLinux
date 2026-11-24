@@ -105,17 +105,21 @@ class RedSystemHotspotController(
         )
         val observer = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
-                currentDefaultNetwork = network
-                report(connectivity.getNetworkCapabilities(network))
+                if (connectivity.activeNetwork == network) {
+                    currentDefaultNetwork = network
+                    report(connectivity.getNetworkCapabilities(network))
+                }
             }
 
             override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
-                currentDefaultNetwork = network
-                report(networkCapabilities)
+                if (connectivity.activeNetwork == network) {
+                    currentDefaultNetwork = network
+                    report(networkCapabilities)
+                }
             }
 
             override fun onLost(network: Network) {
-                if (currentDefaultNetwork == network) {
+                if (currentDefaultNetwork == network && connectivity.activeNetwork != network) {
                     currentDefaultNetwork = null
                     publishUpstream(
                         RedUpstreamSnapshot(
