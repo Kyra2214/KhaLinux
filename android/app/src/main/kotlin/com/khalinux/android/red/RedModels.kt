@@ -8,7 +8,7 @@ enum class RedPortalMode { LOCAL_LOGIN, OPEN_ACCESS }
 enum class RedCookieChoice { ACCEPT_ALL, REJECT_OPTIONAL, CUSTOM }
 enum class RedWebPermissionResource { CAMERA, MICROPHONE, LOCATION }
 enum class RedWebPermissionState { REQUESTED, GRANTED, DENIED, CANCELLED, UNAVAILABLE, REVOKED }
-enum class RedAndroidPermissionState { UNKNOWN, PRECISE_GRANTED, APPROXIMATE_GRANTED, DENIED, PERMANENTLY_DENIED, REVOKED }
+enum class RedAndroidPermissionState { UNKNOWN, GRANTED, DENIED, PERMANENTLY_DENIED, REVOKED }
 
 data class RedCookieConsent(
     val choice: RedCookieChoice,
