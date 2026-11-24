@@ -429,7 +429,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             mutableState.update { it.copy(message = "Inicie uma sessão antes de ativar recursos de rede.") }
             return
         }
-        if (mutableState.value.networkRunning || mutableState.value.networkState !in setOf(RedNetworkState.IDLE, RedNetworkState.ERROR)) {
+        if (mutableState.value.networkRunning || mutableState.value.networkState != RedNetworkState.IDLE) {
             mutableState.update { it.copy(message = "Encerre a rede atual antes de configurar o hotspot do sistema.") }
             return
         }
