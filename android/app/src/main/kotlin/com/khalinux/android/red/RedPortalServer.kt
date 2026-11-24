@@ -227,6 +227,7 @@ class RedPortalServer(
             var rejectionReason: String? = null
             var serverFailure = false
             var sessionExpired = false
+            var tlsHandshakeCompleted = false
             var observedHeaders: Map<String, String> = emptyMap()
             var pendingCookieConsent: RedCookieConsent? = null
             var pendingWebPermission: RedWebPermissionObservation? = null
@@ -239,9 +240,7 @@ class RedPortalServer(
 
             try {
                 val headerBytes = readHeader(input) ?: return
-                if (secureTransport && peer is SSLSocket && peer.session.isValid && tlsHandshakeObserved.compareAndSet(false, true)) {
-                    runCatching { onTlsHandshake(peer.inetAddress?.hostAddress.orEmpty()) }
-                }
+                tlsHandshakeCompleted = secureTransport && peer is SSLSocket && peer.session.isValid
                 receivedHeader = true
                 requestReceivedAt = System.currentTimeMillis()
                 val headerText = String(headerBytes, StandardCharsets.ISO_8859_1)
@@ -508,6 +507,10 @@ class RedPortalServer(
                         cspNonce = cspNonce
                     )
                     responseSent = true
+                }
+                val participantAddress = peer.inetAddress?.hostAddress
+                if (tlsHandshakeCompleted && participantAddress != null && sessionOwnerAddress == participantAddress && tlsHandshakeObserved.compareAndSet(false, true)) {
+                    runCatching { onTlsHandshake(participantAddress) }
                 }
                 if (method == "GET" && path == "/") {
                     emitEvent("Portal de treinamento acessado pelo aparelho participante.")
