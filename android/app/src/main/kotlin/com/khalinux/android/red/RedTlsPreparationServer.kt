@@ -1,11 +1,14 @@
 package com.khalinux.android.red
 
 import java.io.BufferedInputStream
+import java.io.ByteArrayOutputStream
 import java.net.InetAddress
 import java.net.ServerSocket
 import java.net.Socket
 import java.net.SocketTimeoutException
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicBoolean
 
 /** Endpoint HTTP mínimo: publica apenas o certificado público da CA, nunca o portal sensível. */
@@ -14,6 +17,8 @@ class RedTlsPreparationServer(
     private val port: Int = PORT
 ) {
     private val running = AtomicBoolean(false)
+    private val clientSlots = Semaphore(MAX_CLIENTS)
+    private val clients = ConcurrentHashMap.newKeySet<Socket>()
     @Volatile private var serverSocket: ServerSocket? = null
     @Volatile private var certificateDer: ByteArray? = null
     @Volatile var certificateUrl: String? = null
@@ -46,7 +51,19 @@ class RedTlsPreparationServer(
                 if (running.get()) onEvent("Endpoint de preparação TLS encerrou: ${failure.javaClass.simpleName}.")
                 break
             }
-            Thread({ handle(client, expectedAddress) }, "red-tls-preparation-client").apply { isDaemon = true; start() }
+            if (!clientSlots.tryAcquire()) {
+                runCatching { client.close() }
+                continue
+            }
+            clients.add(client)
+            Thread({
+                try {
+                    handle(client, expectedAddress)
+                } finally {
+                    clients.remove(client)
+                    clientSlots.release()
+                }
+            }, "red-tls-preparation-client").apply { isDaemon = true; start() }
         }
     }
 
@@ -54,10 +71,11 @@ class RedTlsPreparationServer(
         client.use { peer ->
             peer.soTimeout = CLIENT_TIMEOUT_MS
             val input = BufferedInputStream(peer.getInputStream())
-            val request = ByteArray(2048)
-            val count = input.read(request)
-            if (count <= 0) return
-            val header = String(request, 0, count, StandardCharsets.ISO_8859_1)
+            val headerBytes = readHeader(input) ?: run {
+                respond(peer, 400, "Bad request".toByteArray(StandardCharsets.UTF_8), "text/plain; charset=utf-8")
+                return
+            }
+            val header = String(headerBytes, StandardCharsets.ISO_8859_1)
             val firstLine = header.substringBefore("\r\n")
             val method = firstLine.substringBefore(' ')
             val path = firstLine.split(' ').getOrNull(1).orEmpty()
@@ -78,8 +96,26 @@ class RedTlsPreparationServer(
         }
     }
 
+    private fun readHeader(input: BufferedInputStream): ByteArray? {
+        val output = ByteArrayOutputStream(512)
+        val delimiter = byteArrayOf(13, 10, 13, 10)
+        var matched = 0
+        while (output.size() < MAX_HEADER_BYTES) {
+            val next = input.read()
+            if (next < 0) return null
+            output.write(next)
+            matched = when {
+                next.toByte() == delimiter[matched] -> matched + 1
+                next.toByte() == delimiter[0] -> 1
+                else -> 0
+            }
+            if (matched == delimiter.size) return output.toByteArray()
+        }
+        return null
+    }
+
     private fun respond(client: Socket, status: Int, body: ByteArray, contentType: String, disposition: String? = null) {
-        val reason = if (status == 200) "OK" else if (status == 503) "Service Unavailable" else "Not Found"
+        val reason = when (status) { 200 -> "OK"; 400 -> "Bad Request"; 503 -> "Service Unavailable"; else -> "Not Found" }
         val headers = buildString {
             append("HTTP/1.1 $status $reason\r\n")
             append("Content-Type: $contentType\r\n")
@@ -96,6 +132,8 @@ class RedTlsPreparationServer(
     fun stop() {
         running.set(false)
         runCatching { serverSocket?.close() }
+        clients.toList().forEach { runCatching { it.close() } }
+        clients.clear()
         serverSocket = null
         certificateDer = null
         certificateUrl = null
@@ -104,6 +142,8 @@ class RedTlsPreparationServer(
     companion object {
         const val PORT = 8080
         private const val BACKLOG = 8
+        private const val MAX_CLIENTS = 2
+        private const val MAX_HEADER_BYTES = 2048
         private const val ACCEPT_TIMEOUT_MS = 1000
         private const val CLIENT_TIMEOUT_MS = 3000
         private const val MAX_CERTIFICATE_BYTES = 16384
