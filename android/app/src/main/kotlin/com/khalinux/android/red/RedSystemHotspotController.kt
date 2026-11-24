@@ -28,6 +28,7 @@ class RedSystemHotspotController(
     @Volatile private var callback: ConnectivityManager.NetworkCallback? = null
     @Volatile private var lastUpstream: RedUpstreamSnapshot? = null
     @Volatile private var currentDefaultNetwork: Network? = null
+    @Volatile private var monitoring = false
 
     fun openSystemHotspotSettings(): Boolean {
         val initial = snapshotWifiIpv4Addresses() ?: return false
@@ -94,6 +95,7 @@ class RedSystemHotspotController(
 
     private fun startUpstreamMonitoring() {
         if (callback != null) return
+        monitoring = true
         lastUpstream = null
         publishUpstream(
             RedUpstreamSnapshot(
@@ -105,7 +107,7 @@ class RedSystemHotspotController(
         )
         val observer = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
-                if (connectivity.activeNetwork == network) {
+                if (monitoring && connectivity.activeNetwork == network) {
                     currentDefaultNetwork = network
                     report(connectivity.getNetworkCapabilities(network))
                 }
@@ -119,7 +121,7 @@ class RedSystemHotspotController(
             }
 
             override fun onLost(network: Network) {
-                if (currentDefaultNetwork == network && connectivity.activeNetwork != network) {
+                if (monitoring && currentDefaultNetwork == network && connectivity.activeNetwork != network) {
                     currentDefaultNetwork = null
                     publishUpstream(
                         RedUpstreamSnapshot(
@@ -136,6 +138,7 @@ class RedSystemHotspotController(
             connectivity.registerDefaultNetworkCallback(observer)
             callback = observer
         } catch (_: Exception) {
+            monitoring = false
             publishUpstream(
                 RedUpstreamSnapshot(
                     internetAvailable = false,
@@ -166,6 +169,7 @@ class RedSystemHotspotController(
     }
 
     fun stopMonitoring() {
+        monitoring = false
         val active = callback
         if (active != null) {
             runCatching { connectivity.unregisterNetworkCallback(active) }
