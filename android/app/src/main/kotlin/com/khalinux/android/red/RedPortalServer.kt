@@ -251,18 +251,6 @@ class RedPortalServer(
                         status = 200
                         permissionsHtml()
                     }
-                    method == "POST" && path == "/web-permission" -> {
-                        val observation = RedLabInputValidator.validateWebPermission(requestBody, contentType)
-                        if (observation == null) {
-                            status = 400
-                            rejectionReason = "invalid_web_permission_event"
-                            """{"recorded":false}"""
-                        } else {
-                            status = 200
-                            onWebPermission(observation)
-                            """{"recorded":true}"""
-                        }
-                    }
                     method == "GET" && path == "/health" -> {
                         status = 200
                         """{"status":"ok","service":"khalinux-red-local-lab"}"""
@@ -731,7 +719,7 @@ class RedPortalServer(
           : 'Este endereço HTTP local não é um contexto seguro para APIs sensíveis. As solicitações serão registradas como indisponíveis; nenhum aviso de permissão será forçado.';
         async function reportPermission(resource,state){
           const body=new URLSearchParams({resource:resource,state:state});
-          const response=await fetch('/web-permission',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:body.toString(),credentials:'same-origin'});
+          const response=await fetch('/browser-permission',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:body.toString(),credentials:'same-origin'});
           if(!response.ok) throw new Error('Não foi possível registrar o estado no aparelho A.');
         }
         async function requestResource(resource){
