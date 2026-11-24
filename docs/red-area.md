@@ -1,6 +1,6 @@
 # Área RED — laboratório de Wi-Fi e portal local
 
-**Estado:** RED-00 a RED-06, RED-08 a RED-13 e BLUE-01 possuem implementação/documentação preparada; RED-07 permanece parcial devido à dependência de HTTPS confiável. RED-14 ainda está pendente. Builds, auditorias e testes ficam para a fase final.  
+**Estado:** RED-00 a RED-06, RED-08 a RED-13 e BLUE-01 possuem implementação/documentação preparada; RED-07 permanece parcial devido à dependência de HTTPS confiável. RED-14 está parcialmente preparado; APK/hash/PR aguardam validação final. Builds, auditorias e testes ficam para a fase final.  
 **Branch:** `recovery/red-portal-integration`  
 **Roadmap ativo:** [roadmap-red-blue-laboratorio.md](roadmap-red-blue-laboratorio.md)  
 **Operação 01:** [red-operation-01.md](red-operation-01.md)
@@ -24,7 +24,8 @@ A interface do participante deve ser clara e semelhante a um portal Wi-Fi conven
 6. Percorrer páginas locais, links e redirecionamentos.
 7. Observar no painel as requisições realmente recebidas.
 8. Responder ao aviso de cookies no navegador do B e acompanhar a escolha registrada no painel A.
-9. Alternar para BLUE para analisar o mesmo cenário pela perspectiva defensiva.
+9. Se a aula incluir permissões web, abrir a página correspondente e usar cada solicitação separadamente.
+10. Alternar para BLUE para analisar o mesmo cenário pela perspectiva defensiva.
 
 O servidor faz bind somente no IPv4 da interface Wi-Fi/AP identificada; não usa `0.0.0.0`. HTTP na porta 8080 é HTTP sem TLS, não HTTPS. Não há proxy transparente, interceptação de tráfego externo ou dependência de serviços remotos para a operação básica.
 
@@ -63,7 +64,7 @@ O aparelho B participa somente pelo navegador. Não instala nem executa o KhaLin
 - Atividade do participante confirmada por requisição HTTP recebida. Android não fornece uma lista universal de clientes do `LocalOnlyHotspot`.
 - Requisições com método, rota, status, horário, bytes, tipo, endereço de origem e cabeçalhos permitidos.
 - Campos sintéticos recebidos durante a sessão.
-- Linha do tempo de navegação, formulários, redirecionamentos, permissões e recursos.
+- Linha do tempo de navegação, formulários, redirecionamentos, consentimento e estados de permissões web.
 - Resumo das escolhas de cookies e dos estados de permissões web que o navegador efetivamente disponibilizar.
 - Histórico limitado a 100 sessões e 300 eventos por sessão.
 - Relatório Markdown com metadados e eventos, sem valores de formulário, códigos, cookies, tokens, arquivos, áudio, vídeo ou coordenadas.
@@ -84,6 +85,7 @@ Consulte [blue-area.md](blue-area.md).
 - [Segurança e privacidade](red-security-privacy.md): hardening implementado e auditoria final pendente.
 - [Sessões e relatórios](red-session-reports.md): schema, retenção, exportação e exclusão.
 - [Interface do operador](red-operator-interface.md): estados e limites apresentados no A.
+- [Preparação de release](red-release-checklist.md): portões e artefatos finais pendentes.
 
 Os vídeos devem mostrar a criação da rede, conexão do segundo aparelho, portal, aviso de cookies, login de teste, navegação e o que chegou ao servidor; permissões web somente quando suportadas pelo contexto seguro. Não mostrar código-fonte, scripts ou detalhes internos.
 
