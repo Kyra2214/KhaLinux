@@ -44,6 +44,7 @@ Confirmar nomes de tarefas disponíveis no wrapper antes de executá-las; a list
 - Preparação CA: somente GET `/`, `/ca.cer` e `/health`; limite de cabeçalho/clientes; fingerprint consistente com DER; nenhuma rota de portal, credencial ou permissão exposta em HTTP.
 - Ciclo de chave TLS: chave privada da CA permanece no Android Keystore; chave efêmera do servidor é removida em stop/falha; novo IP produz certificado SAN correspondente.
 - RED-15: abrir Configurações de tethering com hotspot inicialmente desligado, detectar um IPv4 novo/inequívoco, confirmar que candidatos ambíguos falham fechados, observar mudanças de upstream validado em A e verificar que o portal continua local quando o upstream desaparece; no teste físico, confirmar que B permanece associado e recebe internet após ativação do upstream.
+- Heartbeat: `GET /heartbeat` exige IP de sessão e cookie `kl_lab_session`, responde 204 sem payload, atualiza o último contato e não cria evento de navegação; chamadas sem cookie/IP correto são rejeitadas.
 - Persistência: schema v1→v2, schema atual, limites de 100 sessões/300 eventos, exclusão e sanitização.
 - Relatório: versões, metadados, estados e ausência de conteúdo sensível.
 - Ciclo de vida: callbacks tardios, stop repetido, perda de interface, segundo plano e recuperação interrompida.
