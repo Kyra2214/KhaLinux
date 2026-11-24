@@ -169,6 +169,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         if (snapshot.state == RedNetworkState.IDLE) {
             portal.stop()
             tlsPreparation.stop()
+            runCatching { tlsManager.clearEphemeralServerIdentity() }
             mutableState.update {
                 it.copy(networkRunning = false, portalEndpoint = null, tlsPreparationUrl = null, tlsCaFingerprint = null, tlsBrowserTrustObserved = false, hotspotInfo = null, hotspotSnapshot = null)
             }
@@ -193,6 +194,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             } catch (error: Exception) {
                 portal.stop()
                 tlsPreparation.stop()
+                runCatching { tlsManager.clearEphemeralServerIdentity() }
                 hotspot.stop()
                 mutableState.update {
                     it.copy(
@@ -364,6 +366,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         hotspot.stop()
         portal.stop()
         tlsPreparation.stop()
+        runCatching { tlsManager.clearEphemeralServerIdentity() }
         mutableState.update {
             it.copy(
                 networkRunning = false,
