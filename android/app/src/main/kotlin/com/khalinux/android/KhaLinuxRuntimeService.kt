@@ -361,7 +361,7 @@ class KhaLinuxRuntimeService : Service() {
                 var remaining = 64 * 1024 + 1
                 while (remaining > 0) {
                     val count = input.read(buffer, 0, minOf(buffer.size, remaining))
-                    if (count < 0) break
+                    if (count <= 0) break
                     output.write(buffer, 0, count)
                     remaining -= count
                 }
