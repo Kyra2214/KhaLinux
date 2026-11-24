@@ -90,6 +90,9 @@ jobs:
       - name: Run runtime unit tests
         run: ./gradlew --no-daemon :android:runtime:testDebugUnitTest :android:app:testDebugUnitTest
 
+      - name: Assemble debug APK (no publish)
+        run: ./gradlew --no-daemon :android:app:assembleDebug
+
   android-release-apk:
     name: Android signed release APK (main)
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
