@@ -374,7 +374,12 @@ class RedPortalServer(
                         status,
                         renderedResponse,
                         contentType = if (path == "/health") "application/json" else "text/html",
-                        setCookieHeader = if (method == "GET" && status in 200..299) sessionCookieHeader(peer.inetAddress?.hostAddress) else null
+                        setCookieHeader = if (status in 200..299) {
+                            sessionCookieHeader(
+                                peer.inetAddress?.hostAddress,
+                                claimOwner = method == "GET" && path == "/"
+                            )
+                        } else null
                     )
                     responseSent = true
                 }
@@ -821,11 +826,11 @@ class RedPortalServer(
             now - lastActivityAt > MAX_SESSION_IDLE_MS
     }
 
-    private fun sessionCookieHeader(remoteAddress: String?): String? {
+    private fun sessionCookieHeader(remoteAddress: String?, claimOwner: Boolean): String? {
         val token = activeSessionToken ?: return null
-        if (remoteAddress.isNullOrBlank()) return null
+        if (remoteAddress.isNullOrBlank() || isSessionExpired()) return null
         synchronized(this) {
-            if (sessionOwnerAddress == null) sessionOwnerAddress = remoteAddress
+            if (sessionOwnerAddress == null && claimOwner) sessionOwnerAddress = remoteAddress
             if (sessionOwnerAddress != remoteAddress) return null
             lastActivityAt = System.currentTimeMillis()
         }
