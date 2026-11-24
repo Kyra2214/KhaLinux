@@ -370,7 +370,7 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                             )
                         }
                         if (webPermissionEvents.isEmpty()) {
-                            Text("Nenhum resultado de permissão web foi recebido nesta sessão. O navegador exige contexto seguro para APIs sensíveis; o portal HTTP por IP local pode não oferecer esse contexto.", style = MaterialTheme.typography.bodySmall)
+                            Text("Nenhum resultado de permissão web foi recebido nesta sessão. O navegador exige contexto seguro e confiança no certificado HTTPS; confira o estado do handshake TLS e a disponibilidade de cada API.", style = MaterialTheme.typography.bodySmall)
                         } else {
                             webPermissionEvents.takeLast(12).forEach { event ->
                                 Text(
