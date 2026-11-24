@@ -1,3 +1,11 @@
+## [Não lançado] — RED-00: baseline e arquitetura de dois aparelhos
+
+- Inventário de código e documentação registrado em `docs/red-baseline-inventory.md`.
+- RED-00 concluído em documentação/inspeção; próximo submódulo é RED-01.
+- Progresso do roadmap RED/BLUE: 1/16 submódulos (6,25%); implementações parciais não contam como concluídas.
+- Nenhum teste, build, compilação ou validação executado; atividades acumuladas para a fase final.
+- Execução diretamente na branch `recovery/red-portal-integration`; sem ZIP/checkpoints.
+
 ## [Não lançado] — RED/BLUE: participante somente pelo navegador e consentimento de cookies
 
 - Definida a topologia: A opera o laboratório e concentra o painel; B conecta ao Wi-Fi, abre o portal, faz login de teste e usa somente o navegador.
