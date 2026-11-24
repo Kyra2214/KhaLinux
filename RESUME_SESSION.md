@@ -2,7 +2,7 @@
 
 - Repositório: `Kyra2214/KhaLinux`.
 - Branch de trabalho: `recovery/red-portal-integration`.
-- Último HEAD observado antes desta atualização de retomada: `291f958d0c6590202f65a6ffd2ec5eb8925e5350`. Base `main`: `a4de5eb7ef3d72404ea1171af5eaa135a48bde0c`.
+- Último HEAD observado antes desta atualização de retomada: `6a64b6be19de4a8ee1b37ee9da6b6d1d6f3a4e32`. Base `main`: `a4de5eb7ef3d72404ea1171af5eaa135a48bde0c`.
 - Não alterar `main`, não fazer merge e não fazer force push.
 - Roadmap ativo: `docs/roadmap-red-blue-laboratorio.md`.
 - Topologia definida: **A** é a central que executa KhaLinux, cria a rede, hospeda o portal e exibe toda a observabilidade; **B** apenas conecta ao Wi-Fi, abre o portal no navegador, faz login de teste, responde ao aviso de cookies e às solicitações individuais do navegador quando a origem permitir.
