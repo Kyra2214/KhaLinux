@@ -165,10 +165,10 @@ object RedCatalog {
             title = "Wi-Fi público: conexão, portal e navegação",
             category = RedCategory.NETWORKS,
             difficulty = RedDifficulty.BEGINNER,
-            summary = "Laboratório de dois aparelhos com hotspot próprio, portal HTTP local e observação do que o servidor realmente recebe.",
+            summary = "Laboratório de dois aparelhos com hotspot próprio, portal HTTPS local, preparação offline de CA e observação do que o servidor realmente recebe.",
             objectives = listOf(
                 "Preparar uma rede de laboratório no aparelho operador",
-                "Conectar um segundo aparelho e abrir o portal local",
+                "Conectar um segundo aparelho, preparar a confiança TLS e abrir o portal HTTPS local",
                 "Comparar autenticação local com acesso direto sem login",
                 "Observar navegação, requisições e resultados de permissões"
             ),
@@ -184,12 +184,12 @@ object RedCatalog {
                 RedTutorialStep("portal", "Abrir o portal local", "Primeiro abra o endereço HTTP de preparação, baixe a CA pública e confira a impressão digital no aparelho A. Depois instale a CA pelas configurações do Android e abra o endereço HTTPS/QR do portal. A confiança depende do navegador."),
                 RedTutorialStep("access", "Comparar os modos de acesso", "Percorra o portal com autenticação local fictícia e o modo de acesso direto sem login."),
                 RedTutorialStep("navigation", "Explorar navegação", "Abra os links locais e observe no painel as rotas e respostas efetivamente recebidas."),
-                RedTutorialStep("permissions", "Observar permissões web", "No navegador do aparelho B, abra Permissões do navegador e escolha separadamente câmera, microfone ou localização. Cada pedido exige ação explícita e pode ficar indisponível em HTTP por IP local."),
+                RedTutorialStep("permissions", "Observar permissões web", "No navegador do aparelho B, abra Permissões do navegador e escolha separadamente câmera, microfone ou localização. Cada pedido exige ação explícita e contexto HTTPS confiável; se o navegador rejeitar a CA, o recurso fica indisponível."),
                 RedTutorialStep("report", "Encerrar e revisar", "Encerre a sessão e revise a linha do tempo e o relatório local.")
             ),
             completionCriteria = listOf(
                 "Hotspot solicitado e estado real apresentado",
-                "Segundo aparelho conectado e portal local acessível",
+                "Segundo aparelho conectado e portal HTTPS local acessível após confiança TLS",
                 "Modo com login local e modo sem login demonstrados",
                 "Requisições locais observadas no painel",
                 "Relatório local disponível"
