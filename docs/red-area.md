@@ -1,8 +1,8 @@
 # Área RED — laboratório de Wi-Fi e portal local
 
-**Estado da implementação:** RED-0 a RED-12 implementados em código/documentação (100% dos 13 submódulos de implementação). RED-13 é a validação final pendente; o projeto ainda não está concluído.  
-**Branch:** `plan/area-red-wifi-publico`  
-**Roadmap mestre:** [roadmap-area-red-completa.md](roadmap-area-red-completa.md)  
+**Estado:** RED-00 a RED-06, RED-08 a RED-13 e BLUE-01 possuem implementação/documentação preparada; RED-07 permanece parcial devido à dependência de HTTPS confiável. RED-14 ainda está pendente. Builds, auditorias e testes ficam para a fase final.  
+**Branch:** `recovery/red-portal-integration`  
+**Roadmap ativo:** [roadmap-red-blue-laboratorio.md](roadmap-red-blue-laboratorio.md)  
 **Operação 01:** [red-operation-01.md](red-operation-01.md)
 
 ## Objetivo
@@ -12,7 +12,7 @@ O RED é a área de preparação e execução de demonstrações práticas com d
 - **Aparelho A:** operador, hotspot criado pelas APIs públicas do Android, servidor HTTP local e painel de observação.
 - **Aparelho B:** participante passivo, conecta-se à rede, abre o portal no navegador, faz login de teste e responde às solicitações web legítimas, quando suportadas. Não instala KhaLinux nem executa ferramentas.
 
-A interface do participante deve ser natural e semelhante a um portal Wi-Fi convencional. A identificação da sessão e a telemetria completa ficam no painel do instrutor, sem avisos artificiais excessivos. Diálogos de permissão são sempre os diálogos reais do sistema.
+A interface do participante deve ser clara e semelhante a um portal Wi-Fi convencional. A identificação da sessão e a telemetria completa ficam no painel do instrutor. Solicitações web, quando suportadas, usam os avisos reais do navegador.
 
 ## Operação 01 — fluxo implementado
 
@@ -80,7 +80,10 @@ Consulte [blue-area.md](blue-area.md).
 
 - [Guia do instrutor](red-instructor-guide.md): preparação dos dois aparelhos, cenários, permissões, roteiro de vídeo e troubleshooting.
 - [Guia do usuário](user-guide.md): navegação no app e visão geral das áreas RED/BLUE.
-- [Roadmap mestre](roadmap-area-red-completa.md): requisitos, dependências e ordem de implementação.
+- [Roadmap ativo](roadmap-red-blue-laboratorio.md): requisitos, dependências e ordem de implementação.
+- [Segurança e privacidade](red-security-privacy.md): hardening implementado e auditoria final pendente.
+- [Sessões e relatórios](red-session-reports.md): schema, retenção, exportação e exclusão.
+- [Interface do operador](red-operator-interface.md): estados e limites apresentados no A.
 
 Os vídeos devem mostrar a criação da rede, conexão do segundo aparelho, portal, aviso de cookies, login de teste, navegação e o que chegou ao servidor; permissões web somente quando suportadas pelo contexto seguro. Não mostrar código-fonte, scripts ou detalhes internos.
 
@@ -117,10 +120,10 @@ Consulte [red-domain-model.md](red-domain-model.md) para configuração solicita
 
 ## Regras de execução e validação
 
-- Trabalho aplicado diretamente na branch `plan/area-red-wifi-publico`; não gerar ZIP/checkpoints.
+- Trabalho aplicado diretamente na branch `recovery/red-portal-integration`; não gerar ZIP/checkpoints.
 - Não fazer merge para `main` sem autorização explícita.
 - Nenhum teste, build, compilação, auditoria ou teste físico deve ser executado durante a implementação.
-- RED-13 acumula a validação final, inclusive integração, permissões, compatibilidade e teste físico com os dois aparelhos.
+- RED-12 acumula build/testes host/Android; RED-13 acumula testes físicos A+B. Ambos só serão executados após a conclusão integral do roadmap.
 - A existência de código e a inspeção estática não equivalem a funcionamento validado.
 
 ## Limitações conhecidas
