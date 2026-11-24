@@ -102,7 +102,7 @@ class RedPortalServer(
         boundPort = server.localPort
         boundIpv4Address = binding.second
         val scheme = if (secureTransport) "https" else "http"
-        val url = "$scheme://\${binding.second}:\${server.localPort}/"
+        val url = "$scheme://${binding.second}:${server.localPort}/"
         address = url
         val workerThread = Thread({ serve(server, binding.first, binding.second) }, "red-local-portal").apply { isDaemon = true }
         worker = workerThread
@@ -134,7 +134,7 @@ class RedPortalServer(
             throw error
         }
         val protocolLabel = if (secureTransport) "HTTPS" else "HTTP"
-        emitEvent("Servidor $protocolLabel local iniciado em \${binding.first}:\${server.localPort}.")
+        emitEvent("Servidor $protocolLabel local iniciado em ${binding.first}:${server.localPort}.")
         return url
     }
 
