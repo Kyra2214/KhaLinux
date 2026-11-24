@@ -330,7 +330,8 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         responseSent: Boolean? = null,
         rejectionReason: String? = null,
         serverFailure: Boolean? = null,
-        eventTimestamp: Long? = null
+        eventTimestamp: Long? = null,
+        safeHeaders: Map<String, String> = emptyMap()
     ) {
         val current = mutableState.value.session ?: return
         val nextState = when (type) {
@@ -361,7 +362,8 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             responseSent = responseSent,
             rejectionReason = rejectionReason,
             serverFailure = serverFailure,
-            eventTimestamp = eventTimestamp
+            eventTimestamp = eventTimestamp,
+            safeHeaders = safeHeaders
         )
         store.save(updated)
         RedLiveEvidenceStore.updateSession(updated)
@@ -413,7 +415,8 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 responseSent = observation.responseSent,
                 rejectionReason = observation.rejectionReason,
                 serverFailure = observation.serverFailure,
-                eventTimestamp = observation.timestamp
+                eventTimestamp = observation.timestamp,
+                safeHeaders = observation.safeHeaders
             )
         }
         observation.rejectionReason?.let { reason ->
@@ -540,6 +543,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 event.responseSent?.let { appendLine("  - Resposta HTTP enviada: $it") }
                 event.rejectionReason?.let { appendLine("  - Motivo da rejeição: $it") }
                 if (event.serverFailure == true) appendLine("  - Falha interna do servidor: sim")
+                event.safeHeaders.forEach { (name, value) -> appendLine("  - Header permitido $name: $value") }
                 event.cookieChoice?.let { choice ->
                     appendLine("  - Consentimento de cookies: $choice")
                     appendLine("  - Categorias: análise=${event.cookieAnalytics}, preferências=${event.cookiePreferences}, personalização=${event.cookiePersonalization}")
@@ -572,7 +576,8 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         responseSent: Boolean? = null,
         rejectionReason: String? = null,
         serverFailure: Boolean? = null,
-        eventTimestamp: Long? = null
+        eventTimestamp: Long? = null,
+        safeHeaders: Map<String, String> = emptyMap()
     ) = copy(events = (events + RedEvent(
         sessionId = id,
         type = type,
@@ -593,6 +598,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         webPermissionState = webPermissionState,
         responseSent = responseSent,
         rejectionReason = rejectionReason,
-        serverFailure = serverFailure
+        serverFailure = serverFailure,
+        safeHeaders = safeHeaders
     )).takeLast(300))
 }
