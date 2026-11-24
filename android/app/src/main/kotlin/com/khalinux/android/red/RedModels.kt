@@ -16,6 +16,11 @@ data class RedWebPermissionObservation(
     val timestamp: Long = System.currentTimeMillis()
 )
 
+data class RedWebPermissionObservation(
+    val resource: RedWebPermissionResource,
+    val state: RedWebPermissionState
+)
+
 data class RedCookieConsent(
     val choice: RedCookieChoice,
     val analytics: Boolean,
