@@ -14,7 +14,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 /** Endpoint HTTP mínimo: publica apenas o certificado público da CA, nunca o portal sensível. */
 class RedTlsPreparationServer(
     private val onEvent: (String) -> Unit = {},
-    private val port: Int = PORT
+    private val port: Int = PORT,
+    private val onCertificateDownloaded: (String) -> Unit = {}
 ) {
     private val running = AtomicBoolean(false)
     private val clientSlots = Semaphore(MAX_CLIENTS)
@@ -93,6 +94,7 @@ class RedTlsPreparationServer(
                 return
             }
             respond(peer, 200, certificate, "application/pkix-cert", "attachment; filename=\"khalinux-red-lab-ca.cer\"")
+            runCatching { onCertificateDownloaded(peer.inetAddress?.hostAddress.orEmpty()) }
         }
     }
 
