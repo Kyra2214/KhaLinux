@@ -1,3 +1,13 @@
+## [Não lançado] — RED-04: servidor HTTP local vinculado à interface
+
+- Bind exige IPv4 privado/compartilhado literal da interface Wi-Fi/AP identificada; sem fallback para wildcard ou interface arbitrária.
+- Servidor monitora a interface e o IPv4 durante a execução e encerra quando a associação deixa de existir.
+- Host, Content-Length, Content-Type, path, query, métodos e cabeçalhos duplicados/malformados são validados.
+- Limites: header 8 KiB, body 4 KiB, resposta 128 KiB, 4 clientes, timeout de socket 5 s, path 512 caracteres.
+- Requisições recebidas são observadas uma vez, inclusive rejeições; Cookie, Authorization e corpo não são registrados.
+- CSP, nosniff, Referrer-Policy, X-Frame-Options e Permissions-Policy adicionados; portal avisa que HTTP local não tem TLS.
+- Documentação: `docs/red-http-server.md`. Nenhum teste/build/compilação foi executado.
+
 ## [Não lançado] — RED-03: LocalOnlyHotspot e correlação da interface
 
 - Controlador ganhou geração por solicitação, timeout de 30 s, cancelamento, tratamento de callback tardio e encerramento idempotente.
