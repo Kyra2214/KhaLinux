@@ -25,6 +25,7 @@ class RedPortalServer(
     private val onRequest: (RedRequestObservation) -> Unit = {},
     private val onSyntheticSubmission: (RedSyntheticSubmission) -> Unit = {},
     private val onParticipantEvent: (String, String) -> Unit = { _, _ -> },
+    private val onCookieConsent: (String) -> Unit = {},
     private val configuredPort: Int = PORT
 ) {
     @Volatile private var socket: ServerSocket? = null
@@ -196,6 +197,17 @@ class RedPortalServer(
                     method == "GET" && path == "/favicon.ico" -> {
                         status = 204
                         ""
+                    }
+                    method == "POST" && path == "/consent" -> {
+                        val consent = RedLabInputValidator.validateCookieConsent(requestBody, contentType)
+                        if (consent == null) {
+                            status = 400
+                            resultHtml("Escolha inválida", "Não foi possível validar as categorias selecionadas.")
+                        } else {
+                            status = 200
+                            onCookieConsent(consent)
+                            resultHtml("Preferências registradas", "Sua escolha de cookies foi registrada no laboratório.")
+                        }
                     }
                     method == "POST" && path == "/login" && portalMode == RedPortalMode.LOCAL_LOGIN -> {
                         val result = processSyntheticLogin(requestBody, contentType)
@@ -389,7 +401,7 @@ class RedPortalServer(
         <div class="actions">
         <a href="${if (mode == RedPortalMode.LOCAL_LOGIN) "/login" else "/open"}">${if (mode == RedPortalMode.LOCAL_LOGIN) "Acessar Wi-Fi" else "Continuar navegando"}</a>
         <a class="secondary" href="/terms">Termos de utilização</a><a class="secondary" href="/links">Conteúdo e navegação</a>
-        </div><p class="foot">Conecta Local · Acesso de visitantes</p></section></main></body></html>
+        </div><p class="foot">Conecta Local · Acesso de visitantes</p></section></main>${cookieBannerHtml()}</body></html>
     """.trimIndent()
 
     private fun loginHtml() = """
@@ -403,7 +415,68 @@ class RedPortalServer(
         <form method="post" action="/login"><label for="demo_id">Identificação de teste</label><input id="demo_id" name="demo_id" maxlength="30" autocomplete="off" placeholder="aluno-demo" required>
         <label for="demo_code">Código de acesso de teste</label><input id="demo_code" name="demo_code" maxlength="8" autocomplete="off" placeholder="LAB-2048" required>
         <button type="submit">Conectar</button></form><p class="muted">Use identificador aluno-... e código LAB-0000, fornecidos para o laboratório.</p>
-        <p><a href="/">Voltar</a></p></section></main></body></html>
+        <p><a href="/">Voltar</a></p></section></main>${cookieBannerHtml()}</body></html>
+    """.trimIndent()
+
+    private fun cookieBannerHtml() = """
+        <style>
+        .cookie-layer{position:fixed;inset:auto 0 0;background:#fff;border-top:1px solid #d7dce2;box-shadow:0 -8px 28px #0002;padding:18px;z-index:99;color:#202124}
+        .cookie-inner{max-width:720px;margin:auto;font:14px system-ui}.cookie-inner h2{font-size:18px;margin:0 0 8px}
+        .cookie-inner p{line-height:1.45;margin:6px 0 12px}.cookie-actions{display:flex;flex-wrap:wrap;gap:8px}
+        .cookie-actions button{border:0;border-radius:7px;padding:10px 14px;font:inherit;cursor:pointer;background:#2457a6;color:#fff}
+        .cookie-actions .quiet{background:#edf1f5;color:#263746}.cookie-options{display:none;gap:8px;flex-wrap:wrap;margin:12px 0}
+        .cookie-options label{display:flex;gap:6px;align-items:center}
+        </style>
+        <aside class="cookie-layer" id="cookie-layer" role="dialog" aria-labelledby="cookie-title">
+          <div class="cookie-inner">
+            <h2 id="cookie-title">Sua privacidade importa</h2>
+            <p>Usamos cookies necessários para manter suas escolhas. Com sua autorização, também registramos cookies de análise, preferências e personalização neste portal.</p>
+            <div class="cookie-options" id="cookie-options">
+              <label><input type="checkbox" id="cookie-analytics"> Análise</label>
+              <label><input type="checkbox" id="cookie-preferences"> Preferências</label>
+              <label><input type="checkbox" id="cookie-personalization"> Personalização</label>
+            </div>
+            <div class="cookie-actions">
+              <button type="button" onclick="saveCookieChoice('accept_all')">Aceitar todos</button>
+              <button type="button" class="quiet" onclick="saveCookieChoice('reject_optional')">Recusar opcionais</button>
+              <button type="button" class="quiet" onclick="showCookieOptions()">Configurar</button>
+              <button type="button" class="quiet" id="cookie-save" style="display:none" onclick="saveCookieChoice('custom')">Salvar escolhas</button>
+            </div>
+          </div>
+        </aside>
+        <script>
+        function showCookieOptions(){
+          document.getElementById('cookie-options').style.display='flex';
+          document.getElementById('cookie-save').style.display='inline-block';
+        }
+        async function saveCookieChoice(choice){
+          const selected={
+            analytics:choice==='accept_all'||(choice==='custom'&&document.getElementById('cookie-analytics').checked),
+            preferences:choice==='accept_all'||(choice==='custom'&&document.getElementById('cookie-preferences').checked),
+            personalization:choice==='accept_all'||(choice==='custom'&&document.getElementById('cookie-personalization').checked)
+          };
+          const maxAge=86400;
+          document.cookie='kl_cookie_consent='+choice+'; Path=/; Max-Age='+maxAge+'; SameSite=Lax';
+          Object.keys(selected).forEach(key=>{
+            document.cookie='kl_'+key+'='+(selected[key]?'1':'0')+'; Path=/; Max-Age='+maxAge+'; SameSite=Lax';
+          });
+          const body=new URLSearchParams({
+            choice:choice,
+            analytics:selected.analytics?'1':'0',
+            preferences:selected.preferences?'1':'0',
+            personalization:selected.personalization?'1':'0'
+          });
+          try{
+            const response=await fetch('/consent',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:body.toString(),credentials:'same-origin'});
+            if(!response.ok) throw new Error('HTTP '+response.status);
+            document.getElementById('cookie-layer').remove();
+          }catch(error){
+            const message=document.createElement('p');
+            message.textContent='Não foi possível registrar a escolha no painel do laboratório. Tente novamente.';
+            document.querySelector('.cookie-inner').appendChild(message);
+          }
+        }
+        </script>
     """.trimIndent()
 
     private fun openAccessHtml() = """
