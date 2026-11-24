@@ -133,7 +133,7 @@ class RedPortalServer(
                 continue
             } catch (error: Exception) {
                 if (running.get()) {
-                    onEvent("Socket do portal encerrou inesperadamente: " + error.javaClass.simpleName + ".")
+                    emitEvent("Socket do portal encerrou inesperadamente: " + error.javaClass.simpleName + ".")
                     stop()
                 }
                 break
@@ -345,7 +345,7 @@ class RedPortalServer(
                         status = 302
                         writeRedirect(output, "/notice")
                         responseSent = true
-                        onEvent("Redirecionamento local executado: /go/notice → /notice.")
+                        emitEvent("Redirecionamento local executado: /go/notice → /notice.")
                         return
                     }
                     method == "GET" && path == "/permissions" && portalMode == RedPortalMode.LOCAL_LOGIN && !participantLoginAccepted -> {
@@ -453,7 +453,7 @@ class RedPortalServer(
                     responseSent = true
                 }
                 if (method == "GET" && path == "/") {
-                    onEvent("Portal de treinamento acessado pelo aparelho participante.")
+                    emitEvent("Portal de treinamento acessado pelo aparelho participante.")
                 }
             } catch (error: Exception) {
                 status = when {
@@ -475,7 +475,7 @@ class RedPortalServer(
                     )
                     responseSent = true
                 }
-                onEvent("Falha ao processar requisição HTTP local: ${error.javaClass.simpleName}.")
+                emitEvent("Falha ao processar requisição HTTP local: ${error.javaClass.simpleName}.")
             } finally {
                 if (receivedHeader) {
                     runCatching {
@@ -1069,7 +1069,7 @@ class RedPortalServer(
         failedSessionAttempts.clear()
         failedLoginAttempts.clear()
         onAddress(null)
-        onEvent("Servidor do portal local encerrado.")
+        emitEvent("Servidor do portal local encerrado.")
     }
 
     companion object {
