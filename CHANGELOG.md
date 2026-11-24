@@ -1,3 +1,13 @@
+## [Não lançado] — RED-06: eventos, persistência e BLUE
+
+- Requisições agora distinguem recebimento, rejeição, resposta enviada e falha interna, com timestamp de recebimento.
+- Eventos persistem método, rota, status, bytes, IP remoto, resultado e allowlist de cabeçalhos.
+- Cookie/Authorization, corpos HTTP e valores de formulário não são gravados; valores sintéticos permanecem efêmeros.
+- SessionStore mantém até 100 sessões/300 eventos por sessão, com campos opcionais compatíveis com histórico anterior.
+- RED e BLUE exibem respostas, rejeições, falhas, consentimento por categoria e permissões observadas.
+- Evidências efêmeras são preservadas para revisão após parar a rede e limpas ao encerrar a sessão.
+- Documentação: `docs/red-event-evidence.md`. Nenhum teste/build/compilação foi executado.
+
 ## [Não lançado] — RED-05: portal de navegador e aviso de cookies
 
 - Banner adicionado a todas as respostas HTML do portal, com aceitar todos, recusar opcionais e configuração por categoria.
