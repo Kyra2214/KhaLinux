@@ -37,7 +37,10 @@ class RedSessionStore(context: Context) {
                 .put("cookiePreferences", event.cookiePreferences ?: JSONObject.NULL)
                 .put("cookiePersonalization", event.cookiePersonalization ?: JSONObject.NULL)
                 .put("webPermissionResource", event.webPermissionResource?.name ?: JSONObject.NULL)
-                .put("webPermissionState", event.webPermissionState?.name ?: JSONObject.NULL))
+                .put("webPermissionState", event.webPermissionState?.name ?: JSONObject.NULL)
+                .put("responseSent", event.responseSent ?: JSONObject.NULL)
+                .put("rejectionReason", event.rejectionReason ?: JSONObject.NULL)
+                .put("serverFailure", event.serverFailure ?: JSONObject.NULL))
         }
         root.put("events", events)
         preferences.edit().putString(session.id, root.toString()).apply()
@@ -85,7 +88,10 @@ class RedSessionStore(context: Context) {
                         cookiePreferences = if (item.isNull("cookiePreferences")) null else item.getBoolean("cookiePreferences"),
                         cookiePersonalization = if (item.isNull("cookiePersonalization")) null else item.getBoolean("cookiePersonalization"),
                         webPermissionResource = if (item.isNull("webPermissionResource")) null else runCatching { RedWebPermissionResource.valueOf(item.getString("webPermissionResource")) }.getOrNull(),
-                        webPermissionState = if (item.isNull("webPermissionState")) null else runCatching { RedWebPermissionState.valueOf(item.getString("webPermissionState")) }.getOrNull()
+                        webPermissionState = if (item.isNull("webPermissionState")) null else runCatching { RedWebPermissionState.valueOf(item.getString("webPermissionState")) }.getOrNull(),
+                        responseSent = if (item.isNull("responseSent")) null else item.getBoolean("responseSent"),
+                        rejectionReason = if (item.isNull("rejectionReason")) null else item.getString("rejectionReason"),
+                        serverFailure = if (item.isNull("serverFailure")) null else item.getBoolean("serverFailure")
                     )
                 }
             )
