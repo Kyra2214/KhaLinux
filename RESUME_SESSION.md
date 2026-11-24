@@ -17,7 +17,8 @@
 - BLUE-01: concluído; painel BLUE apresenta fatos observados, interpretação defensiva, eventos HTTP, cookies e permissões sem criar detecções sem evidência.
 - RED-09: concluído; schema v2, migração v1→v2, retenção 100 sessões/300 eventos, relatório Markdown, exportação SAF e exclusão individual/global. Ver `docs/red-session-reports.md`.
 - RED-10: concluído; interface A centraliza estado real, URL/QR após bind, diagnóstico, ações de recuperação, consentimento/permissões e evidências; B continua navegador-only. Ver `docs/red-operator-ui.md`.
-- Progresso de implementação: 11 de 16 submódulos concluídos (68,75%); RED-07 parcial. Próximo submódulo: RED-11.
+- RED-11: hardening concluído; CSP com nonce, cabeçalhos de segurança, allowlist mínima, rate limit com mapa limitado, revisão do Manifest e riscos residuais documentados. Auditoria e testes negativos ficam para a fase final. Ver `docs/red-security-privacy.md`.
+- Progresso de implementação: 12 de 16 submódulos concluídos (75%); RED-07 parcial. Próximo submódulo: RED-12.
 - Nenhum teste, build, compilação, lint ou validação foi executado nesta execução. Todos permanecem acumulados para a etapa final.
 - Testes físicos nos dois aparelhos permanecem na fase final.
 - Não gerar ZIP/checkpoints; o usuário determinou execução diretamente no repositório.
