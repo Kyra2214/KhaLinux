@@ -8,7 +8,7 @@ Este documento é o plano de execução da Área RED/BLUE nesta branch. O `ROADM
 
 ## Progresso da execução
 
-- **Implementação RED/BLUE:** 68,75% (11 de 16 submódulos concluídos em código/documentação; RED-07 parcial e validação pendente).
+- **Implementação RED/BLUE:** 75% (12 de 16 submódulos concluídos em código/documentação; RED-07 parcial e auditorias/testes pendentes para a etapa final).
 - **Concluídos:** RED-00 — [inventário de baseline](red-baseline-inventory.md); RED-01 — [modelo de domínio](red-domain-model.md); RED-02 — [matriz de permissões](red-permissions.md); RED-03 — [ciclo de vida do hotspot](red-hotspot-lifecycle.md); RED-04 — [servidor HTTP local](red-http-server.md); RED-05 — portal local e aviso de cookies; RED-06 — [eventos e evidências](red-event-evidence.md); RED-08 — integridade da sessão; BLUE-01 — análise defensiva; RED-09 — [histórico, relatório e exportação](red-session-reports.md); RED-10 — [interface do operador](red-operator-ui.md).
 - **Parcial:** RED-07 — fluxo e telemetria web implementados; HTTPS confiável pendente para prompts nativos no B.
 - **Próximo submódulo:** BLUE-01 — painel defensivo baseado nas evidências RED.
@@ -370,6 +370,8 @@ Atividades:
 **Aceite de implementação:** estados e callbacks reais, dados do hotspot/servidor condicionados a confirmações, erros e recuperação visíveis, A centraliza observabilidade, B permanece navegador-only, RED/BLUE compartilham evidências e interrupção de ciclo de vida é registrada. Testes ficam para a fase final.
 
 ## RED-11 — Revisão de segurança e privacidade
+
+**Estado:** hardening de código/documentação concluído; auditoria estática, revisão manual e testes negativos transferidos para a fase final. Ver [red-security-privacy.md](red-security-privacy.md).
 
 **Objetivo:** revisar o conjunto antes de compilar release e testar fisicamente.
 
