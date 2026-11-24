@@ -19,7 +19,7 @@ import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLServerSocket
 
 /**
- * Servidor HTTP estritamente local para o laboratório RED.
+ * Servidor HTTP/HTTPS estritamente local para o laboratório RED.
  *
  * Vincula o socket a um IPv4 de interface Wi-Fi/AP identificada; não faz bind em 0.0.0.0.
  * O corpo de requisição não é persistido nem incluído em RedRequestObservation.
@@ -81,10 +81,14 @@ class RedPortalServer(
         val server = if (sslContext == null) {
             ServerSocket(configuredPort, BACKLOG, bindAddress)
         } else {
-            (sslContext.serverSocketFactory.createServerSocket(configuredPort, BACKLOG, bindAddress) as SSLServerSocket).apply {
-                enabledProtocols = supportedProtocols.filter { it == "TLSv1.3" || it == "TLSv1.2" }.toTypedArray()
-                require(enabledProtocols.isNotEmpty()) { "A plataforma não oferece TLS 1.2 ou TLS 1.3." }
+            val tlsSocket = sslContext.serverSocketFactory.createServerSocket(configuredPort, BACKLOG, bindAddress) as SSLServerSocket
+            val protocols = tlsSocket.supportedProtocols.filter { it == "TLSv1.3" || it == "TLSv1.2" }.toTypedArray()
+            if (protocols.isEmpty()) {
+                runCatching { tlsSocket.close() }
+                error("A plataforma não oferece TLS 1.2 ou TLS 1.3.")
             }
+            tlsSocket.enabledProtocols = protocols
+            tlsSocket
         }
         server.soTimeout = ACCEPT_TIMEOUT_MS
         secureTransport = sslContext != null
@@ -510,7 +514,7 @@ class RedPortalServer(
                     )
                     responseSent = true
                 }
-                emitEvent("Falha ao processar requisição HTTP local: ${error.javaClass.simpleName}.")
+                emitEvent("Falha ao processar requisição local: ${error.javaClass.simpleName}.")
             } finally {
                 if (receivedHeader) {
                     runCatching {
