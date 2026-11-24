@@ -34,10 +34,16 @@ class RedPortalServerHeartbeatTest {
     }
 
     @Test
-    fun rejectsAmbiguousDuplicateSessionCookiesWhenFirstTokenDiffers() {
+    fun rejectsAmbiguousDuplicateSessionCookiesInEitherOrder() {
         assertFalse(
             hasValidHeartbeatSessionCookie(
                 "kl_lab_session=wrong; kl_lab_session=abc123",
+                "abc123"
+            )
+        )
+        assertFalse(
+            hasValidHeartbeatSessionCookie(
+                "kl_lab_session=abc123; kl_lab_session=wrong",
                 "abc123"
             )
         )
