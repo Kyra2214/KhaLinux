@@ -252,7 +252,11 @@ class RedPortalServer(
                         status = result.first
                         result.second
                     }
-                    method == "HEAD" && path in setOf("/", "/login", "/open", "/terms", "/links", "/destination/news", "/destination/offers", "/notice", "/health", "/favicon.ico") -> {
+                    method == "HEAD" && (
+                        path == "/" || path in setOf("/terms", "/links", "/destination/news", "/destination/offers", "/notice", "/health", "/favicon.ico") ||
+                            (path == "/login" && portalMode == RedPortalMode.LOCAL_LOGIN) ||
+                            (path == "/open" && portalMode == RedPortalMode.OPEN_ACCESS)
+                    ) -> {
                         status = if (path == "/favicon.ico") 204 else 200
                         ""
                     }
