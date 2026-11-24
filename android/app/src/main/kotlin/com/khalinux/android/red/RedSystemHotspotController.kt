@@ -91,7 +91,7 @@ class RedSystemHotspotController(
             }
 
             override fun onLost(network: Network) {
-                onUpstreamChanged(
+                publishUpstream(
                     RedUpstreamSnapshot(
                         internetAvailable = false,
                         validated = false,
