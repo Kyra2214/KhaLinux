@@ -37,7 +37,7 @@ O aviso de cookies não concede nenhuma permissão do navegador ou do Android. O
 
 ## Compatibilidade
 
-O app mantém `targetSdk=28` por decisão arquitetural do runtime PRoot. Se o target SDK for alterado, revisar novamente as exigências de Wi-Fi/nearby devices por versão Android. Não declarar compatibilidade com permissões futuras sem conferir a API usada.
+O app mantém `targetSdk=28` por decisão arquitetural do runtime PRoot. Para apps que passam a targetSdk 33 ou superior, a documentação oficial de LocalOnlyHotspot exige `NEARBY_WIFI_DEVICES` no lugar de `ACCESS_FINE_LOCATION`; revisar Manifest e solicitação runtime ao alterar o target. Não declarar compatibilidade com permissões futuras sem conferir a API usada.
 
 ## Validação pendente
 
