@@ -2,9 +2,19 @@
 
 **Branch:** `recovery/red-portal-integration`  
 **Escopo:** somente o laboratório com dois aparelhos Android definidos em `AGENTS.md`.  
-**Estado deste roadmap:** RED-00 a RED-06, RED-08 a RED-13 e BLUE-01 têm implementação/documentação preparada; RED-07 permanece parcial, com arquitetura HTTPS local/CA definida e implementação TLS pendente; a parcela documental/estabilização do RED-14 está concluída; a entrega publicável permanece bloqueada pelos portões finais. Testes, builds, compilação e validações ficam acumulados para a etapa final.
+**Estado deste roadmap:** RED-00 a RED-06, RED-08 a RED-13 e BLUE-01 têm implementação/documentação preparada; RED-07 permanece parcial e passa a ter HTTPS local offline como requisito obrigatório para concluir as permissões web; implementação TLS e validação de confiança no navegador B estão pendentes. A parcela documental/estabilização do RED-14 está concluída; a entrega publicável permanece bloqueada pelos portões finais. Testes, builds, compilação e validações ficam acumulados para a etapa final.
 
 Este documento é o plano de execução da Área RED/BLUE nesta branch. O `ROADMAP.md` da raiz continua sendo o roadmap geral do KhaLinux.
+
+## Decisão arquitetural — HTTPS local obrigatório e evolução offline-first
+
+O portal participante deverá operar por **HTTPS local**, sem domínio público, hospedagem externa ou dependência de internet. HTTPS é requisito do RED-07 porque câmera, microfone e geolocalização dependem de uma origem segura nos navegadores modernos; a rede Wi-Fi local, isoladamente, não transforma HTTP em contexto seguro.
+
+- **Primeira fase, totalmente offline:** A cria a rede local, hospeda a preparação HTTP na porta `8080` e o portal HTTPS na porta `8443`; B conecta ao Wi-Fi de A e acessa o portal pelo navegador. Toda a comunicação do portal e dos eventos permanece na rede local.
+- **Confiança TLS:** A mantém a chave privada da autoridade certificadora (CA) do laboratório. Somente o certificado público da CA pode ser transferido para B. A impressão digital SHA-256 deve ser conferida por canal independente antes da instalação nas configurações do Android. O certificado do servidor deve conter SAN IP exato do endereço usado pelo B.
+- **Permissões web:** cada recurso é solicitado separadamente por ação explícita no B. A registra somente o recurso e o estado efetivamente retornado pelo navegador; não recebe mídia nem coordenadas.
+- **Internet depois:** compartilhamento de internet para B não faz parte da primeira entrega. A conectividade local e o portal devem funcionar sem internet. O compartilhamento será uma evolução separada, posterior à estabilização do fluxo offline e sujeita à viabilidade das APIs públicas e às restrições do Android/fabricante.
+- **Sem fallback silencioso:** se TLS ou a confiança do certificado falhar, o portal não declara permissões disponíveis nem rebaixa silenciosamente o fluxo sensível para HTTP.
 
 ## Progresso da execução
 
@@ -24,7 +34,7 @@ Construir uma ferramenta Android de laboratório que permita ao instrutor:
 
 1. Preparar uma rede de teste usando recursos e APIs realmente disponíveis no Android.
 2. Exibir os dados efetivamente fornecidos pelo sistema: estado, SSID, credenciais de rede quando disponibilizadas pela API, interface, endereço IP, porta e erros.
-3. Hospedar um portal HTTP local e transparente, acessível pelo segundo aparelho.
+3. Hospedar um portal local acessível pelo segundo aparelho, com HTTPS obrigatório para a experiência participante e HTTP restrito à preparação inicial.
 4. Observar as requisições que realmente chegam ao servidor, sem inventar clientes, eventos ou telemetria.
 5. Demonstrar escolhas de cookies e, quando o contexto seguro permitir, permissões do próprio navegador com solicitações explícitas e visíveis.
 6. Comparar a visão operacional RED com a análise defensiva BLUE, usando as mesmas evidências observadas.
@@ -255,7 +265,7 @@ Atividades:
 
 ## RED-07 — Demonstrações de permissões no navegador do aparelho B
 
-**Estado:** parcial. Fluxo, endpoint e eventos tipados implementados; a origem HTTP local impede prompts nativos. Ver [red-browser-permissions.md](red-browser-permissions.md).
+**Estado:** parcial e bloqueador para a conclusão do portal participante. Fluxo, endpoint e eventos tipados estão implementados; HTTPS local offline, confiança da CA no B e validação do navegador são obrigatórios e ainda estão pendentes. Ver [red-browser-permissions.md](red-browser-permissions.md) e [red-local-tls.md](red-local-tls.md).
 
 **Objetivo:** registrar escolhas e permissões web efetivamente oferecidas pelo navegador do B, sem aplicativo participante instalado.
 
@@ -264,7 +274,7 @@ Atividades:
 - Implementar solicitações web de câmera/microfone/localização somente quando a origem for segura e o navegador suportar a API; cada solicitação terá descrição e ação próprias.
 - Não disparar permissões como efeito colateral de “Aceitar todos” cookies.
 - Não capturar, armazenar ou transmitir mídia, coordenadas ou arquivos. Registrar somente o estado que o navegador efetivamente retornar.
-- Quando a origem HTTP local não for considerada segura, registrar “não disponível neste contexto” e explicar a limitação no painel A; não tentar contornar.
+- A experiência participante final deve usar HTTPS local com certificado confiável no B. HTTP na porta `8080` fica limitado à preparação e à entrega do certificado público da CA, sem prompts de permissões.
 - Exibir no A solicitações, concessões, recusas, cancelamentos e indisponibilidades que tenham sido efetivamente observadas.
 
 **Testes automatizados (transferidos para a etapa final):**
@@ -273,7 +283,7 @@ Atividades:
 - Evento mínimo sem payload sensível.
 - Revogação e encerramento da sessão.
 
-**Aceite:** B permanece navegador-only; nenhuma permissão é mascarada ou concedida pelo banner de cookies; A recebe apenas estado verificável e metadados mínimos. O aceite completo depende de HTTPS com certificado confiável no B.
+**Aceite obrigatório:** B permanece navegador-only; HTTPS funciona sem internet; o certificado contém SAN IP correspondente ao endereço acessado; a cadeia é aceita pelo navegador sem alerta; a CA pública é conferida por impressão digital; a chave privada da CA permanece em A; câmera, microfone e localização são solicitados individualmente por ação explícita; A recebe somente estados verificáveis e metadados mínimos. RED-07 não pode ser concluído sem esse aceite.
 
 ## RED-08 — Segurança da sessão e ciclo de vida
 
@@ -513,7 +523,7 @@ Uma fase só recebe o estado correspondente à evidência disponível. “Códig
 5. RED-04 — servidor HTTP local.
 6. RED-05 — portal e consentimento de cookies.
 7. RED-06 — eventos, persistência e BLUE.
-8. RED-07 — permissões web no navegador do aparelho B (parcial, dependente de HTTPS confiável).
+8. RED-07 — implementar e validar HTTPS local offline e concluir permissões web no navegador do aparelho B (requisito obrigatório).
 9. RED-08 — segurança e ciclo de vida da sessão.
 10. BLUE-01 — painel defensivo baseado nas evidências RED.
 11. RED-09 — histórico e relatório.
@@ -522,10 +532,25 @@ Uma fase só recebe o estado correspondente à evidência disponível. “Códig
 14. RED-12 — integração documentada; build/testes adiados.
 15. RED-13 — matriz física corrigida; execução adiada.
 16. RED-14 — estabilização e entrega da branch.
+17. **Evolução posterior RED-15 — compartilhamento de internet:** somente depois da rede local/HTTPS offline estabilizados, avaliar e implementar conectividade externa para B sem interromper o portal local. Esta etapa exige auditoria de viabilidade Android; `LocalOnlyHotspot` não fornece internet por si só e não se deve presumir que um app comum possa habilitar tethering/NAT em todos os aparelhos.
 
 Testes, builds, auditorias de validação e testes físicos só serão executados depois da conclusão da implementação integral. Dependências externas indisponíveis permanecem registradas, sem inventar resultados.
  
-## 9. Fora do escopo desta branch
+## 9. Evolução posterior: RED-15 — compartilhamento de internet
+
+**Não bloqueia a primeira entrega offline.** Depois que o portal HTTPS local estiver implementado e validado, avaliar separadamente o compartilhamento da conexão externa de A com B.
+
+Atividades futuras:
+- Auditar APIs públicas de tethering disponíveis para o nível de API e fabricante do aparelho A.
+- Distinguir `LocalOnlyHotspot` (rede local sem internet) de tethering/compartilhamento de internet.
+- Não usar reflexão, APIs privilegiadas ou comandos ocultos como caminho presumido.
+- Definir uma estratégia suportada ou registrar formalmente a limitação do dispositivo.
+- Verificar que a rota local A↔B, o portal HTTPS e os eventos continuam funcionando quando a conectividade externa é ativada.
+- Confirmar que a perda da internet não encerra a rede local nem invalida a sessão.
+
+**Aceite:** B mantém acesso ao portal local mesmo sem internet; quando o compartilhamento for suportado, B também navega externamente sem perder a comunicação local. Nenhuma compatibilidade será declarada sem validação no hardware alvo.
+
+## 10. Fora do escopo desta branch
 
 - Uso em aparelhos, redes ou pessoas fora dos dois dispositivos do laboratório.
 - Captura de credenciais de contas ou imitação de páginas de provedores.
@@ -538,13 +563,13 @@ Testes, builds, auditorias de validação e testes físicos só serão executado
 
 ---
 
-## 10. Primeiro trabalho após este roadmap
+## 11. Primeiro trabalho após este roadmap
 
-O primeiro item de execução é RED-00. Não implementar novos controladores nem copiar o snapshot inteiro antes de:
+O próximo trabalho de implementação é concluir a auditoria e a implementação RED-07 de HTTPS local, preservando a sequência offline-first. Não iniciar RED-15 nem alterar o compartilhamento de internet antes da validação do portal local. Antes de modificar código:
 1. confirmar o HEAD atual da branch;
 2. recuperar e comparar os arquivos oficiais e exportados;
 3. listar incompatibilidades reais;
 4. escolher uma arquitetura única para hotspot, servidor e ViewModel;
 5. registrar o plano de integração arquivo a arquivo.
 
-**Situação inicial registrada:** roadmap criado; fases ainda não auditadas nem aprovadas. Nenhum teste físico foi realizado ou deve ser antecipado.
+**Situação desta atualização:** decisão HTTPS local obrigatório/offline-first incorporada ao roadmap. Esta alteração é documental; não implementa TLS, não executa build/testes e não altera o código do servidor. Nenhum teste físico foi realizado ou deve ser antecipado.
