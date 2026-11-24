@@ -4,6 +4,10 @@
 **Branch:** recovery/red-portal-integration  
 **Cenário compartilhado:** red-wifi-public-01
 
+## Interpretação de HTTPS local
+
+O download da CA pública é apenas uma etapa de preparação e não prova instalação nem confiança. O evento `TLS_HANDSHAKE_OBSERVED` indica que uma conexão concluiu o handshake TLS; não comprova concessão de câmera, microfone ou localização.
+
 ## Objetivo
 
 A Área BLUE apresenta a perspectiva defensiva do mesmo laboratório executado pelo RED. Ela não repete a execução ofensiva: lê as sessões, requisições e eventos registrados pelo RED e explica o que um participante deve observar e como responder.
