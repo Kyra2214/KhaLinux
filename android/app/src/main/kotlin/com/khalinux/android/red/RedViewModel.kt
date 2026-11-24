@@ -639,7 +639,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun recordSyntheticSubmission(submission: RedSyntheticSubmission) {
-        // Os valores só existem no estado de UI da sessão atual; nunca são gravados no SessionStore.
+        // O formulário já chega minimizado; senha nunca integra o modelo nem é gravada no SessionStore.
         mutableState.update { it.copy(latestSubmission = submission) }
         RedLiveEvidenceStore.updateSubmission(submission)
         recordStructuredEvent(
