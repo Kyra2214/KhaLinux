@@ -446,6 +446,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             )
         }
         if (!systemHotspot.openSystemHotspotSettings()) {
+            systemHotspot.stopMonitoring()
             mutableState.update {
                 it.copy(
                     systemHotspotMode = false,
