@@ -65,47 +65,36 @@ class RedPortalServer(
     fun setMode(mode: RedPortalMode) { portalMode = mode }
 
     @Synchronized
-    fun start(preferredAddress: String? = null, mode: RedPortalMode = portalMode): String =
-        startInternal(preferredAddress, mode, null)
-
-    @Synchronized
     fun startHttps(
         preferredAddress: String?,
         mode: RedPortalMode = portalMode,
         sslContext: SSLContext
-    ): String = startInternal(preferredAddress, mode, sslContext)
-
-    private fun startInternal(preferredAddress: String?, mode: RedPortalMode, sslContext: SSLContext?): String {
+    ): String {
         if (running.get()) return address ?: error("Portal sem endereço disponível")
         portalMode = mode
         require(configuredPort in 1024..65535) { "A porta do portal deve estar entre 1024 e 65535." }
         val binding = resolveLabAddress(preferredAddress)
             ?: error("O Android não expôs um IPv4 de interface Wi-Fi/AP do laboratório.")
         val bindAddress = InetAddress.getByName(binding.second)
-        val server = if (sslContext == null) {
-            ServerSocket(configuredPort, BACKLOG, bindAddress)
-        } else {
-            val tlsSocket = sslContext.serverSocketFactory.createServerSocket(configuredPort, BACKLOG, bindAddress) as SSLServerSocket
-            val protocols = tlsSocket.supportedProtocols.filter { it == "TLSv1.3" || it == "TLSv1.2" }.toTypedArray()
-            if (protocols.isEmpty()) {
-                runCatching { tlsSocket.close() }
-                error("A plataforma não oferece TLS 1.2 ou TLS 1.3.")
-            }
-            tlsSocket.enabledProtocols = protocols
-            val cipherSuites = tlsSocket.enabledCipherSuites.filter { suite ->
-                suite.startsWith("TLS_AES_") ||
-                    suite.startsWith("TLS_CHACHA20_") ||
-                    suite.startsWith("TLS_ECDHE_RSA_WITH_")
-            }.toTypedArray()
-            if (cipherSuites.isEmpty()) {
-                runCatching { tlsSocket.close() }
-                error("A plataforma não oferece conjuntos TLS modernos compatíveis com o certificado do laboratório.")
-            }
-            tlsSocket.enabledCipherSuites = cipherSuites
-            tlsSocket
+        val tlsSocket = sslContext.serverSocketFactory.createServerSocket(configuredPort, BACKLOG, bindAddress) as SSLServerSocket
+        val protocols = tlsSocket.supportedProtocols.filter { it == "TLSv1.3" || it == "TLSv1.2" }.toTypedArray()
+        if (protocols.isEmpty()) {
+            runCatching { tlsSocket.close() }
+            error("A plataforma não oferece TLS 1.2 ou TLS 1.3.")
         }
-        server.soTimeout = ACCEPT_TIMEOUT_MS
-        secureTransport = sslContext != null
+        tlsSocket.enabledProtocols = protocols
+        val cipherSuites = tlsSocket.enabledCipherSuites.filter { suite ->
+            suite.startsWith("TLS_AES_") ||
+                suite.startsWith("TLS_CHACHA20_") ||
+                suite.startsWith("TLS_ECDHE_RSA_WITH_")
+        }.toTypedArray()
+        if (cipherSuites.isEmpty()) {
+            runCatching { tlsSocket.close() }
+            error("A plataforma não oferece conjuntos TLS modernos compatíveis com o certificado do laboratório.")
+        }
+        tlsSocket.enabledCipherSuites = cipherSuites
+        tlsSocket.soTimeout = ACCEPT_TIMEOUT_MS
+        secureTransport = true
         tlsHandshakeObserved.set(false)
         val now = System.currentTimeMillis()
         activeSessionToken = createSessionToken()
@@ -115,21 +104,20 @@ class RedPortalServer(
         participantLoginAccepted = false
         failedSessionAttempts.clear()
         failedLoginAttempts.clear()
-        socket = server
+        socket = tlsSocket
         running.set(true)
         boundInterface = binding.first
-        boundPort = server.localPort
+        boundPort = tlsSocket.localPort
         boundIpv4Address = binding.second
-        val scheme = if (secureTransport) "https" else "http"
-        val url = "$scheme://${binding.second}:${server.localPort}/"
+        val url = "https://${binding.second}:${tlsSocket.localPort}/"
         address = url
-        val workerThread = Thread({ serve(server, binding.first, binding.second) }, "red-local-portal").apply { isDaemon = true }
+        val workerThread = Thread({ serve(tlsSocket, binding.first, binding.second) }, "red-local-portal").apply { isDaemon = true }
         worker = workerThread
         try {
             workerThread.start()
         } catch (error: Exception) {
             running.set(false)
-            runCatching { server.close() }
+            runCatching { tlsSocket.close() }
             socket = null
             worker = null
             address = null
@@ -137,6 +125,7 @@ class RedPortalServer(
             boundPort = null
             boundIpv4Address = null
             secureTransport = false
+            tlsHandshakeObserved.set(false)
             activeSessionToken = null
             sessionStartedAt = 0L
             lastActivityAt = 0L
@@ -152,8 +141,7 @@ class RedPortalServer(
             stop()
             throw error
         }
-        val protocolLabel = if (secureTransport) "HTTPS" else "HTTP"
-        emitEvent("Servidor $protocolLabel local iniciado em ${binding.first}:${server.localPort}.")
+        emitEvent("Servidor HTTPS local iniciado em ${binding.first}:${tlsSocket.localPort}.")
         return url
     }
 
