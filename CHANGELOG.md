@@ -12,8 +12,8 @@
 
 - Adicionado `RedLocalTlsManager`: CA e chave de servidor RSA geradas pelo Android Keystore; chaves privadas não são exportadas.
 - Certificado do servidor emitido para o IPv4 atual com SAN IP, validade limitada e uso `serverAuth`.
-- Adicionado endpoint HTTP de preparação isolado em `8080`, limitado a `/ca.cer` (certificado público DER) e `/health`.
-- `RedPortalServer` ganhou inicialização TLS por `SSLServerSocket`, restrita à interface/IPv4 do laboratório, com TLS 1.2/1.3.
+- Adicionado endpoint HTTP de preparação isolado em `8080`, com página `/`, download `/ca.cer` (certificado público DER) e `/health`; não publica rotas do portal.
+- `RedPortalServer` tornou-se HTTPS-only por `SSLServerSocket`, restrito à interface/IPv4 do laboratório, com TLS 1.2/1.3 e conjuntos modernos; não há fallback HTTP para o participante.
 - ViewModel passou a preparar CA, iniciar a entrega pública e abrir o portal participante HTTPS em `8443`.
 - Cookie de sessão recebe `Secure`; validação de origem acompanha o esquema HTTPS.
 - Tela RED apresenta URL de preparação e impressão digital SHA-256 da CA.
@@ -22,13 +22,14 @@
 - Chave privada efêmera do certificado de servidor removida do Android Keystore nos caminhos de encerramento e falha; a chave privada da CA permanece protegida para sessões futuras.
 - Relatórios distinguem download da CA pública e handshake TLS concluído; ausência de handshake não é apresentada como prova de ausência de instalação.
 - Dependência Bouncy Castle adicionada para geração X.509.
-- **Parcial:** instalação e confiança da CA pelo navegador, rotação/renovação, estados de confiança, ciclo de vida de falhas e validação final permanecem pendentes.
+- Implementação de código/documentação concluída; confiança da CA em navegadores reais e permissões web aguardam validação final.
+- Escritas de evidência e observações de requisição serializadas no ViewModel para preservar sequência em callbacks concorrentes.
 - Nenhum teste, build ou compilação foi executado, conforme a regra de implementação contínua.
 
 ## [Não lançado] — RED-14: estabilização documental atualizada
 
 - Parcela documental de RED-14 concluída: notas preliminares, matriz de compatibilidade, checklist e registro de estabilização alinhados.
-- Comparação registrada no snapshot `d445ebcc8f7fb15d5ecac1c9493da5fea72409a2`: branch 296 commits à frente de `main`, 0 atrás, 41 arquivos alterados. A contagem deve ser refeita antes do PR.
+- Comparação registrada no snapshot `8b32737c8400a5d4076f57f9d5f6132c12fceae9`: branch 395 commits à frente de `main`, 0 atrás, 43 arquivos alterados; snapshot histórico anterior às alterações RED-15. A contagem deve ser refeita antes do PR.
 - Revisão direcionada documentada; revisão integral do diff permanece pendente.
 - Release continua bloqueada: RED-07 depende de HTTPS confiável; build, testes, auditoria final e testes físicos não foram executados; APK, assinatura, SHA-256 e PR não foram produzidos.
 
