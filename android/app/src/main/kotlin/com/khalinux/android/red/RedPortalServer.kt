@@ -763,7 +763,6 @@ class RedPortalServer(
           button.disabled=true;
           result.textContent='Solicitação iniciada pelo participante.';
           try{
-            await reportPermission(resource,'requested');
             if(!secureContextAvailable){
               await reportPermission(resource,'unavailable');
               result.textContent='Indisponível: o navegador não considera esta origem HTTP local um contexto seguro.';
@@ -776,7 +775,16 @@ class RedPortalServer(
                 return;
               }
               const constraints=resource==='camera'?{video:true,audio:false}:{video:false,audio:true};
-              const stream=await navigator.mediaDevices.getUserMedia(constraints);
+              const requestedEvent=reportPermission(resource,'requested').catch(()=>false);
+              let mediaRequest;
+              try{
+                mediaRequest=navigator.mediaDevices.getUserMedia(constraints);
+              }catch(error){
+                await requestedEvent;
+                throw error;
+              }
+              await requestedEvent;
+              const stream=await mediaRequest;
               stream.getTracks().forEach(track=>track.stop());
               await reportPermission(resource,'granted');
               watchPermissionRevocation(resource,resource);
@@ -788,13 +796,16 @@ class RedPortalServer(
               result.textContent='Indisponível: geolocalização não suportada neste navegador.';
               return;
             }
-            await new Promise((resolve,reject)=>{
+            const requestedEvent=reportPermission(resource,'requested').catch(()=>false);
+            const positionRequest=new Promise((resolve,reject)=>{
               navigator.geolocation.getCurrentPosition(
                 ()=>resolve(),
                 error=>reject(error),
                 {enableHighAccuracy:false,maximumAge:0,timeout:10000}
               );
             });
+            await requestedEvent;
+            await positionRequest;
             await reportPermission(resource,'granted');
             watchPermissionRevocation(resource,'geolocation');
             result.textContent='Permissão concedida pelo navegador. Coordenadas descartadas localmente e não transmitidas.';
