@@ -1,3 +1,14 @@
+## [Não lançado] — RED-08: segurança da sessão e ciclo de vida
+
+- Token aleatório de 256 bits gerado por sessão e mantido somente em memória.
+- Cookie HttpOnly/SameSite vinculado ao primeiro acesso do participante; token não é exposto em URL, HTML ou logs.
+- POST de login, consentimento e permissões web exige cookie válido, IP vinculado e origem same-origin.
+- Comparação de token em tempo constante, distinção de falhas e bloqueio temporário após cinco tentativas.
+- Expiração por 30 minutos de inatividade e duração máxima de duas horas.
+- Respostas válidas renovam cookie; stop limpa token, participante vinculado, sockets e estado de tentativas.
+- HTTP local permanece sem TLS; a proteção de sessão não fornece confidencialidade contra observação do tráfego.
+- Nenhum teste/build/compilação foi executado.
+
 ## [Não lançado] — RED-07: permissões web do navegador (parcial)
 
 - Endpoint `POST /browser-permission` valida apenas recurso e estado, sem aceitar mídia ou coordenadas.
