@@ -334,14 +334,19 @@ class RedPortalServer(
     }
 
     private fun parseHeaders(lines: List<String>): Map<String, String> = buildMap {
-        lines.forEach { line ->
-            val separator = line.indexOf(':')
-            if (separator > 0) {
-                val name = line.substring(0, separator).trim().lowercase(Locale.ROOT)
-                if (name.matches(Regex("[a-z0-9-]{1,64}")) && name !in this) {
-                    put(name, line.substring(separator + 1).trim().take(512))
-                }
+        lines.filter { it.isNotEmpty() }.forEach { line ->
+            if (line.firstOrNull() == ' ' || line.firstOrNull() == '\\t') {
+                throw IllegalArgumentException("Header folding não é permitido.")
             }
+            val separator = line.indexOf(':')
+            if (separator <= 0) throw IllegalArgumentException("Cabeçalho HTTP inválido.")
+            val name = line.substring(0, separator).trim().lowercase(Locale.ROOT)
+            val value = line.substring(separator + 1).trim()
+            if (!name.matches(Regex("[a-z0-9-]{1,64}")) || value.length > 512) {
+                throw IllegalArgumentException("Nome ou valor de cabeçalho inválido.")
+            }
+            if (name in this) throw IllegalArgumentException("Cabeçalho HTTP duplicado: $name.")
+            put(name, value)
         }
     }
 
