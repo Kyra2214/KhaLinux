@@ -13,7 +13,7 @@
 - Distinguir dados observados, escolhas do participante, configurações do operador e informações indisponíveis.
 - O painel A exibe somente fatos efetivamente recebidos pelo servidor ou APIs locais disponíveis.
 - Não armazenar senhas, tokens, cookies, cabeçalhos de autenticação, conteúdo de arquivos, áudio, vídeo ou coordenadas.
-- Formulários usam identificadores/códigos exclusivos do laboratório, nunca credenciais de contas pessoais ou de serviços.
+- Formulários de laboratório usam dados sintéticos. O formulário Home Security pode validar e-mail e senha somente como demonstração local; deve descartar a senha, exibir apenas e-mail mascarado no painel e nunca autenticar contas reais. Nunca solicitar credenciais de serviços externos. Facebook e Instagram, neste escopo, são somente exemplos visuais.
 - O aviso de cookies registra escolhas reais por categoria. “Aceitar todos” vale para as categorias explicitamente descritas; não concede permissões do Android ou do navegador.
 - Solicitações de câmera, microfone e localização do navegador devem ser visíveis, separadas e iniciadas por ação claramente identificada. Não mascarar a finalidade nem simular concessão.
 - APIs de permissões do navegador dependem de contexto seguro e política do navegador. Em HTTP por IP local, registrar indisponibilidade quando a API não puder ser usada; não contornar essa restrição.
