@@ -211,6 +211,12 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                         state.tlsCaFingerprint?.let { fingerprint ->
                             Text("Impressão digital SHA-256 da CA: $fingerprint", style = MaterialTheme.typography.bodySmall)
                         }
+                        Text(
+                            if (state.tlsBrowserTrustObserved) "Conexão HTTPS observada: handshake TLS concluído pelo navegador B."
+                            else "Confiança do navegador: aguardando a primeira conexão HTTPS válida.",
+                            color = if (state.tlsBrowserTrustObserved) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
+                            style = MaterialTheme.typography.bodySmall
+                        )
                         Card(Modifier.fillMaxWidth()) {
                             Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                                 Text("HTTPS local · sem internet", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge)
