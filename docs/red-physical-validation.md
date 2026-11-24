@@ -23,7 +23,7 @@
 | PHY-10 | Configurar cookies | Estados customizados por categoria registrados. |
 | PHY-11 | Abrir Permissões do navegador | Página apresenta ações separadas para câmera, microfone e localização. |
 | PHY-12 | Solicitar permissões via HTTP/IP privado | Estado UNAVAILABLE se o navegador não considerar a origem segura; nenhum prompt forçado. |
-| PHY-13 | Permissões via HTTPS confiável, se certificado/domínio estiver disponível | Cada recurso solicitado por clique separado; diálogo real do navegador. |
+| PHY-13 | Instalar CA pública no B após conferir fingerprint e abrir HTTPS/8443 | Navegador aceita a cadeia sem alerta; primeiro handshake TLS é registrado no A. |
 | PHY-14 | Negar/cancelar permissão web, quando disponível | Estado negado/cancelado registrado sem declarar concessão. |
 | PHY-15 | Conceder e revogar permissão web, quando disponível | Estado real e revogação observados; nenhum payload enviado ao A. |
 | PHY-16 | Navegar páginas/links/redirecionamentos locais | Métodos, rotas, status e horários correspondem às requisições reais. |
