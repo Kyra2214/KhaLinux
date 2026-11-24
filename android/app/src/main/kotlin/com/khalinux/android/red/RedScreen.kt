@@ -114,7 +114,7 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                     Text("Roteiro rápido de dois aparelhos", style = MaterialTheme.typography.titleSmall)
-                    Text("Aparelho A: inicie a sessão, escolha o modo do portal, ative o hotspot e compartilhe SSID, endereço e código temporário.", style = MaterialTheme.typography.bodySmall)
+                    Text("Aparelho A: inicie a sessão, escolha o modo do portal, ative o hotspot e acompanhe o painel.", style = MaterialTheme.typography.bodySmall)
                     Text("Aparelho B: conecte-se ao Wi-Fi, abra o endereço no navegador, faça o login de teste e responda ao aviso de cookies. Toda a observabilidade fica neste painel A.", style = MaterialTheme.typography.bodySmall)
                     Text("BLUE: alterne para a análise defensiva sem encerrar a sessão RED. Volte ao RED para continuar a operação.", style = MaterialTheme.typography.bodySmall)
                 }
