@@ -37,7 +37,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         onAddress = { address -> mutableState.update { it.copy(portalAddress = address) } },
         onRequest = { observation -> recordRequest(observation) },
         onSyntheticSubmission = { submission -> recordSyntheticSubmission(submission) },
-        onCookieConsent = { summary -> recordStructuredEvent(RedEventType.COOKIE_CONSENT_RECORDED, summary, source = "browser-cookie-consent") },
+        onCookieConsent = { consent -> recordStructuredEvent(RedEventType.COOKIE_CONSENT_RECORDED, consent.summary(), source = "browser-cookie-consent", cookieConsent = consent) },
     )
     private val hotspot = RedHotspotController(application) { snapshot ->
         val info = buildList {
@@ -299,7 +299,10 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         httpMethod: String? = null,
         route: String? = null,
         httpStatus: Int? = null,
-        bytesReceived: Int? = null
+        bytesReceived: Int? = null,
+        cookieConsent: RedCookieConsent? = null,
+        webPermissionResource: RedWebPermissionResource? = null,
+        webPermissionState: RedWebPermissionState? = null
     ) {
         val current = mutableState.value.session ?: return
         val nextState = when (type) {
@@ -317,7 +320,10 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             httpMethod = httpMethod,
             route = route,
             httpStatus = httpStatus,
-            bytesReceived = bytesReceived
+            bytesReceived = bytesReceived,
+            cookieConsent = cookieConsent,
+            webPermissionResource = webPermissionResource,
+            webPermissionState = webPermissionState
         )
         store.save(updated)
         RedLiveEvidenceStore.updateSession(updated)
@@ -448,7 +454,10 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         httpMethod: String? = null,
         route: String? = null,
         httpStatus: Int? = null,
-        bytesReceived: Int? = null
+        bytesReceived: Int? = null,
+        cookieConsent: RedCookieConsent? = null,
+        webPermissionResource: RedWebPermissionResource? = null,
+        webPermissionState: RedWebPermissionState? = null
     ) = copy(events = (events + RedEvent(
         sessionId = id,
         type = type,
@@ -459,6 +468,12 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         httpMethod = httpMethod,
         route = route,
         httpStatus = httpStatus,
-        bytesReceived = bytesReceived
+        bytesReceived = bytesReceived,
+        cookieChoice = cookieConsent?.choice,
+        cookieAnalytics = cookieConsent?.analytics,
+        cookiePreferences = cookieConsent?.preferences,
+        cookiePersonalization = cookieConsent?.personalization,
+        webPermissionResource = webPermissionResource,
+        webPermissionState = webPermissionState
     )).takeLast(300))
 }
