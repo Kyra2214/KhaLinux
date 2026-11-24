@@ -31,7 +31,13 @@ class RedSessionStore(context: Context) {
                 .put("httpMethod", event.httpMethod ?: JSONObject.NULL)
                 .put("route", event.route?.take(160) ?: JSONObject.NULL)
                 .put("httpStatus", event.httpStatus ?: JSONObject.NULL)
-                .put("bytesReceived", event.bytesReceived ?: JSONObject.NULL))
+                .put("bytesReceived", event.bytesReceived ?: JSONObject.NULL)
+                .put("cookieChoice", event.cookieChoice?.name ?: JSONObject.NULL)
+                .put("cookieAnalytics", event.cookieAnalytics ?: JSONObject.NULL)
+                .put("cookiePreferences", event.cookiePreferences ?: JSONObject.NULL)
+                .put("cookiePersonalization", event.cookiePersonalization ?: JSONObject.NULL)
+                .put("webPermissionResource", event.webPermissionResource?.name ?: JSONObject.NULL)
+                .put("webPermissionState", event.webPermissionState?.name ?: JSONObject.NULL))
         }
         root.put("events", events)
         preferences.edit().putString(session.id, root.toString()).apply()
@@ -73,7 +79,13 @@ class RedSessionStore(context: Context) {
                         httpMethod = item.optString("httpMethod").takeIf { it.isNotBlank() && it != "null" },
                         route = item.optString("route").takeIf { it.isNotBlank() && it != "null" },
                         httpStatus = if (item.isNull("httpStatus")) null else item.optInt("httpStatus"),
-                        bytesReceived = if (item.isNull("bytesReceived")) null else item.optInt("bytesReceived")
+                        bytesReceived = if (item.isNull("bytesReceived")) null else item.optInt("bytesReceived"),
+                        cookieChoice = if (item.isNull("cookieChoice")) null else runCatching { RedCookieChoice.valueOf(item.getString("cookieChoice")) }.getOrNull(),
+                        cookieAnalytics = if (item.isNull("cookieAnalytics")) null else item.getBoolean("cookieAnalytics"),
+                        cookiePreferences = if (item.isNull("cookiePreferences")) null else item.getBoolean("cookiePreferences"),
+                        cookiePersonalization = if (item.isNull("cookiePersonalization")) null else item.getBoolean("cookiePersonalization"),
+                        webPermissionResource = if (item.isNull("webPermissionResource")) null else runCatching { RedWebPermissionResource.valueOf(item.getString("webPermissionResource")) }.getOrNull(),
+                        webPermissionState = if (item.isNull("webPermissionState")) null else runCatching { RedWebPermissionState.valueOf(item.getString("webPermissionState")) }.getOrNull()
                     )
                 }
             )
