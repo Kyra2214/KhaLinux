@@ -11,7 +11,7 @@ Este documento é o plano de execução da Área RED/BLUE nesta branch. O `ROADM
 - **Implementação RED/BLUE:** 43,75% (7 de 16 submódulos concluídos).
 - **Concluídos:** RED-00 — [inventário de baseline](red-baseline-inventory.md); RED-01 — [modelo de domínio](red-domain-model.md); RED-02 — [matriz de permissões](red-permissions.md); RED-03 — [ciclo de vida do hotspot](red-hotspot-lifecycle.md); RED-04 — [servidor HTTP local](red-http-server.md); RED-05 — portal local e aviso de cookies; RED-06 — [eventos e evidências](red-event-evidence.md).
 - **Parciais:** RED-05 — banner e registro de consentimento de cookies; RED-07 — remoção do participante nativo e redefinição do fluxo web.
-- **Próximo submódulo:** RED-07 — permissões web reais e limites do navegador no aparelho B.
+- **Parcial:** RED-07 — fluxo e telemetria web implementados; HTTPS confiável pendente para prompts nativos no B.\n- **Próximo submódulo:** RED-08 — revisão defensiva, sanitização e limites de entrada.
 - **Validação:** não iniciada nesta execução; todas as atividades de teste/build/compilação ficam para a etapa final.
 - **Pacotes ZIP:** desativados; execução diretamente no repositório conforme instrução do usuário.
 
@@ -254,6 +254,8 @@ Atividades:
 
 ## RED-07 — Demonstrações de permissões no navegador do aparelho B
 
+**Estado:** parcial. Fluxo, endpoint e eventos tipados implementados; a origem HTTP local impede prompts nativos. Ver [red-browser-permissions.md](red-browser-permissions.md).
+
 **Objetivo:** registrar escolhas e permissões web efetivamente oferecidas pelo navegador do B, sem aplicativo participante instalado.
 
 Atividades:
@@ -270,7 +272,7 @@ Atividades:
 - Evento mínimo sem payload sensível.
 - Revogação e encerramento da sessão.
 
-**Aceite:** B permanece navegador-only; nenhuma permissão é mascarada ou concedida pelo banner de cookies; A recebe apenas estado verificável e metadados mínimos.
+**Aceite:** B permanece navegador-only; nenhuma permissão é mascarada ou concedida pelo banner de cookies; A recebe apenas estado verificável e metadados mínimos. O aceite completo depende de HTTPS com certificado confiável no B.
 
 ## RED-08 — Segurança da sessão e ciclo de vida
 
