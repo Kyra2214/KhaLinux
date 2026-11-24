@@ -75,6 +75,33 @@ object RedLabInputValidator {
         )
     }
 
+    /** Recebe somente recurso e estado; nunca aceita coordenadas, mídia ou conteúdo do navegador. */
+    fun validateWebPermission(body: ByteArray, contentType: String?): RedWebPermissionObservation? {
+        if (contentType?.substringBefore(';')?.trim()
+                ?.equals("application/x-www-form-urlencoded", ignoreCase = true) != true
+        ) return null
+        if (body.size > MAX_FORM_BYTES) return null
+        val encoded = runCatching { String(body, StandardCharsets.UTF_8) }.getOrNull() ?: return null
+        val values = decodePairs(encoded) ?: return null
+        if (values.keys != setOf("resource", "state")) return null
+        val resource = when (values["resource"]) {
+            "camera" -> RedWebPermissionResource.CAMERA
+            "microphone" -> RedWebPermissionResource.MICROPHONE
+            "location" -> RedWebPermissionResource.LOCATION
+            else -> return null
+        }
+        val state = when (values["state"]) {
+            "requested" -> RedWebPermissionState.REQUESTED
+            "granted" -> RedWebPermissionState.GRANTED
+            "denied" -> RedWebPermissionState.DENIED
+            "cancelled" -> RedWebPermissionState.CANCELLED
+            "unavailable" -> RedWebPermissionState.UNAVAILABLE
+            "revoked" -> RedWebPermissionState.REVOKED
+            else -> return null
+        }
+        return RedWebPermissionObservation(resource, state)
+    }
+
     private fun decodePairs(encoded: String): Map<String, String>? {
         if (encoded.isBlank()) return null
         val pairs = encoded.split('&')
