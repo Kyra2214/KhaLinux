@@ -48,7 +48,7 @@
 - Schema de sessão versionado (v2) e migração automática de registros legados v1.
 - Persistência limitada a 100 sessões e 300 eventos por sessão, com metadados e campos tipados.
 - Mantidos fora da persistência corpos HTTP, valores de formulário, códigos, cookies, tokens, mídia, coordenadas e arquivos.
-- Relatório Markdown inclui versão do app/Android, estado da sessão, contagens, linha do tempo, limitações e status de validação pendente.
+- Relatório Markdown inclui versão do app/Android, estado da sessão, contagens, linha do tempo, limitações e status de validação pendente. Valores de rota, origem e headers recebidos são escapados para não alterar a estrutura Markdown.
 - Adicionada exclusão individual de sessão com confirmação; sessão ativa exige encerramento antes de excluir.
 - Exportação continua pelo seletor de documentos; cópias exportadas permanecem sob controle do usuário.
 - Nenhum teste/build/compilação foi executado.
