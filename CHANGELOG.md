@@ -1,3 +1,12 @@
+## [Não lançado] — RED-01: modelo de domínio e estados reais
+
+- Introduzidos modelos tipados para configuração do portal, endpoint iniciado e origem HTTP observada.
+- Consentimento de cookies agora usa modelo tipado com escolha e categorias opcionais; os campos são persistidos no evento da sessão.
+- Introduzidos tipos explícitos para recurso/estado de permissões web, sem gerar eventos até existir resultado observado do navegador.
+- Persistência de eventos ampliada com campos opcionais, mantendo leitura de sessões antigas.
+- Painel e relatório usam endpoint real, origem HTTP observada e consentimento por categoria.
+- Documentação: `docs/red-domain-model.md`. Nenhum teste, build ou compilação foi executado.
+
 ## [Não lançado] — RED-00: baseline e arquitetura de dois aparelhos
 
 - Inventário de código e documentação registrado em `docs/red-baseline-inventory.md`.
