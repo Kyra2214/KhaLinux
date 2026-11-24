@@ -38,6 +38,10 @@ O relatório é gerado sob demanda para copiar ou exportar pelo seletor de docum
 - Uma sessão ainda ativa não pode ser excluída individualmente; deve ser encerrada primeiro.
 - A retenção automática remove as sessões mais antigas acima do limite de 100.
 
+## Interrupção de sessão
+
+Sessões que estavam abertas e não possuem `endedAt` são marcadas como `INTERRUPTED` na recuperação após reinício. Ao ir para segundo plano ou bloquear a tela, hotspot e portal são encerrados e a sessão recebe evento `SESSION_INTERRUPTED`. O relatório preserva a distinção entre sessão concluída e interrompida.
+
 ## Validação acumulada
 
 - Migração schema 1 → 2 e leitura de sessões antigas.
