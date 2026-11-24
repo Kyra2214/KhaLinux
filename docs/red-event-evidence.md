@@ -34,10 +34,10 @@ A linha do tempo distingue `HTTP_REQUEST_RECEIVED`, `HTTP_REQUEST_REJECTED`, `HT
 - Valores de cookies.
 - Cabeçalho Cookie.
 - Authorization e credenciais.
-- Valores dos formulários de login.
+- Senhas e valores integrais dos formulários de login.
 - Fluxos de câmera, microfone ou arquivos.
 
-O formulário usa dados de demonstração. Os valores podem existir temporariamente no estado de UI para a demonstração, mas não são serializados no SessionStore. O relatório guarda apenas resultado e metadados.
+O formulário Home Security valida e-mail/senha somente como demonstração local. A senha não é copiada para modelos, callbacks, painel, logs ou persistência. O resultado efêmero contém apenas e-mail mascarado e método demonstrativo; não é serializado no SessionStore. O relatório guarda apenas resultado e metadados. Facebook e Instagram são rótulos ilustrativos sem OAuth ou tráfego externo.
 
 ## Cabeçalhos permitidos
 
