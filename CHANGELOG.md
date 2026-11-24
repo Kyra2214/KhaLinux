@@ -1,3 +1,12 @@
+## [Não lançado] — RED/BLUE: participante somente pelo navegador e consentimento de cookies
+
+- Definida a topologia: A opera o laboratório e concentra o painel; B conecta ao Wi-Fi, abre o portal, faz login de teste e usa somente o navegador.
+- Removido do fluxo do app o modo participante nativo, seu endpoint de eventos, permissões de câmera/microfone e dependências CameraX.
+- Adicionado aviso de cookies com aceitar todos, recusar opcionais e configuração por categoria.
+- Adicionado endpoint local `POST /consent`, validação estrita das categorias e registro da escolha na linha do tempo do aparelho A.
+- O botão de cookies não concede permissões de recursos. Permissões web dependem de origem segura e de solicitação explícita do navegador.
+- Nenhum teste, build ou compilação foi executado; validação permanece para a etapa final.
+
 ## [1.0.0-rc.7] — 2026-11-23
 
 - Candidata pública baseada na `main`, com build Android `release` ARM64 assinado e minificado; o CI verifica a assinatura com `apksigner`.
