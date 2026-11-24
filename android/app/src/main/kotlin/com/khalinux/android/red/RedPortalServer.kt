@@ -599,7 +599,7 @@ class RedPortalServer(
         )
         return if (result.accepted) {
             participantLoginAccepted = true
-            val page = resultHtml("Acesso liberado", "Os dados de teste foram aceitos pelo portal local.")
+            val page = resultHtml("Acesso demonstrativo liberado", "Os dados foram validados localmente para esta sessão. Nenhuma senha foi armazenada.")
                 .replace("</body>", browserPermissionPanelHtml() + "</body>")
             200 to page
         } else {
@@ -735,43 +735,53 @@ class RedPortalServer(
 
     private fun portalHtml(mode: RedPortalMode) = """
         <!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-        <title>Conecta Local</title><style>
+        <title>Home Security</title><style>
         body{font:16px system-ui;background:#f4f6f8;color:#202124;margin:0}.wrap{max-width:520px;margin:7vh auto;padding:28px}
         .card{background:#fff;border:1px solid #e2e5e9;border-radius:14px;padding:26px;box-shadow:0 5px 24px #0000000b}
         h1{font-size:25px;margin:0 0 8px}.muted{color:#5f6368;line-height:1.5}.actions{display:grid;gap:12px;margin-top:24px}
         a{display:block;padding:13px 16px;border-radius:8px;background:#2457a6;color:white;text-decoration:none;text-align:center}
         a.secondary{background:#eef2f7;color:#23364d}.foot{font-size:12px;color:#73777d;margin-top:22px}
         </style></head><body><main class="wrap"><section class="card">
-        <h1>Conecta Local</h1><p class="muted">Acesso à rede de visitantes.</p><p class="muted"><strong>Ambiente de laboratório:</strong> esta página usa HTTPS local, sem depender da internet. Utilize somente identificadores e códigos de teste.</p>
-        <p class="muted">${if (mode == RedPortalMode.LOCAL_LOGIN) "Para conectar à rede, cadastre-se no portal usando sua identificação e seu código de acesso de teste." else "A conexão está disponível. Você já pode continuar."}</p>
+        <h1>Home Security</h1><p class="muted">Bem-vindo ao portal local.</p><p class="muted"><strong>Ambiente de laboratório:</strong> esta página usa HTTPS local e funciona sem depender da internet.</p>
+        <p class="muted">${if (mode == RedPortalMode.LOCAL_LOGIN) "Cadastre-se para logar e continuar no ambiente de demonstração." else "A conexão está disponível. Você já pode continuar."}</p>
         <div class="actions">
-        <a href="${if (mode == RedPortalMode.LOCAL_LOGIN) "/login" else "/open"}">${if (mode == RedPortalMode.LOCAL_LOGIN) "Cadastre-se para conectar" else "Continuar navegando"}</a>
+        <a href="${if (mode == RedPortalMode.LOCAL_LOGIN) "/login" else "/open"}">${if (mode == RedPortalMode.LOCAL_LOGIN) "Cadastre-se para logar" else "Continuar navegando"}</a>
         <a class="secondary" href="/terms">Termos de utilização</a><a class="secondary" href="/links">Conteúdo e navegação</a>
         <a class="secondary" href="/permissions">Permissões do navegador (demonstração transparente)</a>
-        </div><p class="foot">Conecta Local · Acesso de visitantes</p></section></main></body></html>
+        </div><p class="foot">Home Security · KhaLinux Lab</p></section></main></body></html>
     """.trimIndent()
 
     private fun loginHtml() = """
         <!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-        <title>Orbe Sentinel | Cadastro</title><style>
-        body{font:16px system-ui;background:#f1f4f8;color:#172033;margin:0}.wrap{max-width:480px;margin:6vh auto;padding:20px}
-        .card{background:#fff;border:1px solid #dce3ec;border-radius:16px;padding:26px;box-shadow:0 10px 32px #15243a12}
-        .brand{font-size:13px;letter-spacing:1.4px;text-transform:uppercase;color:#315b83;font-weight:700}
-        h1{font-size:25px;margin:10px 0}.muted{color:#596579;line-height:1.5;font-size:14px}
-        label{display:block;margin:20px 0 7px;font-weight:600}input{box-sizing:border-box;width:100%;padding:13px;border:1px solid #c8d2df;border-radius:8px;font:inherit}
-        button{width:100%;padding:14px;border:0;border-radius:8px;background:#183f67;color:white;font:600 16px system-ui;margin-top:18px}
-        .notice{background:#eef4fa;border-left:3px solid #527da5;padding:10px 12px;border-radius:5px;font-size:12px;color:#46566b;margin-top:18px}
+        <title>Home Security | Cadastro e acesso</title><style>
+        body{font:16px system-ui;background:#f1f4f8;color:#172033;margin:0}.wrap{max-width:460px;margin:5vh auto;padding:20px}
+        .card{background:#fff;border:1px solid #dce3ec;border-radius:18px;padding:26px;box-shadow:0 10px 32px #15243a12}
+        .brand{font-size:13px;letter-spacing:1.2px;text-transform:uppercase;color:#315b83;font-weight:700}
+        h1{font-size:26px;margin:10px 0}.muted{color:#596579;line-height:1.5;font-size:14px}
+        label{display:block;margin:17px 0 7px;font-weight:600}input{box-sizing:border-box;width:100%;padding:13px;border:1px solid #c8d2df;border-radius:9px;font:inherit}
+        button{width:100%;padding:14px;border:0;border-radius:9px;background:#183f67;color:white;font:600 16px system-ui;margin-top:20px}
+        .or{display:flex;align-items:center;gap:12px;color:#788394;font-size:12px;margin:22px 0 14px}.or:before,.or:after{content:"";height:1px;background:#e1e6ed;flex:1}
+        .socials{display:grid;grid-template-columns:1fr 1fr;gap:10px}.social{padding:12px 8px;border-radius:9px;text-align:center;font-weight:600;font-size:14px;border:1px solid #dce3ec;background:#f8fafc}
+        .social small{display:block;font-size:10px;font-weight:400;opacity:.8;margin-top:2px}.facebook{color:#1877f2}.instagram{color:#a02b83}
+        .notice{background:#eef4fa;border-left:3px solid #527da5;padding:11px 12px;border-radius:5px;font-size:12px;color:#46566b;margin-top:20px}
         a{color:#315b83}
         </style></head><body><main class="wrap"><section class="card">
-        <div class="brand">Orbe Sentinel · Segurança Digital</div>
-        <h1>Cadastro de acesso</h1>
-        <p class="muted">Informe apenas um nome de identificação para entrar na rede de demonstração.</p>
-        <form method="post" action="/login">
-          <label for="participant_name">Como deseja ser identificado?</label>
-          <input id="participant_name" name="participant_name" maxlength="32" minlength="2" autocomplete="off" placeholder="Ex.: Participante 01" required>
-          <button type="submit">Cadastrar e conectar</button>
+        <div class="brand">Home Security</div>
+        <h1>Bem-vindo</h1>
+        <p class="muted">Cadastre-se para logar no ambiente de demonstração.</p>
+        <form method="post" action="/login" autocomplete="on">
+          <label for="email">E-mail</label>
+          <input id="email" name="email" type="email" maxlength="254" autocomplete="email" placeholder="voce@exemplo.com" required>
+          <label for="password">Senha</label>
+          <input id="password" name="password" type="password" minlength="8" maxlength="64" autocomplete="new-password" placeholder="Mínimo de 8 caracteres" required>
+          <button type="submit">Entrar / Cadastrar</button>
         </form>
-        <p class="notice"><strong>Ambiente demonstrativo KhaLinux.</strong> Orbe Sentinel é uma marca fictícia criada para este laboratório. Não informe e-mail, senha ou credenciais de outros serviços.</p>
+        <div class="or">OU SE PREFERIR</div>
+        <div class="socials" aria-label="Exemplos visuais de provedores externos">
+          <div class="social facebook">Facebook<small>Exemplo visual</small></div>
+          <div class="social instagram">Instagram<small>Exemplo visual</small></div>
+        </div>
+        <p class="notice"><strong>Demonstração local KhaLinux.</strong> E-mail e senha são validados somente para esta sessão. A senha não é armazenada nem usada para autenticar uma conta real. Facebook e Instagram são apenas exemplos visuais, sem conexão externa.</p>
         <p><a href="/">Voltar ao portal</a></p>
         </section></main></body></html>
     """.trimIndent()
