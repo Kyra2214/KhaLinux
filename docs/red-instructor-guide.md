@@ -11,16 +11,16 @@
 3. Inicie uma sessão.
 4. Escolha o modo do portal: login local ou acesso direto.
 5. Inicie o hotspot pelo botão do RED.
-6. Aguarde o Android informar o estado da rede e o RED iniciar o servidor HTTP na porta 8080.
-7. Compartilhe com o aparelho B somente o SSID/senha e o endereço do portal. A sessão do navegador é vinculada automaticamente pelo cookie temporário; não há código manual a informar.
+6. Aguarde o Android informar o estado da rede, o RED iniciar a preparação HTTP na porta 8080 e o portal HTTPS na porta 8443.
+7. Compartilhe com B o SSID/senha, a URL de preparação HTTP e o endereço HTTPS. No B, baixe a CA pública, compare o fingerprint com o A e instale-a pelas configurações do Android antes de abrir o portal HTTPS. A sessão do navegador é vinculada automaticamente pelo cookie temporário.
 8. Mantenha o painel aberto para acompanhar as requisições, eventos e resultados.
 
 ### Aparelho B — participante
 1. Conecte-se ao hotspot nas configurações Wi-Fi do Android.
-2. Abra o endereço local exibido pelo aparelho A ou leia o QR Code.
+2. Abra primeiro a URL HTTP de preparação exibida pelo A, baixe a CA pública e compare a impressão digital SHA-256 com o valor no A. Instale a CA nas configurações do Android e depois abra o endereço HTTPS/QR do portal.
 3. Faça o login usando somente os dados de teste do laboratório.
 4. Responda ao aviso de cookies no navegador.
-5. Se a aula incluir permissões web, abra a página **Permissões do navegador** e escolha individualmente câmera, microfone ou localização. Leia a finalidade e responda aos avisos próprios do navegador; em HTTP por IP local, o resultado esperado pode ser indisponível.
+5. Se a aula incluir permissões web, abra a página **Permissões do navegador** e escolha individualmente câmera, microfone ou localização. Leia a finalidade e responda aos avisos próprios do navegador. Se o navegador não confiar na CA, o handshake TLS não será observado e as APIs permanecerão indisponíveis.
 6. Não é necessário instalar ou abrir o KhaLinux no B.
 
 
@@ -46,7 +46,7 @@
 - O aviso oferece escolhas separadas para cookies necessários e categorias opcionais.
 - “Aceitar todos” registra consentimento para as categorias de cookies descritas no próprio aviso. Não concede câmera, microfone, localização ou permissões Android.
 - Solicitações web de câmera, microfone ou localização só podem ocorrer em contexto seguro e após ação explícita. O navegador exibe seus próprios avisos.
-- Se o portal HTTP por IP local não for considerado contexto seguro, o recurso aparece como indisponível; não se força nem se falsifica a permissão.
+- Se o navegador não aceitar o certificado HTTPS local, o recurso aparece como indisponível; não se força nem se falsifica a permissão.
 - O aparelho A registra a escolha de cookies e os estados que o portal receber efetivamente. Não recebe mídia, coordenadas, arquivos ou senhas.
 
 
@@ -68,10 +68,10 @@
 - **Hotspot não inicia:** conferir Wi-Fi, localização/serviços do sistema e permissões; o fabricante/versão Android pode restringir LocalOnlyHotspot.
 - **SSID ou senha não aparecem:** mostrar como indisponível se o Android não os expuser; não inventar valores.
 - **Portal não abre automaticamente:** digitar o endereço HTTP ou usar QR Code. A abertura automática não é garantida.
-- **Porta 8080 ocupada:** encerrar a sessão/servidor anterior; o app não deve trocar silenciosamente para outra porta.
+- **Porta 8080 ou 8443 ocupada:** encerrar a sessão/servidor anterior; o app não deve trocar silenciosamente para outra porta.
 - **Servidor sem IPv4 de interface AP:** o RED não deve abrir em todas as interfaces como fallback. Rever estado da rede e registrar indisponibilidade.
 - **Permissão não aparece:** verificar se já foi concedida, revogada ou bloqueada nas configurações do Android.
-- **Evento não chega ao painel:** conferir endereço do aparelho A, porta 8080, cookie de sessão do navegador e conexão Wi-Fi do aparelho B.
+- **Evento não chega ao painel:** conferir a conexão Wi-Fi do B, o download da CA em 8080, o handshake HTTPS em 8443 e o cookie de sessão.
 
 ## Limitações que devem ser explicadas
 
