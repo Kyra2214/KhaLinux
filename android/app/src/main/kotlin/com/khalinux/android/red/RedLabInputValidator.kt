@@ -10,7 +10,7 @@ data class RedSyntheticValidationResult(
 )
 
 object RedLabInputValidator {
-    private val syntheticKeys = setOf("demo_id", "demo_code")
+    private val syntheticKeys = setOf("participant_name")
 
     fun validateSyntheticForm(body: ByteArray, contentType: String?): RedSyntheticValidationResult {
         if (contentType?.substringBefore(';')?.trim()
@@ -28,21 +28,20 @@ object RedLabInputValidator {
         if (values.keys != syntheticKeys) {
             return RedSyntheticValidationResult(false, emptyMap(), "Campos não permitidos.")
         }
-        val demoId = values["demo_id"].orEmpty()
-        val demoCode = values["demo_code"].orEmpty()
-        val accepted = demoId.matches(Regex("^aluno-[a-z0-9-]{1,24}$")) &&
-            demoCode.matches(Regex("^LAB-[0-9]{4}$"))
-        return if (accepted) {
+        val participantName = values["participant_name"].orEmpty().trim()
+        val validName = participantName.length in 2..32 &&
+            participantName.matches(Regex("^[\\p{L}][\\p{L} .'-]{0,31}$"))
+        return if (validName) {
             RedSyntheticValidationResult(
                 true,
-                mapOf("demo_id" to demoId, "demo_code" to demoCode),
-                "Campos sintéticos recebidos e validados localmente."
+                mapOf("participant_name" to participantName),
+                "Nome de identificação recebido e validado localmente."
             )
         } else {
             RedSyntheticValidationResult(
                 false,
                 emptyMap(),
-                "Envio rejeitado: use identificador aluno-... e código LAB-0000."
+                "Informe um nome de identificação entre 2 e 32 caracteres."
             )
         }
     }
