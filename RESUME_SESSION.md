@@ -13,9 +13,9 @@
 - RED-02: concluído em código/documentação; ACCESS_FINE_LOCATION solicitada somente ao iniciar hotspot no A, com concessão, recusa, recusa permanente e revogação. Ver `docs/red-permissions.md`.
 - RED-03: concluído em código/documentação; LocalOnlyHotspot com timeout/cancelamento/callbacks tardios e correlação por interface/IPv4 diferencial; sem interface inequívoca, não inicia servidor. Ver `docs/red-hotspot-lifecycle.md`.
 - RED-04: concluído em código/documentação; servidor HTTP bindado ao IPv4 exato, valida Host/headers/framing, monitora interface e aplica limites. Ver `docs/red-http-server.md`.
-- Progresso provisório: 7 de 16 submódulos RED/BLUE concluídos (43,75%); RED-07 parcial. Itens parciais não contam como concluídos.
-- Último commit conhecido nesta retomada: `0c3a9e8efb96b0c0e251fe031899d3d2fbff7df4`; conferir o HEAD remoto antes de novas alterações.
+- RED-08: implementados token aleatório efêmero, cookie HttpOnly/SameSite, validação de IP/origem, comparação em tempo constante, bloqueio após falhas, expiração por inatividade/tempo absoluto e limpeza no stop. Ver `docs/red-session-security.md`.
+- Progresso de implementação: 8 de 16 submódulos concluídos (50%); RED-07 parcial. Próximo submódulo: BLUE-01.
 - Nenhum teste, build, compilação, lint ou validação foi executado nesta execução. Todos permanecem acumulados para a etapa final.
 - Testes físicos nos dois aparelhos permanecem na fase final.
 - Não gerar ZIP/checkpoints; o usuário determinou execução diretamente no repositório.
-- Pendências técnicas já identificadas: limitações de contexto seguro para permissões web; revisão dos rótulos legados no painel; integração final do relatório/BLUE com o evento de consentimento.
+- Pendências: HTTPS confiável para prompts nativos do RED-07; validar sessão/CSRF/expiração e encerramento na fase final; concluir BLUE-01 e demais submódulos; revisar integração final de relatório/BLUE.
