@@ -34,12 +34,13 @@ class RedSystemHotspotController(
         startUpstreamMonitoring()
         val primary = Intent("android.settings.TETHER_SETTINGS").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         val fallback = Intent(Settings.ACTION_WIRELESS_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        return runCatching {
-            if (primary.resolveActivity(appContext.packageManager) != null) {
-                appContext.startActivity(primary)
-            } else {
-                appContext.startActivity(fallback)
-            }
+        val primaryStarted = runCatching {
+            if (primary.resolveActivity(appContext.packageManager) == null) error("Tether settings activity unavailable")
+            appContext.startActivity(primary)
+            true
+        }.getOrDefault(false)
+        return primaryStarted || runCatching {
+            appContext.startActivity(fallback)
             true
         }.getOrDefault(false)
     }
