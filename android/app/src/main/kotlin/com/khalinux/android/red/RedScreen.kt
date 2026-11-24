@@ -191,7 +191,11 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                         Text("Servidor HTTP local · porta ${endpoint.port}", style = MaterialTheme.typography.labelLarge)
                         Text("Interface: ${endpoint.interfaceName ?: "não identificada"}", style = MaterialTheme.typography.bodySmall)
                     } ?: Text(
-                        "Hotspot solicitado. Aguardando identificação inequívoca da interface Wi-Fi e do endereço IPv4 antes de iniciar o portal.",
+                        if (state.networkState == RedNetworkState.ERROR) {
+                            "O portal foi encerrado ou não pôde iniciar. A reserva do hotspot ainda pode estar ativa; use Parar para liberá-la."
+                        } else {
+                            "Hotspot solicitado. Aguardando identificação inequívoca da interface Wi-Fi e do endereço IPv4 antes de iniciar o portal."
+                        },
                         style = MaterialTheme.typography.bodySmall
                     )
                     state.hotspotInfo?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
