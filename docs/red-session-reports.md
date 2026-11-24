@@ -27,7 +27,7 @@ O relatório Markdown inclui:
 - ID da operação/sessão, início/fim, estado e modo;
 - contagens derivadas de eventos, escolhas de cookies e estados de permissões;
 - linha do tempo com metadados e cabeçalhos permitidos;
-- uso de HTTPS local, necessidade de confiança da CA no navegador, endpoint HTTP restrito de preparação e validação ainda pendente.
+- uso de HTTPS local, download observado da CA pública, primeiro handshake TLS concluído quando observado, estado de confiança do navegador e validação ainda pendente.
 
 O relatório é gerado sob demanda para copiar ou exportar pelo seletor de documentos do Android. A exclusão da sessão remove o registro e a fonte local do relatório; arquivos já exportados permanecem no destino escolhido pelo usuário.
 
