@@ -8,6 +8,9 @@ import java.net.ServerSocket
 import java.net.Socket
 import java.net.SocketTimeoutException
 import java.nio.charset.StandardCharsets
+import java.security.MessageDigest
+import java.security.SecureRandom
+import java.util.Base64
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Semaphore
@@ -42,6 +45,13 @@ class RedPortalServer(
     @Volatile var boundIpv4Address: String? = null
         private set
     @Volatile private var portalMode: RedPortalMode = RedPortalMode.LOCAL_LOGIN
+    @Volatile private var activeSessionToken: String? = null
+    @Volatile private var sessionStartedAt: Long = 0L
+    @Volatile private var lastActivityAt: Long = 0L
+    @Volatile private var sessionOwnerAddress: String? = null
+    private val failedSessionAttempts = ConcurrentHashMap<String, FailedAttempt>()
+    private data class FailedAttempt(val count: Int, val blockedUntil: Long)
+    private enum class AuthorizationResult { AUTHORIZED, INVALID_TOKEN, INVALID_ORIGIN, RATE_LIMITED, EXPIRED }
 
     fun setMode(mode: RedPortalMode) { portalMode = mode }
 
@@ -56,6 +66,12 @@ class RedPortalServer(
         // A porta 8080 é o padrão, mas pode ser alterada explicitamente pelo operador.
         val server = ServerSocket(configuredPort, BACKLOG, InetAddress.getByName(binding.second))
         server.soTimeout = ACCEPT_TIMEOUT_MS
+        val now = System.currentTimeMillis()
+        activeSessionToken = createSessionToken()
+        sessionStartedAt = now
+        lastActivityAt = now
+        sessionOwnerAddress = null
+        failedSessionAttempts.clear()
         socket = server
         running.set(true)
         boundInterface = binding.first
@@ -802,6 +818,11 @@ class RedPortalServer(
         boundInterface = null
         boundPort = null
         boundIpv4Address = null
+        activeSessionToken = null
+        sessionStartedAt = 0L
+        lastActivityAt = 0L
+        sessionOwnerAddress = null
+        failedSessionAttempts.clear()
         onAddress(null)
         onEvent("Servidor do portal local encerrado.")
     }
