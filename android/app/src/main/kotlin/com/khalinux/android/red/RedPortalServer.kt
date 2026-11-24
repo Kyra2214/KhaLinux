@@ -636,7 +636,7 @@ class RedPortalServer(
 
     private fun parseHeaders(lines: List<String>): Map<String, String> = buildMap {
         lines.filter { it.isNotEmpty() }.forEach { line ->
-            if (line.firstOrNull() == ' ' || line.firstOrNull() == '\\t') {
+            if (line.firstOrNull() == ' ' || line.firstOrNull() == '\t') {
                 throw IllegalArgumentException("Header folding não é permitido.")
             }
             val separator = line.indexOf(':')
