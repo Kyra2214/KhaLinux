@@ -149,14 +149,22 @@ class RedPortalServer(
                 continue
             }
             clients.add(client)
-            Thread({
+            val clientWorker = Thread({
                 try {
                     handle(client)
                 } finally {
                     clients.remove(client)
                     clientSlots.release()
                 }
-            }, "red-portal-client").apply { isDaemon = true; start() }
+            }, "red-portal-client").apply { isDaemon = true }
+            try {
+                clientWorker.start()
+            } catch (error: Exception) {
+                clients.remove(client)
+                clientSlots.release()
+                runCatching { client.close() }
+                emitEvent("Não foi possível iniciar o worker HTTP: ${error.javaClass.simpleName}.")
+            }
         }
     }
 
