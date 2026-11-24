@@ -717,16 +717,27 @@ class RedPortalServer(
 
     private fun loginHtml() = """
         <!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-        <title>Acesso Wi-Fi</title><style>body{font:16px system-ui;background:#f4f6f8;color:#202124;margin:0}.wrap{max-width:480px;margin:7vh auto;padding:24px}
-        .card{background:#fff;border:1px solid #e2e5e9;border-radius:14px;padding:26px}label{display:block;margin:14px 0 6px}
-        input{box-sizing:border-box;width:100%;padding:12px;border:1px solid #c8cdd3;border-radius:7px;font:inherit}
-        button{width:100%;padding:13px;border:0;border-radius:8px;background:#2457a6;color:white;font:inherit;margin-top:20px}
-        .muted{color:#5f6368;font-size:13px}</style></head><body><main class="wrap"><section class="card">
-        <h1>Acesso Wi-Fi</h1><p class="muted">Informe os dados de acesso de teste preparados para esta aula.</p><p class="muted"><strong>Portal HTTPS do laboratório:</strong> utilize somente identificadores e códigos de teste.</p>
-        <form method="post" action="/login"><label for="demo_id">Identificação de teste</label><input id="demo_id" name="demo_id" maxlength="30" autocomplete="off" placeholder="aluno-demo" required>
-        <label for="demo_code">Código de acesso de teste</label><input id="demo_code" name="demo_code" maxlength="8" autocomplete="off" placeholder="LAB-2048" required>
-        <button type="submit">Conectar</button></form><p class="muted">Use identificador aluno-... e código LAB-0000, fornecidos para o laboratório.</p>
-        <p><a href="/">Voltar</a></p></section></main></body></html>
+        <title>Orbe Sentinel | Cadastro</title><style>
+        body{font:16px system-ui;background:#f1f4f8;color:#172033;margin:0}.wrap{max-width:480px;margin:6vh auto;padding:20px}
+        .card{background:#fff;border:1px solid #dce3ec;border-radius:16px;padding:26px;box-shadow:0 10px 32px #15243a12}
+        .brand{font-size:13px;letter-spacing:1.4px;text-transform:uppercase;color:#315b83;font-weight:700}
+        h1{font-size:25px;margin:10px 0}.muted{color:#596579;line-height:1.5;font-size:14px}
+        label{display:block;margin:20px 0 7px;font-weight:600}input{box-sizing:border-box;width:100%;padding:13px;border:1px solid #c8d2df;border-radius:8px;font:inherit}
+        button{width:100%;padding:14px;border:0;border-radius:8px;background:#183f67;color:white;font:600 16px system-ui;margin-top:18px}
+        .notice{background:#eef4fa;border-left:3px solid #527da5;padding:10px 12px;border-radius:5px;font-size:12px;color:#46566b;margin-top:18px}
+        a{color:#315b83}
+        </style></head><body><main class="wrap"><section class="card">
+        <div class="brand">Orbe Sentinel · Segurança Digital</div>
+        <h1>Cadastro de acesso</h1>
+        <p class="muted">Informe apenas um nome de identificação para entrar na rede de demonstração.</p>
+        <form method="post" action="/login">
+          <label for="participant_name">Como deseja ser identificado?</label>
+          <input id="participant_name" name="participant_name" maxlength="32" minlength="2" autocomplete="off" placeholder="Ex.: Participante 01" required>
+          <button type="submit">Cadastrar e conectar</button>
+        </form>
+        <p class="notice"><strong>Ambiente demonstrativo KhaLinux.</strong> Orbe Sentinel é uma marca fictícia criada para este laboratório. Não informe e-mail, senha ou credenciais de outros serviços.</p>
+        <p><a href="/">Voltar ao portal</a></p>
+        </section></main></body></html>
     """.trimIndent()
 
     private fun browserPermissionPanelHtml() = """
