@@ -93,6 +93,9 @@ jobs:
       - name: Assemble debug APK (no publish)
         run: ./gradlew --no-daemon :android:app:assembleDebug
 
+      - name: Android lint (debug)
+        run: ./gradlew --no-daemon :android:app:lintDebug
+
   android-release-apk:
     name: Android signed release APK (main)
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
