@@ -29,6 +29,7 @@ O relatório Markdown inclui:
 - linha do tempo com metadados e cabeçalhos permitidos;
 - uso de HTTPS local, download observado da CA pública, primeiro handshake TLS concluído quando observado, estado de confiança do navegador e validação ainda pendente.
 - estado de upstream validado observado no aparelho A, sempre separado de qualquer confirmação de navegação externa no B.
+- último heartbeat local autenticado recebido do B, separado do estado de upstream e sem inferir navegação externa.
 
 O relatório é gerado sob demanda para copiar ou exportar pelo seletor de documentos do Android. A exclusão da sessão remove o registro e a fonte local do relatório; arquivos já exportados permanecem no destino escolhido pelo usuário.
 
