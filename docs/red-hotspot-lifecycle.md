@@ -15,12 +15,13 @@
 
 `LocalOnlyHotspot` continua sendo o modo isolado padrão e não oferece upstream. Para uma sessão em que B deverá receber internet posteriormente sem trocar de Wi-Fi, o operador pode escolher o modo de hotspot do sistema:
 
-1. KhaLinux registra os IPv4 Wi-Fi atuais como baseline.
-2. Abre as Configurações de tethering do Android; o operador ativa o hotspot manualmente.
-3. Ao retornar, o operador solicita a descoberta. O controlador compara interfaces/IPv4 e só aceita um endereço novo e inequívoco.
-4. O portal HTTPS e o endpoint de preparação são vinculados ao IPv4 identificado.
-5. Um callback público de conectividade observa upstream em A. `NET_CAPABILITY_VALIDATED` indica validação de internet no A, não prova individualmente que B conseguiu navegar.
-6. O operador pode ativar dados móveis/upstream sem desligar o hotspot; a associação de B deve permanecer, conforme suporte do Android/OEM/operadora.
+1. O operador mantém o hotspot do sistema desligado e desativa os dados móveis para iniciar sem upstream.
+2. KhaLinux registra os IPv4 Wi-Fi atuais como baseline.
+3. Abre as Configurações de tethering do Android; o operador ativa o hotspot manualmente.
+4. Ao retornar, o operador solicita a descoberta. O controlador compara interfaces/IPv4 e só aceita um endereço novo e inequívoco.
+5. O portal HTTPS e o endpoint de preparação são vinculados ao IPv4 identificado.
+6. Um callback público de conectividade observa upstream em A. `NET_CAPABILITY_VALIDATED` indica validação de internet no A, não prova individualmente que B conseguiu navegar.
+7. O operador pode ativar dados móveis/upstream sem desligar o hotspot; a associação de B deve permanecer, conforme suporte do Android/OEM/operadora.
 
 O KhaLinux não chama APIs ocultas de tethering nem desliga o hotspot do sistema ao encerrar o portal. O operador desliga o hotspot nas Configurações. Se a interface/IPv4 for ambígua, o portal não inicia.
 
