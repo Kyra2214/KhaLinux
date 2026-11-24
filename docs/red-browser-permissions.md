@@ -1,7 +1,7 @@
 # Permissões web no navegador do aparelho B
 
 **Submódulo:** RED-07  
-**Estado:** parcial. Endpoint, validação, eventos e fluxo de navegador implementados. A solicitação nativa real depende de uma origem HTTPS confiável no aparelho B.
+**Estado:** parcial. Endpoint, validação, eventos e fluxo de navegador implementados. A arquitetura de HTTPS local com CA própria foi definida em [red-local-tls.md](red-local-tls.md); implementação TLS e validação ainda pendentes.
 
 ## Fluxo implementado
 
@@ -24,16 +24,18 @@ O servidor do laboratório publica `http://IPv4-privado:porta`. Câmera, microfo
 
 Em uma origem segura, cada botão inicia sua chamada real. A página não tenta ocultar os avisos nativos do navegador nem automatizar a aceitação. As solicitações não são agrupadas em um botão único e não são disparadas pelo banner de cookies.
 
-## Dependência pendente
+## Próxima evolução: HTTPS local
 
-Para obter prompts nativos reais no B sem instalar aplicativo participante, é necessário publicar o portal em HTTPS com certificado confiável pelo navegador do B. Certificado autoassinado não satisfaz essa condição sem uma etapa adicional de confiança no dispositivo. O usuário ainda não definiu domínio/certificado confiável; não foi inventado um.
+A decisão do laboratório é permitir uma configuração inicial de confiança no aparelho B, instalando a CA pública criada no aparelho A. A chave privada da CA permanece no A. A arquitetura prevê HTTP na porta 8080 apenas para preparação/entrega do certificado público e HTTPS em porta própria (planejada: 8443) para o portal e as APIs sensíveis. O certificado do servidor deverá conter SAN IP correspondente ao IPv4 atual do hotspot. Ver [red-local-tls.md](red-local-tls.md).
+
+A instalação da CA não garante automaticamente que todo navegador/versão Android confiará nela. O estado só será confirmado quando o navegador abrir a origem HTTPS sem erro de certificado. A validação física permanece adiada para RED-13.
 
 ## Limites de coleta
 
 - Nenhuma foto, áudio ou coordenada é capturada para o laboratório.
 - Tracks de mídia são encerrados imediatamente após a confirmação.
 - Coordenadas são descartadas no callback.
-- Não existe permissão web que libere a galeria inteira ou o sistema de arquivos. Nenhum seletor de arquivo é aberto.
+- Não existe permissão web genérica de armazenamento que libere a galeria inteira ou o sistema de arquivos. Um seletor de arquivos, se futuramente implementado, deverá ser aberto por ação explícita e permanecer sob controle do navegador. Nenhum seletor é aberto nesta etapa.
 - O navegador pode não distinguir “fechar o prompt” de “negar”; nesses casos, o estado reportado segue o resultado real da API.
 
 ## Validação pendente
