@@ -63,7 +63,7 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
             if (event == Lifecycle.Event.ON_RESUME) {
                 val current = readHotspotPermissionState(context)
                 val previous = previousPermissionState.value
-                if (previous in setOf(RedAndroidPermissionState.GRANTED) &&
+                if (previous == RedAndroidPermissionState.GRANTED &&
                     current in setOf(RedAndroidPermissionState.DENIED, RedAndroidPermissionState.PERMANENTLY_DENIED)
                 ) {
                     viewModel.recordStructuredEvent(
@@ -72,7 +72,7 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                         source = "android-permission"
                     )
                 }
-                val resolved = if (previous in setOf(RedAndroidPermissionState.PRECISE_GRANTED, RedAndroidPermissionState.APPROXIMATE_GRANTED) && current in setOf(RedAndroidPermissionState.DENIED, RedAndroidPermissionState.PERMANENTLY_DENIED)) RedAndroidPermissionState.REVOKED else current
+                val resolved = if (previous == RedAndroidPermissionState.GRANTED && current in setOf(RedAndroidPermissionState.DENIED, RedAndroidPermissionState.PERMANENTLY_DENIED)) RedAndroidPermissionState.REVOKED else current
                 previousPermissionState.value = resolved
                 hotspotPermissionState = resolved
             }
