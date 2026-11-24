@@ -1,6 +1,7 @@
 package com.khalinux.android.red
 
 import android.app.Application
+import android.os.Build
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -597,6 +598,22 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         mutableState.update { it.copy(message = "Valores sintéticos temporários removidos do painel.") }
     }
 
+    fun deleteSession(sessionId: String) {
+        val current = mutableState.value.session
+        if (current?.id == sessionId && current.endedAt == null) {
+            mutableState.update { it.copy(message = "Encerre a sessão antes de excluí-la do histórico.") }
+            return
+        }
+        store.delete(sessionId)
+        mutableState.update {
+            it.copy(
+                session = if (it.session?.id == sessionId) null else it.session,
+                message = "Sessão e relatório local removidos do histórico."
+            )
+        }
+        refreshHistory()
+    }
+
     fun deleteHistory() {
         stopNetworkLab()
         store.deleteAll()
@@ -605,6 +622,13 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun report(session: RedSession): String {
+        val app = getApplication<Application>()
+        val appVersion = runCatching {
+            app.packageManager.getPackageInfo(app.packageName, 0).let { info ->
+                "${info.versionName ?: "versão não informada"} (${info.longVersionCode})"
+            }
+        }.getOrDefault("não disponível")
+
         val operation = RedCatalog.find(session.operationId)
         val orderedEvents = session.events.sortedBy { it.sequence }
         val requestEvents = orderedEvents.filter { it.type == RedEventType.HTTP_REQUEST_RECEIVED || (it.type == RedEventType.HTTP_REQUEST_REJECTED && it.rejectionReason == "invalid_request_line") }
@@ -625,6 +649,9 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         return buildString {
             appendLine("# Relatório RED")
             appendLine()
+            appendLine("- Aplicativo: KhaLinux $appVersion")
+            appendLine("- Android: ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})")
+            appendLine("- Gerado em: ${System.currentTimeMillis()}")
             appendLine("- Operação: ${operation?.title ?: session.operationId}")
             appendLine("- Sessão: ${session.id}")
             appendLine("- Início: ${session.startedAt}")
@@ -633,6 +660,9 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             appendLine("- Modo do portal: ${if (session.portalMode == RedPortalMode.LOCAL_LOGIN) "login local" else "acesso direto"}")
             appendLine("- Etapas concluídas: ${session.completedSteps.size}/${operation?.steps?.size ?: 0}")
             appendLine("- Requisições HTTP observadas: ${requestEvents.size}")
+            appendLine("- Requisições rejeitadas: ${orderedEvents.count { it.type == RedEventType.HTTP_REQUEST_REJECTED }}")
+            appendLine("- Respostas HTTP registradas: ${orderedEvents.count { it.type == RedEventType.HTTP_RESPONSE_SENT }}")
+            appendLine("- Falhas internas registradas: ${orderedEvents.count { it.type == RedEventType.HTTP_SERVER_FAILURE }}")
             appendLine("- Eventos de permissões/recursos: ${permissionEvents.size}")
             appendLine("- Escolhas de cookies registradas: ${orderedEvents.count { it.type == RedEventType.COOKIE_CONSENT_RECORDED }}")
             appendLine()
@@ -657,6 +687,12 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 event.source?.let { appendLine("  - Origem do evento: $it") }
             }
             appendLine()
+            appendLine("## Limitações e validação")
+            appendLine("- O portal RED usa HTTP local sem TLS; o relatório não representa uma conexão criptografada.")
+            appendLine("- Permissões web dependem de contexto seguro e suporte do navegador; indisponibilidade não equivale a recusa.")
+            appendLine("- Testes automatizados, compilação e testes físicos são acumulados para a etapa final do roadmap e não são declarados aprovados neste relatório.")
+            appendLine("- A ausência de evento significa somente que o servidor não recebeu esse evento durante esta sessão.")
+
             appendLine("## Privacidade do relatório")
             appendLine("- Não inclui campos de formulários, códigos de acesso, cookies, tokens, arquivos, áudio, vídeo ou coordenadas.")
             appendLine("- Valores sintéticos do formulário existiram somente em memória durante a sessão.")
