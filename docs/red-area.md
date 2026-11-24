@@ -82,7 +82,7 @@ Consulte [blue-area.md](blue-area.md).
 - [Guia do usuário](user-guide.md): navegação no app e visão geral das áreas RED/BLUE.
 - [Roadmap mestre](roadmap-area-red-completa.md): requisitos, dependências e ordem de implementação.
 
-Os vídeos devem mostrar a criação da rede, conexão do segundo aparelho, portal, navegação, permissões e o que chegou ao servidor. Não mostrar código-fonte, scripts ou detalhes internos.
+Os vídeos devem mostrar a criação da rede, conexão do segundo aparelho, portal, aviso de cookies, login de teste, navegação e o que chegou ao servidor; permissões web somente quando suportadas pelo contexto seguro. Não mostrar código-fonte, scripts ou detalhes internos.
 
 ## Estrutura de código principal
 
