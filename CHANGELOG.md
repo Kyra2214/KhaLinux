@@ -25,7 +25,7 @@
 - Dependência Bouncy Castle adicionada para geração X.509.
 - Implementação de código/documentação concluída; confiança da CA em navegadores reais e permissões web aguardam validação final.
 - Escritas de evidência e observações de requisição serializadas no ViewModel para preservar sequência em callbacks concorrentes.
-- Nenhum teste, build ou compilação foi executado, conforme a regra de implementação contínua.
+- Primeira validação final: host checks, auditoria estática, JNI PTY e smoke PRoot passaram no workflow `45405105200`; testes Android e APK Debug em execução.
 
 ## [Não lançado] — RED-14: estabilização documental atualizada
 
