@@ -1,7 +1,7 @@
 # HTTPS local e confiança da autoridade do laboratório
 
 **Submódulo:** RED-07  
-**Estado:** requisito obrigatório do RED-07; arquitetura offline definida; implementação TLS e validação ainda pendentes.  
+**Estado:** implementação inicial do mecanismo TLS adicionada; confiança efetiva no navegador, integração completa de preparação e validação permanecem pendentes. RED-07 continua parcial.  
 **Topologia:** A hospeda o portal e mantém a chave privada da autoridade; B participa exclusivamente pelo navegador e pela tela de configurações do Android para a instalação inicial da CA.
 
 ## Objetivo
@@ -70,6 +70,17 @@ O servidor HTTP não deve redirecionar automaticamente para HTTPS antes da insta
 - Validar expiração, cadeia, SAN e bind antes de marcar HTTPS como pronto.
 - Não assumir que todos os navegadores aceitam CA de usuário. A compatibilidade deve ser documentada por navegador/versão após validação física.
 - O estado de operação deve distinguir: CA gerada, CA pública exportada, CA instalada pelo operador, certificado do servidor emitido, HTTPS escutando e origem confirmada pelo navegador.
+
+## Implementação registrada nesta etapa
+
+- `RedLocalTlsManager` gera uma CA RSA e uma chave de servidor usando Android Keystore; as chaves privadas não são exportadas.
+- O certificado de servidor é emitido para o IPv4 atual e inclui SAN do tipo IP, validade limitada e EKU `serverAuth`.
+- O contexto TLS oferece TLS 1.2/1.3 e o servidor principal pode abrir `SSLServerSocket` vinculado ao IPv4 do hotspot.
+- `RedTlsPreparationServer` expõe somente o certificado DER público em HTTP `8080/ca.cer` e um endpoint `/health`; não publica o portal nem endpoints de sessão.
+- A integração inicial no ViewModel prepara a CA, inicia o endpoint de preparação e inicia o portal HTTPS em `8443`.
+- A tela do operador apresenta a URL do certificado e a impressão digital SHA-256 para conferência independente.
+
+**Ainda pendente:** confirmar compatibilidade de instalação/confiabilidade da CA com navegador/Android alvo; revisar ciclo de vida e falhas parciais; tratar rotação e renovação de certificado; finalizar fluxo de instalação manual e estados de confiança; atualizar todos os relatórios e telas; validar tudo na fase final. A implementação não está aprovada por build ou teste.
 
 ## Referências internas
 
