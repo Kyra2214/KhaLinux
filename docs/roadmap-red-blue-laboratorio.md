@@ -8,7 +8,7 @@ Este documento é o plano de execução da Área RED/BLUE nesta branch. O `ROADM
 
 ## Progresso da execução
 
-- **Implementação RED/BLUE:** 75% (12 de 16 submódulos concluídos em código/documentação; RED-07 parcial e auditorias/testes pendentes para a etapa final).
+- **Implementação/documentação RED/BLUE:** 87,5% (14 de 16 submódulos preparados; RED-07 parcial e RED-14 pendente. Validação permanece separada e não iniciada).
 - **Concluídos:** RED-00 — [inventário de baseline](red-baseline-inventory.md); RED-01 — [modelo de domínio](red-domain-model.md); RED-02 — [matriz de permissões](red-permissions.md); RED-03 — [ciclo de vida do hotspot](red-hotspot-lifecycle.md); RED-04 — [servidor HTTP local](red-http-server.md); RED-05 — portal local e aviso de cookies; RED-06 — [eventos e evidências](red-event-evidence.md); RED-08 — integridade da sessão; BLUE-01 — análise defensiva; RED-09 — [histórico, relatório e exportação](red-session-reports.md); RED-10 — [interface do operador](red-operator-ui.md).
 - **Parcial:** RED-07 — fluxo e telemetria web implementados; HTTPS confiável pendente para prompts nativos no B.
 - **Próximo submódulo:** BLUE-01 — painel defensivo baseado nas evidências RED.
@@ -394,6 +394,8 @@ Atividades:
 
 ## RED-12 — Integração, compilação e testes host/Android automatizados
 
+**Estado:** integração de código e plano de validação documentados; compilação, lint, testes host/Android e auditoria transferidos para a fase final. Ver [red-validation-plan.md](red-validation-plan.md).
+
 **Objetivo:** provar que o código integrado compila e que as partes testáveis funcionam antes de qualquer aparelho físico.
 
 Atividades:
@@ -416,32 +418,34 @@ Atividades:
 
 ## RED-13 — Validação física final nos dois aparelhos
 
+**Estado:** matriz física corrigida para B navegador-only; execução nos aparelhos transferida para a fase final, após RED-12. Ver [red-physical-validation.md](red-physical-validation.md).
+
 **Objetivo:** validar o comportamento real no hardware Android definido para o laboratório. Esta fase só começa após RED-12.
 
 ### Matriz de testes físicos
 
 | ID | Ação real | Evidência exigida |
 |---|---|---|
-| PHY-01 | Iniciar sessão no aparelho A | Callback real, estado e horário registrados. |
-| PHY-02 | Solicitar LocalOnlyHotspot | Resultado real do Android; SSID/segurança somente se fornecidos. |
-| PHY-03 | Identificar interface e IP | Interface e endereço observados e vinculados à sessão. |
+| PHY-01 | Iniciar sessão no aparelho A | ID, horário e estado inicial registrados. |
+| PHY-02 | Solicitar LocalOnlyHotspot | Callback real do Android; SSID/segurança somente se fornecidos. |
+| PHY-03 | Identificar interface/IP | Interface e endereço observados e vinculados à sessão. |
 | PHY-04 | Iniciar servidor local | Bind no IP específico e porta confirmados. |
-| PHY-05 | Conectar aparelho B manualmente | Conexão feita pelas Configurações do Android; limitações de visibilidade registradas. |
-| PHY-06 | Abrir URL/QR no aparelho B | Requisição real aparece no painel A. |
-| PHY-07 | Navegar pelo portal | Rotas, status e timestamps correspondem às requisições reais. |
-| PHY-08 | Enviar formulário neutro de laboratório | POST recebido; apenas dados de teste não sensíveis; relatório sanitizado. |
-| PHY-09 | Negar permissão no B | Estado negado/cancelado refletido sem declarar sucesso. |
-| PHY-10 | Conceder permissão no B | Diálogo nativo e estado concedido observados. |
-| PHY-11 | Revogar permissão no B | Estado atualizado; recurso interrompido. |
-| PHY-12 | Câmera | Prévia local no B; nenhum frame enviado ao A. |
-| PHY-13 | Microfone | Medidor local; amostras descartadas; nenhum áudio enviado. |
-| PHY-14 | Localização | Resultado visível localmente no B; coordenadas não enviadas ao A. |
-| PHY-15 | Seletor SAF | Seleção explícita; nenhum conteúdo/nome transmitido. |
-| PHY-16 | Alternar RED/BLUE | Mesmos IDs e eventos em ambas as perspectivas. |
-| PHY-17 | Perda de rede/fechamento do B | Erro real e estado atualizado. |
-| PHY-18 | Encerrar sessão no A | Servidor, hotspot e recursos encerrados. |
-| PHY-19 | Reabrir histórico/relatório | Metadados consistentes; sem segredos ou conteúdo sensível. |
-| PHY-20 | Repetir ciclo completo | Segunda sessão independente, sem estado residual. |
+| PHY-05 | Conectar B ao Wi-Fi | Conexão manual; nenhuma lista universal de clientes presumida. |
+| PHY-06 | Abrir URL/QR no navegador B | Requisição real aparece no painel A. |
+| PHY-07 | Fazer login de laboratório | POST com identificador/código sintéticos; nenhum segredo pessoal. |
+| PHY-08 | Aceitar cookies | Categorias registradas; nenhum pedido de recurso disparado. |
+| PHY-09 | Recusar cookies opcionais | Escolha registrada sem categorias opcionais. |
+| PHY-10 | Configurar cookies | Estados customizados por categoria registrados. |
+| PHY-11 | Abrir Permissões do navegador | Ações separadas para câmera, microfone e localização. |
+| PHY-12 | Solicitar permissões via HTTP/IP privado | UNAVAILABLE quando origem não for segura; nenhum prompt forçado. |
+| PHY-13 | Permissões via HTTPS confiável, se disponível | Cada recurso solicitado por clique separado; diálogo real do navegador. |
+| PHY-14 | Negar/cancelar permissão web, quando disponível | Estado negado/cancelado registrado sem declarar sucesso. |
+| PHY-15 | Conceder/revogar permissão web, quando disponível | Estado real observado; nenhum payload enviado ao A. |
+| PHY-16 | Navegar páginas/links/redirecionamentos | Métodos, rotas, status e horários correspondem às requisições reais. |
+| PHY-17 | Alternar RED/BLUE | Mesmos IDs e eventos nas duas perspectivas. |
+| PHY-18 | Perda de rede/fechamento do B | Erro/ausência de novas requisições apresentados sem inventar desconexão. |
+| PHY-19 | Encerrar sessão e revisar relatório | Recursos encerrados; relatório sem cookies, tokens, campos, mídia ou coordenadas. |
+| PHY-20 | Repetir ciclo completo | Nova sessão independente, sem estado residual. |
 
 Para cada execução registrar: ID do teste, modelo dos dois aparelhos, versão Android, versão do app, commit, pré-condições, passos, resultado esperado, resultado observado, evidência sem dados pessoais, falha e issue associada. Não publicar IMEI, número de série, MAC completo, localização ou identificadores pessoais nos relatórios.
 
@@ -499,25 +503,25 @@ Uma fase só recebe o estado correspondente à evidência disponível. “Códig
 
 ## 8. Ordem de execução
 
-1. RED-00 — auditoria do baseline.
+1. RED-00 — baseline e topologia.
 2. RED-01 — modelo e estados.
-3. RED-02 — matriz de permissões.
-4. RED-03 — hotspot.
-5. RED-04 — interface e servidor.
-6. RED-05 — portal.
-7. RED-06 — observabilidade.
-8. RED-07 — permissões web no navegador do aparelho B.
-9. RED-08 — segurança e ciclo de vida.
-10. BLUE-01 — painel defensivo.
+3. RED-02 — permissões Android do operador A.
+4. RED-03 — ciclo de vida do hotspot.
+5. RED-04 — servidor HTTP local.
+6. RED-05 — portal e consentimento de cookies.
+7. RED-06 — eventos, persistência e BLUE.
+8. RED-07 — permissões web no navegador do aparelho B (parcial, dependente de HTTPS confiável).
+9. RED-08 — segurança e ciclo de vida da sessão.
+10. BLUE-01 — painel defensivo baseado nas evidências RED.
 11. RED-09 — histórico e relatório.
-12. RED-10 — integração de UI.
-13. RED-11 — auditoria de segurança.
-14. RED-12 — build e testes automatizados.
-15. RED-13 — testes físicos A+B, somente após aprovação do portão anterior.
-16. RED-14 — estabilização e entrega.
+12. RED-10 — integração da interface do operador.
+13. RED-11 — hardening e documentação; auditoria final adiada.
+14. RED-12 — integração documentada; build/testes adiados.
+15. RED-13 — matriz física corrigida; execução adiada.
+16. RED-14 — estabilização e entrega da branch.
 
-As dependências podem ser ajustadas durante a auditoria, mas nenhuma fase posterior pode ser declarada concluída enquanto seus pré-requisitos estiverem bloqueados.
-
+Testes, builds, auditorias de validação e testes físicos só serão executados depois da conclusão da implementação integral. Dependências externas indisponíveis permanecem registradas, sem inventar resultados.
+ 
 ## 9. Fora do escopo desta branch
 
 - Uso em aparelhos, redes ou pessoas fora dos dois dispositivos do laboratório.
