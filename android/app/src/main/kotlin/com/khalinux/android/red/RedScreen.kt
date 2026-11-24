@@ -130,20 +130,26 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                     if (snapshot.ssid == null) Text("SSID não disponibilizado pela API do Android.", style = MaterialTheme.typography.bodySmall)
                 }
                 if (state.networkRunning) {
-                    Text("Portal: ${state.portalAddress ?: "endereço local não identificado"}", style = MaterialTheme.typography.bodySmall)
-                    state.portalAddress?.let { address ->
-                        RedQrCode(address)
-                        TextButton(onClick = { clipboard.setText(AnnotatedString(address)) }) { Text("Copiar endereço do portal") }
+                    Text("Portal: ${state.portalEndpoint?.url ?: "endereço local não identificado"}", style = MaterialTheme.typography.bodySmall)
+                    state.portalEndpoint?.let { endpoint ->
+                        RedQrCode(endpoint.url)
+                        TextButton(onClick = { clipboard.setText(AnnotatedString(endpoint.url)) }) { Text("Copiar endereço do portal") }
                     }
                     state.hotspotInfo?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
-                    Text("Servidor HTTP local · porta ${state.serverPort ?: 8080}", style = MaterialTheme.typography.labelLarge)
-                    Text("Interface: ${state.serverInterface ?: "não identificada"}", style = MaterialTheme.typography.bodySmall)
+                    Text("Servidor HTTP local · porta ${state.portalEndpoint?.port ?: state.portalConfiguration.requestedPort}", style = MaterialTheme.typography.labelLarge)
+                    Text("Interface: ${state.portalEndpoint?.interfaceName ?: "não identificada"}", style = MaterialTheme.typography.bodySmall)
                     Text(
                         if (state.networkState == RedNetworkState.PARTICIPANT_ACTIVE) "Participante: atividade HTTP observada"
                         else "Participante: aguardando primeiro acesso ao portal",
                         style = MaterialTheme.typography.bodySmall
                     )
                     Text("Requisições recebidas: ${state.requests.size}", style = MaterialTheme.typography.bodySmall)
+                    state.participantObservation?.let { peer ->
+                        Text(
+                            "Última origem HTTP observada: " + (peer.remoteAddress ?: "não identificada") + " · " + peer.requestCount + " requisições",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                     state.requests.asReversed().take(12).forEach { request ->
                         Card(Modifier.fillMaxWidth()) {
                             Column(Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -161,12 +167,12 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                     Text("Modo do portal", style = MaterialTheme.typography.titleSmall)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FilterChip(
-                            selected = state.portalMode == RedPortalMode.LOCAL_LOGIN,
+                            selected = state.portalConfiguration.mode == RedPortalMode.LOCAL_LOGIN,
                             onClick = { viewModel.setPortalMode(RedPortalMode.LOCAL_LOGIN) },
                             label = { Text("Login local") }
                         )
                         FilterChip(
-                            selected = state.portalMode == RedPortalMode.OPEN_ACCESS,
+                            selected = state.portalConfiguration.mode == RedPortalMode.OPEN_ACCESS,
                             onClick = { viewModel.setPortalMode(RedPortalMode.OPEN_ACCESS) },
                             label = { Text("Acesso direto") }
                         )
