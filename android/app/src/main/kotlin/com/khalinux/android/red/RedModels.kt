@@ -83,7 +83,7 @@ data class RedHotspotSnapshot(
     val androidFailureCode: Int? = null
 )
 
-/** Submissão com valores de laboratório, mantida somente em memória durante a sessão ativa. */
+/** Resultado minimizado do formulário de laboratório; nunca contém senha ou credenciais em claro. */
 data class RedSyntheticSubmission(
     val timestamp: Long = System.currentTimeMillis(),
     val fields: Map<String, String>,
