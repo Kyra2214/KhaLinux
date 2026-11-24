@@ -11,7 +11,8 @@
 - RED-01: concluído em código/documentação; modelos tipados de configuração, endpoint, participante observado, consentimento de cookies e permissões web. Ver `docs/red-domain-model.md`.
 - RED-02: concluído em código/documentação; ACCESS_FINE_LOCATION solicitada somente ao iniciar hotspot no A, com concessão, recusa, recusa permanente e revogação. Ver `docs/red-permissions.md`.
 - RED-03: concluído em código/documentação; LocalOnlyHotspot com timeout/cancelamento/callbacks tardios e correlação por interface/IPv4 diferencial; sem interface inequívoca, não inicia servidor. Ver `docs/red-hotspot-lifecycle.md`.
-- Progresso provisório: 4 de 16 submódulos RED/BLUE concluídos (25%). Itens parciais não contam como concluídos.
+- RED-04: concluído em código/documentação; servidor HTTP bindado ao IPv4 exato, valida Host/headers/framing, monitora interface e aplica limites. Ver `docs/red-http-server.md`.
+- Progresso provisório: 5 de 16 submódulos RED/BLUE concluídos (31,25%). Itens parciais não contam como concluídos.
 - Último commit conhecido antes desta atualização de retomada: `a62bbc431cd7342f928f7af327ab0effc2480a86`; conferir o HEAD remoto ao retomar.
 - Nenhum teste, build, compilação, lint ou validação foi executado nesta execução. Todos permanecem acumulados para a etapa final.
 - Testes físicos nos dois aparelhos permanecem na fase final.
