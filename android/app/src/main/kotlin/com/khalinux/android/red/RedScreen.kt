@@ -352,7 +352,7 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                         Text("Usar hotspot do Android (internet depois)")
                     }
                     Text(
-                        "Para manter B na mesma rede ao ativar internet depois: comece com o hotspot do sistema desligado, ligue-o sem upstream, conecte B e só então ative os dados móveis no A. Não desligue o hotspot. LocalOnlyHotspot é isolado e não pode receber internet posteriormente.",
+                        "Para manter B na mesma rede ao ativar internet depois: desative os dados móveis, comece com o hotspot do sistema desligado, ligue-o, conecte B e só então ative os dados móveis no A. Não desligue o hotspot. LocalOnlyHotspot é isolado e não pode receber internet posteriormente.",
                         style = MaterialTheme.typography.bodySmall
                     )
                     }
