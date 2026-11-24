@@ -2,6 +2,7 @@ package com.khalinux.android.red
 
 import android.content.Context
 import android.net.wifi.WifiManager
+import android.net.wifi.SoftApConfiguration
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -235,10 +236,24 @@ class RedHotspotController(
     private fun readHotspotDetails(reservation: WifiManager.LocalOnlyHotspotReservation): HotspotDetails {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val config = reservation.softApConfiguration
+            val ssid = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                config.wifiSsid?.toString()?.trim('"')
+            } else {
+                config.ssid?.trim('"')
+            }
+            val security = when (config.securityType) {
+                SoftApConfiguration.SECURITY_TYPE_OPEN -> "Aberta"
+                SoftApConfiguration.SECURITY_TYPE_WPA2_PSK -> "WPA2-PSK"
+                SoftApConfiguration.SECURITY_TYPE_WPA3_SAE_TRANSITION -> "WPA2/WPA3-SAE"
+                SoftApConfiguration.SECURITY_TYPE_WPA3_SAE -> "WPA3-SAE"
+                SoftApConfiguration.SECURITY_TYPE_WPA3_OWE_TRANSITION -> "WPA3-OWE transição"
+                SoftApConfiguration.SECURITY_TYPE_WPA3_OWE -> "WPA3-OWE"
+                else -> "Tipo Android ${config.securityType}"
+            }
             HotspotDetails(
-                ssid = config.ssid,
+                ssid = ssid,
                 passphrase = config.passphrase,
-                security = null,
+                security = security,
                 band = null
             )
         } else {
