@@ -1,5 +1,8 @@
 ## [Não lançado] — RED-15: modo hotspot do sistema, upstream e heartbeat (implementado, não validado)
 
+- **Validação automatizada final: PASS** no workflow `45408044336` (commit `c9f289a`): host checks, auditoria estática, JNI PTY, smoke PRoot, testes unitários Android, `assembleDebug` e `lintDebug` aprovados. O build exigiu excluir metadado OSGi duplicado do APK; o lint exigiu substituir `InputStream.readNBytes` (API 33) por leitura limitada compatível com minSdk 28.
+- **Pendente:** validação física A/B de confiança TLS, prompts do navegador, heartbeat e continuidade do hotspot/encaminhamento externo.
+
 - Primeira compilação Android (workflow `45405105200`) encontrou dois erros Kotlin: import `weight` inacessível no `BlueScreen` e literal `\\t` inválido no parser HTTP. Corrigidos nos commits `36945e3` e `fd82386`; nova execução pendente.
 - Workflow `45405903861` revelou testes legados chamando APIs removidas (`validateParticipantEvent`/`RedParticipantEvent`); `RedLabInputValidatorTest` foi reescrito para validar formulário sintético, cookies e permissões atuais. Retorno nullable de IPv4 foi corrigido. Workflow `45406501672` executa a suíte atualizada, build e lint.
 
@@ -14,7 +17,7 @@
 - Encerrar o portal não desliga o hotspot do sistema; essa ação permanece sob controle do Android.
 - **Validação pendente:** descoberta de interface depende do padrão OEM; permanência da conexão B e encaminhamento externo exigem validação física na fase final.
 
-## [Não lançado] — RED-07: primeira integração HTTPS local offline (parcial)
+## [Não lançado] — RED-07: HTTPS local offline (implementado, não validado)
 
 - Adicionado `RedLocalTlsManager`: CA e chave de servidor RSA geradas pelo Android Keystore; chaves privadas não são exportadas.
 - Certificado do servidor emitido para o IPv4 atual com SAN IP, validade limitada e uso `serverAuth`.
