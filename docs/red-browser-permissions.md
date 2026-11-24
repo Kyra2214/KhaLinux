@@ -1,7 +1,7 @@
 # Permissões web no navegador do aparelho B
 
 **Submódulo:** RED-07  
-**Estado:** parcial. Endpoint, validação, eventos e fluxo de navegador implementados. A arquitetura de HTTPS local com CA própria foi definida em [red-local-tls.md](red-local-tls.md); implementação TLS e validação ainda pendentes.
+**Estado:** parcial. Endpoint, validação, eventos e fluxo de navegador existentes foram ligados ao portal HTTPS local em `8443`; a preparação da CA pública ocorre pelo endpoint HTTP restrito em `8080/ca.cer`. A confiança efetiva do navegador e a validação continuam pendentes.
 
 ## Fluxo implementado
 
@@ -23,6 +23,16 @@ O portal entrega um token aleatório em cookie HttpOnly/SameSite Strict. O token
 O servidor do laboratório publica `http://IPv4-privado:porta`. Câmera, microfone e geolocalização exigem contexto seguro nos navegadores modernos. Quando `window.isSecureContext` é falso, ao clicar em cada botão o portal não chama a API e registra `UNAVAILABLE` para aquele recurso.
 
 Em uma origem segura, cada botão inicia sua chamada real. A página não tenta ocultar os avisos nativos do navegador nem automatizar a aceitação. As solicitações não são agrupadas em um botão único e não são disparadas pelo banner de cookies.
+
+## HTTPS local implementado parcialmente
+
+- O portal participante passa a iniciar em HTTPS local na porta `8443`, com certificado emitido para o IPv4 atual do hotspot.
+- O endpoint HTTP `8080` é separado e serve somente o certificado público da CA em `/ca.cer` e `/health`.
+- A interface A mostra a URL de preparação e a impressão digital SHA-256 da CA.
+- O cookie de sessão recebe a flag `Secure` e a validação de `Origin` espera o esquema HTTPS quando o portal é iniciado com TLS.
+- O servidor falha ao iniciar o portal se a preparação TLS ou a emissão do certificado não puder ser concluída.
+
+A instalação manual da CA e a confiança real do navegador B ainda precisam ser confirmadas. Não declarar permissões disponíveis apenas porque o servidor HTTPS iniciou.
 
 ## Próxima evolução: HTTPS local
 
