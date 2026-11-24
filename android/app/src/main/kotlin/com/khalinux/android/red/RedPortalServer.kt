@@ -38,6 +38,8 @@ class RedPortalServer(
         private set
     @Volatile var boundPort: Int? = null
         private set
+    @Volatile var boundIpv4Address: String? = null
+        private set
     @Volatile private var portalMode: RedPortalMode = RedPortalMode.LOCAL_LOGIN
 
     fun setMode(mode: RedPortalMode) { portalMode = mode }
@@ -57,21 +59,31 @@ class RedPortalServer(
         running.set(true)
         boundInterface = binding.first
         boundPort = server.localPort
+        boundIpv4Address = binding.second
         val url = "http://${binding.second}:${server.localPort}/"
         address = url
         onAddress(url)
         onEvent("Servidor HTTP local iniciado em ${binding.first}:${server.localPort}.")
-        worker = Thread({ serve(server) }, "red-local-portal").apply { isDaemon = true; start() }
+        worker = Thread({ serve(server, binding.first, binding.second) }, "red-local-portal").apply { isDaemon = true; start() }
         return url
     }
 
-    private fun serve(server: ServerSocket) {
+    private fun serve(server: ServerSocket, expectedInterface: String, expectedAddress: String) {
         while (running.get()) {
             val client = try {
                 server.accept()
             } catch (_: SocketTimeoutException) {
+                if (!isBoundAddressAvailable(expectedInterface, expectedAddress)) {
+                    onEvent("Interface $expectedInterface perdeu o IPv4 $expectedAddress; encerrando o portal.")
+                    stop()
+                    break
+                }
                 continue
-            } catch (_: Exception) {
+            } catch (error: Exception) {
+                if (running.get()) {
+                    onEvent("Socket do portal encerrou inesperadamente: " + error.javaClass.simpleName + ".")
+                    stop()
+                }
                 break
             }
             if (!clientSlots.tryAcquire()) {
@@ -527,6 +539,7 @@ class RedPortalServer(
         address = null
         boundInterface = null
         boundPort = null
+        boundIpv4Address = null
         onAddress(null)
         onEvent("Servidor do portal local encerrado.")
     }
