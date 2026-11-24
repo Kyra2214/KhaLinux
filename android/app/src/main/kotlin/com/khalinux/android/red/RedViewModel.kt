@@ -179,7 +179,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 val hotspotAddress = snapshot.ipv4Address
                     ?: error("O Android não disponibilizou o IPv4 do hotspot para emitir o certificado TLS.")
                 val tlsMaterial = tlsManager.prepare(hotspotAddress)
-                val caUrl = tlsPreparation.start(hotspotAddress, tlsMaterial.caCertificateDer)
+                val caUrl = tlsPreparation.start(hotspotAddress, tlsMaterial.caCertificateDer, tlsMaterial.caFingerprintSha256)
                 mutableState.update { it.copy(tlsPreparationUrl = caUrl, tlsCaFingerprint = tlsMaterial.caFingerprintSha256, tlsBrowserTrustObserved = false) }
                 val address = portal.startHttps(hotspotAddress, mutableState.value.portalConfiguration.mode, tlsMaterial.sslContext)
                 mutableState.update {
