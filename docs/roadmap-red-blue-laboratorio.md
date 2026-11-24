@@ -11,7 +11,6 @@ Este documento é o plano de execução da Área RED/BLUE nesta branch. O `ROADM
 - **Implementação RED/BLUE:** 50% (8 de 16 submódulos concluídos em código/documentação; RED-07 parcial e validação pendente).
 - **Concluídos:** RED-00 — [inventário de baseline](red-baseline-inventory.md); RED-01 — [modelo de domínio](red-domain-model.md); RED-02 — [matriz de permissões](red-permissions.md); RED-03 — [ciclo de vida do hotspot](red-hotspot-lifecycle.md); RED-04 — [servidor HTTP local](red-http-server.md); RED-05 — portal local e aviso de cookies; RED-06 — [eventos e evidências](red-event-evidence.md).
 - **Parcial:** RED-07 — fluxo e telemetria web implementados; HTTPS confiável pendente para prompts nativos no B.
-- **Parcial:** RED-07 — fluxo e telemetria web implementados; HTTPS confiável pendente para prompts nativos no B.
 - **Próximo submódulo:** BLUE-01 — painel defensivo baseado nas evidências RED.
 - **Validação:** não iniciada nesta execução; todas as atividades de teste/build/compilação ficam para a etapa final.
 - **Pacotes ZIP:** desativados; execução diretamente no repositório conforme instrução do usuário.
@@ -299,6 +298,8 @@ Atividades:
 **Aceite:** nenhuma sessão ou recurso permanece ativo após encerramento esperado; sessão interrompida não é apresentada como concluída.
 
 ## BLUE-01 — Painel defensivo baseado nas evidências RED
+
+**Estado:** implementação em código/documentação concluída; validação pendente. Ver [blue-area.md](blue-area.md).
 
 **Objetivo:** transformar os eventos da sessão em explicações defensivas sem inventar detecções.
 
