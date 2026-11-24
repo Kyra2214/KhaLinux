@@ -707,9 +707,9 @@ class RedPortalServer(
         a.secondary{background:#eef2f7;color:#23364d}.foot{font-size:12px;color:#73777d;margin-top:22px}
         </style></head><body><main class="wrap"><section class="card">
         <h1>Conecta Local</h1><p class="muted">Acesso à rede de visitantes.</p><p class="muted"><strong>Ambiente de laboratório:</strong> esta página usa HTTPS local, sem depender da internet. Utilize somente identificadores e códigos de teste.</p>
-        <p class="muted">${if (mode == RedPortalMode.LOCAL_LOGIN) "Entre para continuar." else "A conexão está disponível. Você já pode continuar."}</p>
+        <p class="muted">${if (mode == RedPortalMode.LOCAL_LOGIN) "Para conectar à rede, cadastre-se no portal usando sua identificação e seu código de acesso de teste." else "A conexão está disponível. Você já pode continuar."}</p>
         <div class="actions">
-        <a href="${if (mode == RedPortalMode.LOCAL_LOGIN) "/login" else "/open"}">${if (mode == RedPortalMode.LOCAL_LOGIN) "Acessar Wi-Fi" else "Continuar navegando"}</a>
+        <a href="${if (mode == RedPortalMode.LOCAL_LOGIN) "/login" else "/open"}">${if (mode == RedPortalMode.LOCAL_LOGIN) "Cadastre-se para conectar" else "Continuar navegando"}</a>
         <a class="secondary" href="/terms">Termos de utilização</a><a class="secondary" href="/links">Conteúdo e navegação</a>
         <a class="secondary" href="/permissions">Permissões do navegador (demonstração transparente)</a>
         </div><p class="foot">Conecta Local · Acesso de visitantes</p></section></main></body></html>
