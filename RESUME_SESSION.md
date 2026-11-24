@@ -2,14 +2,14 @@
 
 - Repositório: `Kyra2214/KhaLinux`.
 - Branch de trabalho: `recovery/red-portal-integration`.
-- Snapshot Git observado para a estabilização RED-14: `d445ebcc8f7fb15d5ecac1c9493da5fea72409a2` (antes dos commits documentais desta atualização). Comparação com `main`: 296 commits à frente, 0 atrás, 41 arquivos alterados. Base `main`: `a4de5eb7ef3d72404ea1171af5eaa135a48bde0c`.
+- HEAD confirmado antes da evolução TLS: `0db6df18c11d13b7fb26ad24ae3db4b462cf87f6`; a branch recebeu commits adicionais de documentação RED-07 nesta sequência. Base `main`: `a4de5eb7ef3d72404ea1171af5eaa135a48bde0c`.
 - Não alterar `main`, não fazer merge e não fazer force push.
 - Roadmap ativo: `docs/roadmap-red-blue-laboratorio.md`.
 - Topologia definida: **A** é a central que executa KhaLinux, cria a rede, hospeda o portal e exibe toda a observabilidade; **B** apenas conecta ao Wi-Fi, abre o portal no navegador, faz login de teste, responde ao aviso de cookies e às solicitações individuais do navegador quando a origem permitir.
 - RED-00: concluído como inventário documental e inspeção do código RED. Ver `docs/red-baseline-inventory.md`.
 - RED-05: concluído em código/documentação; banner em todas as páginas, consentimento por categoria, persistência após confirmação do A, evento tipado e login local de demonstração.
 - RED-06: concluído em código/documentação; eventos HTTP recebidos/rejeitados/respostas/falhas, persistência de metadados e cabeçalhos permitidos, relatório e BLUE atualizados; dados efêmeros limpos no encerramento. Ver `docs/red-event-evidence.md`.
-- RED-07: parcial; página de permissões separadas para câmera, microfone e localização, endpoint `/browser-permission`, validação estrita e eventos tipados no A implementados. Em HTTP por IP privado, o navegador informa contexto inseguro e as APIs não são chamadas. Prompts reais dependem de HTTPS confiável no B. Ver `docs/red-browser-permissions.md`.
+- RED-07: parcial; página de permissões separadas para câmera, microfone e localização, endpoint `/browser-permission`, validação estrita e eventos tipados no A implementados. Foi definida a arquitetura de HTTPS local: HTTP/8080 para preparação e certificado público da CA; HTTPS/8443 planejado para o portal, com certificado SAN IP e CA privada mantida no A. O usuário autorizou a instalação inicial da CA pública no B. Implementação TLS e validação ainda pendentes. Ver `docs/red-browser-permissions.md` e `docs/red-local-tls.md`.
 - RED-01: concluído em código/documentação; modelos tipados de configuração, endpoint, participante observado, consentimento de cookies e permissões web. Ver `docs/red-domain-model.md`.
 - RED-02: concluído em código/documentação; ACCESS_FINE_LOCATION solicitada somente ao iniciar hotspot no A, com concessão, recusa, recusa permanente e revogação. Ver `docs/red-permissions.md`.
 - RED-03: concluído em código/documentação; LocalOnlyHotspot com timeout/cancelamento/callbacks tardios e correlação por interface/IPv4 diferencial; sem interface inequívoca, não inicia servidor. Ver `docs/red-hotspot-lifecycle.md`.
@@ -22,8 +22,8 @@
 - RED-12: integração e plano de validação documentados; build, lint, testes host/Android e auditoria não executados por ordem de execução. Ver `docs/red-validation-plan.md`.
 - RED-13: matriz física final documentada para A operador/B navegador-only; nenhuma execução física iniciada. Ver `docs/red-physical-validation.md`.
 - RED-14: parcela documental/estabilização concluída neste snapshot; notas de release, matriz de compatibilidade, checklist e comparação Git atualizados. Revisão integral do diff, validação final, APK assinado/hash e PR continuam pendentes. Ver `docs/red-release-checklist.md`, `docs/red-blue-release-notes.md`, `docs/red-blue-compatibility.md` e `docs/red-branch-stabilization.md`.
-- Progresso de implementação/documentação: 14 de 16 submódulos preparados (87,5%). RED-07 continua parcial por depender de HTTPS confiável; RED-14 tem a parcela documental concluída, mas não pode ser fechado como entrega publicável antes dos portões finais.
+- Progresso de implementação/documentação: 14 de 16 submódulos preparados (87,5%). RED-07 continua parcial; a arquitetura TLS foi documentada, mas o servidor HTTPS e a instalação/validação da CA ainda não foram implementados.
 - Nenhum teste, build, compilação, lint ou validação foi executado nesta execução. Todos permanecem acumulados para a etapa final.
 - Testes físicos nos dois aparelhos permanecem na fase final.
 - Não gerar ZIP/checkpoints; o usuário determinou execução diretamente no repositório.
-- Pendências: HTTPS confiável para prompts nativos do RED-07; auditoria final RED-11; execução de build/testes RED-12; testes físicos RED-13; revisão integral do diff atual; APK assinado/hash e PR RED-14 após aprovação dos portões.
+- Pendências: implementar CA/servidor HTTPS local do RED-07; confirmar confiança no navegador do B; auditoria final RED-11; execução de build/testes RED-12; testes físicos RED-13; revisão integral do diff atual; APK assinado/hash e PR RED-14 após aprovação dos portões.
