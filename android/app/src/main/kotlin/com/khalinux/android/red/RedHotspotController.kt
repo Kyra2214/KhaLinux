@@ -2,6 +2,7 @@ package com.khalinux.android.red
 
 import android.content.Context
 import android.net.wifi.WifiManager
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import java.net.Inet4Address
@@ -145,13 +146,15 @@ class RedHotspotController(
                     candidates.size == 1 -> {
                         interfaceDiscoveryRunnable = null
                         val (interfaceName, address) = candidates.single()
-                        val config = activeReservation.wifiConfiguration
+                        val config = readHotspotDetails(activeReservation)
                         onState(
                             RedHotspotSnapshot(
                                 state = RedNetworkState.HOTSPOT_READY,
                                 message = "Hotspot local e interface AP identificados por endereço IPv4 novo.",
-                                ssid = config?.SSID?.trim('"'),
-                                passphrase = config?.preSharedKey,
+                                ssid = config.ssid,
+                                passphrase = config.passphrase,
+                                security = config.security,
+                                band = config.band,
                                 interfaceName = interfaceName,
                                 ipv4Address = address
                             )
@@ -218,6 +221,34 @@ class RedHotspotController(
             requestGeneration += 1
             runCatching { active.close() }
             onState(RedHotspotSnapshot(RedNetworkState.IDLE, "Hotspot local encerrado pelo operador."))
+        }
+    }
+
+    private data class HotspotDetails(
+        val ssid: String?,
+        val passphrase: String?,
+        val security: String?,
+        val band: String?
+    )
+
+    @Suppress("DEPRECATION")
+    private fun readHotspotDetails(reservation: WifiManager.LocalOnlyHotspotReservation): HotspotDetails {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val config = reservation.softApConfiguration
+            HotspotDetails(
+                ssid = config.ssid,
+                passphrase = config.passphrase,
+                security = null,
+                band = null
+            )
+        } else {
+            val config = reservation.wifiConfiguration
+            HotspotDetails(
+                ssid = config?.SSID?.trim('"'),
+                passphrase = config?.preSharedKey,
+                security = null,
+                band = null
+            )
         }
     }
 
