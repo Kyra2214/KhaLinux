@@ -18,7 +18,9 @@
 - RED-09: concluído; schema v2, migração v1→v2, retenção 100 sessões/300 eventos, relatório Markdown, exportação SAF e exclusão individual/global. Ver `docs/red-session-reports.md`.
 - RED-10: concluído; interface A centraliza estado real, URL/QR após bind, diagnóstico, ações de recuperação, consentimento/permissões e evidências; B continua navegador-only. Ver `docs/red-operator-ui.md`.
 - RED-11: hardening concluído; CSP com nonce, cabeçalhos de segurança, allowlist mínima, rate limit com mapa limitado, revisão do Manifest e riscos residuais documentados. Auditoria e testes negativos ficam para a fase final. Ver `docs/red-security-privacy.md`.
-- Progresso de implementação: 12 de 16 submódulos concluídos (75%); RED-07 parcial. Próximo submódulo: RED-12.
+- RED-12: integração e plano de validação documentados; build, lint, testes host/Android e auditoria não executados por ordem de execução. Ver `docs/red-validation-plan.md`.
+- RED-13: matriz física final documentada para A operador/B navegador-only; nenhuma execução física iniciada. Ver `docs/red-physical-validation.md`.
+- Progresso de implementação/documentação: 14 de 16 submódulos preparados (87,5%); RED-07 parcial e RED-14 pendente. Próximo submódulo: RED-14.
 - Nenhum teste, build, compilação, lint ou validação foi executado nesta execução. Todos permanecem acumulados para a etapa final.
 - Testes físicos nos dois aparelhos permanecem na fase final.
 - Não gerar ZIP/checkpoints; o usuário determinou execução diretamente no repositório.
