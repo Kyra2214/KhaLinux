@@ -600,7 +600,7 @@ class RedPortalServer(
             append("Cross-Origin-Resource-Policy: same-origin\r\n")
             append("X-Permitted-Cross-Domain-Policies: none\r\n")
             val nonceSource = cspNonce?.let { " 'nonce-$it'" }.orEmpty()
-            append("Content-Security-Policy: default-src 'self'; script-src 'self'$nonceSource; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; form-action 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'\\r\\n")
+            append("Content-Security-Policy: default-src 'self'; script-src 'self'$nonceSource; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; form-action 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'\r\n")
             append("Connection: close\r\n")
             append("Content-Length: ${bytes.size}\r\n\r\n")
         }
