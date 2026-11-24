@@ -48,7 +48,7 @@ object RedLabInputValidator {
     }
 
     /** Valida somente a escolha por categoria; nunca recebe nem persiste valores de cookies. */
-    fun validateCookieConsent(body: ByteArray, contentType: String?): String? {
+    fun validateCookieConsent(body: ByteArray, contentType: String?): RedCookieConsent? {
         if (contentType?.substringBefore(';')?.trim()?.equals("application/x-www-form-urlencoded", ignoreCase = true) != true) return null
         if (body.size > MAX_FORM_BYTES) return null
         val encoded = runCatching { String(body, StandardCharsets.UTF_8) }.getOrNull() ?: return null
@@ -62,8 +62,17 @@ object RedLabInputValidator {
         if (listOf(analytics, preferences, personalization).any { it !in setOf("0", "1") }) return null
         if (choice == "accept_all" && listOf(analytics, preferences, personalization).any { it != "1" }) return null
         if (choice == "reject_optional" && listOf(analytics, preferences, personalization).any { it != "0" }) return null
-        fun label(value: String) = if (value == "1") "aceito" else "recusado"
-        return "Escolha=$choice; análise=" + label(analytics) + "; preferências=" + label(preferences) + "; personalização=" + label(personalization)
+        val typedChoice = when (choice) {
+            "accept_all" -> RedCookieChoice.ACCEPT_ALL
+            "reject_optional" -> RedCookieChoice.REJECT_OPTIONAL
+            else -> RedCookieChoice.CUSTOM
+        }
+        return RedCookieConsent(
+            choice = typedChoice,
+            analytics = analytics == "1",
+            preferences = preferences == "1",
+            personalization = personalization == "1"
+        )
     }
 
     private fun decodePairs(encoded: String): Map<String, String>? {
