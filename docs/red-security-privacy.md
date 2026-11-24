@@ -35,6 +35,7 @@ O app mantém usesCleartextTraffic=false para tráfego HTTP de saída do própri
 
 - O modo de hotspot do sistema é ativado manualmente pelo operador nas Configurações do Android; o app não usa reflexão, APIs ocultas ou permissões privilegiadas de tethering.
 - O KhaLinux observa somente nomes de interface e IPv4 locais necessários para vincular o portal; SSID/senha permanecem sob controle do Android e não são presumidos.
+- O heartbeat do participante é um GET same-origin sem corpo, protegido pelo cookie de sessão e pelo IP já vinculado; registra somente horário/rota/estado HTTP, sem conteúdo pessoal.
 - `ConnectivityManager` observa somente capacidades da rede padrão no aparelho A. `NET_CAPABILITY_VALIDATED` significa que A possui upstream validado, não prova que B conseguiu navegar externamente.
 - Se mais de uma interface/IPv4 for candidato, a descoberta falha fechada e não inicia o portal em endereço ambíguo.
 - Encerrar o portal não desliga o hotspot do sistema; o operador controla sua ativação/desativação nas Configurações.
