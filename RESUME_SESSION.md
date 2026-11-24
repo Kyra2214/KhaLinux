@@ -8,12 +8,13 @@
 - RED-00: concluído como inventário documental e inspeção do código RED. Ver `docs/red-baseline-inventory.md`.
 - RED-05: concluído em código/documentação; banner em todas as páginas, consentimento por categoria, persistência após confirmação do A, evento tipado e login local de demonstração.
 - RED-06: concluído em código/documentação; eventos HTTP recebidos/rejeitados/respostas/falhas, persistência de metadados e cabeçalhos permitidos, relatório e BLUE atualizados; dados efêmeros limpos no encerramento. Ver `docs/red-event-evidence.md`.
+- RED-07: parcial; endpoint, validação e fluxo real de permissões web implementados, mas o portal HTTP por IP privado não é contexto seguro. Prompts nativos dependem de HTTPS confiável no B. Ver `docs/red-browser-permissions.md`.
 - RED-07: escopo corrigido para navegador-only. Modo participante nativo, endpoint de token, permissões CAMERA/RECORD_AUDIO e dependências CameraX removidos. Permissões web reais ainda pendentes e dependem de contexto seguro.
 - RED-01: concluído em código/documentação; modelos tipados de configuração, endpoint, participante observado, consentimento de cookies e permissões web. Ver `docs/red-domain-model.md`.
 - RED-02: concluído em código/documentação; ACCESS_FINE_LOCATION solicitada somente ao iniciar hotspot no A, com concessão, recusa, recusa permanente e revogação. Ver `docs/red-permissions.md`.
 - RED-03: concluído em código/documentação; LocalOnlyHotspot com timeout/cancelamento/callbacks tardios e correlação por interface/IPv4 diferencial; sem interface inequívoca, não inicia servidor. Ver `docs/red-hotspot-lifecycle.md`.
 - RED-04: concluído em código/documentação; servidor HTTP bindado ao IPv4 exato, valida Host/headers/framing, monitora interface e aplica limites. Ver `docs/red-http-server.md`.
-- Progresso provisório: 7 de 16 submódulos RED/BLUE concluídos (43,75%). Itens parciais não contam como concluídos.
+- Progresso provisório: 7 de 16 submódulos RED/BLUE concluídos (43,75%); RED-07 parcial. Itens parciais não contam como concluídos.
 - Último commit conhecido antes desta atualização de retomada: `a62bbc431cd7342f928f7af327ab0effc2480a86`; conferir o HEAD remoto ao retomar.
 - Nenhum teste, build, compilação, lint ou validação foi executado nesta execução. Todos permanecem acumulados para a etapa final.
 - Testes físicos nos dois aparelhos permanecem na fase final.
