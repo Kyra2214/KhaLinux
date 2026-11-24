@@ -9,10 +9,11 @@
 - RED-05: parcial. Banner de cookies, escolhas por categoria e endpoint `POST /consent` adicionados; falta completar integração/experiência e documentação final do submódulo.
 - RED-07: escopo corrigido para navegador-only. Modo participante nativo, endpoint de token, permissões CAMERA/RECORD_AUDIO e dependências CameraX removidos. Permissões web reais ainda pendentes e dependem de contexto seguro.
 - RED-01: concluído em código/documentação; modelos tipados de configuração, endpoint, participante observado, consentimento de cookies e permissões web. Ver `docs/red-domain-model.md`.
-- RED-02: concluído em código/documentação; permissões fine/coarse solicitadas somente ao iniciar hotspot no A, com concessão precisa/aproximada, recusa, recusa permanente e revogação. Ver `docs/red-permissions.md`.
-- Progresso provisório: 3 de 16 submódulos RED/BLUE concluídos (18,75%). Itens parciais não contam como concluídos.
+- RED-02: concluído em código/documentação; ACCESS_FINE_LOCATION solicitada somente ao iniciar hotspot no A, com concessão, recusa, recusa permanente e revogação. Ver `docs/red-permissions.md`.
+- RED-03: concluído em código/documentação; LocalOnlyHotspot com timeout/cancelamento/callbacks tardios e correlação por interface/IPv4 diferencial; sem interface inequívoca, não inicia servidor. Ver `docs/red-hotspot-lifecycle.md`.
+- Progresso provisório: 4 de 16 submódulos RED/BLUE concluídos (25%). Itens parciais não contam como concluídos.
 - Último commit conhecido antes desta atualização de retomada: `a62bbc431cd7342f928f7af327ab0effc2480a86`; conferir o HEAD remoto ao retomar.
 - Nenhum teste, build, compilação, lint ou validação foi executado nesta execução. Todos permanecem acumulados para a etapa final.
 - Testes físicos nos dois aparelhos permanecem na fase final.
 - Não gerar ZIP/checkpoints; o usuário determinou execução diretamente no repositório.
-- Pendências técnicas já identificadas: descoberta/correlação confiável da interface AP; limitações de contexto seguro para permissões web; revisão dos rótulos legados no painel; integração final do relatório/BLUE com o evento de consentimento.
+- Pendências técnicas já identificadas: limitações de contexto seguro para permissões web; revisão dos rótulos legados no painel; integração final do relatório/BLUE com o evento de consentimento.
