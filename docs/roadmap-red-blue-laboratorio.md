@@ -2,9 +2,17 @@
 
 **Branch:** `recovery/red-portal-integration`  
 **Escopo:** somente o laboratório com dois aparelhos Android definidos em `AGENTS.md`.  
-**Estado deste roadmap:** RED-00 a RED-06, RED-08 a RED-13 e BLUE-01 têm implementação/documentação preparada; RED-07 está implementado em código/documentação e aguarda validação final. RED-14 tem documentação/estabilização preparadas; artefatos de release aguardam os portões finais. RED-15 está em implementação com modo de hotspot do sistema, descoberta de interface e observação de upstream. Testes, builds, compilação e validações ficam acumulados para a etapa final.
+**Estado deste roadmap:** RED-00 a RED-06, RED-08 a RED-13 e BLUE-01 têm implementação/documentação preparada; RED-07 está implementado em código/documentação e aguarda validação final. RED-14 tem documentação/estabilização preparadas; artefatos de release aguardam os portões finais. RED-15 está implementado em código/documentação; validação OEM/hardware permanece pendente. O ajuste complementar Home Security foi incorporado após o roadmap-base; o CI desse ajuste ainda precisa ser executado.
 
 Este documento é o plano de execução da Área RED/BLUE nesta branch. O `ROADMAP.md` da raiz continua sendo o roadmap geral do KhaLinux.
+
+## Ajuste complementar — portal Home Security
+
+- A página inicial e o formulário participante usam a marca **Home Security** e a chamada “Cadastre-se para logar”.
+- O formulário recebe e-mail e senha para uma demonstração local; valida formato de e-mail e senha entre 8 e 64 caracteres. Não existe autenticação de conta persistente neste modo demonstrativo.
+- A senha não é mantida em modelo de evidência, callback, painel, log, histórico ou relatório. O painel A recebe somente e-mail mascarado e identificador do método.
+- Facebook e Instagram são elementos visuais ilustrativos, sem OAuth, conexão externa ou captura de credenciais.
+- O teste unitário verifica validação e ausência de senha no resultado. A alteração aguarda CI; a validação física continua reservada à etapa A/B.
 
 ## Decisão arquitetural — HTTPS local obrigatório e evolução offline-first
 
@@ -18,13 +26,13 @@ O portal participante deverá operar por **HTTPS local**, sem domínio público,
 
 ## Progresso da execução
 
-- **Implementação/documentação RED/BLUE:** 17 de 17 submódulos (100%). **Validação final automatizada:** aprovada no workflow `45408044336` (commit `c9f289a`): host checks, auditoria estática, JNI PTY, smoke PRoot, testes unitários Android, `assembleDebug` e `lintDebug`. **Pendências finais:** teste físico A/B e confirmação real de TLS/permissões/continuidade de rede no navegador; não declarar validação física concluída.
+- **Implementação/documentação RED/BLUE:** 17 de 17 submódulos (100%). **Validação automatizada da implementação-base:** aprovada no workflow `45408044336` (commit `c9f289a`): host checks, auditoria estática, JNI PTY, smoke PRoot, testes unitários Android, `assembleDebug` e `lintDebug`. O ajuste complementar Home Security foi adicionado depois e aguarda nova execução do CI. **Pendências finais:** CI do ajuste, testes físicos A/B e confirmação real de TLS/permissões/continuidade de rede no navegador; não declarar validação física concluída.
 - **Concluídos:** RED-00 — [inventário de baseline](red-baseline-inventory.md); RED-01 — [modelo de domínio](red-domain-model.md); RED-02 — [matriz de permissões](red-permissions.md); RED-03 — [ciclo de vida do hotspot](red-hotspot-lifecycle.md); RED-04 — [servidor HTTP local](red-http-server.md); RED-05 — portal local e aviso de cookies; RED-06 — [eventos e evidências](red-event-evidence.md); RED-07 — HTTPS local e permissões web (implementado, não validado); RED-08 — integridade da sessão; BLUE-01 — análise defensiva; RED-09 — [histórico, relatório e exportação](red-session-reports.md); RED-10 — [interface do operador](red-operator-interface.md); RED-11 — [segurança e privacidade](red-security-privacy.md); RED-12 — [plano de validação](red-validation-plan.md); RED-13 — [matriz física](red-physical-validation.md); RED-14 — documentação de estabilização/release (implementada, entrega pendente).
 - **Implementado, não validado:** RED-07 — fluxo de permissões web ligado ao HTTPS local em `8443`; CA/servidor X.509 no Android Keystore; preparação HTTP restrita em `8080/`; download da CA, fingerprint, instruções de instalação, evento de handshake após vínculo do participante, cookie Secure, validação Origin HTTPS, renovação do certificado por sessão/IP e limpeza da chave efêmera do servidor. Compatibilidade real da CA e disponibilidade das APIs ficam para validação final.
-- **Parcial:** RED-15 — `RedSystemHotspotController` abre Configurações do Android, compara baseline de interfaces/IPv4, detecta um endereço inequívoco e observa upstream do A por callback público; ViewModel, UI e relatórios integrados. Validação de descoberta OEM e continuidade de B ao ativar upstream pendente.
+- **Implementado, não validado:** RED-15 — `RedSystemHotspotController` abre Configurações do Android, compara baseline de interfaces/IPv4, detecta um endereço inequívoco e observa upstream do A por callback público; ViewModel, UI e relatórios integrados. Validação de descoberta OEM e continuidade de B ao ativar upstream pendente.
 - **RED-14 — documentação/estabilização concluídas; entrega final bloqueada:** notas, matriz de compatibilidade, checklist e comparação da branch atualizados. Revisão integral do diff, validação, APK assinado/hash e PR continuam pendentes.
 - **Estado RED-14:** parcela documental concluída; pendências de entrega registradas em `docs/red-release-checklist.md`.
-- **Validação:** não iniciada nesta execução; todas as atividades de teste/build/compilação ficam para a etapa final.
+- **Validação:** workflow `45408044336` aprovou a implementação-base antes do ajuste Home Security. A nova alteração precisa passar pelo CI após a abertura do PR; testes físicos A/B continuam pendentes.
 - **Pacotes ZIP:** desativados; execução diretamente no repositório conforme instrução do usuário.
 
 ---
