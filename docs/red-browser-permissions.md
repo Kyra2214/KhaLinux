@@ -6,7 +6,7 @@
 ## Fluxo implementado
 
 - B permanece somente no navegador; não instala nem executa KhaLinux.
-- Após login de demonstração, o portal apresenta uma única ação de continuação. Essa ação inicia chamadas distintas para câmera, microfone e localização; o navegador controla os diálogos nativos.
+- Após o login, o portal apresenta um link para a página de permissões. Nela há um botão separado para câmera, outro para microfone e outro para localização. Cada chamada depende de clique próprio e o navegador controla o diálogo correspondente.
 - Câmera e microfone usam `getUserMedia`. Quando concedidos, os tracks são interrompidos imediatamente.
 - Localização usa `getCurrentPosition`; as coordenadas não são lidas, exibidas, armazenadas ou enviadas.
 - O navegador envia ao A somente recurso e estado: requested, granted, denied, cancelled, unavailable ou revoked.
@@ -18,7 +18,7 @@
 
 O servidor do laboratório publica `http://IPv4-privado:porta`. Câmera, microfone e geolocalização exigem contexto seguro nos navegadores modernos. Quando `window.isSecureContext` é falso, o portal não chama essas APIs e registra `UNAVAILABLE` para cada recurso.
 
-Em uma origem segura, o botão inicia as chamadas reais. A página não tenta ocultar os avisos nativos do navegador nem automatizar a aceitação.
+Em uma origem segura, o botão inicia as chamadas reais. A página não tenta ocultar os avisos nativos do navegador nem automatizar a aceitação. As solicitações não são agrupadas em um botão único e não são disparadas pelo banner de cookies.
 
 ## Dependência pendente
 
