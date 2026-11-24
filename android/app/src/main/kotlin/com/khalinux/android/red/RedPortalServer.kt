@@ -427,6 +427,7 @@ class RedPortalServer(
           </div>
         </aside>
         <script>
+        if(document.cookie.split(';').some(item=>item.trim().startsWith('kl_cookie_consent='))){document.getElementById('cookie-layer').remove();}
         function showCookieOptions(){
           document.getElementById('cookie-options').style.display='flex';
           document.getElementById('cookie-save').style.display='inline-block';
