@@ -221,7 +221,7 @@ class RedHotspotController(
             reservationGeneration = null
             requestGeneration += 1
             runCatching { active.close() }
-            onState(RedHotspotSnapshot(RedNetworkState.IDLE, "Hotspot local encerrado pelo operador."))
+            onState(RedHotspotSnapshot(RedNetworkState.IDLE, "Reserva LocalOnlyHotspot do KhaLinux encerrada pelo operador."))
         }
     }
 
