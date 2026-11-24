@@ -10,7 +10,7 @@ data class RedSyntheticValidationResult(
 )
 
 object RedLabInputValidator {
-    private val syntheticKeys = setOf("participant_name")
+    private val syntheticKeys = setOf("email", "password")
 
     fun validateSyntheticForm(body: ByteArray, contentType: String?): RedSyntheticValidationResult {
         if (contentType?.substringBefore(';')?.trim()
@@ -28,20 +28,29 @@ object RedLabInputValidator {
         if (values.keys != syntheticKeys) {
             return RedSyntheticValidationResult(false, emptyMap(), "Campos não permitidos.")
         }
-        val participantName = values["participant_name"].orEmpty().trim()
-        val validName = participantName.length in 2..32 &&
-            participantName.matches(Regex("^[\\p{L}][\\p{L} .'-]{0,31}$"))
-        return if (validName) {
+        val email = values["email"].orEmpty().trim().lowercase()
+        val password = values["password"].orEmpty()
+        val validEmail = email.length <= 254 &&
+            email.matches(Regex("^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$"))
+        val validPassword = password.length in 8..64 && password.none { it.isISOControl() }
+        return if (validEmail && validPassword) {
+            val local = email.substringBefore('@')
+            val domain = email.substringAfter('@')
+            val maskedLocal = when {
+                local.length <= 1 -> "*"
+                local.length == 2 -> local.first() + "*"
+                else -> local.first() + "***" + local.last()
+            }
             RedSyntheticValidationResult(
                 true,
-                mapOf("participant_name" to participantName),
-                "Nome de identificação recebido e validado localmente."
+                mapOf("email" to "$maskedLocal@$domain", "auth_method" to "email_password_demo"),
+                "Dados de demonstração validados localmente. Nenhuma senha foi armazenada."
             )
         } else {
             RedSyntheticValidationResult(
                 false,
                 emptyMap(),
-                "Informe um nome de identificação entre 2 e 32 caracteres."
+                "Informe um e-mail válido e uma senha de 8 a 64 caracteres."
             )
         }
     }
