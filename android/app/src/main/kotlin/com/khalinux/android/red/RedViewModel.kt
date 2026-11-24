@@ -47,7 +47,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                         RedPortalEndpoint(it, null, current.portalConfiguration.requestedPort)
                     },
                     networkState = if (address == null && portalWasActive) RedNetworkState.ERROR else current.networkState,
-                    networkRunning = if (address == null && portalWasActive) false else current.networkRunning
+                    networkRunning = if (address == null && portalWasActive) true else current.networkRunning
                 )
             }
         },
@@ -112,10 +112,14 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                     )
                 }
             } catch (error: Exception) {
+                portal.stop()
+                hotspot.stop()
                 mutableState.update {
                     it.copy(
-                        message = "Hotspot ativo, mas o portal não pôde ser vinculado à rede do laboratório: " +
+                        message = "O hotspot foi liberado porque o portal não pôde ser vinculado à rede do laboratório: " +
                             (error.message ?: "erro desconhecido"),
+                        networkRunning = false,
+                        portalEndpoint = null,
                         networkState = RedNetworkState.ERROR
                     )
                 }
