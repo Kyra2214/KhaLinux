@@ -1,6 +1,6 @@
 # RED-14 — Checklist de estabilização e entrega
 
-**Estado:** implementação/documentação do roadmap RED/BLUE concluídas (100%); host checks aprovados no workflow `45405105200`; testes unitários Android/APK Debug em execução; validação browser/hardware e release publicável pendentes. Este checklist separa implementação de validação.
+**Estado:** implementação/documentação do roadmap RED/BLUE concluídas (100%); host checks, testes unitários Android, APK Debug e lint aprovados no workflow `45408044336`; validação browser/hardware e release publicável pendentes. Este checklist separa implementação de validação.
 
 ## Entregáveis documentais concluídos
 
