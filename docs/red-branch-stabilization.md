@@ -1,6 +1,6 @@
 # RED-14 — Estabilização da branch
 
-**Estado:** estabilização documental e revisão direcionada concluídas no snapshot registrado abaixo. A entrega de release permanece bloqueada pelos portões de validação e pela dependência externa do RED-07.
+**Estado:** estabilização documental e revisão direcionada concluídas no snapshot registrado abaixo. A entrega de release permanece bloqueada pelos portões de validação final, incluindo a confirmação de confiança da CA no navegador B.
 
 ## Referências Git
 
@@ -28,7 +28,7 @@ Esta revisão é de código/documentação e não equivale a auditoria aprovada,
 
 ## Bloqueios e portões restantes
 
-1. **RED-07:** a origem atual é HTTP por IPv4 privado. APIs de câmera, microfone e geolocalização do navegador exigem contexto seguro. Para prompts reais sem configuração manual no B, falta nome de origem e certificado HTTPS confiável que também resolvam no hotspot local. Não foi inventado domínio/certificado.
+1. **RED-07:** código HTTPS local offline implementado. Falta validar no B se a CA instalada manualmente é aceita pelo navegador, se SAN IP corresponde e se câmera/microfone/localização exibem prompts reais. O handshake TLS observado é a evidência de confiança por conexão.
 2. **RED-11/12:** auditoria final, build, lint, testes unitários e integração host/Android ainda não executados, conforme a ordem de execução definida.
 3. **RED-13:** testes físicos A+B não executados; permanecem para depois da aprovação do portão automatizado.
 4. **Revisão integral:** revisar o diff completo dos 296 commits e 41 arquivos antes do PR, verificando também novos commits posteriores ao snapshot.
