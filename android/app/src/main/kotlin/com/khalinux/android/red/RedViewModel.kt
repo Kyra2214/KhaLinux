@@ -633,6 +633,20 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         mutableState.update { it.copy(history = emptyList(), session = null, latestSubmission = null, requests = emptyList(), participantObservation = null, message = "Histórico RED apagado.") }
     }
 
+    private fun markdownText(value: String): String = value
+        .replace("\\", "\\\\")
+        .replace("`", "\\`")
+        .replace("*", "\\*")
+        .replace("_", "\\_")
+        .replace("[", "\\[")
+        .replace("]", "\\]")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace("\r", " ")
+        .replace("\n", " ")
+
+    private fun markdownCode(value: String): String =
+        "`" + value.replace("`", "\\`").replace("\r", " ").replace("\n", " ") + "`"
     fun report(session: RedSession): String {
         val app = getApplication<Application>()
         val appVersion = runCatching {
@@ -680,15 +694,15 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             appendLine()
             appendLine("## Linha do tempo")
             orderedEvents.forEach { event ->
-                appendLine("- #${event.sequence} ${event.timestamp} [${event.type}] ${event.detail}")
+                appendLine("- #${event.sequence} ${event.timestamp} [${event.type}] ${markdownText(event.detail)}")
                 if (event.httpMethod != null || event.route != null) {
-                    appendLine("  - HTTP: ${event.httpMethod ?: "?"} ${event.route ?: "?"} · status ${event.httpStatus ?: "?"} · bytes ${event.bytesReceived ?: "?"}")
+                    appendLine("  - HTTP: ${event.httpMethod?.let(::markdownCode) ?: markdownCode("?")} ${event.route?.let(::markdownCode) ?: markdownCode("?")} · status ${event.httpStatus ?: "?"} · bytes ${event.bytesReceived ?: "?"}")
                 }
                 event.responseSent?.let { appendLine("  - Resposta HTTP enviada: $it") }
                 event.rejectionReason?.let { appendLine("  - Motivo da rejeição: $it") }
                 if (event.serverFailure == true) appendLine("  - Falha interna do servidor: sim")
-                event.remoteAddress?.let { appendLine("  - Origem remota: $it") }
-                event.safeHeaders.forEach { (name, value) -> appendLine("  - Header permitido $name: $value") }
+                event.remoteAddress?.let { appendLine("  - Origem remota: ${markdownCode(it)}") }
+                event.safeHeaders.forEach { (name, value) -> appendLine("  - Header permitido ${markdownCode(name)}: ${markdownCode(value)}") }
                 event.cookieChoice?.let { choice ->
                     appendLine("  - Consentimento de cookies: $choice")
                     appendLine("  - Categorias: análise=${event.cookieAnalytics}, preferências=${event.cookiePreferences}, personalização=${event.cookiePersonalization}")
@@ -696,7 +710,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 event.webPermissionResource?.let { resource ->
                     appendLine("  - Permissão web: $resource · estado ${event.webPermissionState ?: "não informado"}")
                 }
-                event.source?.let { appendLine("  - Origem do evento: $it") }
+                event.source?.let { appendLine("  - Origem do evento: ${markdownCode(it)}") }
             }
             appendLine()
             appendLine("## Limitações e validação")
