@@ -7,6 +7,15 @@
 - **A:** operador KhaLinux, cria hotspot, hospeda portal, observa e exporta relatório.
 - **B:** apenas conecta ao Wi-Fi, abre o portal no navegador, faz login de teste, escolhe cookies e responde às solicitações web legítimas apresentadas pelo navegador. Não instala KhaLinux, não abre ferramentas e não faz configuração adicional.
 
+## Cenário opcional RED-15 — upstream posterior
+
+- Iniciar o hotspot do sistema do Android sem dados móveis/upstream.
+- Conectar B e abrir o portal HTTPS.
+- Ativar dados móveis/upstream em A sem desligar o hotspot.
+- Confirmar que B permanece associado ao mesmo SSID e que o Android disponibiliza navegação externa.
+- Confirmar que o A registra somente o upstream validado e não declara navegação em B sem evidência direta.
+- Desligar o portal e confirmar que o hotspot do sistema permanece sob controle do Android.
+
 ## Matriz física
 
 | ID | Ação | Evidência esperada |
