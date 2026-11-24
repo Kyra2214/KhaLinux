@@ -10,7 +10,7 @@
 O RED é a área de preparação e execução de demonstrações práticas com dois aparelhos Android dedicados e controlados pelo instrutor. Os vídeos mostram o comportamento e os resultados, não o código-fonte ou scripts internos.
 
 - **Aparelho A:** operador, hotspot criado pelas APIs públicas do Android, servidor HTTP local e painel de observação.
-- **Aparelho B:** participante, conecta-se à rede, navega pelo portal e executa demonstrações nativas de permissões no próprio aparelho.
+- **Aparelho B:** participante passivo, conecta-se à rede, abre o portal no navegador, faz login de teste e responde às solicitações web legítimas, quando suportadas. Não instala KhaLinux nem executa ferramentas.
 
 A interface do participante deve ser natural e semelhante a um portal Wi-Fi convencional. A identificação da sessão e a telemetria completa ficam no painel do instrutor, sem avisos artificiais excessivos. Diálogos de permissão são sempre os diálogos reais do sistema.
 
@@ -52,7 +52,7 @@ O aparelho B participa somente pelo navegador. Não instala nem executa o KhaLin
 - O portal apresenta um aviso de cookies com “Aceitar todos”, “Recusar opcionais” e “Configurar”.
 - A escolha é enviada ao servidor local e aparece na linha do tempo do aparelho A, com categorias aceitas/recusadas. Valores de cookies e cabeçalhos Cookie não são armazenados.
 - “Aceitar todos” refere-se somente às categorias de cookies descritas no aviso. Não concede permissões do Android ou do navegador.
-- Solicitações web de câmera, microfone ou localização dependem de origem segura e de suporte do navegador, além de ação explícita e avisos próprios do navegador.
+- A página **Permissões do navegador** oferece ações independentes para câmera, microfone e localização; cada solicitação depende de clique próprio, origem segura e suporte do navegador, além dos avisos próprios.
 - O portal atual é HTTP em endereço IP local. Se o navegador não considerar essa origem segura, a API sensível fica indisponível. Não há modo participante nativo como alternativa.
 - O aparelho A centraliza toda a observabilidade e a explicação. O B mostra somente o portal e os avisos normais do navegador.
 
