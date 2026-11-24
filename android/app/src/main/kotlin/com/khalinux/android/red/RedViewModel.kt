@@ -52,6 +52,8 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         val info = buildList {
             snapshot.ssid?.let { add("SSID: $it") }
             snapshot.passphrase?.let { add("Senha: $it") }
+            snapshot.security?.let { add("Segurança: $it") }
+            snapshot.band?.let { add("Banda: $it") }
             snapshot.interfaceName?.let { add("Interface: $it") }
             snapshot.ipv4Address?.let { add("IPv4: $it") }
             snapshot.androidFailureCode?.let { add("Código Android: $it") }
