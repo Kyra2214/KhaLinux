@@ -200,6 +200,9 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                             (error.message ?: "erro desconhecido"),
                         networkRunning = false,
                         portalEndpoint = null,
+                        tlsPreparationUrl = null,
+                        tlsCaFingerprint = null,
+                        tlsBrowserTrustObserved = false,
                         networkState = RedNetworkState.ERROR
                     )
                 }
