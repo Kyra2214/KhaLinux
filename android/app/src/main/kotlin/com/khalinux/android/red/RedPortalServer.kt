@@ -507,7 +507,7 @@ class RedPortalServer(
     }
 
     private fun safeRequestHeaders(headers: Map<String, String>): Map<String, String> {
-        val allowed = setOf("host", "user-agent", "accept", "accept-language", "content-type", "referer")
+        val allowed = setOf("host", "accept", "content-type", "referer")
         return headers.filterKeys { it in allowed }.mapValues { (name, value) ->
             val safeValue = if (name == "referer") {
                 runCatching { java.net.URI(value).rawPath.orEmpty() }.getOrDefault("")
@@ -527,7 +527,9 @@ class RedPortalServer(
             if (rawName != rawName.trim()) throw IllegalArgumentException("Espaço inválido no nome do cabeçalho.")
             val name = rawName.lowercase(Locale.ROOT)
             val value = line.substring(separator + 1).trim()
-            if (!name.matches(Regex("[a-z0-9-]{1,64}")) || value.length > 512) {
+            if (!name.matches(Regex("[a-z0-9-]{1,64}")) || value.length > 512 ||
+                value.any { (it.code < 0x20 && it != '\t') || it.code == 0x7f }
+            ) {
                 throw IllegalArgumentException("Nome ou valor de cabeçalho inválido.")
             }
             if (name in this) throw IllegalArgumentException("Cabeçalho HTTP duplicado: $name.")
@@ -592,7 +594,9 @@ class RedPortalServer(
             append("Referrer-Policy: same-origin\r\n")
             append("X-Frame-Options: DENY\r\n")
             append("Permissions-Policy: camera=(self), microphone=(self), geolocation=(self)\r\n")
-            append("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'; form-action 'self'; frame-ancestors 'none'\r\n")
+            append("Cross-Origin-Resource-Policy: same-origin\r\n")
+            append("X-Permitted-Cross-Domain-Policies: none\r\n")
+            append("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'; form-action 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'\r\n")
             append("Connection: close\r\n")
             append("Content-Length: ${bytes.size}\r\n\r\n")
         }
@@ -907,6 +911,10 @@ class RedPortalServer(
         val now = System.currentTimeMillis()
         val existing = failedSessionAttempts[remoteKey]
         if (existing != null && existing.blockedUntil > now) return AuthorizationResult.RATE_LIMITED
+        if (existing == null && failedSessionAttempts.size >= MAX_FAILED_REMOTE_ADDRESSES) {
+            failedSessionAttempts.entries.removeIf { it.value.blockedUntil <= now }
+            if (failedSessionAttempts.size >= MAX_FAILED_REMOTE_ADDRESSES) return AuthorizationResult.RATE_LIMITED
+        }
 
         val expected = activeSessionToken ?: return AuthorizationResult.EXPIRED
         val supplied = headers["cookie"]
@@ -1011,6 +1019,7 @@ class RedPortalServer(
         private const val MAX_SESSION_LIFETIME_MS = 2 * 60 * 60 * 1000L
         private const val SESSION_COOKIE_MAX_AGE_SECONDS = 1800
         private const val MAX_AUTH_FAILURES = 5
+        private const val MAX_FAILED_REMOTE_ADDRESSES = 64
         private const val AUTH_LOCKOUT_MS = 60 * 1000L
         private const val MAX_LOGIN_FAILURES = 5
         private const val LOGIN_LOCKOUT_MS = 60 * 1000L
