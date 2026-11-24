@@ -25,6 +25,7 @@ data class RedUiState(
     val portalEndpoint: RedPortalEndpoint? = null,
     val tlsPreparationUrl: String? = null,
     val tlsCaFingerprint: String? = null,
+    val tlsBrowserTrustObserved: Boolean = false,
     val portalConfiguration: RedPortalConfiguration = RedPortalConfiguration(),
     val participantObservation: RedParticipantObservation? = null,
     val hotspotInfo: String? = null,
@@ -46,7 +47,15 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
     private val tlsManager = RedLocalTlsManager(application)
     private val tlsPreparation = RedTlsPreparationServer(
         onEvent = { detail -> recordRuntimeEvent(detail) },
-        port = RedPortalServer.PREPARATION_PORT
+        port = RedPortalServer.PREPARATION_PORT,
+        onCertificateDownloaded = { remote ->
+            recordStructuredEvent(
+                RedEventType.TLS_CA_CERTIFICATE_DOWNLOADED,
+                "O navegador do participante solicitou o certificado público da CA de laboratório.",
+                source = "tls-preparation",
+                remoteAddress = remote.takeIf { it.isNotBlank() }
+            )
+        }
     )
     private val portal = RedPortalServer(
         onEvent = { detail -> recordRuntimeEvent(detail) },
@@ -108,7 +117,16 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 webPermissionState = observation.state
             )
         },
-        configuredPort = RedPortalConfiguration().requestedPort
+        configuredPort = RedPortalConfiguration().requestedPort,
+        onTlsHandshake = { remote ->
+            mutableState.update { it.copy(tlsBrowserTrustObserved = true) }
+            recordStructuredEvent(
+                RedEventType.TLS_HANDSHAKE_OBSERVED,
+                "Handshake TLS concluído pelo navegador participante; a origem HTTPS foi aceita para esta conexão.",
+                source = "tls-server",
+                remoteAddress = remote.takeIf { it.isNotBlank() }
+            )
+        }
     )
     private val hotspot = RedHotspotController(application) { snapshot ->
         val info = buildList {
@@ -152,7 +170,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             portal.stop()
             tlsPreparation.stop()
             mutableState.update {
-                it.copy(networkRunning = false, portalEndpoint = null, tlsPreparationUrl = null, tlsCaFingerprint = null, hotspotInfo = null, hotspotSnapshot = null)
+                it.copy(networkRunning = false, portalEndpoint = null, tlsPreparationUrl = null, tlsCaFingerprint = null, tlsBrowserTrustObserved = false, hotspotInfo = null, hotspotSnapshot = null)
             }
         }
         if (snapshot.state == RedNetworkState.HOTSPOT_READY) {
@@ -162,7 +180,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                     ?: error("O Android não disponibilizou o IPv4 do hotspot para emitir o certificado TLS.")
                 val tlsMaterial = tlsManager.prepare(hotspotAddress)
                 val caUrl = tlsPreparation.start(hotspotAddress, tlsMaterial.caCertificateDer)
-                mutableState.update { it.copy(tlsPreparationUrl = caUrl, tlsCaFingerprint = tlsMaterial.caFingerprintSha256) }
+                mutableState.update { it.copy(tlsPreparationUrl = caUrl, tlsCaFingerprint = tlsMaterial.caFingerprintSha256, tlsBrowserTrustObserved = false) }
                 val address = portal.startHttps(hotspotAddress, mutableState.value.portalConfiguration.mode, tlsMaterial.sslContext)
                 mutableState.update {
                     it.copy(
@@ -349,6 +367,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 portalEndpoint = null,
                 tlsPreparationUrl = null,
                 tlsCaFingerprint = null,
+                tlsBrowserTrustObserved = false,
                 hotspotInfo = null,
                 networkState = RedNetworkState.IDLE
             )
