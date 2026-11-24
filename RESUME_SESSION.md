@@ -16,8 +16,9 @@
 - RED-08: concluído; token aleatório efêmero, cookie HttpOnly/SameSite, validação de IP/origem, comparação em tempo constante, bloqueio após falhas, expiração por inatividade/tempo absoluto e limpeza no stop; background/reinício marcam sessão interrompida. Ver `docs/red-http-server.md`.
 - BLUE-01: concluído; painel BLUE apresenta fatos observados, interpretação defensiva, eventos HTTP, cookies e permissões sem criar detecções sem evidência.
 - RED-09: concluído; schema v2, migração v1→v2, retenção 100 sessões/300 eventos, relatório Markdown, exportação SAF e exclusão individual/global. Ver `docs/red-session-reports.md`.
-- Progresso de implementação: 10 de 16 submódulos concluídos (62,5%); RED-07 parcial. Próximo submódulo: RED-10.
+- RED-10: concluído; interface A centraliza estado real, URL/QR após bind, diagnóstico, ações de recuperação, consentimento/permissões e evidências; B continua navegador-only. Ver `docs/red-operator-ui.md`.
+- Progresso de implementação: 11 de 16 submódulos concluídos (68,75%); RED-07 parcial. Próximo submódulo: RED-11.
 - Nenhum teste, build, compilação, lint ou validação foi executado nesta execução. Todos permanecem acumulados para a etapa final.
 - Testes físicos nos dois aparelhos permanecem na fase final.
 - Não gerar ZIP/checkpoints; o usuário determinou execução diretamente no repositório.
-- Pendências: HTTPS confiável para prompts nativos do RED-07; validar sessão/CSRF/expiração e encerramento na fase final; concluir RED-10 a RED-14; revisar integração final de relatório/BLUE.
+- Pendências: HTTPS confiável para prompts nativos do RED-07; validar sessão/CSRF/expiração e encerramento na fase final; concluir RED-11 a RED-14; revisar integração final de relatório/BLUE.
