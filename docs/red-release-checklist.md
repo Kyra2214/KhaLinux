@@ -1,6 +1,6 @@
 # RED-14 — Checklist de estabilização e entrega
 
-**Estado:** documentação e estabilização da branch parcialmente concluídas; RED-07 tem implementação HTTPS local offline, mas validação browser/hardware ainda pendente. Release publicável bloqueada. Este checklist separa implementação de validação.
+**Estado:** implementação/documentação do roadmap RED/BLUE concluídas (100%); validação browser/hardware e release publicável pendentes. Este checklist separa implementação de validação.
 
 ## Entregáveis documentais concluídos
 
