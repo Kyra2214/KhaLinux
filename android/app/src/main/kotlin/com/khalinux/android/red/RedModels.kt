@@ -29,7 +29,7 @@ data class RedCookieConsent(
 }
 data class RedPortalConfiguration(
     val mode: RedPortalMode = RedPortalMode.LOCAL_LOGIN,
-    val requestedPort: Int = 8080
+    val requestedPort: Int = 8443
 )
 
 data class RedPortalEndpoint(
