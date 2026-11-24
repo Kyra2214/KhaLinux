@@ -135,7 +135,8 @@ data class RedEvent(
     val webPermissionState: RedWebPermissionState? = null,
     val responseSent: Boolean? = null,
     val rejectionReason: String? = null,
-    val serverFailure: Boolean? = null
+    val serverFailure: Boolean? = null,
+    val safeHeaders: Map<String, String> = emptyMap()
 )
 
 data class RedSession(
