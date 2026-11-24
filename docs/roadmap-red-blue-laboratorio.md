@@ -452,6 +452,8 @@ Para cada execução registrar: ID do teste, modelo dos dois aparelhos, versão 
 
 ## RED-14 — Estabilização e entrega da branch
 
+**Estado:** parcial. Notas de release, compatibilidade, checklist e revisão direcionada da branch documentados. Revisão integral do diff, resolução de RED-07, validação, APK/hash e PR permanecem pendentes. Ver [red-branch-stabilization.md](red-branch-stabilization.md) e [red-release-checklist.md](red-release-checklist.md).
+
 **Estado:** parcial. Notas de release, matriz de compatibilidade e checklist preparados; APK/hash, revisão final do diff e PR dependem da validação final. Ver [red-release-checklist.md](red-release-checklist.md). Não fazer merge nem alterar main.
 
 Atividades:
