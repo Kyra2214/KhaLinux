@@ -100,7 +100,7 @@ class RedSystemHotspotController(
                 internetAvailable = false,
                 validated = false,
                 transport = null,
-                message = "Monitorando upstream do aparelho A; o portal local funciona sem internet."
+                message = "Nenhum upstream validado foi observado no aparelho A até agora; o portal local funciona sem internet."
             )
         )
         val observer = object : ConnectivityManager.NetworkCallback() {
