@@ -153,10 +153,10 @@ jobs:
           KHALINUX_KEY_ALIAS: ${{ secrets.KHALINUX_KEY_ALIAS }}
           KHALINUX_KEY_PASSWORD: ${{ secrets.KHALINUX_KEY_PASSWORD }}
         run: |
-          # versionCode 8 reservado para os artefatos automáticos da main; releases públicas usam > 8.
+          # versionCode 11 reservado para os artefatos automáticos da main; releases públicas usam > 11.
           ./gradlew --no-daemon :android:app:assembleRelease \
             -PkhalinuxVersionName="1.0.0-main.${GITHUB_RUN_NUMBER}" \
-            -PkhalinuxVersionCode=8 \
+            -PkhalinuxVersionCode=11 \
             -PkhalinuxMinify=true
 
       - name: Verify signature and create checksummed artifact

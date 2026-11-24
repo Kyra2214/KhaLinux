@@ -31,4 +31,4 @@
 - Não declarar funcionalidade concluída sem implementação e documentação correspondentes.
 - Durante a implementação, não executar testes, builds, compilação, auditorias de validação ou testes físicos. Acumular essas atividades para a fase final do roadmap.
 - Testes físicos nos dois aparelhos ficam reservados à etapa final.
-- Trabalhar somente na branch de recuperação definida pelo usuário. Não alterar `main`, não fazer force push e não fazer merge sem instrução explícita.
+- Não fazer force push.

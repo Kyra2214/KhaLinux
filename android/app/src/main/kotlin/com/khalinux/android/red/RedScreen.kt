@@ -46,7 +46,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.ProcessLifecycleOwner
 
 @Composable
 fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
@@ -61,8 +61,9 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
     var hotspotPermissionMessage by remember { mutableStateOf<String?>(null) }
     var hotspotPermissionPending by rememberSaveable { mutableStateOf(false) }
     val previousPermissionState = remember { mutableStateOf(hotspotPermissionState) }
-    val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner, context) {
+    // Evita depender do LocalLifecycleOwner, ausente em algumas composições de dispositivos.
+    val lifecycle = remember { ProcessLifecycleOwner.get().lifecycle }
+    DisposableEffect(lifecycle, context) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 hotspotPermissionPending = false
@@ -82,8 +83,8 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                 hotspotPermissionState = resolved
             }
         }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+        lifecycle.addObserver(observer)
+        onDispose { lifecycle.removeObserver(observer) }
     }
     val hotspotPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         hotspotPermissionPending = false
