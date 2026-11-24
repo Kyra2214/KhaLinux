@@ -207,10 +207,10 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                         },
                         style = MaterialTheme.typography.bodySmall
                     )
-                    Text("Requisições recebidas: ${state.requests.size}", style = MaterialTheme.typography.bodySmall)
+                    Text("Observações HTTP recentes: ${state.requests.size}/100", style = MaterialTheme.typography.bodySmall)
                     state.participantObservation?.let { peer ->
                         Text(
-                            "Última origem HTTP observada: " + (peer.remoteAddress ?: "não identificada") + " · " + peer.requestCount + " requisições",
+                            "Última origem HTTP observada: " + (peer.remoteAddress ?: "não identificada") + " · " + peer.requestCount + " requisições desta origem",
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
@@ -220,6 +220,9 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                                 Text("${request.method} ${request.path} · HTTP ${request.statusCode}", style = MaterialTheme.typography.labelLarge)
                                 Text("Hora: ${request.timestamp} · ${request.bodyBytes} bytes · ${request.contentType ?: "tipo não informado"}", style = MaterialTheme.typography.bodySmall)
                                 Text("Origem: ${request.remoteAddress ?: "não identificada"}", style = MaterialTheme.typography.bodySmall)
+                                Text("Resposta HTTP: ${if (request.responseSent) "enviada" else "não confirmada"}", style = MaterialTheme.typography.bodySmall)
+                                request.rejectionReason?.let { Text("Rejeição: $it", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
+                                if (request.serverFailure) Text("Falha interna do servidor", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                                 request.safeHeaders.forEach { (name, value) ->
                                     Text("$name: $value", style = MaterialTheme.typography.bodySmall)
                                 }
