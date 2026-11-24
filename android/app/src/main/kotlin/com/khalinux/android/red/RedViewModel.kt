@@ -885,6 +885,8 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             val tlsHandshakeObserved = orderedEvents.any { it.type == RedEventType.TLS_HANDSHAKE_OBSERVED }
             appendLine("- O portal RED utiliza HTTPS local; download da CA pública observado: ${if (caDownloadObserved) "sim" else "não observado"}.")
             appendLine("- Handshake TLS concluído pelo navegador: ${if (tlsHandshakeObserved) "observado nesta sessão" else "não observado nesta sessão"}. A ausência do evento não prova que a CA não foi instalada.")
+            val upstreamEvent = orderedEvents.lastOrNull { it.type == RedEventType.UPSTREAM_STATUS_CHANGED }
+            appendLine("- Upstream do aparelho A: ${upstreamEvent?.detail ?: "não observado nesta sessão"}. Isso não confirma, isoladamente, acesso externo do B.")
             appendLine("- Permissões web dependem de contexto seguro e suporte do navegador; indisponibilidade não equivale a recusa.")
             appendLine("- Testes automatizados, compilação e testes físicos são acumulados para a etapa final do roadmap e não são declarados aprovados neste relatório.")
             appendLine("- A ausência de evento significa somente que o servidor não recebeu esse evento durante esta sessão.")
