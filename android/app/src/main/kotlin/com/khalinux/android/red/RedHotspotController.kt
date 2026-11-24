@@ -10,7 +10,8 @@ import java.util.Locale
 
 /**
  * Controla somente o LocalOnlyHotspot fornecido pelo Android.
- * Cada solicitação tem geração própria: callbacks atrasados nunca podem reativar uma sessão cancelada.
+ * Cada solicitação tem geração própria; callbacks atrasados não reativam sessões canceladas.
+ * A interface AP é aceita somente quando um endereço IPv4 novo é observado após a solicitação.
  */
 class RedHotspotController(
     context: Context,
@@ -25,6 +26,8 @@ class RedHotspotController(
     private var activeRequestGeneration: Long? = null
     private var reservationGeneration: Long? = null
     private var timeoutRunnable: Runnable? = null
+    private var interfaceDiscoveryRunnable: Runnable? = null
+    private var interfacesBeforeStart: Set<Pair<String, String>> = emptySet()
 
     @Synchronized
     fun start() {
@@ -34,6 +37,7 @@ class RedHotspotController(
         val generation = requestGeneration
         activeRequestGeneration = generation
         starting = true
+        interfacesBeforeStart = snapshotWifiIpv4Addresses()
         onState(RedHotspotSnapshot(RedNetworkState.REQUESTING_HOTSPOT, "Solicitando hotspot local ao Android."))
 
         val timeout = Runnable {
@@ -68,25 +72,21 @@ class RedHotspotController(
                         activeRequestGeneration = null
                         reservation = value
                         reservationGeneration = generation
-
-                        val config = value.wifiConfiguration
-                        val network = discoverWifiInterface()
                         onState(
                             RedHotspotSnapshot(
-                                state = RedNetworkState.HOTSPOT_READY,
-                                message = "Hotspot local ativado pelo Android.",
-                                ssid = config?.SSID?.trim('"'),
-                                passphrase = config?.preSharedKey,
-                                interfaceName = network?.first,
-                                ipv4Address = network?.second
+                                state = RedNetworkState.DISCOVERING_INTERFACE,
+                                message = "Hotspot criado pelo Android; identificando a interface e o IPv4 desta sessão."
                             )
                         )
+                        scheduleInterfaceDiscovery(generation, value, interfacesBeforeStart, DISCOVERY_ATTEMPTS)
                     }
                 }
 
                 override fun onStopped() {
                     synchronized(this@RedHotspotController) {
                         if (reservationGeneration != generation) return
+                        interfaceDiscoveryRunnable?.let(handler::removeCallbacks)
+                        interfaceDiscoveryRunnable = null
                         reservation = null
                         reservationGeneration = null
                         onState(RedHotspotSnapshot(RedNetworkState.IDLE, "O Android encerrou o hotspot local."))
@@ -123,6 +123,58 @@ class RedHotspotController(
         }
     }
 
+    private fun scheduleInterfaceDiscovery(
+        generation: Long,
+        activeReservation: WifiManager.LocalOnlyHotspotReservation,
+        baseline: Set<Pair<String, String>>,
+        attemptsLeft: Int
+    ) {
+        val task = Runnable {
+            synchronized(this@RedHotspotController) {
+                if (reservationGeneration != generation || reservation !== activeReservation) return@synchronized
+                val candidates = snapshotWifiIpv4Addresses().filter { it !in baseline }
+                when {
+                    candidates.size == 1 -> {
+                        interfaceDiscoveryRunnable = null
+                        val (interfaceName, address) = candidates.single()
+                        val config = activeReservation.wifiConfiguration
+                        onState(
+                            RedHotspotSnapshot(
+                                state = RedNetworkState.HOTSPOT_READY,
+                                message = "Hotspot local e interface AP identificados por endereço IPv4 novo.",
+                                ssid = config?.SSID?.trim('"'),
+                                passphrase = config?.preSharedKey,
+                                interfaceName = interfaceName,
+                                ipv4Address = address
+                            )
+                        )
+                    }
+                    attemptsLeft > 1 -> {
+                        scheduleInterfaceDiscovery(generation, activeReservation, baseline, attemptsLeft - 1)
+                    }
+                    else -> {
+                        interfaceDiscoveryRunnable = null
+                        reservation = null
+                        reservationGeneration = null
+                        runCatching { activeReservation.close() }
+                        onState(
+                            RedHotspotSnapshot(
+                                state = RedNetworkState.ERROR,
+                                message = if (candidates.isEmpty()) {
+                                    "Hotspot criado, mas não foi possível correlacionar uma interface Wi-Fi e um IPv4 novos. O portal não foi iniciado."
+                                } else {
+                                    "Mais de uma interface/IPv4 candidata foi observada; vínculo ambíguo. O portal não foi iniciado."
+                                }
+                            )
+                        )
+                    }
+                }
+            }
+        }
+        interfaceDiscoveryRunnable = task
+        handler.postDelayed(task, INTERFACE_POLL_INTERVAL_MS)
+    }
+
     @Synchronized
     private fun failCurrentRequest(generation: Long, message: String) {
         if (activeRequestGeneration != generation) return
@@ -142,6 +194,8 @@ class RedHotspotController(
 
         timeoutRunnable?.let(handler::removeCallbacks)
         timeoutRunnable = null
+        interfaceDiscoveryRunnable?.let(handler::removeCallbacks)
+        interfaceDiscoveryRunnable = null
 
         if (wasStarting) {
             starting = false
@@ -159,26 +213,26 @@ class RedHotspotController(
         }
     }
 
-    private fun discoverWifiInterface(): Pair<String, String>? = runCatching {
-        val interfaces = NetworkInterface.getNetworkInterfaces()?.toList().orEmpty()
-        val candidates = interfaces.filter { network ->
-            val name = network.name.lowercase(Locale.ROOT)
-            network.isUp && !network.isLoopback &&
-                (name.startsWith("wlan") || name.startsWith("ap") ||
-                    name.startsWith("swlan") || name.contains("softap"))
-        }
-        candidates.asSequence()
+    private fun snapshotWifiIpv4Addresses(): Set<Pair<String, String>> = runCatching {
+        NetworkInterface.getNetworkInterfaces()?.toList().orEmpty()
+            .filter { network ->
+                val name = network.name.lowercase(Locale.ROOT)
+                network.isUp && !network.isLoopback &&
+                    (name.startsWith("wlan") || name.startsWith("ap") ||
+                        name.startsWith("swlan") || name.contains("softap"))
+            }
             .flatMap { network ->
-                network.inetAddresses.toList().asSequence()
+                network.inetAddresses.toList()
                     .filterIsInstance<Inet4Address>()
                     .filter { !it.isLoopbackAddress && !it.isLinkLocalAddress }
-                    .map { network.name to it.hostAddress }
+                    .mapNotNull { address -> address.hostAddress?.let { network.name to it } }
             }
-            .firstOrNull { !it.second.isNullOrBlank() }
-            ?.let { it.first to it.second!! }
-    }.getOrNull()
+            .toSet()
+    }.getOrDefault(emptySet())
 
     companion object {
         private const val START_TIMEOUT_MS = 30_000L
+        private const val INTERFACE_POLL_INTERVAL_MS = 500L
+        private const val DISCOVERY_ATTEMPTS = 20
     }
 }
