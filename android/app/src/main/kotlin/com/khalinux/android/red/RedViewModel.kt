@@ -40,6 +40,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         onAddress = { address -> mutableState.update { it.copy(portalAddress = address) } },
         onRequest = { observation -> recordRequest(observation) },
         onSyntheticSubmission = { submission -> recordSyntheticSubmission(submission) },
+        onCookieConsent = { summary -> recordStructuredEvent(RedEventType.COOKIE_CONSENT_RECORDED, summary, source = "browser-cookie-consent") },
         onParticipantEvent = { kind, result -> recordParticipantEvent(kind, result) }
     )
     private val hotspot = RedHotspotController(application) { snapshot ->
@@ -318,7 +319,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             RedEventType.HOTSPOT_READY, RedEventType.PORTAL_STARTED -> RedOperationState.WAITING_PARTICIPANT
             RedEventType.PORTAL_OPENED, RedEventType.HTTP_REQUEST_RECEIVED, RedEventType.FORM_SUBMITTED,
             RedEventType.DEMO_FORM_COMPLETED, RedEventType.FORM_REJECTED,
-            RedEventType.NAVIGATION, RedEventType.REDIRECT -> RedOperationState.ACTIVE
+            RedEventType.NAVIGATION, RedEventType.REDIRECT, RedEventType.COOKIE_CONSENT_RECORDED -> RedOperationState.ACTIVE
             else -> current.state
         }
         val updated = current.copy(state = nextState).withEvent(
@@ -481,6 +482,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
             appendLine("- Etapas concluídas: ${session.completedSteps.size}/${operation?.steps?.size ?: 0}")
             appendLine("- Requisições HTTP observadas: ${requestEvents.size}")
             appendLine("- Eventos de permissões/recursos: ${permissionEvents.size}")
+            appendLine("- Escolhas de cookies registradas: ${orderedEvents.count { it.type == RedEventType.COOKIE_CONSENT_RECORDED }}")
             appendLine()
             appendLine("## Linha do tempo")
             orderedEvents.forEach { event ->
