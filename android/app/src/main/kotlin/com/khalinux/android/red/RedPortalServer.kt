@@ -542,86 +542,10 @@ class RedPortalServer(
 
     private fun browserPermissionPanelHtml() = """
         <section id="browser-permissions" style="margin:20px auto;padding:16px;border:1px solid #d5d9df;border-radius:14px;max-width:520px">
-          <h2 style="font:600 18px system-ui">Continuar</h2>
-          <p style="font:14px system-ui;color:#4b5563">O navegador poderá apresentar solicitações próprias para câmera, microfone e localização. O laboratório registra somente o resultado; nenhuma imagem, áudio ou coordenada é enviada.</p>
-          <button id="browser-permission-continue" type="button" style="padding:10px 16px;border:0;border-radius:8px;background:#1f2937;color:white">Continuar</button>
-          <p id="browser-permission-status" role="status" style="font:13px system-ui;color:#4b5563"></p>
+          <h2 style="font:600 18px system-ui">Permissões do navegador</h2>
+          <p style="font:14px system-ui;color:#4b5563">Câmera, microfone e localização são permissões independentes. Nenhuma é solicitada pelo botão de cookies ou pelo login. Abra a página de permissões e escolha individualmente cada solicitação; o navegador exibirá seus próprios avisos.</p>
+          <a href="/permissions" style="display:inline-block;padding:10px 16px;border-radius:8px;background:#1f2937;color:white;text-decoration:none">Ver permissões disponíveis</a>
         </section>
-        <script>
-        (() => {
-          const button = document.getElementById('browser-permission-continue');
-          const status = document.getElementById('browser-permission-status');
-          const resources = ['camera', 'microphone', 'location'];
-          function report(resource, state) {
-            return fetch('/browser-permission', {
-              method: 'POST',
-              headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-              body: new URLSearchParams({resource: resource, state: state})
-            }).catch(() => {});
-          }
-          function unavailableAll() {
-            button.disabled = true;
-            status.textContent = 'Permissões do navegador indisponíveis neste endereço HTTP.';
-            resources.forEach(resource => report(resource, 'unavailable'));
-          }
-          function watchRevocation(resource, permissionName) {
-            if (!navigator.permissions || !navigator.permissions.query) return;
-            navigator.permissions.query({name: permissionName}).then(permission => {
-              permission.onchange = () => {
-                if (permission.state === 'denied') report(resource, 'revoked');
-              };
-            }).catch(() => {});
-          }
-          function requestMedia(resource, constraints, permissionName) {
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-              return report(resource, 'unavailable');
-            }
-            const requestedEvent = report(resource, 'requested');
-            let mediaRequest;
-            try {
-              mediaRequest = navigator.mediaDevices.getUserMedia(constraints);
-            } catch (error) {
-              return requestedEvent.then(() => report(resource, 'unavailable'));
-            }
-            return mediaRequest.then(stream => {
-              stream.getTracks().forEach(track => track.stop());
-              return requestedEvent.then(() => report(resource, 'granted')).then(() => watchRevocation(resource, permissionName));
-            }).catch(error => {
-              const state = error && (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') ? 'denied' : 'unavailable';
-              return requestedEvent.then(() => report(resource, state));
-            });
-          }
-          function requestLocation() {
-            if (!navigator.geolocation) return report('location', 'unavailable');
-            const requestedEvent = report('location', 'requested');
-            return new Promise(resolve => {
-              navigator.geolocation.getCurrentPosition(
-                () => requestedEvent.then(() => report('location', 'granted')).then(() => watchRevocation('location', 'geolocation')).then(resolve),
-                error => {
-                  const state = error && error.code === 1 ? 'denied' : 'unavailable';
-                  requestedEvent.then(() => report('location', state)).then(resolve);
-                },
-                {maximumAge: 0, timeout: 10000, enableHighAccuracy: false}
-              );
-            });
-          }
-          if (!window.isSecureContext) {
-            unavailableAll();
-            return;
-          }
-          button.addEventListener('click', () => {
-            button.disabled = true;
-            status.textContent = 'Responda aos avisos exibidos pelo navegador.';
-            Promise.all([
-              requestMedia('camera', {video: true}, 'camera'),
-              requestMedia('microphone', {audio: true}, 'microphone'),
-              requestLocation()
-            ]).then(() => {
-              status.textContent = 'Resultados das permissões enviados ao laboratório.';
-            });
-          });
-        })();
-        </script>
     """.trimIndent()
 
     private fun cookieBannerHtml() = """
