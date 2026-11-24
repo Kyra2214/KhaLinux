@@ -406,14 +406,12 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
         val requestEvents = orderedEvents.filter { it.httpMethod != null }
         val permissionEvents = orderedEvents.filter {
             it.type in setOf(
-                RedEventType.PERMISSION_REQUESTED,
-                RedEventType.PERMISSION_GRANTED,
-                RedEventType.PERMISSION_DENIED,
-                RedEventType.PERMISSION_CANCELLED,
-                RedEventType.RESOURCE_PREVIEW_STARTED,
-                RedEventType.RESOURCE_PREVIEW_STOPPED,
-                RedEventType.FILE_PICKER_OPENED,
-                RedEventType.FILE_SELECTED
+                RedEventType.WEB_PERMISSION_REQUESTED,
+                RedEventType.WEB_PERMISSION_GRANTED,
+                RedEventType.WEB_PERMISSION_DENIED,
+                RedEventType.WEB_PERMISSION_CANCELLED,
+                RedEventType.WEB_PERMISSION_UNAVAILABLE,
+                RedEventType.WEB_PERMISSION_REVOKED
             )
         }
         return buildString {
