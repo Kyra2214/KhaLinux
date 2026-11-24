@@ -2,7 +2,7 @@
 
 **Branch:** `recovery/red-portal-integration`  
 **Escopo:** somente o laboratório com dois aparelhos Android definidos em `AGENTS.md`.  
-**Estado deste roadmap:** execução contínua em andamento. RED-00 concluído como inventário; RED-05 possui implementação parcial do aviso de cookies; RED-07 foi reescopado para navegador. Testes, builds, compilação e validações ficam acumulados para a etapa final.
+**Estado deste roadmap:** execução contínua em andamento. RED-00 a RED-06 concluídos em código/documentação; RED-07 parcialmente implementado, com prompts reais bloqueados pela origem HTTP atual. Testes, builds, compilação e validações ficam acumulados para a etapa final.
 
 Este documento é o plano de execução da Área RED/BLUE nesta branch. O `ROADMAP.md` da raiz continua sendo o roadmap geral do KhaLinux.
 
@@ -10,7 +10,7 @@ Este documento é o plano de execução da Área RED/BLUE nesta branch. O `ROADM
 
 - **Implementação RED/BLUE:** 43,75% (7 de 16 submódulos concluídos).
 - **Concluídos:** RED-00 — [inventário de baseline](red-baseline-inventory.md); RED-01 — [modelo de domínio](red-domain-model.md); RED-02 — [matriz de permissões](red-permissions.md); RED-03 — [ciclo de vida do hotspot](red-hotspot-lifecycle.md); RED-04 — [servidor HTTP local](red-http-server.md); RED-05 — portal local e aviso de cookies; RED-06 — [eventos e evidências](red-event-evidence.md).
-- **Parciais:** RED-05 — banner e registro de consentimento de cookies; RED-07 — remoção do participante nativo e redefinição do fluxo web.
+- **Parcial:** RED-07 — fluxo e telemetria web implementados; HTTPS confiável pendente para prompts nativos no B.
 - **Parcial:** RED-07 — fluxo e telemetria web implementados; HTTPS confiável pendente para prompts nativos no B.
 - **Próximo submódulo:** RED-08 — revisão defensiva, sanitização e limites de entrada.
 - **Validação:** não iniciada nesta execução; todas as atividades de teste/build/compilação ficam para a etapa final.
