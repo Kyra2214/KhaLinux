@@ -52,11 +52,23 @@ class RedSystemHotspotController(
                 "Não foi possível enumerar as interfaces Wi-Fi para identificar o hotspot do sistema."
             )
         val newlyObserved = current - baseline
+        val defaultAddresses = connectivity.activeNetwork
+            ?.let { network -> connectivity.getLinkProperties(network)?.linkAddresses }
+            .orEmpty()
+            .mapNotNull { it.address.hostAddress }
+            .toSet()
+        val nonDefault = current.filter { (_, address) -> address !in defaultAddresses }.toSet()
         val apNamed = current.filter { (name, _) ->
             val normalized = name.lowercase(Locale.ROOT)
             normalized.startsWith("ap") || normalized.startsWith("swlan") || normalized.contains("softap")
         }.toSet()
-        val candidates = if (newlyObserved.isNotEmpty()) newlyObserved else apNamed
+        val candidates = when {
+            apNamed.size == 1 -> apNamed
+            newlyObserved.size == 1 -> newlyObserved
+            nonDefault.size == 1 -> nonDefault
+            newlyObserved.isNotEmpty() -> newlyObserved
+            else -> nonDefault
+        }
         return when {
             candidates.size == 1 -> {
                 val (interfaceName, address) = candidates.single()
