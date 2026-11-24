@@ -40,7 +40,8 @@ class RedSessionStore(context: Context) {
                 .put("webPermissionState", event.webPermissionState?.name ?: JSONObject.NULL)
                 .put("responseSent", event.responseSent ?: JSONObject.NULL)
                 .put("rejectionReason", event.rejectionReason ?: JSONObject.NULL)
-                .put("serverFailure", event.serverFailure ?: JSONObject.NULL))
+                .put("serverFailure", event.serverFailure ?: JSONObject.NULL)
+                .put("safeHeaders", JSONObject().apply { event.safeHeaders.forEach { (name, value) -> put(name, value) } }))
         }
         root.put("events", events)
         preferences.edit().putString(session.id, root.toString()).apply()
@@ -91,7 +92,10 @@ class RedSessionStore(context: Context) {
                         webPermissionState = if (item.isNull("webPermissionState")) null else runCatching { RedWebPermissionState.valueOf(item.getString("webPermissionState")) }.getOrNull(),
                         responseSent = if (item.isNull("responseSent")) null else item.getBoolean("responseSent"),
                         rejectionReason = if (item.isNull("rejectionReason")) null else item.getString("rejectionReason"),
-                        serverFailure = if (item.isNull("serverFailure")) null else item.getBoolean("serverFailure")
+                        serverFailure = if (item.isNull("serverFailure")) null else item.getBoolean("serverFailure"),
+                        safeHeaders = if (item.isNull("safeHeaders")) emptyMap() else item.getJSONObject("safeHeaders").let { headers ->
+                            headers.keys().asSequence().associateWith { key -> headers.getString(key) }
+                        }
                     )
                 }
             )
