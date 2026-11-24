@@ -2,7 +2,7 @@
 
 - Repositório: `Kyra2214/KhaLinux`.
 - Branch de trabalho: `recovery/red-portal-integration`.
-- Último checkpoint Git confirmado antes desta atualização: `1abaab3f04689f215fc4120366cf08c96b25f32a`. Snapshot de código revisado: `a845177073368f79beabb6b082e9de1bd0eaece3`. Base `main`: `a4de5eb7ef3d72404ea1171af5eaa135a48bde0c`.
+- Snapshot Git observado para a estabilização RED-14: `d445ebcc8f7fb15d5ecac1c9493da5fea72409a2` (antes dos commits documentais desta atualização). Comparação com `main`: 296 commits à frente, 0 atrás, 41 arquivos alterados. Base `main`: `a4de5eb7ef3d72404ea1171af5eaa135a48bde0c`.
 - Não alterar `main`, não fazer merge e não fazer force push.
 - Roadmap ativo: `docs/roadmap-red-blue-laboratorio.md`.
 - Topologia definida: **A** é a central que executa KhaLinux, cria a rede, hospeda o portal e exibe toda a observabilidade; **B** apenas conecta ao Wi-Fi, abre o portal no navegador, faz login de teste, responde ao aviso de cookies e às solicitações individuais do navegador quando a origem permitir.
@@ -21,9 +21,9 @@
 - RED-11: hardening concluído; CSP por resposta com nonce e sem unsafe-inline em script-src, cabeçalhos de segurança, allowlist mínima, rejeição de caracteres de controle, rate limit com mapa limitado, revisão documental do Manifest e riscos residuais documentados. Auditoria e testes negativos ficam para a fase final. Ver `docs/red-security-privacy.md`.
 - RED-12: integração e plano de validação documentados; build, lint, testes host/Android e auditoria não executados por ordem de execução. Ver `docs/red-validation-plan.md`.
 - RED-13: matriz física final documentada para A operador/B navegador-only; nenhuma execução física iniciada. Ver `docs/red-physical-validation.md`.
-- RED-14: parcial; notas de release, matriz de compatibilidade, checklist e revisão direcionada da branch preparados. Revisão integral do diff, APK/hash e PR aguardam os portões finais. Ver `docs/red-release-checklist.md` e `docs/red-branch-stabilization.md`.
-- Progresso de implementação/documentação: 14 de 16 submódulos preparados (87,5%); RED-07 e RED-14 parciais. Submódulo atual: RED-14.
+- RED-14: parcela documental/estabilização concluída neste snapshot; notas de release, matriz de compatibilidade, checklist e comparação Git atualizados. Revisão integral do diff, validação final, APK assinado/hash e PR continuam pendentes. Ver `docs/red-release-checklist.md`, `docs/red-blue-release-notes.md`, `docs/red-blue-compatibility.md` e `docs/red-branch-stabilization.md`.
+- Progresso de implementação/documentação: 14 de 16 submódulos preparados (87,5%). RED-07 continua parcial por depender de HTTPS confiável; RED-14 tem a parcela documental concluída, mas não pode ser fechado como entrega publicável antes dos portões finais.
 - Nenhum teste, build, compilação, lint ou validação foi executado nesta execução. Todos permanecem acumulados para a etapa final.
 - Testes físicos nos dois aparelhos permanecem na fase final.
 - Não gerar ZIP/checkpoints; o usuário determinou execução diretamente no repositório.
-- Pendências: HTTPS confiável para prompts nativos do RED-07; auditoria final RED-11; execução de build/testes RED-12; testes físicos RED-13; APK assinado/hash e PR RED-14; concluir revisão integral do diff; RED-07 depende de HTTPS confiável no B.
+- Pendências: HTTPS confiável para prompts nativos do RED-07; auditoria final RED-11; execução de build/testes RED-12; testes físicos RED-13; revisão integral do diff atual; APK assinado/hash e PR RED-14 após aprovação dos portões.
