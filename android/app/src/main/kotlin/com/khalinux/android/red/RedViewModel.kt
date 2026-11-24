@@ -125,7 +125,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 recordStructuredEvent(
                     RedEventType.PORTAL_ERROR,
-                    "Portal não iniciado: interface Wi-Fi indisponível.",
+                    "Portal não iniciado: " + (error.message ?: "erro desconhecido"),
                     source = "portal"
                 )
             }
