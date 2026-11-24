@@ -26,6 +26,22 @@ import javax.net.ssl.SSLSocket
  * O corpo de requisição não é persistido nem incluído em RedRequestObservation.
  * Não oferece fallback HTTP; a preparação da CA é responsabilidade de RedTlsPreparationServer.
  */
+internal fun hasValidHeartbeatSessionCookie(cookieHeader: String?, expectedToken: String?): Boolean {
+    if (expectedToken.isNullOrBlank() || cookieHeader.isNullOrBlank()) return false
+    val supplied = cookieHeader.split(';').firstNotNullOfOrNull { part ->
+        val cookie = part.trim()
+        if (cookie.startsWith("kl_lab_session=")) {
+            cookie.substringAfter('=').takeIf { it.isNotBlank() }
+        } else {
+            null
+        }
+    } ?: return false
+    return MessageDigest.isEqual(
+        expectedToken.toByteArray(StandardCharsets.UTF_8),
+        supplied.toByteArray(StandardCharsets.UTF_8)
+    )
+}
+
 class RedPortalServer(
     private val onEvent: (String) -> Unit,
     private val onAddress: (String?) -> Unit,
@@ -398,18 +414,8 @@ class RedPortalServer(
                         permissionsHtml(cspNonce)
                     }
                     method == "GET" && path == "/heartbeat" -> {
-                        val token = activeSessionToken
-                        val supplied = headers["cookie"]
-                            ?.split(';')
-                            ?.firstNotNullOfOrNull { part ->
-                                val cookie = part.trim()
-                                if (cookie.startsWith("kl_lab_session=")) cookie.substringAfter('=').takeIf { it.isNotBlank() } else null
-                            }
-                        val tokenMatches = token != null && supplied != null && MessageDigest.isEqual(
-                            token.toByteArray(StandardCharsets.UTF_8),
-                            supplied.toByteArray(StandardCharsets.UTF_8)
-                        )
-                        if (remoteAddress != null && sessionOwnerAddress == remoteAddress && tokenMatches) {
+                        val hasSessionCookie = hasValidHeartbeatSessionCookie(headers["cookie"], activeSessionToken)
+                        if (remoteAddress != null && sessionOwnerAddress == remoteAddress && hasSessionCookie) {
                             status = 204
                             ""
                         } else {
