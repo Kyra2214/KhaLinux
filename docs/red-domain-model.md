@@ -28,6 +28,8 @@
 - `RedEvent` mantém recurso e estado em campos tipados. Nenhum evento de permissão web é criado até que o navegador retorne um resultado observável.
 - Permissões nativas do modo participante foram removidas. O B permanece navegador-only.
 
+`RedUpstreamSnapshot` representa capacidades de internet observadas no aparelho A (INTERNET, VALIDATED e transporte); não é prova de navegação externa do B.
+
 ## Eventos e persistência
 
 - `RedEvent` conserva ID, sessão, sequência, timestamp, origem, rota/status HTTP e campos tipados de consentimento/permissão; os eventos `TLS_CA_CERTIFICATE_DOWNLOADED` e `TLS_HANDSHAKE_OBSERVED` registram separadamente preparação e confiança observada.
