@@ -120,6 +120,8 @@ class RedPortalServer(
             var rejectionReason: String? = null
             var serverFailure = false
             var observedHeaders: Map<String, String> = emptyMap()
+            var pendingCookieConsent: RedCookieConsent? = null
+            var pendingWebPermission: RedWebPermissionObservation? = null
 
             fun respond(code: Int, body: String, responseContentType: String = "text/html") {
                 status = code
@@ -267,7 +269,7 @@ class RedPortalServer(
                             resultHtml("Escolha inválida", "Não foi possível validar as categorias selecionadas.")
                         } else {
                             status = 200
-                            onCookieConsent(consent)
+                            pendingCookieConsent = consent
                             resultHtml("Preferências registradas", "Sua escolha de cookies foi registrada no laboratório.")
                         }
                     }
@@ -279,7 +281,7 @@ class RedPortalServer(
                             resultHtml("Resultado inválido", "O estado de permissão do navegador não foi reconhecido.")
                         } else {
                             status = 200
-                            onWebPermission(observation)
+                            pendingWebPermission = observation
                             resultHtml("Resultado registrado", "O resultado da permissão foi registrado no painel do laboratório.")
                         }
                     }
@@ -365,6 +367,8 @@ class RedPortalServer(
                                 serverFailure = serverFailure
                             )
                         )
+                        pendingCookieConsent?.let(onCookieConsent)
+                        pendingWebPermission?.let(onWebPermission)
                     }
                 }
             }
