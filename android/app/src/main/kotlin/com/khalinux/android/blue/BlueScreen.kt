@@ -256,6 +256,7 @@ private fun defensiveAdvice(event: RedEvent): String {
     RedEventType.TLS_CA_CERTIFICATE_DOWNLOADED -> "O navegador solicitou o certificado público da CA. O download não prova que a CA foi instalada ou confiada."
     RedEventType.TLS_HANDSHAKE_OBSERVED -> "Uma conexão concluiu o handshake TLS; o cliente aceitou a cadeia do servidor nessa conexão. Isso não concede permissões web."
     RedEventType.UPSTREAM_STATUS_CHANGED -> "O estado do upstream do aparelho A mudou. Internet validada em A não comprova, isoladamente, navegação externa em B."
+    RedEventType.PARTICIPANT_HEARTBEAT -> "O navegador B enviou um heartbeat autenticado ao portal HTTPS pela rede local. Isso confirma alcance local, não acesso externo à internet."
     RedEventType.NAVIGATION -> "Confira a URL e o destino antes de seguir. Uma página familiar não garante que o domínio seja legítimo."
     RedEventType.REDIRECT -> "Redirecionamentos podem levar a destinos inesperados. Verifique a URL final antes de inserir qualquer dado."
     RedEventType.FORM_SUBMITTED -> "O formulário de demonstração foi enviado ao portal local. Não reutilize senhas pessoais em portais Wi-Fi."
