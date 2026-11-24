@@ -299,8 +299,13 @@ class RedPortalServer(
                 val renderedResponse = if (
                     status in 200..299 && path != "/health" && response.contains("</body>")
                 ) response.replace("</body>", cookieBannerHtml() + "</body>") else response
-                writeResponse(output, status, renderedResponse, contentType = if (path == "/health") "application/json" else "text/html")
-                responseSent = true
+                if (renderedResponse.toByteArray(StandardCharsets.UTF_8).size > MAX_RESPONSE_BYTES) {
+                    rejectionReason = "response_too_large"
+                    respond(413, "Resposta acima do limite permitido.")
+                } else {
+                    writeResponse(output, status, renderedResponse, contentType = if (path == "/health") "application/json" else "text/html")
+                    responseSent = true
+                }
                 if (method == "GET" && path == "/") {
                     onEvent("Portal de treinamento acessado pelo aparelho participante.")
                 }
