@@ -17,7 +17,7 @@ O app mantém usesCleartextTraffic=false para tráfego HTTP de saída do própri
 - Rejeição de caracteres de controle em valores de headers.
 - Allowlist persistida reduzida a Host, Accept, Content-Type e caminho do Referer; User-Agent e Accept-Language deixaram de ser armazenados.
 - Cookie, Authorization e corpo HTTP permanecem fora das evidências.
-- CSP reforçada com object-src none e base-uri none; adicionados Cross-Origin-Resource-Policy e X-Permitted-Cross-Domain-Policies.
+- CSP por resposta usa nonce aleatório em script-src, sem unsafe-inline; botões de cookies usam addEventListener em vez de handlers inline. CSP inclui object-src none e base-uri none; headers Cross-Origin-Resource-Policy e X-Permitted-Cross-Domain-Policies também são enviados.
 - Sessão com token aleatório efêmero, cookie HttpOnly/SameSite, validação de IP/origem, comparação em tempo constante, expiração e bloqueio temporário com limite de endereços de falha.
 - Consentimento, login e permissões web aceitam apenas campos fechados e validados. Nenhuma mídia, coordenada ou arquivo é recebido.
 - Histórico limitado a 100 sessões/300 eventos; relatório e exclusão individual/global documentados.
