@@ -206,7 +206,8 @@ fun RedScreen(state: RedUiState, viewModel: RedViewModel) {
                         Text("Interface: ${endpoint.interfaceName ?: "não identificada"}", style = MaterialTheme.typography.bodySmall)
                         state.tlsPreparationUrl?.let { caUrl ->
                             Text("Preparação da CA pública: $caUrl", style = MaterialTheme.typography.bodySmall)
-                            TextButton(onClick = { clipboard.setText(AnnotatedString(caUrl)) }) { Text("Copiar endereço do certificado") }
+                            RedQrCode(caUrl)
+                            TextButton(onClick = { clipboard.setText(AnnotatedString(caUrl)) }) { Text("Copiar endereço de preparação") }
                         }
                         state.tlsCaFingerprint?.let { fingerprint ->
                             Text("Impressão digital SHA-256 da CA: $fingerprint", style = MaterialTheme.typography.bodySmall)
