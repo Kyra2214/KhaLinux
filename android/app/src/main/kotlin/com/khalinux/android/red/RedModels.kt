@@ -21,6 +21,24 @@ data class RedCookieConsent(
             "preferências=${if (preferences) "aceito" else "recusado"}; " +
             "personalização=${if (personalization) "aceito" else "recusado"}"
 }
+data class RedPortalConfiguration(
+    val mode: RedPortalMode = RedPortalMode.LOCAL_LOGIN,
+    val requestedPort: Int = 8080
+)
+
+data class RedPortalEndpoint(
+    val url: String,
+    val interfaceName: String?,
+    val port: Int
+)
+
+data class RedParticipantObservation(
+    val remoteAddress: String?,
+    val firstRequestAt: Long,
+    val lastRequestAt: Long,
+    val requestCount: Int
+)
+
 enum class RedEventType {
     SESSION_STARTED,
     COOKIE_CONSENT_RECORDED,
