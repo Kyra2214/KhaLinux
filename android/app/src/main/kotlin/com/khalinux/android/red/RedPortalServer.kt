@@ -866,8 +866,16 @@ class RedPortalServer(
         <h1>$title</h1><p>$message</p><p><a href="/links">Voltar ao conteúdo</a></p></body></html>
     """.trimIndent()
 
-    private fun isLoginRateLimited(remoteAddress: String): Boolean =
-        failedLoginAttempts[remoteAddress]?.blockedUntil?.let { it > System.currentTimeMillis() } == true
+    private fun isLoginRateLimited(remoteAddress: String): Boolean {
+        val now = System.currentTimeMillis()
+        val existing = failedLoginAttempts[remoteAddress]
+        if (existing != null) return existing.blockedUntil > now
+        if (failedLoginAttempts.size >= MAX_FAILED_REMOTE_ADDRESSES) {
+            failedLoginAttempts.entries.removeIf { it.value.blockedUntil <= now }
+            if (failedLoginAttempts.size >= MAX_FAILED_REMOTE_ADDRESSES) return true
+        }
+        return false
+    }
 
     private fun recordLoginFailure(remoteAddress: String) {
         val now = System.currentTimeMillis()
