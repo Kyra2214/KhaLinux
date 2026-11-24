@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.khalinux.android.red.RedEvent
 import com.khalinux.android.red.RedEventType
 import com.khalinux.android.red.RedSession
+import com.khalinux.android.red.RedWebPermissionResource
 
 @Composable
 fun BlueScreen(state: BlueUiState, viewModel: BlueViewModel) {
@@ -83,6 +84,9 @@ fun BlueScreen(state: BlueUiState, viewModel: BlueViewModel) {
                                             style = MaterialTheme.typography.bodySmall
                                         )
                                         Text("Origem: ${request.remoteAddress ?: "não identificada"}", style = MaterialTheme.typography.bodySmall)
+                                        Text("Resposta: ${if (request.responseSent) "enviada" else "não confirmada"}", style = MaterialTheme.typography.bodySmall)
+                                        request.rejectionReason?.let { Text("Rejeição: $it", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
+                                        if (request.serverFailure) Text("Falha interna do servidor", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                                         request.safeHeaders.forEach { (name, value) ->
                                             Text("$name: $value", style = MaterialTheme.typography.bodySmall)
                                         }
@@ -103,29 +107,40 @@ fun BlueScreen(state: BlueUiState, viewModel: BlueViewModel) {
                     }
                 }
                 item {
-                    val resourceEventTypes = setOf(
-                        RedEventType.PERMISSION_REQUESTED,
-                        RedEventType.PERMISSION_GRANTED,
-                        RedEventType.PERMISSION_DENIED,
-                        RedEventType.PERMISSION_CANCELLED,
-                        RedEventType.RESOURCE_PREVIEW_STARTED,
-                        RedEventType.RESOURCE_PREVIEW_STOPPED,
-                        RedEventType.FILE_PICKER_OPENED,
-                        RedEventType.FILE_SELECTED
-                    )
-                    val resourceLabels = listOf("câmera", "microfone", "localização", "seletor de arquivos")
-                    val latestResourceEvents = resourceLabels.mapNotNull { resource ->
-                        displayEvents.lastOrNull { it.type in resourceEventTypes && it.detail.contains(resource, ignoreCase = true) }
+                    val latestWebPermissionEvents = enumValues<RedWebPermissionResource>().mapNotNull { resource ->
+                        displayEvents.lastOrNull { it.webPermissionResource == resource }
                             ?.let { resource to it }
                     }
-                    Text("Permissões e recursos observados", style = MaterialTheme.typography.titleMedium)
-                    if (latestResourceEvents.isEmpty()) {
-                        Text("Nenhum pedido ou uso de recurso foi registrado neste cenário.", style = MaterialTheme.typography.bodySmall)
+                    val latestAndroidPermissionEvent = displayEvents.lastOrNull {
+                        it.type in setOf(
+                            RedEventType.ANDROID_PERMISSION_REQUESTED,
+                            RedEventType.ANDROID_PERMISSION_GRANTED,
+                            RedEventType.ANDROID_PERMISSION_DENIED,
+                            RedEventType.ANDROID_PERMISSION_REVOKED
+                        )
+                    }
+                    val latestCookieConsent = displayEvents.lastOrNull { it.type == RedEventType.COOKIE_CONSENT_RECORDED }
+                    Text("Permissões web observadas no navegador B", style = MaterialTheme.typography.titleMedium)
+                    if (latestWebPermissionEvents.isEmpty()) {
+                        Text("Nenhum resultado de permissão web foi recebido nesta sessão.", style = MaterialTheme.typography.bodySmall)
                     } else {
-                        latestResourceEvents.forEach { (resource, event) ->
-                            Text("$resource: ${event.type} · ${event.detail}", style = MaterialTheme.typography.bodySmall)
+                        latestWebPermissionEvents.forEach { (resource, event) ->
+                            Text("$resource: ${event.webPermissionState ?: event.type} · ${event.detail}", style = MaterialTheme.typography.bodySmall)
                         }
                     }
+                    Text("Permissão do aplicativo operador A", style = MaterialTheme.typography.titleSmall)
+                    Text(
+                        latestAndroidPermissionEvent?.let { "${it.type}: ${it.detail}" }
+                            ?: "Nenhum evento de permissão do operador registrado.",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Text("Consentimento de cookies", style = MaterialTheme.typography.titleSmall)
+                    Text(
+                        latestCookieConsent?.let {
+                            "${it.cookieChoice}: análise=${it.cookieAnalytics}, preferências=${it.cookiePreferences}, personalização=${it.cookiePersonalization}"
+                        } ?: "Nenhuma escolha de cookies registrada.",
+                        style = MaterialTheme.typography.bodySmall
+                    )
                 }
                 item {
                     Text("Como se defender neste cenário", style = MaterialTheme.typography.titleMedium)
@@ -164,14 +179,25 @@ private fun defensiveAdvice(type: RedEventType): String = when (type) {
     RedEventType.HOTSPOT_READY -> "A conexão Wi-Fi, por si só, não comprova que o ponto de acesso é legítimo. Confirme a rede com o estabelecimento."
     RedEventType.PORTAL_OPENED -> "A abertura de um portal não autentica a rede nem comprova a identidade de quem a administra."
     RedEventType.HTTP_REQUEST_RECEIVED -> "O servidor recebeu uma requisição HTTP local. HTTP não cifra o conteúdo da comunicação."
+    RedEventType.HTTP_REQUEST_REJECTED -> "A requisição foi rejeitada por uma regra explícita do servidor. Uma rejeição não significa acesso concedido."
+    RedEventType.HTTP_RESPONSE_SENT -> "O servidor enviou uma resposta; confira o status HTTP para distinguir sucesso de erro."
+    RedEventType.HTTP_SERVER_FAILURE -> "Ocorreu uma falha interna do servidor. Não confunda resposta de erro com ação concluída."
+    RedEventType.COOKIE_CONSENT_RECORDED -> "A escolha de cookies registra apenas categorias do portal. Não concede câmera, microfone, localização ou acesso a arquivos."
+    RedEventType.HOTSPOT_INTERFACE_DISCOVERY -> "O Android criou a rede; o operador ainda está identificando a interface e o IPv4 antes de iniciar o portal."
+    RedEventType.ANDROID_PERMISSION_REQUESTED -> "O aplicativo operador solicitou ao Android uma permissão necessária ao hotspot."
+    RedEventType.ANDROID_PERMISSION_GRANTED -> "O Android concedeu a permissão ao aplicativo operador. Isso não concede acesso ao aparelho B."
+    RedEventType.ANDROID_PERMISSION_DENIED -> "O Android negou a permissão ao aplicativo operador; o recurso dependente deve permanecer indisponível."
+    RedEventType.ANDROID_PERMISSION_REVOKED -> "A permissão do aplicativo operador foi revogada nas configurações do Android."
+    RedEventType.WEB_PERMISSION_REQUESTED -> "O navegador solicitou uma permissão web para uma origem específica."
+    RedEventType.WEB_PERMISSION_GRANTED -> "O navegador concedeu a permissão web solicitada para a origem do portal."
+    RedEventType.WEB_PERMISSION_DENIED -> "O navegador negou a permissão web; o recurso não deve ser considerado disponível."
+    RedEventType.WEB_PERMISSION_CANCELLED -> "O pedido de permissão web foi cancelado."
+    RedEventType.WEB_PERMISSION_UNAVAILABLE -> "A API de permissão não estava disponível neste contexto do navegador."
+    RedEventType.WEB_PERMISSION_REVOKED -> "A permissão web deixou de estar concedida; confira as configurações do navegador."
     RedEventType.NAVIGATION -> "Confira a URL e o destino antes de seguir. Uma página familiar não garante que o domínio seja legítimo."
     RedEventType.REDIRECT -> "Redirecionamentos podem levar a destinos inesperados. Verifique a URL final antes de inserir qualquer dado."
     RedEventType.FORM_SUBMITTED -> "O formulário foi enviado ao portal local. Não reutilize senhas pessoais em portais de Wi-Fi."
     RedEventType.FORM_REJECTED -> "O envio foi rejeitado pelo laboratório. Uma falha ou erro não deve ser confundido com acesso liberado."
-    RedEventType.PERMISSION_REQUESTED -> "O aplicativo participante solicitou uma permissão. Leia o diálogo do sistema e avalie a necessidade."
-    RedEventType.PERMISSION_GRANTED -> "A permissão foi concedida no aparelho participante. Revise o acesso e revogue quando não for necessário."
-    RedEventType.PERMISSION_DENIED -> "A solicitação foi negada. O recurso deve permanecer indisponível para aquela função."
-    RedEventType.PERMISSION_CANCELLED -> "A solicitação foi cancelada; não presuma que o recurso foi autorizado."
     RedEventType.FILE_PICKER_OPENED -> "O seletor do sistema permite ao usuário escolher o item, em vez de liberar a biblioteca inteira."
     RedEventType.FILE_SELECTED -> "Antes de compartilhar um arquivo, confirme o destino e o conteúdo escolhido."
     RedEventType.RESOURCE_PREVIEW_STARTED -> "A prévia ocorreu localmente no aparelho participante. O evento recebido não contém o fluxo de mídia."
