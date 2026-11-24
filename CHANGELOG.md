@@ -1,3 +1,12 @@
+## [Não lançado] — RED-02: permissões e capacidades do Android
+
+- O aparelho A solicita ACCESS_FINE_LOCATION e ACCESS_COARSE_LOCATION somente ao iniciar o hotspot, com explicação de finalidade.
+- O estado diferencia concessão precisa/aproximada, recusa, recusa permanente e revogação ao retornar à Activity.
+- Recusa permanente/revogação direciona o operador às Configurações do aplicativo.
+- O KhaLinux não consulta coordenadas nesse fluxo; o resultado do hotspot continua dependente do callback real do Android.
+- B permanece navegador-only e não recebe permissões do Manifest do KhaLinux.
+- Matriz registrada em `docs/red-permissions.md`. Nenhum teste/build/compilação foi executado.
+
 ## [Não lançado] — RED-01: modelo de domínio e estados reais
 
 - Introduzidos modelos tipados para configuração do portal, endpoint iniciado e origem HTTP observada.
