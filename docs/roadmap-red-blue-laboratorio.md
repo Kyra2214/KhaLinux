@@ -2,7 +2,7 @@
 
 **Branch:** `recovery/red-portal-integration`  
 **Escopo:** somente o laboratório com dois aparelhos Android definidos em `AGENTS.md`.  
-**Estado deste roadmap:** RED-00 a RED-06, RED-08 a RED-13 e BLUE-01 têm implementação/documentação preparada; RED-07 permanece parcial: identidade X.509 no Android Keystore, endpoint HTTP restrito para CA pública e inicialização do portal HTTPS foram adicionados; confiança efetiva no navegador, ciclo de vida e acabamento ainda pendentes. A parcela documental/estabilização do RED-14 está concluída; a entrega publicável permanece bloqueada pelos portões finais. Testes, builds, compilação e validações ficam acumulados para a etapa final.
+**Estado deste roadmap:** RED-00 a RED-06, RED-08 a RED-13 e BLUE-01 têm implementação/documentação preparada; RED-07 está implementado em código/documentação e aguarda validação final: identidade X.509 no Android Keystore, preparação HTTP restrita, portal HTTPS, eventos de CA/handshake, sessão Secure e integração das permissões web estão implementados. A parcela documental/estabilização do RED-14 está concluída; a entrega publicável permanece bloqueada pelos portões finais. Testes, builds, compilação e validações ficam acumulados para a etapa final.
 
 Este documento é o plano de execução da Área RED/BLUE nesta branch. O `ROADMAP.md` da raiz continua sendo o roadmap geral do KhaLinux.
 
@@ -18,9 +18,9 @@ O portal participante deverá operar por **HTTPS local**, sem domínio público,
 
 ## Progresso da execução
 
-- **Implementação/documentação RED/BLUE:** 87,5% (14 de 16 submódulos preparados; RED-07 e RED-14 ainda não podem ser fechados integralmente. Validação permanece separada e não iniciada).
+- **Implementação/documentação RED/BLUE:** 93,75% (15 de 16 submódulos preparados; RED-07 implementado, não validado; RED-14 permanece parcial. Validação permanece separada e não iniciada).
 - **Concluídos:** RED-00 — [inventário de baseline](red-baseline-inventory.md); RED-01 — [modelo de domínio](red-domain-model.md); RED-02 — [matriz de permissões](red-permissions.md); RED-03 — [ciclo de vida do hotspot](red-hotspot-lifecycle.md); RED-04 — [servidor HTTP local](red-http-server.md); RED-05 — portal local e aviso de cookies; RED-06 — [eventos e evidências](red-event-evidence.md); RED-08 — integridade da sessão; BLUE-01 — análise defensiva; RED-09 — [histórico, relatório e exportação](red-session-reports.md); RED-10 — [interface do operador](red-operator-interface.md); RED-11 — [segurança e privacidade](red-security-privacy.md); RED-12 — [plano de validação](red-validation-plan.md); RED-13 — [matriz física](red-physical-validation.md).
-- **Parcial:** RED-07 — fluxo e telemetria web existentes ligados ao HTTPS local em `8443`; `RedLocalTlsManager` cria CA/servidor no Android Keystore; `RedTlsPreparationServer` oferece página de preparação em `8080/`, download da CA em `/ca.cer` e health. A exibe URL/fingerprint e registra download da CA e primeiro handshake TLS concluído; relatórios distinguem os dois estados. A chave efêmera do servidor é removida no encerramento. Confiança em diferentes navegadores, ciclo de vida/rotação e acabamento continuam pendentes.
+- **Implementado, não validado:** RED-07 — fluxo de permissões web ligado ao HTTPS local em `8443`; CA/servidor X.509 no Android Keystore; preparação HTTP restrita em `8080/`; download da CA, fingerprint, instruções de instalação, evento de handshake após vínculo do participante, cookie Secure, validação Origin HTTPS, renovação do certificado por sessão/IP e limpeza da chave efêmera do servidor. Compatibilidade real da CA e disponibilidade das APIs ficam para validação final.
 - **RED-14 — documentação/estabilização concluídas; entrega final bloqueada:** notas, matriz de compatibilidade, checklist e comparação da branch atualizados. Revisão integral do diff, validação, APK assinado/hash e PR continuam pendentes.
 - **Estado RED-14:** parcela documental concluída; pendências de entrega registradas em `docs/red-release-checklist.md`.
 - **Validação:** não iniciada nesta execução; todas as atividades de teste/build/compilação ficam para a etapa final.
@@ -283,9 +283,9 @@ Atividades:
 - Evento mínimo sem payload sensível.
 - Revogação e encerramento da sessão.
 
-**Implementação parcial já registrada:** geração de CA e certificado de servidor X.509 com SAN IP usando Android Keystore; `SSLServerSocket` TLS 1.2/1.3 com conjuntos modernos no IPv4 da sessão; endpoint HTTP 8080 com página de preparação, download DER público e health; integração inicial no ViewModel; A exibe URL/fingerprint e registra download da CA e primeiro handshake TLS concluído. O handshake confirma a aceitação daquela conexão pelo cliente, mas não prova disponibilidade/concessão das APIs web.
+**Implementação RED-07 concluída em código:** geração de CA e certificado de servidor X.509 com SAN IP usando Android Keystore; `SSLServerSocket` TLS 1.2/1.3 com conjuntos modernos no IPv4 da sessão; endpoint HTTP 8080 com página de preparação, download DER público e health; portal HTTPS-only em 8443; fingerprint independente; eventos de download e handshake após vínculo da sessão; cookie Secure e validação Origin HTTPS; chave efêmera removida no encerramento. O handshake comprova aceitação daquela conexão pelo cliente, não concessão das APIs web. Validação física/browser permanece pendente.
 
-**Pendências de implementação:** estado explícito de preparação/instalação/confiança; fluxo de orientação de instalação; renovação/rotação quando o IPv4 mudar ou o certificado expirar; limpeza e recuperação de falhas parciais; revisar todos os textos e relatórios legados; confirmar comportamento do key manager/Keystore no hardware alvo na validação final.
+**Validação acumulada:** confirmar confiança da CA no navegador/versão Android alvo, ausência de alerta de certificado, SAN IP correto, handshake observado, prompts reais de cada API, falha segura diante de CA não confiável e encerramento/renovação. Não executar até a fase final.
 
 **Aceite obrigatório:** B permanece navegador-only; HTTPS funciona sem internet; o certificado contém SAN IP correspondente ao endereço acessado; a cadeia é aceita pelo navegador sem alerta; a CA pública é conferida por impressão digital; a chave privada da CA permanece em A; câmera, microfone e localização são solicitados individualmente por ação explícita; A recebe somente estados verificáveis e metadados mínimos. RED-07 não pode ser concluído sem esse aceite.
 
