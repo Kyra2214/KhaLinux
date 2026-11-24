@@ -198,6 +198,32 @@ class RedPortalServer(
                     return
                 }
 
+                if (method == "POST" && path in setOf("/consent", "/login", "/browser-permission")) {
+                    when (authorizeMutation(headers, peer.inetAddress?.hostAddress)) {
+                        AuthorizationResult.AUTHORIZED -> Unit
+                        AuthorizationResult.INVALID_TOKEN -> {
+                            rejectionReason = "invalid_session_token"
+                            respond(403, "Sessão inválida. Reabra o portal pelo endereço informado pelo operador.")
+                            return
+                        }
+                        AuthorizationResult.INVALID_ORIGIN -> {
+                            rejectionReason = "invalid_request_origin"
+                            respond(403, "Origem da solicitação não corresponde ao portal.")
+                            return
+                        }
+                        AuthorizationResult.RATE_LIMITED -> {
+                            rejectionReason = "session_rate_limited"
+                            respond(429, "Muitas tentativas. Aguarde antes de tentar novamente.")
+                            return
+                        }
+                        AuthorizationResult.EXPIRED -> {
+                            rejectionReason = "session_expired"
+                            respond(410, "Sessão do portal expirada. Solicite uma nova sessão ao operador.")
+                            return
+                        }
+                    }
+                }
+
                 contentType = headers["content-type"]
                 if (method == "POST" && path in setOf("/consent", "/login", "/browser-permission") &&
                     contentType?.substringBefore(';')?.trim()
@@ -343,7 +369,13 @@ class RedPortalServer(
                     rejectionReason = "response_too_large"
                     respond(413, "Resposta acima do limite permitido.")
                 } else {
-                    writeResponse(output, status, renderedResponse, contentType = if (path == "/health" || path == "/web-permission") "application/json" else "text/html")
+                    writeResponse(
+                        output,
+                        status,
+                        renderedResponse,
+                        contentType = if (path == "/health") "application/json" else "text/html",
+                        setCookieHeader = if (method == "GET" && status in 200..299) sessionCookieHeader(peer.inetAddress?.hostAddress) else null
+                    )
                     responseSent = true
                 }
                 if (method == "GET" && path == "/") {
@@ -490,7 +522,8 @@ class RedPortalServer(
         output: java.io.OutputStream,
         status: Int,
         body: String,
-        contentType: String = "text/html"
+        contentType: String = "text/html",
+        setCookieHeader: String? = null
     ) {
         val statusText = when (status) {
             200 -> "OK"
@@ -503,6 +536,9 @@ class RedPortalServer(
             414 -> "URI Too Long"
             415 -> "Unsupported Media Type"
             421 -> "Misdirected Request"
+            403 -> "Forbidden"
+            410 -> "Gone"
+            429 -> "Too Many Requests"
             500 -> "Internal Server Error"
             501 -> "Not Implemented"
             else -> "Error"
@@ -516,6 +552,7 @@ class RedPortalServer(
             append("HTTP/1.1 $status $statusText\r\n")
             append("Content-Type: $contentType; charset=utf-8\r\n")
             append("Cache-Control: no-store\r\n")
+            setCookieHeader?.let { append("Set-Cookie: $it\r\n") }
             append("X-Content-Type-Options: nosniff\r\n")
             append("Referrer-Policy: same-origin\r\n")
             append("X-Frame-Options: DENY\r\n")
@@ -786,20 +823,29 @@ class RedPortalServer(
 
     private fun sessionCookieHeader(remoteAddress: String?): String? {
         val token = activeSessionToken ?: return null
-        if (remoteAddress.isNullOrBlank() || sessionOwnerAddress != remoteAddress) return null
-        lastActivityAt = System.currentTimeMillis()
+        if (remoteAddress.isNullOrBlank()) return null
+        synchronized(this) {
+            if (sessionOwnerAddress == null) sessionOwnerAddress = remoteAddress
+            if (sessionOwnerAddress != remoteAddress) return null
+            lastActivityAt = System.currentTimeMillis()
+        }
         return "kl_lab_session=$token; Path=/; HttpOnly; SameSite=Strict; Max-Age=$SESSION_COOKIE_MAX_AGE_SECONDS"
     }
 
     private fun authorizeMutation(headers: Map<String, String>, remoteAddress: String?): AuthorizationResult {
         if (isSessionExpired()) return AuthorizationResult.EXPIRED
         val expectedOrigin = "http://$boundIpv4Address:$boundPort"
-        val origin = headers["origin"]
-        if (!origin.isNullOrBlank() && !origin.equals(expectedOrigin, ignoreCase = true)) {
+        val origin = headers["origin"] ?: headers["referer"]?.let {
+            runCatching { java.net.URI(it).let { uri -> "${uri.scheme}://${uri.rawAuthority}" } }.getOrNull()
+        }
+        if (origin.isNullOrBlank() || !origin.equals(expectedOrigin, ignoreCase = true)) {
             return AuthorizationResult.INVALID_ORIGIN
         }
 
-        val remoteKey = remoteAddress ?: "unknown"
+        if (remoteAddress.isNullOrBlank() || sessionOwnerAddress != remoteAddress) {
+            return AuthorizationResult.INVALID_TOKEN
+        }
+        val remoteKey = remoteAddress
         val now = System.currentTimeMillis()
         val existing = failedSessionAttempts[remoteKey]
         if (existing != null && existing.blockedUntil > now) return AuthorizationResult.RATE_LIMITED
