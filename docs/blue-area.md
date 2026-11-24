@@ -26,8 +26,8 @@ A Área BLUE apresenta a perspectiva defensiva do mesmo laboratório executado p
 - Acesso direto: ausência de login não significa ausência de risco.
 - Links: verificar URL, domínio e destino após redirecionamentos.
 - HTTP: conteúdo não é protegido por TLS; serviços reais devem usar HTTPS válido.
-- Permissões: avaliar necessidade e contexto de cada pedido; recusar quando não fizer sentido. Aceitar cookies não concede permissões web; cada pedido é separado e pode estar indisponível em HTTP local.
-- Permissões web: cada recurso tem solicitação separada e explícita; em HTTP por IP local, o navegador pode marcar as APIs como indisponíveis.
+- Permissões: avaliar necessidade e contexto de cada pedido; recusar quando não fizer sentido. Aceitar cookies não concede permissões web; cada pedido é separado; o portal final usa HTTPS local, enquanto HTTP na porta 8080 serve apenas a CA pública de preparação.
+- Permissões web: cada recurso tem solicitação separada e explícita; sem HTTPS confiável, o navegador pode marcar as APIs como indisponíveis; o endpoint HTTP de preparação não solicita permissões.
 - O portal não abre seletor de arquivos e não recebe mídia, coordenadas ou conteúdo pessoal.
 - Resposta: desconectar, esquecer rede suspeita, revisar permissões e conferir URLs.
 
