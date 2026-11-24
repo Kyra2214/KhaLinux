@@ -496,7 +496,7 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
     fun report(session: RedSession): String {
         val operation = RedCatalog.find(session.operationId)
         val orderedEvents = session.events.sortedBy { it.sequence }
-        val requestEvents = orderedEvents.filter { it.httpMethod != null }
+        val requestEvents = orderedEvents.filter { it.type == RedEventType.HTTP_REQUEST_RECEIVED || (it.type == RedEventType.HTTP_REQUEST_REJECTED && it.httpMethod == "UNKNOWN") }
         val permissionEvents = orderedEvents.filter {
             it.type in setOf(
                 RedEventType.WEB_PERMISSION_REQUESTED,
@@ -531,6 +531,9 @@ class RedViewModel(application: Application) : AndroidViewModel(application) {
                 if (event.httpMethod != null || event.route != null) {
                     appendLine("  - HTTP: ${event.httpMethod ?: "?"} ${event.route ?: "?"} · status ${event.httpStatus ?: "?"} · bytes ${event.bytesReceived ?: "?"}")
                 }
+                event.responseSent?.let { appendLine("  - Resposta HTTP enviada: $it") }
+                event.rejectionReason?.let { appendLine("  - Motivo da rejeição: $it") }
+                if (event.serverFailure == true) appendLine("  - Falha interna do servidor: sim")
                 event.cookieChoice?.let { choice ->
                     appendLine("  - Consentimento de cookies: $choice")
                     appendLine("  - Categorias: análise=${event.cookieAnalytics}, preferências=${event.cookiePreferences}, personalização=${event.cookiePersonalization}")
