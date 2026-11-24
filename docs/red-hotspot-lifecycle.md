@@ -5,7 +5,7 @@
 
 ## API e configuração
 
-- O controlador usa `WifiManager.startLocalOnlyHotspot` e fecha a reserva por `LocalOnlyHotspotReservation.close()`.
+- O controlador usa `WifiManager.startLocalOnlyHotspot` e fecha a reserva por `LocalOnlyHotspotReservation.close()`. O Android pode compartilhar o hotspot com outras reservas de aplicativos; fechar a reserva do KhaLinux não garante que a interface física desapareça se outro app ainda a mantiver.
 - Em Android 11/API 30 ou superior, lê a configuração por `getSoftApConfiguration()`.
 - Em Android 9/API 28 e Android 10/API 29, usa `getWifiConfiguration()` como compatibilidade legada; esse getter foi depreciado a partir da API 30.
 - SSID, passphrase e tipo de segurança são exibidos somente quando a configuração da API os fornece.
