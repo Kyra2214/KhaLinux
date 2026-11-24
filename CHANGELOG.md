@@ -7,6 +7,8 @@
 - ViewModel passou a preparar CA, iniciar a entrega pública e abrir o portal participante HTTPS em `8443`.
 - Cookie de sessão recebe `Secure`; validação de origem acompanha o esquema HTTPS.
 - Tela RED apresenta URL de preparação e impressão digital SHA-256 da CA.
+- Página HTTP de preparação orienta a instalação manual da CA, oferece download do certificado público e repete o fingerprint para conferência independente.
+- A registra separadamente o download da CA e o primeiro handshake TLS concluído pelo navegador; não presume confiança apenas pela instalação do certificado.
 - Dependência Bouncy Castle adicionada para geração X.509.
 - **Parcial:** instalação e confiança da CA pelo navegador, rotação/renovação, estados de confiança, ciclo de vida de falhas e validação final permanecem pendentes.
 - Nenhum teste, build ou compilação foi executado, conforme a regra de implementação contínua.
