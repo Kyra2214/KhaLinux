@@ -396,7 +396,9 @@ class RedPortalServer(
             append("Content-Type: $contentType; charset=utf-8\r\n")
             append("Cache-Control: no-store\r\n")
             append("X-Content-Type-Options: nosniff\r\n")
-            append("Content-Security-Policy: default-src 'self' 'unsafe-inline'; connect-src 'self'; form-action 'self'; frame-ancestors 'none'\r\n")
+            append("Referrer-Policy: same-origin\r\n")
+            append("X-Frame-Options: DENY\r\n")
+            append("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'; form-action 'self'; frame-ancestors 'none'\r\n")
             append("Connection: close\r\n")
             append("Content-Length: ${bytes.size}\r\n\r\n")
         }
