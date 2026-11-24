@@ -227,7 +227,7 @@ Atividades:
 - Definir allowlist de cabeçalhos de baixo risco; excluir Cookie, Set-Cookie, Authorization, Proxy-Authorization e tokens.
 - Distinguir requisição recebida, requisição rejeitada, resposta enviada e falha do servidor.
 - Associar eventos à sessão atual e eliminar dados transitórios ao encerrar.
-- Mostrar contagem de requisições recebidas sem inventar participantes ou clientes.
+- Mostrar contagem de requisições recebidas sem inventar participantes ou clientes.\n- Registrar escolha de cookies por categoria sem registrar valores de cookies.
 - Não inferir que uma conexão Wi-Fi existe só porque uma requisição foi recebida, nem o contrário.
 - Não fazer captura de tráfego geral, sniffing, MITM ou inspeção de outros aplicativos.
 
@@ -480,7 +480,7 @@ Uma fase só recebe o estado correspondente à evidência disponível. “Códig
 5. RED-04 — interface e servidor.
 6. RED-05 — portal.
 7. RED-06 — observabilidade.
-8. RED-07 — modo participante e permissões nativas.
+8. RED-07 — permissões web no navegador do aparelho B.
 9. RED-08 — segurança e ciclo de vida.
 10. BLUE-01 — painel defensivo.
 11. RED-09 — histórico e relatório.
