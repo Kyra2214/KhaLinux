@@ -1,3 +1,13 @@
+## [Não lançado] — RED-11: hardening de segurança e privacidade
+
+- Allowlist de headers persistidos reduzida; User-Agent e Accept-Language removidos.
+- Valores de cabeçalho com caracteres de controle são rejeitados.
+- Limite de endereços remotos em falhas de autenticação evita crescimento ilimitado do mapa de bloqueio.
+- CSP reforçada com object-src/base-uri none; adicionados Cross-Origin-Resource-Policy e X-Permitted-Cross-Domain-Policies.
+- Manifest/documentação alinhados ao papel A operador/B navegador-only; sem permissões CAMERA/RECORD_AUDIO ou armazenamento para B.
+- Checklist de auditoria estática/manual e testes negativos registrados para a fase final; nenhuma auditoria ou teste foi executado agora.
+- Documentação: docs/red-security-privacy.md.
+
 ## [Não lançado] — RED-10: interface do operador e acessibilidade
 
 - RED exibe estados reais de hotspot/servidor/interface/IPv4/participante e só mostra URL/QR após bind confirmado.
